@@ -10,8 +10,6 @@ Declare @sqlstmt nvarchar(512)
 
 SET @password = $(password)
 SET @username = $(username)
-print @username
-print @password
 
 IF NOT EXISTS (SELECT * FROM sys.sysusers WHERE name = @username)
 BEGIN
@@ -22,6 +20,26 @@ END
 EXEC sp_addrolemember N'db_owner', @username
 GO
 
+-- Drop views
+IF EXISTS (select * from sys.views tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'agent_subscriptions' AND sch.name = 'dbo')
+BEGIN
+DROP VIEW [dbo].[agent_subscriptions]
+END
+GO
+
+IF EXISTS (select * from sys.views tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'agent_apiversions' AND sch.name = 'dbo')
+BEGIN
+DROP VIEW [dbo].[agent_apiversions]
+END
+GO
+
+IF EXISTS (select * from sys.views tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'agent_amlworkspaces' AND sch.name = 'dbo')
+BEGIN
+DROP VIEW [dbo].[agent_amlworkspaces]
+END
+GO
+
+-- Drop tables
 
 IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'WebhookWebhookParameters' AND sch.name = 'dbo')
 BEGIN
@@ -53,23 +71,6 @@ DROP TABLE [dbo].[SubscriptionCustomMeterUsages]
 END
 GO
 
-IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'CustomMeterDimensions' AND sch.name = 'dbo')
-BEGIN
-DROP TABLE [dbo].[CustomMeterDimensions]
-END
-GO
-
-IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'CustomMeters' AND sch.name = 'dbo')
-BEGIN
-DROP TABLE [dbo].[CustomMeters]
-END
-GO
-
-IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'TelemetryDataConnectors' AND sch.name = 'dbo')
-BEGIN
-DROP TABLE [dbo].[TelemetryDataConnectors]
-END
-GO
 
 IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'IpAddresses' AND sch.name = 'dbo')
 BEGIN
@@ -125,9 +126,27 @@ DROP TABLE [dbo].[Subscriptions]
 END
 GO
 
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'CustomMeterDimensions' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[CustomMeterDimensions]
+END
+GO
+
 IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'Plans' AND sch.name = 'dbo')
 BEGIN
 DROP TABLE [dbo].[Plans]
+END
+GO
+
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'CustomMeters' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[CustomMeters]
+END
+GO
+
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'TelemetryDataConnectors' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[TelemetryDataConnectors]
 END
 GO
 
@@ -161,7 +180,6 @@ DROP TABLE [dbo].[APIVersions]
 END
 GO
 
-
 IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'Deployments' AND sch.name = 'dbo')
 BEGIN
 DROP TABLE [dbo].[Deployments]
@@ -179,6 +197,19 @@ BEGIN
 DROP TABLE [dbo].[AMLWorkspaces]
 END
 GO
+
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'AIAgents' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[AIAgents]
+END
+GO
+
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'Publishers' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[Publishers]
+END
+GO
+
 
 CREATE TABLE [dbo].[Offers](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
@@ -487,17 +518,18 @@ CREATE TABLE [dbo].[WebhookWebhookParameters](
 	CONSTRAINT FK_WebhookId_WebhookWebhookParameters FOREIGN KEY (WebhookId) REFERENCES Webhooks(Id),
 	CONSTRAINT FK_WebhookParameterId_WebhookWebhookParameters FOREIGN KEY (WebhookParameterId) REFERENCES WebhookParameters(Id)
 )
+GO
 
 CREATE TABLE [dbo].[AMLWorkspaces](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[WorkspaceName] [nvarchar](50) NOT NULL,
-	[Region] [nvarchar](64) NOT NULL,
 	[ResourceId] [nvarchar](max) NOT NULL,
 	[AADApplicationId] [uniqueidentifier] NOT NULL,
-	[AADTenantId] [uniqueidentifier] NULL, -- allow null for backward compatibility
-	[AADApplicationSecrets] [nvarchar](128) NOT NULL,
+	[AADTenantId] [uniqueidentifier] NULL,
+	[AADApplicationSecretName] [nvarchar](128) NOT NULL,
+	[Region] [nvarchar](32) NOT NULL,
 	PRIMARY KEY (Id)
-) ON [PRIMARY]
+)
 GO
 
 CREATE TABLE [dbo].[Products](
@@ -509,7 +541,7 @@ CREATE TABLE [dbo].[Products](
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
 	PRIMARY KEY (Id)
-) ON [PRIMARY]
+)
 GO
 
 CREATE TABLE [dbo].[Deployments](
@@ -520,8 +552,8 @@ CREATE TABLE [dbo].[Deployments](
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
 	PRIMARY KEY (Id),
-	CONSTRAINT FK_productId_Deployments FOREIGN KEY (ProductId) REFERENCES Products(Id)
-) ON [PRIMARY]
+	CONSTRAINT FK_ProductId_Deployments FOREIGN KEY (ProductId) REFERENCES Products(Id)
+)
 GO
 
 CREATE TABLE [dbo].[APIVersions](
@@ -533,61 +565,109 @@ CREATE TABLE [dbo].[APIVersions](
 	[BatchInferenceAPI] [nvarchar](max) NULL,
 	[DeployModelAPI] [nvarchar](max) NULL,
 	[AuthenticationType] [nvarchar](8) NOT NULL,
-	[AuthenticationKey] [nvarchar](64) NULL,
+	[AuthenticationKeySecretName] [nvarchar](256) NULL,
 	[AMLWorkspaceId] [bigint] NULL,
 	[AdvancedSettings] [nvarchar](max) NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
+	[VersionSourceType] [nvarchar](64) NULL,
+	[GitUrl] [nvarchar](max) NULL,
+	[GitPersonalAccessTokenSecretName] [nvarchar](256) NULL,
+	[ProjectFileUrl] [nvarchar](max) NULL,
+	[GitVersion] [nvarchar](max) NULL,
 	PRIMARY KEY (Id),
-	CONSTRAINT FK_deploymentId_APIVersions FOREIGN KEY (DeploymentId) REFERENCES Deployments(Id),
-	-- CONSTRAINT FK_amlworkspaceId_APIVersions FOREIGN KEY (AMLWorkspaceId) REFERENCES AMLWorkspaces(Id)
-) ON [PRIMARY]
+	CONSTRAINT FK_DeploymentId_APIVersions FOREIGN KEY (DeploymentId) REFERENCES Deployments(Id)
+)
 GO
 
 CREATE TABLE [dbo].[APISubscriptions](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[SubscriptionId] [uniqueidentifier] NOT NULL,
 	[DeploymentId] [bigint] NOT NULL,
 	[SubscriptionName] [nvarchar](64) NOT NULL,
 	[userId] [nvarchar](512) NOT NULL,
 	[Status] [nvarchar](32) NULL,
 	[BaseUrl] [nvarchar](max) NULL,
-	[PrimaryKey] [nvarchar](64) NULL,
-	[SecondaryKey] [nvarchar](64) NULL,
+	[PrimaryKeySecretName] [nvarchar](64) NULL,
+	[SecondaryKeySecretName] [nvarchar](64) NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
+	[AgentId] [uniqueidentifier] NULL,
 	PRIMARY KEY (SubscriptionId),
-	CONSTRAINT FK_deploymentId_APISubscriptions FOREIGN KEY (DeploymentId) REFERENCES Deployments(Id)
-) ON [PRIMARY]
+	CONSTRAINT FK_DeploymentId_APISubscriptions FOREIGN KEY (DeploymentId) REFERENCES Deployments(Id)
+)
 GO
 
-CREATE TABLE [dbo].[APISubscriptions_tmp](
-    [Id] [bigint] identity(1,1) NOT NULL,
-	[SubscriptionId] [uniqueidentifier] NOT NULL,
-	[DeploymentId] [bigint] NOT NULL,
-	[SubscriptionName] [nvarchar](64) NOT NULL,
-	[userId] [nvarchar](512) NOT NULL,
-	[Status] [nvarchar](32) NULL,
-	[BaseUrl] [nvarchar](max) NULL,
-	[PrimaryKey] [nvarchar](64) NULL,
-	[SecondaryKey] [nvarchar](64) NULL,
-	[CreatedTime] [datetime2](7) NOT NULL,
-	[LastUpdatedTime] [datetime2](7) NOT NULL,
-	PRIMARY KEY CLUSTERED([SubscriptionId] ASC)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+CREATE TABLE [dbo].[AIAgents](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
+	[AgentId] [uniqueidentifier] NOT NULL,
+	[AgentKeySecretName] [nvarchar](64) NOT NULL,
+	[CreatedBy] [nvarchar](256) NOT NULL,
+	[LastHeartbeatReportedTime] [datetime2](7) NOT NULL,
+	[CreatedTime] [datetime2](7) NULL,
+	[IsSaaSAgent] [bit] NOT NULL,
+	PRIMARY KEY (Id)
+)
 GO
 
-insert into APISubscriptions_tmp select * from APISubscriptions
+CREATE TABLE [dbo].[Publishers](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
+	[PublisherId] [uniqueidentifier] NOT NULL,
+	[ControlPlaneUrl] [nvarchar](max) NOT NULL,
+	PRIMARY KEY (PublisherId)
+)
 GO
 
-drop table apisubscriptions
+Declare @publisherId nvarchar(64)
+Declare @controlPlaneUrl nvarchar(512)
+SET @publisherId = $(publisherId)
+SET @controlPlaneUrl = $(controlPlaneUrl)
+
+INSERT INTO [dbo].[Publishers] VALUES(@publisherId, @controlPlaneUrl)
 GO
 
-EXEC sp_rename 'apisubscriptions_tmp', 'APISubscriptions'
+Declare @agentId nvarchar(64)
+Declare @agentKeySecretName nvarchar(64)
+SET @agentId = $(agentId)
+SET @agentKeySecretName = $(agentKeySecretName)
+
+INSERT INTO [dbo].[AIAgents] VALUES(@agentId, @agentKeySecretName, 'system', getutcdate(), getutcdate(), 1)
 GO
 
-ALTER TABLE [dbo].[APISubscriptions]  WITH CHECK ADD  CONSTRAINT [FK_deploymentId_APISubscriptions] FOREIGN KEY([DeploymentId])
-REFERENCES [dbo].[Deployments] ([Id])
+-- Create Views
+
+CREATE VIEW [dbo].[agent_apiversions]
+AS
+SELECT dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.APIVersions.VersionName, dbo.APIVersions.RealTimePredictAPI, dbo.APIVersions.TrainModelAPI, dbo.APIVersions.BatchInferenceAPI, dbo.APIVersions.DeployModelAPI, dbo.APIVersions.AuthenticationType, dbo.APIVersions.CreatedTime, dbo.APIVersions.LastUpdatedTime, dbo.APIVersions.VersionSourceType, dbo.APIVersions.ProjectFileUrl, 
+          dbo.APIVersions.Id, dbo.APIVersions.AMLWorkspaceId, dbo.Publishers.PublisherId, dbo.APIVersions.AuthenticationKeySecretName, dbo.APISubscriptions.SubscriptionId, dbo.APISubscriptions.AgentId
+FROM   dbo.APIVersions INNER JOIN
+          dbo.Deployments ON dbo.APIVersions.DeploymentId = dbo.Deployments.Id INNER JOIN
+          dbo.Products ON dbo.Deployments.ProductId = dbo.Products.Id INNER JOIN
+          dbo.APISubscriptions ON dbo.Deployments.Id = dbo.APISubscriptions.DeploymentId CROSS JOIN
+          dbo.Publishers
 GO
 
-ALTER TABLE [dbo].[APISubscriptions] CHECK CONSTRAINT [FK_deploymentId_APISubscriptions]
+CREATE VIEW [dbo].[agent_subscriptions]
+AS
+SELECT dbo.APISubscriptions.Id, dbo.APISubscriptions.SubscriptionId, dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.Products.ProductType, dbo.APISubscriptions.userId, dbo.APISubscriptions.SubscriptionName, dbo.APISubscriptions.Status, dbo.Products.HostType, dbo.APISubscriptions.CreatedTime, dbo.APISubscriptions.BaseUrl, dbo.APISubscriptions.PrimaryKeySecretName, dbo.APISubscriptions.SecondaryKeySecretName, 
+          dbo.APISubscriptions.AgentId, dbo.Publishers.PublisherId, 0 AS AMLWorkspaceId, '' AS AMLWorkspaceComputeClusterName, '' AS AMLWorkspaceDeploymentTargetType, '' AS AMLWorkspaceDeploymentClusterName, dbo.Offers.OfferName, dbo.Plans.PlanName
+FROM   dbo.Offers INNER JOIN
+          dbo.Subscriptions ON dbo.Offers.Id = dbo.Subscriptions.OfferId INNER JOIN
+          dbo.Plans ON dbo.Subscriptions.PlanId = dbo.Plans.Id AND dbo.Offers.Id = dbo.Plans.OfferId RIGHT OUTER JOIN
+          dbo.APISubscriptions INNER JOIN
+          dbo.Deployments ON dbo.APISubscriptions.DeploymentId = dbo.Deployments.Id INNER JOIN
+          dbo.Products ON dbo.Deployments.ProductId = dbo.Products.Id ON dbo.Subscriptions.SubscriptionId = dbo.APISubscriptions.SubscriptionId CROSS JOIN
+          dbo.Publishers
+GO
+
+CREATE VIEW [dbo].[agent_amlworkspaces]
+AS
+SELECT Id, WorkspaceName, ResourceId, AADApplicationId, AADTenantId, AADApplicationSecretName, Region, '' AS AADApplicationSecret
+FROM   dbo.AMLWorkspaces
+GO
+
+CREATE VIEW [dbo].[agent_publishers]
+AS
+SELECT dbo.Publishers.*
+FROM   dbo.Publishers
 GO
