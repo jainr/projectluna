@@ -47,12 +47,13 @@ class AzureMLLunaUtils(BaseLunaUtils):
     def GetDeploymentConfig(self, tags, deployment_target=None, aks_cluster=None):
 
         # Read default deployment target and aks cluster info from the config files
-        if not deployment_target:
-            with open(self._luna_config['azureml']['workspace_config']) as file:
-                documents = yaml.full_load(file)
-                deployment_target = documents['deployment_target']
-                if deployment_target == 'aks':
-                    aks_cluster = documents['aks_cluster']
+        
+        workspace_full_path = os.path.join(self._luna_config['azureml']['test_workspace_path'], self._luna_config['azureml']['test_workspace_file_name'])
+        with open(workspace_full_path) as file:
+            documents = json.load(file)
+            deployment_target = documents['DeploymentTarget']
+            if deployment_target == 'aks':
+                aks_cluster = documents['AksCluster']
 
         with open(self._luna_config['deploy_config']) as file:
             documents = yaml.full_load(file)

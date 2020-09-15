@@ -102,10 +102,11 @@ def Init(luna_config_file='luna_config.yml'):
     return luna_config
 
 def GetDeploymentConfig(luna_config, dns_name_label,tags):
-    with open(luna_config['azureml']['workspace_config']) as file:
-        documents = yaml.full_load(file)
-        deployment_target = documents['deployment_target']
-        aks_cluster = documents['aks_cluster']
+    workspace_full_path = os.path.join(luna_config['azureml']['test_workspace_path'], luna_config['azureml']['test_workspace_file_name'])
+    with open(workspace_full_path) as file:
+        documents = json.load(file)
+        deployment_target = documents['DeploymentTarget']
+        aks_cluster = documents['AksCluster']
 
 
     with open(luna_config['deploy_config']) as file:
@@ -142,12 +143,7 @@ def DeployModel():
         ws = experiment.workspace
         model = Model(ws, model_id)
 
-        print(model)
-
         myenv = Environment.from_conda_specification('scoring', luna_config['conda_env'])
-
-        print(luna_config['code']['score'])
-        print(os.getcwd())
 
         inference_config = InferenceConfig(entry_script=luna_config['code']['score'], source_directory = os.getcwd(), environment=myenv)
 
@@ -168,6 +164,12 @@ def RunProject(azureml_workspace, entry_point, experiment_name, parameters, tags
     luna_config = Init()
     if azureml_workspace:
         run_config = RunConfiguration.load(luna_config['azureml']['run_config'])
+
+        workspace_full_path = os.path.join(luna_config['azureml']['test_workspace_path'], luna_config['azureml']['test_workspace_file_name'])
+        with open(workspace_full_path) as file:
+            documents = json.load(file)
+            aml_compute = documents['AmlCompute']
+            run_config.target = aml_compute
 
         arguments = GetPipelineArguments(luna_config['MLproject'], entry_point, parameters)
 

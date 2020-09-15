@@ -81,7 +81,7 @@
 
     [string]$enableV1 = "true",
 
-    [string]$enableV2 = "false",
+    [string]$enableV2 = "true",
 
     [string]$adminTenantId = "common",
 
@@ -445,10 +445,15 @@ New-AzSqlServerFirewallRule -ResourceGroupName $resourceGroupName -ServerName $s
 Write-Host "Execute SQL script to create database user and objects."
 $sqlDatabaseUserName = "lunauser" + $uniqueName
 $sqlDatabaseUsernameVar = "username='" + $sqlDatabaseUserName + "'"
-$sqlDatabasePassword = ([System.Web.Security.Membership]::GeneratePassword(24,5)).Replace("=", "!").Replace(";", "!").Replace("{", "$").Replace("}", "$")
+
+$sqlDatabasePassword = ([System.Web.Security.Membership]::GeneratePassword(24,5))
+# replace characters which are not allowed as password in ODBC connection string
+$reservedChars = "[", "]", "(", ")", ",", ";", "?", "*", "!", "@", "=", "{", "}"
+
+$reservedChars | ForEach-Object -Process {$sqlDatabasePassword = $sqlDatabasePassword.Replace($_, "$")}
 $sqlDatabasePasswordVar = "password='" + $sqlDatabasePassword + "'"
 $publisherIdVar = "publisherId='" + $publisherId + "'"
-$controlPlaneUrl = "https://"+ $apiWebAppName +".azurewebsites.net/api/"
+$controlPlaneUrl = "https://"+ $apiWebAppName +".azurewebsites.net"
 $controlPlaneUrlVar = "controlPlaneUrl='" + $controlPlaneUrl + "'"
 $agentIdVar = "agentId='" + $agentId + "'"
 $agentkeySecretNameVar = "agentKeySecretName='saas-agent-key'"
@@ -473,7 +478,9 @@ Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'storage-key' -SecretValue $
 
 Write-Host "Store SQL connection string to Azure key vault"
 $connectionString = "Server=tcp:" + $sqlServerInstanceName + ",1433;Initial Catalog=" + $sqlDatabaseName + ";Persist Security Info=False;User ID=" + $sqlDatabaseUserName + ";Password='" + $sqlDatabasePassword + "';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-$odbcConnectionString = "Driver={ODBC Driver 17 for SQL Server};Server=tcp:" + $sqlServerInstanceName + ",1433;Database="+$sqlDatabaseName+";Uid="+$sqlDatabaseUserName+";Pwd="+$sqlDatabasePassword+";"
+
+$odbcConnectionString = "mssql+pyodbc://" + $sqlDatabaseUserName + ":" + $sqlDatabasePassword + "@" + $sqlServerInstanceName + ":1433/" + $sqlDatabaseName + "?driver=ODBC+Driver+17+for+SQL+Server"
+Write-Host $odbcConnectionString
 
 $secretvalue = ConvertTo-SecureString $connectionString -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'connection-string' -SecretValue $secretvalue
@@ -552,7 +559,7 @@ az webapp identity assign -g $controllerWebAppResourceGroupName -n $controllerWe
 $setting = 'KEY_VAULT_NAME='+$keyVaultName
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
 az webapp config appsettings set -n $controllerWebAppName --settings AGENT_MODE=SAAS
-$setting = 'ODBC_CONNECTION_STRING='+$odbcConnectionString
+$setting = 'ODBC_CONNECTION_STRING="'+$odbcConnectionString+'"'
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
 $setting = 'AGENT_ID='+$agentId
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
@@ -561,7 +568,11 @@ az webapp config appsettings set -n $controllerWebAppName --settings $setting
 
 Pop-Location
 
+#restart the API app
+Restart-AzWebApp -ResourceGroupName $resourceGroupName -Name $apiWebAppName
+
 #grant key vault access to API app
+Start-Sleep 30
 Write-Host "Grant key vault access to API app"
 GrantKeyVaultAccessToWebApp -resourceGroupName $resourceGroupName -keyVaultName $keyVaultName -webAppName $apiWebAppName
 GrantKeyVaultAccessToWebApp -resourceGroupName $controllerWebAppResourceGroupName -keyVaultName $keyVaultName -webAppName $controllerWebAppName
