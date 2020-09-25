@@ -5,6 +5,10 @@ export interface IProductModel extends IBaseModel {
   productType: string;
   hostType: string;
   owner: string;
+  logoImageUrl: string;
+  description: string;
+  saasOfferName: string;
+  documentationUrl: string;
   createdTime?: string;
   lastUpdatedTime?: string;
   Idlist?: string;
@@ -44,6 +48,7 @@ export interface IDeploymentVersionModel {
   gitVersion:string;
   projectFileUrl:string;
   projectFileContent:string;
+  configFile:string;
 }
 
 export interface IAMLWorkSpaceModel extends IBaseModel{  

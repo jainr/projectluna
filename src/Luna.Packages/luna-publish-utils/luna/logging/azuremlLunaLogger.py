@@ -19,3 +19,5 @@ class AzureMLLunaLogger(BaseLunaLogger):
             run.upload_folder(upload_path, local_path)
         elif os.path.isfile(local_path):
             run.upload_file(upload_path, local_path)
+        else:
+            print("can find the specified path {}".format(local_path))

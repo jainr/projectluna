@@ -3,22 +3,23 @@ from azureml.core import Workspace, Experiment, Model
 from azureml.core.webservice import AksWebservice, Webservice, AciWebservice
 from azureml.pipeline.core import PublishedPipeline
 from azureml.core.authentication import ServicePrincipalAuthentication
-from luna import utils
+from luna.utils import ProjectUtils
 from Agent import key_vault_client
 import json
-from luna import utils
 import tempfile
+import zipfile
 import os
 from Agent.Exception.LunaExceptions import LunaServerException, LunaUserException
 from http import HTTPStatus
 
 class AzureMLUtils(object):
     """The utlitiy class to execute and monitor runs in AML"""
+    _utils=None
     
     def GetOperationNameByVerb(self, verb):
-        if verb == 'train' or verb == 'batchinference' or verb == 'deploy':
+        if verb == 'deploy' or verb == 'batchinference' or verb == 'train':
             return verb
-        return utils.GetOperationNameByVerb(verb)
+        return self._utils.GetOperationNameByVerb(verb)
 
     def GetOperationNameByNoun(self, noun):
         if noun == 'models':
@@ -28,7 +29,7 @@ class AzureMLUtils(object):
         if noun == 'endpoints':
             return 'deploy'
 
-        return utils.GetOperationNameByNoun(noun)
+        return self._utils.GetOperationNameByNoun(noun)
 
     def get_workspace_info_from_resource_id(self, resource_id):
         infoList = resource_id.split('/')
@@ -49,7 +50,8 @@ class AzureMLUtils(object):
         subscriptionId, resourceGroupName, workspaceName = self.get_workspace_info_from_resource_id(workspace.ResourceId)
         ws = Workspace(subscriptionId, resourceGroupName, workspaceName, auth)
         self._workspace = ws
-        
+        self._utils = ProjectUtils(run_mode='azureml')
+
     def get_pipeline_id_from_url(self, url):
         list = url.split('/')
         return list[-1]
@@ -84,7 +86,7 @@ class AzureMLUtils(object):
         experimentName = subscriptionId
         entryPoint = self.GetOperationNameByVerb(operationVerb)
         if entryPoint:
-            run_id = utils.RunProject(azureml_workspace = self._workspace, 
+            run_id = self._utils.RunProject(azureml_workspace = self._workspace, 
                                 entry_point = entryPoint, 
                                 experiment_name = experimentName, 
                                 parameters={'operationId': operationId, 
@@ -102,7 +104,8 @@ class AzureMLUtils(object):
                                         'operationName': entryPoint,
                                         'subscriptionId': subscriptionId,
                                         'predecessorOperationId': predecessorOperationId,
-                                        'operationId': operationId})
+                                        'operationId': operationId},
+                                compute_cluster= computeCluster)
         else:
             raise LunaUserException(HTTPStatus.NOT_FOUND, 'Operation "{}" in not supported in current service.'.format(operationVerb))
         return operationId
@@ -145,7 +148,7 @@ class AzureMLUtils(object):
                 break
         return resultList
 
-    def getOperationOutput(self, operationNoun, operationId, userId, subscriptionId):
+    def getOperationOutput(self, operationNoun, operationId, userId, subscriptionId, downloadFiles = True):
         operationName = self.GetOperationNameByNoun(operationNoun)
 
         if operationName == 'train':
@@ -158,14 +161,14 @@ class AzureMLUtils(object):
             result = {'id': operationId,
                       'description': model.description,
                       'created_time': model.created_time}
-            return result
+            return result, "model"
 
         if operationName == 'deploy':
             
             tags = [['userId', userId], ['endpointId', operationId], ['subscriptionId', subscriptionId]]
             endpoints = Webservice.list(self._workspace, tags = tags)
             if len(endpoints) == 0:
-                return None
+                return None, None
             endpoint = endpoints[0]
             primaryKey, secondaryKey = endpoint.get_keys()
             result = {'id': operationId,
@@ -175,7 +178,7 @@ class AzureMLUtils(object):
                       'primary_key': primaryKey,
                       'secondary_key': secondaryKey}
 
-            return result
+            return result, "endpoint"
         
         tags = {'userId': userId,
                 'operationId': operationId,
@@ -189,15 +192,33 @@ class AzureMLUtils(object):
             run = next(runs)
             child_runs = run.get_children()
             child_run = next(child_runs)
-            outputType = utils.GetOutputType(operationName)
+            outputType = self._utils.GetOutputType(operationName)
             if outputType == 'json':
                 with tempfile.TemporaryDirectory() as tmp:
                     path = os.path.join(tmp, 'output.json')
                     files = child_run.download_file('/outputs/output.json', path)
                     with open(path) as file:
-                        return json.load(file)
+                        return json.load(file), "json"
+            elif outputType == 'file':
+                if downloadFiles:
+                        tmp = tempfile.TemporaryDirectory().name
+                        path = os.path.join(tmp, "outputs")
+                        zip_file_path = os.path.join(tmp, "output_{}.zip".format(operationId))
+                        files = child_run.download_files("/outputs", path, append_prefix=False)
+                        zipf = zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED)
+                        self.zipdir(path, zipf, "outputs")
+                        zipf.close()
+                        return zip_file_path, "file"
+                else:
+                    return "file", "file"
         except StopIteration:
             return None
+
+    def zipdir(self, path, ziph, dir):
+    # ziph is zipfile handle
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                ziph.write(os.path.join(root, file), arcname = os.path.join(dir, file))
 
     def listAllOperationOutputs(self, operationNoun, userId, subscriptionId):
         operationName = self.GetOperationNameByNoun(operationNoun)
@@ -211,9 +232,14 @@ class AzureMLUtils(object):
         while True:
             try:
                 run = next(runs)
-                output = self.getOperationOutput(operationNoun, run.tags["operationId"], userId, subscriptionId)
+                output, outputType = self.getOperationOutput(operationNoun, run.tags["operationId"], userId, subscriptionId, downloadFiles=False)
                 if output:
-                    results.append(output)
+                    if outputType == "model" or outputType == "endpoint":
+                        results.append(output)
+                    elif outputType == "json":
+                        results.append({"operationId": run.tags["operationId"], "output": result})
+                    elif outputType == "file":
+                        results.append({"operationId": run.tags["operationId"], "outputType": "file"})
             except StopIteration:
                 break
         return results

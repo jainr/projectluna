@@ -43,7 +43,8 @@ export const getInitialVersion = (): IDeploymentVersionModel => {
     gitPersonalAccessToken  :'',
     gitVersion:'',
     projectFileUrl:'',
-    projectFileContent:''
+    projectFileContent:'',
+    configFile:'luna_config.yml'
   }
 };
 
@@ -147,11 +148,24 @@ const versionFormValidator: ObjectSchema<IDeploymentVersionModel> = yup.object()
     advancedSettings: yup.string().nullable(true),
     selectedVersionName:yup.string(),
     versionSourceType:yup.string(),
-    gitUrl:yup.string(),
-    gitPersonalAccessToken:yup.string(),
-    gitVersion:yup.string(),
+    gitUrl:yup.mixed()
+    .when('source', {is: (val) => { return val === 'git'}, 
+                then: yup.string().required('Git url is Required'),
+                otherwise: yup.mixed().notRequired()}),
+    gitPersonalAccessToken:yup.mixed()
+    .when('source', {is: (val) => { return val === 'git'}, 
+                then: yup.string().required('Git personal access token is Required'),
+                otherwise: yup.mixed().notRequired()}),
+    gitVersion:yup.mixed()
+    .when('source', {is: (val) => { return val === 'git'}, 
+                then: yup.string().required('Git version is Required'),
+                otherwise: yup.mixed().notRequired()}),
     projectFileUrl:yup.string(),
     projectFileContent:yup.string(),
+    configFile:yup.mixed()
+    .when('source', {is: (val) => { return val === 'git'}, 
+                then: yup.string().required('Config file name is Required'),
+                otherwise: yup.mixed().notRequired()})
   }
 );
 
@@ -183,7 +197,8 @@ export const deleteVersionValidator: ObjectSchema<IDeploymentVersionModel> = yup
         return true;
 
       return value.toLowerCase() === name.toLowerCase();
-    }).required("versionName is a required field")
+    }).required("versionName is a required field"),
+    configFile:yup.string()
   }
 );
 

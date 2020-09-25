@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 
 namespace Luna.Services.Utilities.ExpressionEvaluation
 {
@@ -17,6 +18,7 @@ namespace Luna.Services.Utilities.ExpressionEvaluation
         static public string SubscriptionIdParameterName = "system$$subscriptionId";
         static public string PlanNameParameterName = "system$$planName";
         static public string OperationTypeParameterName = "system$$operationType";
+        static public string SubscriptionNameParameterName = "system$$subscriptionName";
 
         //TODO: should put the list in some better place. Database?
         static public string[] ReservedParameterNames = new string[] { 
@@ -24,7 +26,8 @@ namespace Luna.Services.Utilities.ExpressionEvaluation
             SubscriptionOwnerParameterName, 
             SubscriptionIdParameterName,
             PlanNameParameterName, 
-            OperationTypeParameterName
+            OperationTypeParameterName,
+            SubscriptionNameParameterName
         };
         /// <summary>
         /// The evaluation context

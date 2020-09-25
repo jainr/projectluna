@@ -129,7 +129,7 @@ namespace Luna.Clients.Controller
             batchInferenceWithDefaultModelRequest.experimentName = $"p_{product.Id}_d_{deployment.Id}_s_{apiSubscription.Id}_infer";
             batchInferenceWithDefaultModelRequest.parameterAssignments.userInput = userInput;
             batchInferenceWithDefaultModelRequest.parameterAssignments.operationId = batchInferenceId;
-            batchInferenceWithDefaultModelRequest.tags.userId = apiSubscription.UserId;
+            batchInferenceWithDefaultModelRequest.tags.userId = apiSubscription.Owner;
             batchInferenceWithDefaultModelRequest.tags.productName = product.ProductName;
             batchInferenceWithDefaultModelRequest.tags.deploymentName = deployment.DeploymentName;
             batchInferenceWithDefaultModelRequest.tags.apiVersion = version.VersionName;
@@ -162,7 +162,7 @@ namespace Luna.Clients.Controller
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var getABatchInferenceOperationRequest = new Models.Controller.Backend.GetABatchInferenceOperationRequest();
-            getABatchInferenceOperationRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq inference and tags/userId eq {apiSubscription.UserId} and tags/subscriptionId eq {apiSubscription.SubscriptionId} and tags/operationId eq {operationId.ToString("N")}";
+            getABatchInferenceOperationRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq inference and tags/userId eq {apiSubscription.Owner} and tags/subscriptionId eq {apiSubscription.SubscriptionId} and tags/operationId eq {operationId.ToString("N")}";
 
             request.Content = new StringContent(JsonConvert.SerializeObject(getABatchInferenceOperationRequest));
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -211,7 +211,7 @@ namespace Luna.Clients.Controller
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var listAllInferenceOperationsByUserRequest = new Models.Controller.Backend.ListAllInferenceOperationsByUserRequest();
-            listAllInferenceOperationsByUserRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq inference and tags/userId eq {apiSubscription.UserId} and tags/subscriptionId eq {apiSubscription.SubscriptionId}";
+            listAllInferenceOperationsByUserRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq inference and tags/userId eq {apiSubscription.Owner} and tags/subscriptionId eq {apiSubscription.SubscriptionId}";
 
             request.Content = new StringContent(JsonConvert.SerializeObject(listAllInferenceOperationsByUserRequest));
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -264,12 +264,12 @@ namespace Luna.Clients.Controller
             trainModelRequest.experimentName = $"p_{product.Id}_d_{deployment.Id}_s_{apiSubscription.Id}_train";
             trainModelRequest.parameterAssignments.userInput = userInput;
             trainModelRequest.parameterAssignments.modelId = modelId;
-            trainModelRequest.parameterAssignments.userId = apiSubscription.UserId;
+            trainModelRequest.parameterAssignments.userId = apiSubscription.Owner;
             trainModelRequest.parameterAssignments.productName = product.ProductName;
             trainModelRequest.parameterAssignments.deploymentName = deployment.DeploymentName;
             trainModelRequest.parameterAssignments.apiVersion = version.VersionName;
             trainModelRequest.parameterAssignments.subscriptionId = apiSubscription.SubscriptionId.ToString();
-            trainModelRequest.tags.userId = apiSubscription.UserId;
+            trainModelRequest.tags.userId = apiSubscription.Owner;
             trainModelRequest.tags.productName = product.ProductName;
             trainModelRequest.tags.deploymentName = deployment.DeploymentName;
             trainModelRequest.tags.apiVersion = version.VersionName;
@@ -304,7 +304,7 @@ namespace Luna.Clients.Controller
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var listAllTrainingOperationsByUserRequest = new Models.Controller.Backend.ListAllTrainingOperationsByUserRequest();
-            listAllTrainingOperationsByUserRequest.filter = $"tags/operationType eq training and runType eq azureml.PipelineRun and tags/userId eq {apiSubscription.UserId} and tags/subscriptionId eq {apiSubscription.SubscriptionId}";
+            listAllTrainingOperationsByUserRequest.filter = $"tags/operationType eq training and runType eq azureml.PipelineRun and tags/userId eq {apiSubscription.Owner} and tags/subscriptionId eq {apiSubscription.SubscriptionId}";
 
             request.Content = new StringContent(JsonConvert.SerializeObject(listAllTrainingOperationsByUserRequest));
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -357,7 +357,7 @@ namespace Luna.Clients.Controller
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var getAllTrainingOperationsByModelIdUserRequest = new Models.Controller.Backend.GetATrainingOperationsByModelIdUserRequest();
-            getAllTrainingOperationsByModelIdUserRequest.filter = $"tags/operationType eq training and runType eq azureml.PipelineRun and tags/userId eq {apiSubscription.UserId} and tags/subscriptionId eq {apiSubscription.SubscriptionId} and tags/modelId eq {modelId.ToString("N")}";
+            getAllTrainingOperationsByModelIdUserRequest.filter = $"tags/operationType eq training and runType eq azureml.PipelineRun and tags/userId eq {apiSubscription.Owner} and tags/subscriptionId eq {apiSubscription.SubscriptionId} and tags/modelId eq {modelId.ToString("N")}";
 
             request.Content = new StringContent(JsonConvert.SerializeObject(getAllTrainingOperationsByModelIdUserRequest));
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -400,7 +400,7 @@ namespace Luna.Clients.Controller
         {
             var region = await GetRegion(workspace);
 
-            var requestUrl = $"https://{region}.api.azureml.ms/modelmanagement/v1.0" + workspace.ResourceId + $"/models?tags=userId={apiSubscription.UserId},productName={product.ProductName},deploymentName={deployment.DeploymentName},subscriptionId={apiSubscription.SubscriptionId}&name={modelId.ToString("N")}";
+            var requestUrl = $"https://{region}.api.azureml.ms/modelmanagement/v1.0" + workspace.ResourceId + $"/models?tags=userId={apiSubscription.Owner},productName={product.ProductName},deploymentName={deployment.DeploymentName},subscriptionId={apiSubscription.SubscriptionId}&name={modelId.ToString("N")}";
             var requestUri = new Uri(requestUrl);
             var request = new HttpRequestMessage { RequestUri = requestUri, Method = HttpMethod.Get };
 
@@ -441,7 +441,7 @@ namespace Luna.Clients.Controller
         {
             var region = await GetRegion(workspace);
 
-            var requestUrl = $"https://{region}.api.azureml.ms/modelmanagement/v1.0" + workspace.ResourceId + $"/models?tags=userId={apiSubscription.UserId},productName={product.ProductName},deploymentName={deployment.DeploymentName},subscriptionId={apiSubscription.SubscriptionId}";
+            var requestUrl = $"https://{region}.api.azureml.ms/modelmanagement/v1.0" + workspace.ResourceId + $"/models?tags=userId={apiSubscription.Owner},productName={product.ProductName},deploymentName={deployment.DeploymentName},subscriptionId={apiSubscription.SubscriptionId}";
             //var requestUrl = $"https://{region}.api.azureml.ms/modelmanagement/v1.0" + workspace.ResourceId + $"/models?tags=userId=xiwu@microsoft.com,productName=eddi,deploymentName=westus,subscriptionId=a6c2a7cc-d67e-4a1a-b765-983f08c0423a";
             var requestUri = new Uri(requestUrl);
             var request = new HttpRequestMessage { RequestUri = requestUri, Method = HttpMethod.Get };
@@ -516,7 +516,7 @@ namespace Luna.Clients.Controller
             batchInferenceRequest.parameterAssignments.userInput = userInput;
             batchInferenceRequest.parameterAssignments.modelId = modelId;
             batchInferenceRequest.parameterAssignments.operationId = operationId;
-            batchInferenceRequest.tags.userId = apiSubscription.UserId;
+            batchInferenceRequest.tags.userId = apiSubscription.Owner;
             batchInferenceRequest.tags.productName = product.ProductName;
             batchInferenceRequest.tags.deploymentName = deployment.DeploymentName;
             batchInferenceRequest.tags.apiVersion = version.VersionName;
@@ -550,7 +550,7 @@ namespace Luna.Clients.Controller
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var getABatchInferenceOperationRequest = new Models.Controller.Backend.GetABatchInferenceOperationRequest();
-            getABatchInferenceOperationRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq inference and tags/userId eq {apiSubscription.UserId} and tags/subscriptionId eq {apiSubscription.SubscriptionId} and tags/operationId eq {operationId.ToString("N")}";
+            getABatchInferenceOperationRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq inference and tags/userId eq {apiSubscription.Owner} and tags/subscriptionId eq {apiSubscription.SubscriptionId} and tags/operationId eq {operationId.ToString("N")}";
 
             request.Content = new StringContent(JsonConvert.SerializeObject(getABatchInferenceOperationRequest));
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -600,7 +600,7 @@ namespace Luna.Clients.Controller
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var listAllInferenceOperationsByUserRequest = new Models.Controller.Backend.ListAllInferenceOperationsByUserRequest();
-            listAllInferenceOperationsByUserRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq inference and tags/userId eq {apiSubscription.UserId} and tags/subscriptionId eq {apiSubscription.SubscriptionId}";
+            listAllInferenceOperationsByUserRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq inference and tags/userId eq {apiSubscription.Owner} and tags/subscriptionId eq {apiSubscription.SubscriptionId}";
 
             request.Content = new StringContent(JsonConvert.SerializeObject(listAllInferenceOperationsByUserRequest));
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -656,12 +656,12 @@ namespace Luna.Clients.Controller
             deployRealTimePredictionEndpointRequest.parameterAssignments.userInput = userInput;
             deployRealTimePredictionEndpointRequest.parameterAssignments.endpointId = endpointId;
             deployRealTimePredictionEndpointRequest.parameterAssignments.modelId = modelId.ToString("N");
-            deployRealTimePredictionEndpointRequest.parameterAssignments.userId = apiSubscription.UserId;
+            deployRealTimePredictionEndpointRequest.parameterAssignments.userId = apiSubscription.Owner;
             deployRealTimePredictionEndpointRequest.parameterAssignments.productName = product.ProductName;
             deployRealTimePredictionEndpointRequest.parameterAssignments.deploymentName = deployment.DeploymentName;
             deployRealTimePredictionEndpointRequest.parameterAssignments.apiVersion = version.VersionName;
             deployRealTimePredictionEndpointRequest.parameterAssignments.subscriptionId = apiSubscription.SubscriptionId.ToString();
-            deployRealTimePredictionEndpointRequest.tags.userId = apiSubscription.UserId;
+            deployRealTimePredictionEndpointRequest.tags.userId = apiSubscription.Owner;
             deployRealTimePredictionEndpointRequest.tags.productName = product.ProductName;
             deployRealTimePredictionEndpointRequest.tags.deploymentName = deployment.DeploymentName;
             deployRealTimePredictionEndpointRequest.tags.apiVersion = version.VersionName;
@@ -696,7 +696,7 @@ namespace Luna.Clients.Controller
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var getAllDeployOperationsByEndpointIdUserRequest = new Models.Controller.Backend.GetADeployOperationByEndpointIdUserRequest();
-            getAllDeployOperationsByEndpointIdUserRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq deployment and tags/userId eq {apiSubscription.UserId} and tags/subscriptionId eq {apiSubscription.SubscriptionId} and tags/endpointId eq {endpointId.ToString("N")}";
+            getAllDeployOperationsByEndpointIdUserRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq deployment and tags/userId eq {apiSubscription.Owner} and tags/subscriptionId eq {apiSubscription.SubscriptionId} and tags/endpointId eq {endpointId.ToString("N")}";
 
             request.Content = new StringContent(JsonConvert.SerializeObject(getAllDeployOperationsByEndpointIdUserRequest));
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -747,7 +747,7 @@ namespace Luna.Clients.Controller
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var listAllDeployOperationsByUserRequest = new Models.Controller.Backend.ListAllDeployOperationsByUserRequest();
-            listAllDeployOperationsByUserRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq deployment and tags/userId eq {apiSubscription.UserId} and tags/subscriptionId eq {apiSubscription.SubscriptionId}";
+            listAllDeployOperationsByUserRequest.filter = $"runType eq azureml.PipelineRun and tags/operationType eq deployment and tags/userId eq {apiSubscription.Owner} and tags/subscriptionId eq {apiSubscription.SubscriptionId}";
 
             request.Content = new StringContent(JsonConvert.SerializeObject(listAllDeployOperationsByUserRequest));
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -820,7 +820,7 @@ namespace Luna.Clients.Controller
         {
             var region = await GetRegion(workspace);
 
-            var requestUrl = $"https://{region}.api.azureml.ms/modelmanagement/v1.0" + workspace.ResourceId + $"/services?tags=userId={apiSubscription.UserId},productName={product.ProductName},deploymentName={deployment.DeploymentName},subscriptionId={apiSubscription.SubscriptionId}";
+            var requestUrl = $"https://{region}.api.azureml.ms/modelmanagement/v1.0" + workspace.ResourceId + $"/services?tags=userId={apiSubscription.Owner},productName={product.ProductName},deploymentName={deployment.DeploymentName},subscriptionId={apiSubscription.SubscriptionId}";
             var requestUri = new Uri(requestUrl);
             var request = new HttpRequestMessage { RequestUri = requestUri, Method = HttpMethod.Get };
 
@@ -869,7 +869,7 @@ namespace Luna.Clients.Controller
         {
             var region = await GetRegion(workspace);
 
-            var requestUrl = $"https://{region}.api.azureml.ms/modelmanagement/v1.0" + workspace.ResourceId + $"/services?tags=userId={apiSubscription.UserId},productName={product.ProductName},deploymentName={deployment.DeploymentName},subscriptionId={apiSubscription.SubscriptionId}&name={endpointId.ToString("N")}";
+            var requestUrl = $"https://{region}.api.azureml.ms/modelmanagement/v1.0" + workspace.ResourceId + $"/services?tags=userId={apiSubscription.Owner},productName={product.ProductName},deploymentName={deployment.DeploymentName},subscriptionId={apiSubscription.SubscriptionId}&name={endpointId.ToString("N")}";
             var requestUri = new Uri(requestUrl);
             var request = new HttpRequestMessage { RequestUri = requestUri, Method = HttpMethod.Get };
 

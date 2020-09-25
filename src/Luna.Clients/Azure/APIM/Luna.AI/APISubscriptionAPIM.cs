@@ -73,7 +73,7 @@ namespace Luna.Clients.Azure.APIM
             Models.Azure.APISubscription subscriptionAPIM = new Models.Azure.APISubscription();
             subscriptionAPIM.name = subscription.SubscriptionId.ToString();
             subscriptionAPIM.properties.scope = _productAPIM.GetAPIMRESTAPIPath(subscription.ProductName);
-            subscriptionAPIM.properties.ownerId = _userAPIM.GetAPIMRESTAPIPath(subscription.UserId);
+            subscriptionAPIM.properties.ownerId = _userAPIM.GetAPIMRESTAPIPath(subscription.Owner);
             subscriptionAPIM.properties.state = Models.Azure.SubscriptionStatus.GetState(subscription.Status);
             return subscriptionAPIM;
         }

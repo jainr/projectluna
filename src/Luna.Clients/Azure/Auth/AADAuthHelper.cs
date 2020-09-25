@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -44,6 +45,17 @@ namespace Luna.Clients.Azure.Auth
                 string message = $"The 'scope' claim does not contain scopes '{string.Join(",", acceptedScopes)}' or was not found";
                 throw new HttpRequestException(message);
             }
+        }
+
+        public static bool VerifyUserFromJwtToken(string userName, string validatedUserName, ILogger logger)
+        {
+            if (!userName.Equals(validatedUserName, StringComparison.InvariantCultureIgnoreCase))
+            {
+                logger.LogInformation($"The current user name {userName} doesn't match the user name in JWT token {validatedUserName}.");
+                return false;
+            }
+
+            return true;
         }
 
         public static void VerifyUserAccess(HttpContext context, ILogger logger, bool adminOnly, string subscriptionOwner = "")
@@ -92,7 +104,7 @@ namespace Luna.Clients.Azure.Auth
 
             if (AdminList.Length > 0)
             {
-                string userAccount = context.User.Identity.Name;
+                string userAccount = GetUserAccount(context);
                 if (!AdminList.Contains(userAccount))
                 {
                     logger.LogInformation($"The user account {userAccount} is not in the admin account list.");
@@ -103,9 +115,20 @@ namespace Luna.Clients.Azure.Auth
             return true;
         }
 
-        public static bool VerifyUserOwnsSubscription(HttpContext context, string subscriptionOwner, ILogger logger)
+        public static string GetUserAccount(HttpContext context)
         {
             string userAccount = context.User.Identity.Name;
+            if (userAccount == null)
+            {
+                return context.User.FindFirst("preferred_username").Value;
+            }
+
+            return userAccount;
+        }
+
+        public static bool VerifyUserOwnsSubscription(HttpContext context, string subscriptionOwner, ILogger logger)
+        {
+            string userAccount = GetUserAccount(context);
             if (!userAccount.Equals(subscriptionOwner, StringComparison.InvariantCultureIgnoreCase))
             {
                 logger.LogInformation($"The user account {userAccount} doesn't match the subscription owner account {subscriptionOwner}.");

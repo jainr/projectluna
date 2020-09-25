@@ -59,7 +59,7 @@ namespace Luna.Services.Data.Luna.AI
             var subscriptionList = await _context.APISubscriptions.ToListAsync();
 
             List<APISubscription> apiSubscriptions = subscriptionList.Where(s => (status == null || status.Contains(s.Status)) &&
-        (string.IsNullOrEmpty(owner) || s.UserId.Equals(owner, StringComparison.InvariantCultureIgnoreCase))).ToList();
+        (string.IsNullOrEmpty(owner) || s.Owner.Equals(owner, StringComparison.InvariantCultureIgnoreCase))).ToList();
 
 
             foreach (var apiSubscription in apiSubscriptions)
@@ -153,6 +153,18 @@ namespace Luna.Services.Data.Luna.AI
 
             apiSubscription.BaseUrl = _options.CurrentValue.Config.ControllerBaseUrl;
 
+            // backward compat
+            if (string.IsNullOrEmpty(apiSubscription.ProductName))
+            {
+                apiSubscription.ProductName = apiSubscription.OfferName;
+            }
+
+            // backward compat
+            if (string.IsNullOrEmpty(apiSubscription.DeploymentName))
+            {
+                apiSubscription.DeploymentName = apiSubscription.PlanName;
+            }
+
             var deployment = await _deploymentService.GetAsync(apiSubscription.ProductName, apiSubscription.DeploymentName);
             // Check if deployment exists
             if (deployment is null)
@@ -210,7 +222,7 @@ namespace Luna.Services.Data.Luna.AI
 
             // Get the apiSubscription that matches the apiSubscriptionId provided
             var apiSubscriptionDb = await GetAsync(apiSubscriptionId);
-            if (!string.IsNullOrEmpty(apiSubscription.UserId) && !apiSubscriptionDb.UserId.Equals(apiSubscription.UserId, StringComparison.InvariantCultureIgnoreCase))
+            if (!string.IsNullOrEmpty(apiSubscription.Owner) && !apiSubscriptionDb.Owner.Equals(apiSubscription.Owner, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new LunaBadRequestUserException("Owner name of an existing apiSubscription can not be changed.", UserErrorCode.InvalidParameter);
             }

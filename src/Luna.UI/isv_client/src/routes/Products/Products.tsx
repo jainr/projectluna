@@ -89,59 +89,137 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
           root: {}
         }}
       >
+        
+        <table>
+              <tbody>
         <DisplayErrors errors={errors} />
         {isNew &&
           <React.Fragment>
-            <Stack className={"form_row"}>
-              <FormLabel title={"Id:"} toolTip={ProductMessages.product.ProductId} />
-              <input type="hidden" name={'product.Idlist'} value={getidlist()} />
-              <TextField
-                name={'product.productName'}
-                value={values.product.productName}
-                maxLength={50}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                errorMessage={getProductFormErrorString(touched, errors, 'productName', dirty)}
-                placeholder={'ID'}
-                className={textboxClassName} />
-            </Stack>
+                <tr>
+                  <td>
+                    <Stack className={"form_row"}>
+                      <FormLabel title={"Id:"} toolTip={ProductMessages.product.ProductId} />
+                      <input type="hidden" name={'product.Idlist'} value={getidlist()} />
+                      <TextField
+                        name={'product.productName'}
+                        value={values.product.productName}
+                        maxLength={50}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'productName', dirty)}
+                        placeholder={'ID'}
+                        className={textboxClassName} />
+                    </Stack>
+                  </td>
+                  <td>
+                    <Stack className={"form_row"}>
+                      <FormLabel title={"Owner:"} toolTip={ProductMessages.product.Owner} />
+                      <TextField
+                        name={'product.owner'}
+                        value={values.product.owner}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'owner', dirty)}
+                        placeholder={'Owner'}
+                        className={textboxClassName} />
+                    </Stack>
+                  </td>
+                </tr>
           </React.Fragment>
         }
-        <Stack className={"form_row"}>
-          <FormLabel title={"Product Type:"} toolTip={ProductMessages.product.ProductType} />
-          <Dropdown
-            options={productTypes}
-            id={`product.productType`} onBlur={handleBlur}
-            onChange={(event, option, index) => {
-              selectOnChange(`product.productType`, event, option, index)
-            }}
-            errorMessage={getProductFormErrorString(touched, errors, 'productType', dirty)}
-            defaultSelectedKey={values.product.productType}
-          />
-        </Stack>
-        <Stack className={"form_row"}>
-          <FormLabel title={"Host-Type:"} toolTip={ProductMessages.product.HostType} />
-          <Dropdown
-            options={hostTypes}
-            id={`product.hostType`} onBlur={handleBlur}
-            onChange={(event, option, index) => {
-              selectOnChange(`product.hostType`, event, option, index)
-            }}
-            errorMessage={getProductFormErrorString(touched, errors, 'hostType', dirty)}
-            defaultSelectedKey={values.product.productType}
-          />
-        </Stack>
-        <Stack className={"form_row"}>
-          <FormLabel title={"Owner:"} toolTip={ProductMessages.product.Owner} />
-          <TextField
-            name={'product.owner'}
-            value={values.product.owner}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            errorMessage={getProductFormErrorString(touched, errors, 'owner', dirty)}
-            placeholder={'Owner'}
-            className={textboxClassName} />
-        </Stack>
+
+            <tr>
+              <td>
+                <Stack className={"form_row"}>
+                  <FormLabel title={"Create AI service from:"} toolTip={ProductMessages.product.ProductType} />
+                  <Dropdown
+                    options={productTypes}
+                    id={`product.productType`} onBlur={handleBlur}
+                    onChange={(event, option, index) => {
+                      selectOnChange(`product.productType`, event, option, index)
+                    }}
+                    errorMessage={getProductFormErrorString(touched, errors, 'productType', dirty)}
+                    defaultSelectedKey={values.product.productType}
+                  />
+                </Stack>
+              </td>
+              <td>
+                <Stack className={"form_row"}>
+                  <FormLabel title={"Host Type:"} toolTip={ProductMessages.product.HostType} />
+                  <Dropdown
+                    options={hostTypes}
+                    id={`product.hostType`} onBlur={handleBlur}
+                    onChange={(event, option, index) => {
+                      selectOnChange(`product.hostType`, event, option, index)
+                    }}
+                    errorMessage={getProductFormErrorString(touched, errors, 'hostType', dirty)}
+                    defaultSelectedKey={values.product.productType}
+                  />
+                </Stack>
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={2}>
+              <Stack className={"form_row"}>
+                      <FormLabel title={"Description (120 characters max):"} toolTip={ProductMessages.product.Description} />
+                      <TextField
+                        name={'product.description'}
+                        value={values.product.description}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'description', dirty)}
+                        placeholder={'description'}
+                        style={ {width: "100%"} } />
+                    </Stack>
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={2}>
+              <Stack className={"form_row"}> 
+                      <FormLabel title={"Logo image Url (90px x 90px):"} toolTip={ProductMessages.product.LogoImageUrl} />
+                      <TextField
+                        name={'product.logoImageUrl'}
+                        style={ {width: "100%"} }
+                        value={values.product.logoImageUrl}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'logoImageUrl', dirty)}
+                        placeholder={'logo image url'} />
+                    </Stack>
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={2}>
+              <Stack className={"form_row"}> 
+                      <FormLabel title={"Documentation Url:"} toolTip={ProductMessages.product.DocumentationUrl} />
+                      <TextField
+                        name={'product.documentationUrl'}
+                        style={ {width: "100%"} }
+                        value={values.product.documentationUrl}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'documentationUrl', dirty)}
+                        placeholder={'documentation url'} />
+                    </Stack>
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={2}>
+              <Stack className={"form_row"}>
+                      <FormLabel title={"SaaS offer name (leave empty if you don't want to create SaaS offer):"} toolTip={ProductMessages.product.SaaSOfferName} />
+                      <TextField
+                        name={'product.saasOfferName'}
+                        value={values.product.saasOfferName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'saasOfferName', dirty)}
+                        placeholder={'SaaS offer Name'}
+                        className={textboxClassName} />
+                    </Stack>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </Stack>
     </form>
   );
@@ -243,13 +321,13 @@ const Products: React.FunctionComponent = () => {
                 <span style={{ width: 200 }}>{value.productName}</span>
               </td>
               <td>
-                <span style={{ width: 200 }}>{value.productType}</span>
+                <span style={{ width: 200 }}>{value.productType == "RTP"?"Model Service Endpoint":"Machine Learning Project"}</span>
               </td>
               <td>
-                <span style={{ width: 200 }}>{value.hostType}</span>
+                <span style={{ width: 100 }}>{value.hostType == "SaaS"?"SaaS": "Selfhost"}</span>
               </td>
               <td>
-                <span style={{ width: 200 }}>{value.owner}</span>
+                <span style={{ width: 300 }}>{value.description}</span>
               </td>
               <td>
                 <Stack
@@ -348,17 +426,17 @@ const Products: React.FunctionComponent = () => {
             }
           }}
         >
-          <PrimaryButton text={"New Product"} onClick={handleNewProduct} />
+          <PrimaryButton text={"New AI Service"} onClick={handleNewProduct} />
 
           <PrimaryButton text={"Copy Luna webhook URL"} style={{ left: '15%', bottom: '50%' }} onClick={showLunaWebhookUrlv2Dialog}/>
         </Stack>
         <table className="noborder offergrid" style={{ marginTop: 20, width: '100%' }} cellPadding={5} cellSpacing={0}>
           <thead>
             <tr style={{ fontWeight: 'normal' }}>
-              <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Product ID"} /></th>
-              <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Product Type"} /></th>
-              <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Host Type"} /></th>
-              <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Owner"} /></th>
+              <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"AI Service ID"} /></th>
+              <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Created From"} /></th>
+              <th style={{ width: 100, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Host Type"} /></th>
+              <th style={{ width: 300, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Description"} /></th>
               <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Operations"} /></th>
             </tr>
           </thead>
@@ -391,14 +469,14 @@ const Products: React.FunctionComponent = () => {
 
           },
           type: DialogType.normal,
-          title: 'New Product'
+          title: 'New AI Service'
         }}
         modalProps={{
           isBlocking: true,
           styles: {
 
             main: {
-              minWidth: 440
+              minWidth: '40% !important'
             }
           }
         }}

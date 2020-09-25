@@ -35,7 +35,11 @@ export const ProductMessages =
         ProductId: '',
         ProductType: '',
         HostType: '',
-        Owner: ''
+        Owner: '',
+        LogoImageUrl: '',
+        Description: '',
+        SaaSOfferName: '',
+        DocumentationUrl: ''
     },
     deployment: {
         DeploymentName: '',

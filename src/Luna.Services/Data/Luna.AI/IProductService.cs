@@ -24,6 +24,13 @@ namespace Luna.Services.Data
         Task<Product> GetAsync(string productName);
 
         /// <summary>
+        /// Gets a product by offer name
+        /// </summary>
+        /// <param name="offerId">The offer id</param>
+        /// <returns></returns>
+        Task<Product> GetByOfferNameAsync(long offerId);
+
+        /// <summary>
         /// Creates an product.
         /// </summary>
         /// <param name="product">The product to create.</param>

@@ -44,7 +44,7 @@ const Header: React.FunctionComponent = () => {
           }
         }}
       >        
-        <Image src={logo} onClick={() => {history.push(WebRoute.Offers)}} style={{cursor: 'pointer',height: '57px' }} />
+        <Image src={logo} onClick={() => {history.push(WebRoute.Products)}} style={{cursor: 'pointer',height: '57px' }} />
       </Stack>
       <div className={'header-logo-separator'}></div>
       <span className={'isv_title'} style={{textAlign:"left",marginLeft:27,flexGrow:1}}>

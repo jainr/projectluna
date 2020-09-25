@@ -18,6 +18,7 @@ namespace Luna.Services.Data.Luna.AI
     {
         private readonly ISqlDbContext _context;
         private readonly IProductService _productService;
+        private readonly IPlanService _planService;
         private readonly ILogger<DeploymentService> _logger;
 
         /// <summary>
@@ -28,10 +29,11 @@ namespace Luna.Services.Data.Luna.AI
         /// <param name="logger">The logger.</param>
         /// <param name="apiVersionSetAPIM">The apim service.</param>
         /// <param name="apiVersionAPIM">The apim service.</param>
-        public DeploymentService(ISqlDbContext sqlDbContext, IProductService productService, ILogger<DeploymentService> logger)
+        public DeploymentService(ISqlDbContext sqlDbContext, IProductService productService, IPlanService planService, ILogger<DeploymentService> logger)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
+            _planService = planService ?? throw new ArgumentNullException(nameof(planService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -134,6 +136,21 @@ namespace Luna.Services.Data.Luna.AI
 
             // Add deployment to db
             _context.Deployments.Add(deployment);
+
+            // Create SaaS plan if SaaS offer is associated with the product
+            if (product.OfferId != null)
+            {
+                Plan plan = new Plan();
+                plan.OfferId = product.OfferId.GetValueOrDefault();
+                plan.PlanName = deployment.DeploymentName;
+                plan.PriceModel = "flatRate";
+                plan.SubscribeWebhookName = "subscribeAIService";
+                plan.UnsubscribeWebhookName = "unsubscribeAIService";
+                plan.SuspendWebhookName = "suspendAIService";
+
+                await _planService.CreateAsync(product.SaaSOfferName, plan);
+            }
+
             await _context._SaveChangesAsync();
             _logger.LogInformation(LoggingUtils.ComposeResourceCreatedMessage(typeof(Deployment).Name, deployment.DeploymentName));
 

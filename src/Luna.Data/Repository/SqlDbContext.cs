@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Luna.Data.Entities;
+using Luna.Data.Entities.Luna.AI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -44,6 +45,8 @@ namespace Luna.Data.Repository
 
         public DbSet<AgentSubscription> AgentSubscriptions { get; set; }
         public DbSet<AgentAPIVersion> AgentAPIVersions { get; set; }
+
+        public DbSet<Publisher> Publishers { get; set; }
 
         // Wrappers for DbContext methods that are used
         public async Task<int> _SaveChangesAsync()

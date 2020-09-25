@@ -51,8 +51,9 @@ class AzureMLLunaUtils(BaseLunaUtils):
         workspace_full_path = os.path.join(self._luna_config['azureml']['test_workspace_path'], self._luna_config['azureml']['test_workspace_file_name'])
         with open(workspace_full_path) as file:
             documents = json.load(file)
-            deployment_target = documents['DeploymentTarget']
-            if deployment_target == 'aks':
+            if not deployment_target:
+                deployment_target = documents['DeploymentTarget']
+            if not aks_cluster and deployment_target == 'aks':
                 aks_cluster = documents['AksCluster']
 
         with open(self._luna_config['deploy_config']) as file:
@@ -71,13 +72,13 @@ class AzureMLLunaUtils(BaseLunaUtils):
             deployment_config.tags = tags
         return deployment_config
 
-    def DeployModel(self):
+    def DeployModel(self, deployment_target=None, aks_cluster=None):
         
         ws = self.GetAMLWorkspace()
         model = Model(ws, self._args.predecessorOperationId)
         myenv = Environment.from_conda_specification('scoring', self.luna_config['conda_env'])
 
-        inference_config = InferenceConfig(entry_script=self.luna_config['code']['score'], source_directory = os.getcwd(), environment=myenv)
+        inference_config = InferenceConfig(entry_script=self.luna_config['code']['inference_entry_script'], source_directory = os.getcwd(), environment=myenv)
 
         deployment_config = self.GetDeploymentConfig(
             tags={'userId': self._args.userId, 
@@ -86,9 +87,11 @@ class AzureMLLunaUtils(BaseLunaUtils):
                 'apiVersion':self._args.apiVersion,
                 'subscriptionId':self._args.subscriptionId,
                 'modelId': self._args.predecessorOperationId,
-                'endpointId': self._args.operationId})
+                'endpointId': self._args.operationId},
+                deployment_target=deployment_target,
+                aks_cluster=aks_cluster)
         
-        service = Model.deploy(ws, self._args.predecessorOperationId, [model], inference_config, deployment_config)
+        service = Model.deploy(ws, self._args.operationId, [model], inference_config, deployment_config)
         service.wait_for_deployment(show_output = True)
 
     def DownloadModel(self, model_path=""):
@@ -109,25 +112,47 @@ class AzureMLLunaUtils(BaseLunaUtils):
               'operationId': self._args.predecessorOperationId}
 
         runs = experiment.get_runs(type='azureml.PipelineRun', tags=tags)
-        return next(runs)
+        try:
+            return next(runs)
+        except StopIteration:
+            return None
 
     def GetJsonOutputFromPredecessorRun(self):
         """
         Get JSON output from predecessor run
+        Return None if the run is not found
         """
         predecessorRun = self.FindPredecessorRun()
-        with tempfile.TemporaryDirectory() as tmp:
-            path = os.path.join(tmp, self._args.predecessorOperationId, 'output.json')
-            predecessorRun.download_file('/outputs/output.json', path)
-            with open(path) as file:
-                return json.load(file)
-    
+        if predecessorRun:
+            with tempfile.TemporaryDirectory() as tmp:
+                path = os.path.join(tmp, self._args.predecessorOperationId, 'output.json')
+                predecessorRun.download_file('/outputs/output.json', path)
+                with open(path) as file:
+                    return json.load(file)
+
+        return None
+
     def DownloadOutputFilesFromPredecessorRun(self, targetFolder):
         """
         Download output files from predecessor run
+        Return all file names if the run is found. Otherwise, return None
         """
         predecessorRun = self.FindPredecessorRun()
-        predecessorRun.download_files(prefix = 'outputs', output_directory='targetFolder')
+        if predecessorRun:
+            childRuns = predecessorRun.get_children()
+            try:
+                childRun = next(childRuns)
+            except StopIteration:
+                return None
+
+            if not os.path.exists(targetFolder):
+                os.makedirs(targetFolder)
+            childRun.download_files(prefix = 'outputs', output_directory=targetFolder, append_prefix=False)
+            files = childRun.get_file_names()
+            return [file for file in files if file.startswith("outputs/")]
+        
+        return None
+        
 
     def WriteJsonOutput(self, content):
         """

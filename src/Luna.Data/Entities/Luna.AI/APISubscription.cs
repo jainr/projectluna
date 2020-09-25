@@ -18,6 +18,16 @@ namespace Luna.Data.Entities
         {
         }
 
+        public APISubscription(Subscription sub)
+        {
+            this.SubscriptionId = sub.SubscriptionId;
+            this.ProductName = sub.OfferName;
+            this.DeploymentName = sub.PlanName;
+            this.AgentId = sub.AgentId;
+            this.Name = sub.Name;
+            this.Owner = sub.Owner;
+        }
+
         /// <summary>
         /// Copies all non-EF Core values.
         /// </summary>
@@ -29,16 +39,22 @@ namespace Luna.Data.Entities
             this.AgentId = subscription.AgentId;
         }
 
-        [Key]
         [JsonIgnore]
         public long Id { get; set; }
 
+        [Key]
         public Guid SubscriptionId { get; set; }
 
-        public string SubscriptionName { get; set; }
+        public string Name { get; set; }
 
         [JsonIgnore]
         public long DeploymentId { get; set; }
+
+        [NotMapped]
+        public string OfferName { get; set; }
+
+        [NotMapped]
+        public string PlanName { get; set; }
 
         [NotMapped]
         public string ProductName { get; set; }
@@ -46,7 +62,7 @@ namespace Luna.Data.Entities
         [NotMapped]
         public string DeploymentName { get; set; }
 
-        public string UserId { get; set; }
+        public string Owner { get; set; }
 
         public string Status { get; set; }
 

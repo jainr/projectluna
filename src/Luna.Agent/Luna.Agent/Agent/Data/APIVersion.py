@@ -36,8 +36,48 @@ class APIVersion(Base):
 
     AuthenticationKeySecretName = Column(String)
 
+    PublisherId = Column(String)
+
     @staticmethod
-    def Get(productName, deploymentName, versionName):
+    def Get(productName, deploymentName, versionName, publisherId):
         session = Session()
-        version = session.query(APIVersion).filter_by(ProductName = productName, DeploymentName = deploymentName, VersionName = versionName).first()
+        version = session.query(APIVersion).filter_by(ProductName = productName, DeploymentName = deploymentName, VersionName = versionName, PublisherId = publisherId).first()
+        session.close()
         return version
+
+    @staticmethod
+    def MergeWithDelete(apiVersions, publisherId):
+        session = Session()
+        try:
+            dbAPIVersions = session.query(APIVersion).all()
+            for dbAPIVersion in dbAPIVersions:
+                if dbAPIVersion.PublisherId.lower() != publisherId.lower():
+                    continue;
+                # If the subscription is removed in the control plane, remove it from the agent
+                try:
+                    next(item for item in apiVersions if 
+                         item["DeploymentName"] == dbAPIVersion.DeploymentName
+                         and item["ProductName"] == dbAPIVersion.ProductName
+                         and item["VersionName"] == dbAPIVersion.VersionName
+                         and item["PublisherId"].lower() == dbAPIVersion.PublisherId.lower())
+                except StopIteration:
+                    session.delete(dbAPIVersion)
+
+            for apiVersion in apiVersions:
+                dbAPIVersion = session.query(APIVersion).filter_by(ProductName = apiVersion["ProductName"], 
+                                                                   DeploymentName = apiVersion["DeploymentName"], 
+                                                                   VersionName = apiVersion["VersionName"], 
+                                                                   PublisherId = apiVersion["PublisherId"]).first()
+                if dbAPIVersion:
+                    dbAPIVersion.LastUpdatedTime = apiVersion["LastUpdatedTime"]
+                else:
+                    dbAPIVersion = APIVersion(**apiVersion)
+                    session.add(dbAPIVersion)
+
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise
+
+        finally:
+            session.close()

@@ -30,11 +30,20 @@ const Content: React.FunctionComponent = (props) => {
   }
 
   let navLinks: INavLink[] = [];
+  
+  if (v2Enabled) {
+    navLinks.push({
+      url:'',
+      onClick: (ev, item) => { history.push(WebRoute.Products) },
+      name: 'AI Services',
+      key:'Products',
+    });
+  }
   if (v1Enabled) {
     navLinks.push({
       url:'',
       onClick: (ev, item) => { history.push(WebRoute.Offers) },
-      name: 'Offers',
+      name: 'SaaS Offers',
       key:'Offers',
     });
   }
@@ -44,14 +53,6 @@ const Content: React.FunctionComponent = (props) => {
       onClick: (ev, item) => { history.push(WebRoute.Subscriptions) },
       name: 'Subscriptions',
       key: 'Subscriptions',
-    });
-  }
-  if (v2Enabled) {
-    navLinks.push({
-      url:'',
-      onClick: (ev, item) => { history.push(WebRoute.Products) },
-      name: 'Products',
-      key:'Products',
     });
   }
 

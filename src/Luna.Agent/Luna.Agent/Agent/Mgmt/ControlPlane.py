@@ -1,6 +1,7 @@
 import requests
 from Agent.Data.APISubscription import APISubscription
 from Agent.Data.Publisher import Publisher
+from Agent.Data.APIVersion import APIVersion
 
 GET_PROJECT_FILE_URL_URL_FORMAT = "{base_url}/api/aiagents/{agent_id}/subscriptions/{subscription_id}/projectFileUrl/{version_name}"
 GET_AGENT_SUBSCRIPTIONS_URL_FORMAT = "{base_url}/api/aiagents/{agent_id}/subscriptions"
@@ -45,6 +46,10 @@ class ControlPlane(object):
         for publisher in publishers:
             subscriptions = self.GetAgentSubscriptionsFromControlPlane(publisher.ControlPlaneUrl)
             APISubscription.MergeWithDelete(subscriptions, publisher.PublisherId)
+            apiVersions = self.GetAgentAPIVersionsFromControlPlane(publisher.ControlPlaneUrl)
+            APIVersion.MergeWithDelete(apiVersions, publisher.PublisherId)
+        return
+
 
 
 

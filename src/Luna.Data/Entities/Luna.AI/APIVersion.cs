@@ -37,6 +37,7 @@ namespace Luna.Data.Entities
             this.GitUrl = version.GitUrl;
             this.GitVersion = version.GitVersion;
             this.ProjectFileUrl = version.ProjectFileUrl;
+            this.ConfigFile = version.ConfigFile;
         }
 
         public string GetVersionIdFormat()
@@ -102,6 +103,8 @@ namespace Luna.Data.Entities
         public string VersionSourceType { get; set; }
 
         public string ProjectFileUrl { get; set; }
+
+        public string ConfigFile { get; set; }
 
     }
 }

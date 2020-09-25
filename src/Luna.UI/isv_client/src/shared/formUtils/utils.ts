@@ -142,7 +142,9 @@ export const handleSubmissionErrorsGeneral = (setErrors: any, setSubmitting: any
       }
 
       if (key === "method_error")
+      {
         setFormError(errorDetailItem.message);
+      }
       else
         setErrors(errorObj);
     }

@@ -457,12 +457,13 @@ $controlPlaneUrl = "https://"+ $apiWebAppName +".azurewebsites.net"
 $controlPlaneUrlVar = "controlPlaneUrl='" + $controlPlaneUrl + "'"
 $agentIdVar = "agentId='" + $agentId + "'"
 $agentkeySecretNameVar = "agentKeySecretName='saas-agent-key'"
+$publisherNameVar = "publisherName='"+$companyName+"'"
 
 
 $secretvalue = ConvertTo-SecureString $agentKey -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'saas-agent-key' -SecretValue $secretvalue
 
-$variables = $sqlDatabaseUsernameVar, $sqlDatabasePasswordVar, $publisherIdVar, $controlPlaneUrlVar, $agentIdVar, $agentkeySecretNameVar
+$variables = $sqlDatabaseUsernameVar, $sqlDatabasePasswordVar, $publisherIdVar, $controlPlaneUrlVar, $agentIdVar, $agentkeySecretNameVar, $publisherNameVar
 
 Write-Host $variables
 

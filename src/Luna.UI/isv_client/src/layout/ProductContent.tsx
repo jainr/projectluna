@@ -147,7 +147,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
             }
           }}>
             <span style={{ fontWeight: 'bold', marginRight: 20, fontSize: 18 }}>
-              Product Details
+              AI Service Details
             </span>
             <span className={"offer-details-separator"}></span>
             <span style={{ fontWeight: 600 }}>
@@ -157,16 +157,16 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
               {productModel.productName}
             </span>
             <span style={{ marginLeft: 100, fontWeight: 600 }}>
-              Product Type:
+              Created From:
             </span>
             <span style={{ marginLeft: 8 }}>
-              {productModel.productType}
+              {productModel.productType == "RTP"?"Model Service Endpoint":"Machine Learning Project"}
             </span>
             <span style={{ marginLeft: 100, fontWeight: 600 }}>
               Host Type:
             </span>
             <span style={{ marginLeft: 8 }}>
-              {productModel.hostType}
+              {productModel.hostType == "SaaS"? "SaaS":"Selfhost"}
             </span>
           </Stack.Item>
           <Stack.Item styles={{
@@ -239,7 +239,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
       </Stack>
 
       <DialogBox keyindex='DeploymentVersionmodal' dialogVisible={ProductDeleteDialog}
-        title="Delete Product" subText="" isDarkOverlay={true} className="" cancelButtonText="Cancel"
+        title="Delete AI Service" subText="" isDarkOverlay={true} className="" cancelButtonText="Cancel"
         submitButtonText="Submit" maxwidth={500}
         cancelonClick={() => {
           CloseProductDeleteDialog();
@@ -264,7 +264,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
 
                 if (deploymentsResponse.success) {
                   if (deploymentsResponse.value && deploymentsResponse.value.length > 0) {
-                    toast.error("You must delete all deployments for the product first.");
+                    toast.error("You must delete all plans in the AI Service first.");
                     globalContext.hideProcessing();
                     return;
                   }
@@ -279,7 +279,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
                 }
 
                 globalContext.hideProcessing();
-                toast.success("Product Deleted Successfully!");
+                toast.success("AI Service Deleted Successfully!");
                 history.push(`/products/`);
               }}
             >
@@ -290,14 +290,14 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
                     <tbody>
                       <tr>
                         <td colSpan={2}>
-                          <span> Are you sure you want to delete the product?</span>
+                          <span> Are you sure you want to delete the AI Service?</span>
                         </td>
                       </tr>
                       <tr>
                         <td colSpan={2}>
                           {
                             <React.Fragment>
-                              <span>Type the product Id</span>
+                              <span>Type the AI Service Id: {values.selectedProductId}</span>
                               <br />
                               <TextField
                                 name={'selectedProductId'}
@@ -305,7 +305,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
                                 onChange={handleChange}
                                 onBlur={handleBlur}
                                 errorMessage={getDeleteProductErrorString(touched, errors, 'selectedProductId')}
-                                placeholder={'Product Id'}
+                                placeholder={'AI Service Id'}
                                 className="txtFormField" />
                             </React.Fragment>
                           }

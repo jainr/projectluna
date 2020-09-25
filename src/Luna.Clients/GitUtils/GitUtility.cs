@@ -10,6 +10,7 @@ using Luna.Clients.Azure.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Text;
+using Luna.Clients.Exceptions;
 
 namespace Luna.Clients.GitUtils
 {
@@ -47,8 +48,14 @@ namespace Luna.Clients.GitUtils
                 request.Headers.Add("Accept", "application/zip");
 
                 var response = await _httpClient.SendAsync(request);
-
-                content = await response.Content.ReadAsByteArrayAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    content = await response.Content.ReadAsByteArrayAsync();
+                }
+                else
+                {
+                    throw new LunaUserException("Failed to download code from Azure Devops repo. Please correct the information and retry.", UserErrorCode.InvalidParameter, System.Net.HttpStatusCode.BadRequest);
+                }
             }
             else if (gitUri.Host.Equals("github.com", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -60,7 +67,14 @@ namespace Luna.Clients.GitUtils
 
                 var response = await _httpClient.SendAsync(request);
 
-                content = await response.Content.ReadAsByteArrayAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    content = await response.Content.ReadAsByteArrayAsync();
+                }
+                else
+                {
+                    throw new LunaUserException("Failed to download code from Github repo. Please correct the information and retry.", UserErrorCode.InvalidParameter, System.Net.HttpStatusCode.BadRequest);
+                }
             }
 
             return await _storageUtillity.UploadBinaryFileAsync(containerName, fileName, content, true);

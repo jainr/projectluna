@@ -25,11 +25,11 @@ namespace Luna.Data.Entities
         [JsonPropertyName("ProductType")]
         public string ProductType { get; set; }
 
-        [JsonPropertyName("UserId")]
-        public string UserId { get; set; }
+        [JsonPropertyName("Owner")]
+        public string Owner { get; set; }
 
-        [JsonPropertyName("SubscriptionName")]
-        public string SubscriptionName { get; set; }
+        [JsonPropertyName("Name")]
+        public string Name { get; set; }
 
         [JsonPropertyName("Status")]
         public string Status { get; set; }
@@ -63,9 +63,11 @@ namespace Luna.Data.Entities
         [JsonPropertyName("PlanName")]
         public string PlanName { get; set; }
 
+        [JsonPropertyName("PrimaryKey")]
         [NotMapped]
         public string PrimaryKey { get; set; }
 
+        [JsonPropertyName("SecondaryKey")]
         [NotMapped]
         public string SecondaryKey { get; set; }
     }

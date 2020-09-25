@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Luna.API.Controllers.Admin
 {
@@ -32,6 +33,7 @@ namespace Luna.API.Controllers.Admin
         private readonly IFulfillmentManager _fulfillmentManager;
         private readonly IProvisioningService _provisioningService;
         private readonly ICustomMeterEventService _customMeterEventService;
+        private readonly IAPISubscriptionService _apiSubscriptionService;
         private readonly ILogger<SubscriptionController> _logger;
 
         /// <summary>
@@ -42,13 +44,14 @@ namespace Luna.API.Controllers.Admin
         /// <param name="provisioningService">The provisioning service instance</param>
         /// <param name="logger">The logger.</param>
         public SubscriptionController(ISubscriptionService subscriptionService, IFulfillmentManager fulfillmentManager,
-            IProvisioningService provisioningService, ICustomMeterEventService customMeterEventService, ILogger<SubscriptionController> logger)
+            IProvisioningService provisioningService, ICustomMeterEventService customMeterEventService, IAPISubscriptionService apiSubscriptionService, ILogger<SubscriptionController> logger)
         {
             _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
             _fulfillmentManager = fulfillmentManager ?? throw new ArgumentNullException(nameof(fulfillmentManager));
             _provisioningService = provisioningService ?? throw new ArgumentNullException(nameof(provisioningService));
             _customMeterEventService = customMeterEventService ?? throw new ArgumentNullException(nameof(customMeterEventService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _apiSubscriptionService = apiSubscriptionService ?? throw new ArgumentNullException(nameof(apiSubscriptionService));
         }
 
         /// <summary>
@@ -158,6 +161,28 @@ namespace Luna.API.Controllers.Admin
                     UserErrorCode.NameMismatch);
             }
 
+            if (subscription.Token != null && subscription.Token.Split('.').Length == 3)
+            {
+                AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, subscription.Owner);
+                var apiSubscription = new APISubscription(subscription);
+                if (await _apiSubscriptionService.ExistsAsync(subscriptionId))
+                {
+                    _logger.LogInformation($"Update apiSubscription {apiSubscription.Name} with payload {JsonSerializer.Serialize(apiSubscription)}.");
+                    await _apiSubscriptionService.UpdateAsync(subscriptionId, apiSubscription);
+                    return Ok(await _apiSubscriptionService.GetAsync(subscriptionId));
+                }
+                else
+                {
+                    _logger.LogInformation($"Create apiSubscription {apiSubscription.Name} with payload {JsonSerializer.Serialize(apiSubscription)}.");
+                    // Create a new apiSubscription
+                    await _apiSubscriptionService.CreateAsync(apiSubscription);
+                    return CreatedAtRoute(nameof(GetAsync) + nameof(APISubscription), new
+                    {
+                        apiSubscriptionId = apiSubscription.SubscriptionId
+                    }, apiSubscription);
+                }
+            }
+
             if (await _subscriptionService.ExistsAsync(subscriptionId))
             {
                 _logger.LogInformation($"Update subscription {subscriptionId} with payload {JsonSerializer.Serialize(subscription)}.");
@@ -226,9 +251,10 @@ namespace Luna.API.Controllers.Admin
 
             // Do not log token content!
             _logger.LogInformation($"Resolve token for a subscription.");
-            MarketplaceSubscription resolvedSubscription = await _fulfillmentManager.ResolveSubscriptionAsync(token);
 
-            return Ok(resolvedSubscription);
+            var subscriptionLayout = await _subscriptionService.GetSubscriptionLayoutFromToken(token, AADAuthHelper.GetUserAccount(this.HttpContext));
+
+            return Ok(subscriptionLayout);
         }
 
         /// <summary>
@@ -240,7 +266,7 @@ namespace Luna.API.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> Activate(Guid subscriptionId)
         {
-            string activatedBy = this.HttpContext.User.Identity.Name;
+            string activatedBy = AADAuthHelper.GetUserAccount(this.HttpContext);
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
             _logger.LogInformation($"Activate subscription {subscriptionId}. Activated by {activatedBy}.");
 
@@ -288,7 +314,7 @@ namespace Luna.API.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> CompleteOperation(Guid subscriptionId)
         {
-            string activatedBy = this.HttpContext.User.Identity.Name;
+            string activatedBy = AADAuthHelper.GetUserAccount(this.HttpContext);
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
             _logger.LogInformation($"Complete current operation for subscription {subscriptionId}. Operated by {activatedBy}.");
 

@@ -38,9 +38,20 @@ namespace Luna.Data.Entities
 
         public string Owner { get; set; }
 
+        public string SaaSOfferName { get; set; }
+
+        public string LogoImageUrl { get; set; }
+
+        public string Description { get; set; }
+
+        public string DocumentationUrl { get; set; }
+
         public DateTime CreatedTime { get; set; }
 
         public DateTime LastUpdatedTime { get; set; }
+
+        [JsonIgnore]
+        public long? OfferId { get; set; }
 
         [JsonIgnore]
         public virtual ICollection<Deployment> Deployments { get; set; }

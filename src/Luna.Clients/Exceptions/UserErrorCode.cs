@@ -11,6 +11,7 @@
         ArmTemplateNotProvided,
         InvalidParameter,
         Unauthorized,
-        AuthKeyNotProvided
+        AuthKeyNotProvided,
+        InvalidToken
     }
 }

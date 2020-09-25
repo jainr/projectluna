@@ -99,7 +99,7 @@ namespace Luna.API.Controllers.Admin
         {
             _logger.LogInformation($"Get apiSubscription {apiSubscriptionId}.");
             var apiSubscription = await _apiSubscriptionService.GetAsync(apiSubscriptionId);
-            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, apiSubscription.UserId);
+            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, apiSubscription.Owner);
             return Ok(apiSubscription);
         }
 
@@ -114,11 +114,11 @@ namespace Luna.API.Controllers.Admin
         {
             APISubscription apiSubscription = new APISubscription()
             {
-                SubscriptionName = subscriptionName,
+                Name = subscriptionName,
                 SubscriptionId = subscriptionId,
                 ProductName = productName,
                 DeploymentName = deploymentName,
-                UserId = userId
+                Owner = userId
             };
 
             return await CreateInternal(apiSubscription);
@@ -134,14 +134,14 @@ namespace Luna.API.Controllers.Admin
                 throw new LunaBadRequestUserException(LoggingUtils.ComposePayloadNotProvidedErrorMessage(nameof(apiSubscription)), UserErrorCode.PayloadNotProvided);
             }
 
-            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, apiSubscription.UserId);
+            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, apiSubscription.Owner);
 
             return await CreateInternal(apiSubscription);
         }
 
         private async Task<ActionResult> CreateInternal(APISubscription apiSubscription)
         {
-            _logger.LogInformation($"Create apiSubscription {apiSubscription.SubscriptionName} with payload {JsonSerializer.Serialize(apiSubscription)}.");
+            _logger.LogInformation($"Create apiSubscription {apiSubscription.Name} with payload {JsonSerializer.Serialize(apiSubscription)}.");
             // Create a new apiSubscription
             await _apiSubscriptionService.CreateAsync(apiSubscription);
             return CreatedAtRoute(nameof(GetAsync) + nameof(APISubscription), new
@@ -171,11 +171,17 @@ namespace Luna.API.Controllers.Admin
                     UserErrorCode.NameMismatch);
             }
             _logger.LogInformation($"Update apiSubscription {apiSubscriptionId} with payload {JsonSerializer.Serialize(apiSubscription)}.");
-            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, apiSubscription.UserId);
+            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, apiSubscription.Owner);
 
-            await _apiSubscriptionService.UpdateAsync(apiSubscriptionId, apiSubscription);
-            return Ok(await _apiSubscriptionService.GetAsync(apiSubscriptionId));
-
+            if (await _apiSubscriptionService.ExistsAsync(apiSubscriptionId))
+            {
+                await _apiSubscriptionService.UpdateAsync(apiSubscriptionId, apiSubscription);
+                return Ok(await _apiSubscriptionService.GetAsync(apiSubscriptionId));
+            }
+            else
+            {
+                return await CreateInternal(apiSubscription);
+            }
         }
 
         /// <summary>
@@ -189,7 +195,7 @@ namespace Luna.API.Controllers.Admin
         {
             var apiSubscription = await _apiSubscriptionService.GetAsync(apiSubscriptionId);
 
-            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, apiSubscription.UserId);
+            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, apiSubscription.Owner);
 
             _logger.LogInformation($"Delete apiSubscription {apiSubscriptionId}.");
             await _apiSubscriptionService.DeleteAsync(apiSubscriptionId);

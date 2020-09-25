@@ -4,6 +4,12 @@ import { IProductModel } from "../../../models";
 import { v4 as uuid } from "uuid";
 import { productNameRegExp } from "./RegExp";
 import { ErrorMessage } from "./ErrorMessage";
+import adalContext from "../../../adalConfig";
+
+let userName = ''
+var response = adalContext.AuthContext.getCachedUser();
+if (response && response.profile && response.profile.upn)
+  userName = response.profile.upn;
 
 export const shallowCompare = (obj1, obj2) =>
   Object.keys(obj1).length === Object.keys(obj2).length &&
@@ -24,9 +30,13 @@ export const HostType: IDropdownOption[] = [
 */
 export const initialProductValues: IProductModel = {
   hostType: '',
-  owner: '',
+  owner: userName,
   productName: '',
   productType: '',
+  logoImageUrl: '',
+  documentationUrl: '',
+  description: '',
+  saasOfferName: '',
   isDeleted: false,
   isSaved: false,
   isModified: false,
@@ -38,6 +48,10 @@ export const initialProductList: IProductModel[] = [{
   owner: 'v-anirc@microsoft.com',
   productName: '1',
   productType: 'realtimeprediction',
+  logoImageUrl: 'logo',
+  description: 'description',
+  documentationUrl: 'documenation',
+  saasOfferName: '',
   createdTime: '',
   lastUpdatedTime: '',
   isDeleted: false,
@@ -50,6 +64,10 @@ export const initialProductList: IProductModel[] = [{
   owner: 'zbates@affirma.com',
   productName: '2',
   productType: 'batchinference',
+  logoImageUrl: 'logo',
+  description: 'description',
+  documentationUrl: 'documenation',
+  saasOfferName: '',
   createdTime: '',
   lastUpdatedTime: '',
   isDeleted: false,
@@ -62,6 +80,10 @@ export const initialProductList: IProductModel[] = [{
   owner: 'zbates@affirma.com',
   productName: '3',
   productType: 'trainyourownmodel',
+  logoImageUrl: 'logo',
+  description: 'description',
+  documentationUrl: 'documenation',
+  saasOfferName: '',
   createdTime: '',
   lastUpdatedTime: '',
   isDeleted: false,
@@ -92,7 +114,11 @@ const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
     productType: yup.string()
       .required("Product Type is a required field"),
     hostType: yup.string().required("Host Type is a required field"),
+    logoImageUrl: yup.string(),
+    description: yup.string(),
+    saasOfferName: yup.string(),
     createdTime: yup.string(),
+    documentationUrl: yup.string(),
     lastUpdatedTime: yup.string()
   }
 );
@@ -121,7 +147,11 @@ export const deleteProductValidator: ObjectSchema<IProductModel> = yup.object().
 
     owner: yup.string(),
     hostType: yup.string(),
+    logoImageUrl: yup.string(),
+    description: yup.string(),
     productType: yup.string(),
+    saasOfferName: yup.string(),
+    documentationUrl: yup.string(),
     createdTime: yup.string(),
     lastUpdatedTime: yup.string()
   }

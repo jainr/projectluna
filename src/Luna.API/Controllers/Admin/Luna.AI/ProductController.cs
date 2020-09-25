@@ -6,6 +6,7 @@ using Luna.Clients.Exceptions;
 using Luna.Clients.Logging;
 using Luna.Data.DataContracts.Luna.AI;
 using Luna.Data.Entities;
+using Luna.Data.Entities.Luna.AI;
 using Luna.Services.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -26,6 +27,7 @@ namespace Luna.API.Controllers.Admin
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IPublisherService _publisherService;
 
         private readonly ILogger<ProductController> _logger;
 
@@ -34,9 +36,10 @@ namespace Luna.API.Controllers.Admin
         /// </summary>
         /// <param name="productService">The service to inject.</param>
         /// <param name="logger">The logger.</param>
-        public ProductController(IProductService productService, ILogger<ProductController> logger)
+        public ProductController(IProductService productService, IPublisherService publisherService, ILogger<ProductController> logger)
         {
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
+            _publisherService = publisherService ?? throw new ArgumentNullException(nameof(publisherService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -68,15 +71,22 @@ namespace Luna.API.Controllers.Admin
             return Ok(await _productService.GetAsync(productName));
         }
 
+        [HttpGet("publisher", Name = nameof(GetAsync) + nameof(Publisher))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetPublisherAsync()
+        {
+            _logger.LogInformation($"Get publisher info");
+            return Ok(await _publisherService.GetAsync());
+        }
+
         [HttpGet("productTypes")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetProductTypes()
         {
             List<ProductType> productTypeList = new List<ProductType>();
 
-            productTypeList.Add(new ProductType() { DisplayName = "Real-time Prediction", Id = "RTP" });
-            productTypeList.Add(new ProductType() { DisplayName = "Batch Inference", Id = "BI" });
-            productTypeList.Add(new ProductType() { DisplayName = "Train Your Own Model", Id = "TYOM" });
+            productTypeList.Add(new ProductType() { DisplayName = "Machine Learning Projects", Id = "TYOM" });
+            productTypeList.Add(new ProductType() { DisplayName = "Deployed Model Service Endpoints", Id = "RTP" });
 
             return Ok(productTypeList);
 
@@ -88,8 +98,9 @@ namespace Luna.API.Controllers.Admin
         {
             List<ProductType> productTypeList = new List<ProductType>();
 
+            productTypeList.Add(new ProductType() { DisplayName = "SaaS and Selfhost", Id = "Both" });
             productTypeList.Add(new ProductType() { DisplayName = "SaaS", Id = "SaaS" });
-            productTypeList.Add(new ProductType() { DisplayName = "Bring Your Own Compute", Id = "BYOC" });
+            productTypeList.Add(new ProductType() { DisplayName = "Selfhost", Id = "BYOC" });
 
             return Ok(productTypeList);
 

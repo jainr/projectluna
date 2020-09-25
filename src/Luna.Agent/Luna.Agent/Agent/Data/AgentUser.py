@@ -16,12 +16,21 @@ class AgentUser(Base):
 
     SubscriptionId = Column(String)
 
+    ObjectId = Column(String)
+
     @staticmethod
     def Create(user):
         session = Session()
         session.add(user)
         session.commit()
         return
+
+    @staticmethod
+    def ListAllUsers():
+        session = Session()
+        users = session.query(AgentUser).filter_by(Role = "User").all()
+        session.close()
+        return users
 
     @staticmethod
     def ListAllBySubscriptionId(subscriptionId):

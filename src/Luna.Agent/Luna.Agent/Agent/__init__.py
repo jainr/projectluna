@@ -5,14 +5,14 @@ The flask application package.
 from flask import Flask
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
-import urllib, os
+import urllib, os, logging
 from sqlalchemy.orm import sessionmaker
 from azure.keyvault.secrets import SecretClient
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
 from Agent.Data.AlchemyEncoder import AlchemyEncoder
 from Agent.Data.KeyVaultHelper import KeyVaultHelper
-
+from logging import StreamHandler
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -33,5 +33,8 @@ engine = create_engine(odbc_connection_string)
 
 Session = sessionmaker(bind=engine, autoflush=False)
 
+streamHandler = StreamHandler()
+app.logger.addHandler(streamHandler)
+app.logger.setLevel(logging.DEBUG)
 
 import Agent.views

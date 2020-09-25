@@ -283,7 +283,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
   const DeploymentList = ({ deployments, setFieldValue }) => {
     if (!deployments || deployments.length === 0) {
       return <tr>
-        <td colSpan={4}><span>No Deployments</span></td>
+        <td colSpan={4}><span>No Plans</span></td>
       </tr>;
     } else {
       return (
@@ -294,7 +294,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                 <span style={{ width: 200 }}>{value.deploymentName}</span>
               </td>
               <td>
-                <span style={{ width: 200 }}>{value.versionName}</span>
+                <span style={{ width: 200 }}>{value.description}</span>
               </td>
               <td>
                 <Stack
@@ -343,15 +343,15 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                 marginTop: 0,
                 marginBottom: 20,
                 width: '100%'
-              }}>Deployments</h3>
+              }}>Service Plans</h3>
               <table className="noborder offer" style={{ width: 'auto' }} cellPadding={5} cellSpacing={0}>
                 <thead>
                   <tr>
                     <th style={{ width: 334 }}>
-                      <FormLabel title={"Deployment Name"} />
+                      <FormLabel title={"Plan Name"} />
                     </th>
-                    <th>
-                      <FormLabel title={"Latest Version"} />
+                    <th style={{ width: 334 }}>
+                      <FormLabel title={"Description"} />
                     </th>
                     <th style={{ width: 50 }}>
                       <FormLabel title={"Operations"} />
@@ -375,7 +375,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                 <tfoot>
                   <tr>
                     <td colSpan={3} style={{ paddingTop: '1%' }}>
-                      <PrimaryButton text={"New Deployment"} onClick={() => {
+                      <PrimaryButton text={"New Plan"} onClick={() => {
                         OpenNewDeploymentDialog()
                       }} />
                     </td>
@@ -400,7 +400,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
 
           },
           type: DialogType.normal,
-          title: (isEdit ? 'Deployment' : 'New Deployment')
+          title: (isEdit ? 'Plan Details' : 'New Plan')
         }}
         modalProps={{
           isBlocking: true,
@@ -447,7 +447,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                 <thead>
                   <tr>
                     <th>
-                      <FormLabel title={"Deployment Name"} toolTip={ProductMessages.deployment.DeploymentName} />
+                      <FormLabel title={"Plan Name"} toolTip={ProductMessages.deployment.DeploymentName} />
                     </th>
                     <th>
                       <FormLabel title={"Description"} toolTip={ProductMessages.deployment.Description} />
@@ -528,7 +528,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
 
             },
             type: DialogType.normal,
-            title: (isVersionEdit ? 'Version' : 'New Version')
+            title: (isVersionEdit ? 'Version Details' : 'New Version')
           }}
           modalProps={{
             isBlocking: true,
@@ -608,6 +608,33 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                       return;
                     }
                   }
+                  else if (values.version.versionSourceType == 'git') {
+                    if (!values.version.gitUrl || values.version.gitUrl == ""){
+                      toast.error("Git https url is required.");
+                      globalContext.hideProcessing();
+                      return;
+                    }
+                    if (!values.version.gitPersonalAccessToken || values.version.gitPersonalAccessToken == ""){
+                      toast.error("Git personal access token is required.");
+                      globalContext.hideProcessing();
+                      return;
+                    }
+                    if (!values.version.gitVersion || values.version.gitVersion == ""){
+                      toast.error("Git version is required.");
+                      globalContext.hideProcessing();
+                      return;
+                    }
+                    if (!values.version.configFile || values.version.configFile == ""){
+                      toast.error("Config file name is required.");
+                      globalContext.hideProcessing();
+                      return;
+                    }
+                    if (!values.version.amlWorkspaceName || values.version.amlWorkspaceName == ""){
+                      toast.error("AML workspace name is required.");
+                      globalContext.hideProcessing();
+                      return;
+                    }
+                  }
                   break;
                 default:
                   toast.error('Invalid product type detected');
@@ -616,7 +643,13 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
               }
 
               var deploymentVersionResult = await ProductService.createOrUpdateDeploymentVersion(values.version);
+              console.log(formError);
               if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'version', deploymentVersionResult)) {
+                console.log(formError);
+                console.log("lalal");
+                setFormError("lalala");
+                console.log(formError);
+                toast.error(formError);
                 globalContext.hideProcessing();
                 return;
               }
@@ -905,10 +938,10 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
     return (touched.selectedVersionName && errors.selectedVersionName && touched[property] && errors[property]) ? errors[property] : '';
   };
 
-  const DisplayErrors = (errors, values) => {
+  const DisplayErrors = (errors) => {
     console.log('display errors:');
     console.log(errors);
-    console.log(values);
+    
     return null;
   };
 
@@ -1010,11 +1043,11 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
   return (
     <React.Fragment>
       <form style={{ width: '100%' }} autoComplete={"off"} onSubmit={handleSubmit}>
-        <DisplayErrors errors={errors} values={values} />
+        <DisplayErrors errors={errors} />
         <React.Fragment>
           <input type="hidden" name="version.deploymentName" value={values.version.deploymentName} />
           <Stack className={"form_row"}>
-            <FormLabel title={"Deployment Name:"} toolTip={ProductMessages.Version.DeploymentName} />
+            <FormLabel title={"Plan Name:"} toolTip={ProductMessages.Version.DeploymentName} />
             <TextField
               name={'version.deploymentName'}
               value={values.version.deploymentName}
@@ -1124,7 +1157,7 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
               <React.Fragment>
 
                 <Stack className={"form_row source"}>
-                  <FormLabel title={"Source:"} toolTip={ProductMessages.Version.Source} />
+                  <FormLabel title={"Create from:"} toolTip={ProductMessages.Version.Source} />
                   <Dropdown
                     style={{ width: 155 }}
                     options={sourceDropdownOptions}
@@ -1139,68 +1172,99 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
                 {
                   isGitRepo ?
                     <React.Fragment>
-                      <Stack className={"form_row"}>
-                        <FormLabel title={"Git https Url:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
-                        <TextField
-                          name={'version.gitUrl'}
-                          value={values.version.gitUrl}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          errorMessage={getVersionFormErrorString(touched, errors, 'gitUrl')}
-                          placeholder={'Git https Url'}
-                          className="txtFormField" />
-                      </Stack>
-                      <Stack className={"form_row"}>
-                        <FormLabel title={"Git commit hash:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
-                        <TextField
-                          name={'version.gitVersion'}
-                          value={values.version.gitVersion}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          errorMessage={getVersionFormErrorString(touched, errors, 'gitVersion')}
-                          placeholder={'VersGit commit hashion'}
-                          className="txtFormField" />
-                      </Stack>
-                      <Stack className={"form_row"}>
-                        <FormLabel title={"Personal access tokens:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+                      
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <Stack className={"form_row"}>
+                                <FormLabel title={"Git https Url:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+                                <TextField
+                                  name={'version.gitUrl'}
+                                  value={values.version.gitUrl}
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  errorMessage={getVersionFormErrorString(touched, errors, 'gitUrl')}
+                                  placeholder={'Git https Url'}
+                                  className="txtFormField" />
+                              </Stack>
+                            </td>
+                            <td>
+                              <Stack className={"form_row"}>
+                                <FormLabel title={"Git commit hash:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+                                <TextField
+                                  name={'version.gitVersion'}
+                                  value={values.version.gitVersion}
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  errorMessage={getVersionFormErrorString(touched, errors, 'gitVersion')}
+                                  placeholder={'VersGit commit hashion'}
+                                  className="txtFormField" />
+                              </Stack>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <Stack className={"form_row"}>
+                                <FormLabel title={"Personal access tokens:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+                                <TextField
+                                  type={'password'}
+                                  name={'version.gitPersonalAccessToken'}
+                                  value={values.version.gitPersonalAccessToken}
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  errorMessage={getVersionFormErrorString(touched, errors, 'gitPersonalAccessToken')}
+                                  placeholder={'Personal access tokens'}
+                                  className="txtFormField" />
+                              </Stack>
+                            </td>
+                            <td>
 
-                        <TextField
-                          type={'password'}
-                          name={'version.gitPersonalAccessToken'}
-                          value={values.version.gitPersonalAccessToken}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          errorMessage={getVersionFormErrorString(touched, errors, 'gitPersonalAccessToken')}
-                          placeholder={'Personal access tokens'}
-                          className="txtFormField" />
-                      </Stack>
-                          <Stack className={"form_row"} horizontal={true} gap={15}>
+                              <Stack className={"form_row"}>
+                                <FormLabel title={"Luna config file:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+                                <TextField
+                                  name={'version.configFile'}
+                                  value={values.version.configFile}
+                                  onChange={handleChange}
+                                  onBlur={handleBlur}
+                                  errorMessage={getVersionFormErrorString(touched, errors, 'configFile')}
+                                  placeholder={'luna_config.yml'}
+                                  className="txtFormField" />
+                              </Stack>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <Stack className={"form_row"} horizontal={true} gap={15}>
                             
-                      <FormLabel title={"AML Workspace:"} toolTip={ProductMessages.Version.AMLWorkspace} />
-                            <Dropdown
-                              style={{ width: 150 }}
-                              options={amlWorkspaceDropdownOptions}
-                              id={`version.amlWorkspaceName`} onBlur={handleBlur}
-                              onChange={(event, option, index) => {
-                                amlWorkspaceselectOnChange(`version.amlWorkspaceName`, setFieldValue, event, option, index)
-                              }}
-                              errorMessage={getVersionFormErrorString(touched, errors, 'amlWorkspaceName')}
-                              defaultSelectedKey={values.version.amlWorkspaceName}
-                            />
-                            <DefaultButton type="button" id="btnCreateNewAMLWorkspace" className="addbutton"
-                              onClick={() => {
-
-                                Hub.dispatch(
-                                  'AMLWorkspaceNewDialog',
-                                  {
-                                    event: 'NewDialog',
-                                    data: true,
-                                    message: ''
-                                  });
-
-                              }}>Create New
-                </DefaultButton>
+                            <FormLabel title={"Targeted AML Workspace:"} toolTip={ProductMessages.Version.AMLWorkspace} />
+                                  <Dropdown
+                                    style={{ width: 150 }}
+                                    options={amlWorkspaceDropdownOptions}
+                                    id={`version.amlWorkspaceName`} onBlur={handleBlur}
+                                    onChange={(event, option, index) => {
+                                      amlWorkspaceselectOnChange(`version.amlWorkspaceName`, setFieldValue, event, option, index)
+                                    }}
+                                    errorMessage={getVersionFormErrorString(touched, errors, 'amlWorkspaceName')}
+                                    defaultSelectedKey={values.version.amlWorkspaceName}
+                                  />
+                                  <DefaultButton type="button" id="btnCreateNewAMLWorkspace" className="addbutton"
+                                    onClick={() => {
+      
+                                      Hub.dispatch(
+                                        'AMLWorkspaceNewDialog',
+                                        {
+                                          event: 'NewDialog',
+                                          data: true,
+                                          message: ''
+                                        });
+      
+                                    }}>Create New
+                                  </DefaultButton>
                           </Stack>
+
+
                     </React.Fragment>
                     : null
                 }
@@ -1209,7 +1273,7 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
                     <React.Fragment>
                       {(values.version.authenticationType === 'Token' ?
                         <React.Fragment>
-                          <FormLabel title={"AML Workspace:"} toolTip={ProductMessages.Version.AMLWorkspace} />
+                          <FormLabel title={"Targeted AML Workspace:"} toolTip={ProductMessages.Version.AMLWorkspace} />
                           <Stack className={"form_row"} horizontal={true} gap={15}>
                             <Dropdown
                               style={{ width: 150 }}
@@ -1267,7 +1331,7 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
                         {productType === 'TYOM' ?
                           isAmlPipeline ?
                             <Stack className={"form_row"}>
-                              <FormLabel title={"Training API:"} toolTip={ProductMessages.Version.TrainingAPI} />
+                              <FormLabel title={"Training pipeline:"} toolTip={ProductMessages.Version.TrainingAPI} />
                               <Dropdown
                                 style={{ width: 350 }}
                                 options={publishedpipelineDropdownOptions}
@@ -1284,7 +1348,7 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
                         {productType === 'BI' || productType === 'TYOM' ?
                           isAmlPipeline ?
                             <Stack className={"form_row"}>
-                              <FormLabel title={"(Async) Batch Inference API:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+                              <FormLabel title={"(Async) Batch Inference pipeline:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
                               <Dropdown
                                 style={{ width: 350 }}
                                 options={publishedpipelineDropdownOptions}
@@ -1302,7 +1366,7 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
 
                           isAmlPipeline ?
                             <Stack className={"form_row"}>
-                              <FormLabel title={"Deploy Endpoint API:"} toolTip={ProductMessages.Version.DeployEndpointAPI} />
+                              <FormLabel title={"Deployment pipeline:"} toolTip={ProductMessages.Version.DeployEndpointAPI} />
                               <Dropdown
                                 style={{ width: 350 }}
                                 options={publishedpipelineDropdownOptions}
@@ -1515,10 +1579,10 @@ export const VersionList: React.FunctionComponent<IDeploymentVersionListProps> =
               Version Name
           </th>
             <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}>
-              APIs
+              Created From
           </th>
             <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}>
-              Authentication Type
+              AML Workspace
           </th>
             <th style={{ width: 50, borderBottom: '1px solid #e8e8e8' }}>
               Operations
@@ -1530,7 +1594,7 @@ export const VersionList: React.FunctionComponent<IDeploymentVersionListProps> =
             deploymentVersionList.length === 0
               ? <tr>
                 <td colSpan={4} style={{ textAlign: "center", paddingTop: '5%' }}>
-                  <span>No Data Exists</span>
+                  <span>No Version Exists</span>
                 </td>
               </tr>
               :
@@ -1541,10 +1605,10 @@ export const VersionList: React.FunctionComponent<IDeploymentVersionListProps> =
                       <span style={{ width: 200 }}>{value.versionName}</span>
                     </td>
                     <td>
-                      <span style={{ width: 200 }}>{value.productName}</span>
+                      <span style={{ width: 200 }}>{value.versionSourceType?value.versionSourceType:"Service Endpoint"}</span>
                     </td>
                     <td>
-                      <span style={{ width: 200 }}>{value.authenticationType}</span>
+                      <span style={{ width: 200 }}>{value.amlWorkspaceName}</span>
                     </td>
                     <td>
                       <Stack

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String
-from Agent import Base, Session
+from Agent import Base, Session, key_vault_helper
 from Agent.AzureML.AzureMLUtils import AzureMLUtils
+import uuid
 
 class AMLWorkspace(Base):
     """description of class"""
@@ -19,7 +20,7 @@ class AMLWorkspace(Base):
 
     AADApplicationSecretName = Column(String)
 
-    AADApplicationSecret = Column(String)
+    AADApplicationSecret = ""
 
     Region = Column(String)
 
@@ -32,6 +33,8 @@ class AMLWorkspace(Base):
     @staticmethod
     def Create(workspace):
         session = Session()
+        workspace.AADApplicationSecretName = 'aml-{}'.format(uuid.uuid4())
+        key_vault_helper.set_secret(workspace.AADApplicationSecretName, workspace.AADApplicationSecret)
         session.add(workspace)
         session.commit()
         return
@@ -39,10 +42,9 @@ class AMLWorkspace(Base):
     def Update(workspace):
         session = Session()
         dbWorkspace = session.query(AMLWorkspace).filter_by(WorkspaceName = workspace.WorkspaceName).first()
-        dbWorkspace.WorkspaceName = workspace.WorkspaceName
         dbWorkspace.AADApplicationId = workspace.AADApplicationId
-        if workspace.AADApplicationSecret != "":
-            dbWorkspace.AADApplicationSecret = workspace.AADApplicationSecret
+        if workspace.AADApplicationSecret != "" and workspace.AADApplicationSecret != "notchanged":
+            key_vault_helper.set_secret(dbWorkspace.AADApplicationSecretName, workspace.AADApplicationSecret)
         dbWorkspace.AADTenantId = workspace.AADTenantId
         session.commit()
         # update
@@ -52,10 +54,10 @@ class AMLWorkspace(Base):
     def Get(workspaceName):
         session = Session()
         workspace = session.query(AMLWorkspace).filter_by(WorkspaceName = workspaceName).first()
+        workspace.AADApplicationSecret = key_vault_helper.get_secret(workspace.AADApplicationSecretName)
         util = AzureMLUtils(workspace)
         workspace.ComputeClusters = util.getComputeClusters()
         workspace.DeploymentClusters = util.getDeploymentClusters()
-        workspace.AADApplicationSecret = ""
         workspace.DeploymentTargetTypes = [{
                 'id': 'aks',
                 'displayName': 'Azure Kubernates Service'
@@ -64,12 +66,15 @@ class AMLWorkspace(Base):
                 'id': 'aci',
                 'displayName': 'Azure Container Instances'
             }]
+        ## never return the workspace secret
+        workspace.AADApplicationSecret = "notchanged"
         session.close()
         return workspace
 
-    def GetById(workspaceId):
+    def GetByIdWithSecrets(workspaceId):
         session = Session()
         workspace = session.query(AMLWorkspace).filter_by(Id = workspaceId).first()
+        workspace.AADApplicationSecret = key_vault_helper.get_secret(workspace.AADApplicationSecretName)
         session.close()
         return workspace
 

@@ -31,6 +31,8 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Agent\Auth\AuthHelper.py" />
+    <Compile Include="Agent\Auth\test.py" />
     <Compile Include="Agent\AzureML\AzureMLUtils.py">
       <SubType>Code</SubType>
     </Compile>
@@ -84,6 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Agent\" />
+    <Folder Include="Agent\Auth\" />
     <Folder Include="Agent\Code\" />
     <Folder Include="Agent\AzureML\" />
     <Folder Include="Agent\ML\" />

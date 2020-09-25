@@ -538,6 +538,11 @@ CREATE TABLE [dbo].[Products](
 	[ProductType] [nvarchar](64) NOT NULL,
 	[HostType] [nvarchar](64) NOT NULL,
 	[Owner] [nvarchar](512) NOT NULL,
+	[Description] [nvarchar](256) NOT NULL,
+	[LogoImageUrl] [nvarchar](max) NULL,
+	[DocumentationUrl] [nvarchar](max) NULL,
+	[SaaSOfferName] [nvarchar](50) NULL,
+	[OfferId] [bigint] NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
 	PRIMARY KEY (Id)
@@ -575,6 +580,7 @@ CREATE TABLE [dbo].[APIVersions](
 	[GitPersonalAccessTokenSecretName] [nvarchar](256) NULL,
 	[ProjectFileUrl] [nvarchar](max) NULL,
 	[GitVersion] [nvarchar](max) NULL,
+	[ConfigFile] [nvarchar](256) NULL,
 	PRIMARY KEY (Id),
 	CONSTRAINT FK_DeploymentId_APIVersions FOREIGN KEY (DeploymentId) REFERENCES Deployments(Id)
 )
@@ -584,8 +590,8 @@ CREATE TABLE [dbo].[APISubscriptions](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[SubscriptionId] [uniqueidentifier] NOT NULL,
 	[DeploymentId] [bigint] NOT NULL,
-	[SubscriptionName] [nvarchar](64) NOT NULL,
-	[userId] [nvarchar](512) NOT NULL,
+	[Name] [nvarchar](64) NOT NULL,
+	[Owner] [nvarchar](512) NOT NULL,
 	[Status] [nvarchar](32) NULL,
 	[BaseUrl] [nvarchar](max) NULL,
 	[PrimaryKeySecretName] [nvarchar](64) NULL,
@@ -614,16 +620,19 @@ CREATE TABLE [dbo].[Publishers](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[PublisherId] [uniqueidentifier] NOT NULL,
 	[ControlPlaneUrl] [nvarchar](max) NOT NULL,
+	[Name] [nvarchar](256) NOT NULL,
 	PRIMARY KEY (PublisherId)
 )
 GO
 
 Declare @publisherId nvarchar(64)
 Declare @controlPlaneUrl nvarchar(512)
+Declare @publisherName nvarchar(256)
 SET @publisherId = $(publisherId)
 SET @controlPlaneUrl = $(controlPlaneUrl)
+SET @publisherName = $(publisherName)
 
-INSERT INTO [dbo].[Publishers] VALUES(@publisherId, @controlPlaneUrl)
+INSERT INTO [dbo].[Publishers] VALUES(@publisherId, @controlPlaneUrl, @publisherName)
 GO
 
 Declare @agentId nvarchar(64)
@@ -649,7 +658,7 @@ GO
 
 CREATE VIEW [dbo].[agent_subscriptions]
 AS
-SELECT dbo.APISubscriptions.Id, dbo.APISubscriptions.SubscriptionId, dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.Products.ProductType, dbo.APISubscriptions.userId, dbo.APISubscriptions.SubscriptionName, dbo.APISubscriptions.Status, dbo.Products.HostType, dbo.APISubscriptions.CreatedTime, dbo.APISubscriptions.BaseUrl, dbo.APISubscriptions.PrimaryKeySecretName, dbo.APISubscriptions.SecondaryKeySecretName, 
+SELECT dbo.APISubscriptions.Id, dbo.APISubscriptions.SubscriptionId, dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.Products.ProductType, dbo.APISubscriptions.Owner, dbo.APISubscriptions.Name, dbo.APISubscriptions.Status, dbo.Products.HostType, dbo.APISubscriptions.CreatedTime, dbo.APISubscriptions.BaseUrl, dbo.APISubscriptions.PrimaryKeySecretName, dbo.APISubscriptions.SecondaryKeySecretName, 
           dbo.APISubscriptions.AgentId, dbo.Publishers.PublisherId, 0 AS AMLWorkspaceId, '' AS AMLWorkspaceComputeClusterName, '' AS AMLWorkspaceDeploymentTargetType, '' AS AMLWorkspaceDeploymentClusterName, dbo.Offers.OfferName, dbo.Plans.PlanName
 FROM   dbo.Offers INNER JOIN
           dbo.Subscriptions ON dbo.Offers.Id = dbo.Subscriptions.OfferId INNER JOIN

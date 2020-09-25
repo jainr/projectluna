@@ -95,6 +95,21 @@ namespace Luna.Data.Entities
         public string EntryPointUrl { get; set; }
 
         [NotMapped]
+        public Guid AgentId { get; set; } 
+
+        [NotMapped]
+        public string Token { get; set; }
+
+        [NotMapped]
+        public string PrimaryKey { get; set; }
+
+        [NotMapped]
+        public string SecondaryKey { get; set; }
+
+        [NotMapped]
+        public string BaseUrl { get; set; }
+
+        [NotMapped]
         public List<SubscriptionParameter> InputParameters { get; set; }
 
         [JsonIgnore]

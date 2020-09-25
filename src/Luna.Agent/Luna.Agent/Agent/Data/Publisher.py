@@ -11,12 +11,25 @@ class Publisher(Base):
 
     ControlPlaneUrl = Column(String)
 
+    Name = Column(String)
+
     @staticmethod
     def Create(publisher):
         session = Session()
         session.add(publisher)
         session.commit()
+        session.close()
         return
+
+    @staticmethod
+    def Update(publisherId, publisher):
+        session = Session()
+        dbPublisher = session.query(Publisher).filter_by(PublisherId = publisherId).first()
+        dbPublisher.ControlPlaneUrl = publisher.ControlPlaneUrl
+        dbPublisher.Name = publisher.Name
+        session.commit()
+        session.close()
+        return publisher.ControlPlaneUrl
 
     @staticmethod
     def ListAll():

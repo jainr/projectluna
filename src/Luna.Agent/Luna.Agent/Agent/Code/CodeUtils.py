@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 class CodeUtils(object):
     """The class provides Git utilitiy functions"""
     
+    # TODO: need to make a copy for each run so it doesn't interupt each other.
     @staticmethod
     def getLocalCodeFolder(subscriptionId, productName, deploymentName, version, baseDir, controlPlaneUrl):
         

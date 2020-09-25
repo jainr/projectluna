@@ -161,9 +161,6 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 <span>{value.workspaceName}</span>
               </td>
               <td>
-                <span>{value.aadTenantId}</span>
-              </td>
-              <td>
                 <span>{value.resourceId}</span>
               </td>
               <td>
@@ -202,9 +199,6 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
             <tr>
               <th style={{ width: 200 }}>
                 <FormLabel title={"WorkSpace Name"} />
-              </th>
-              <th style={{ width: 300 }}>
-                <FormLabel title={"AAD Tenant Id"} />
               </th>
               <th style={{ width: 300 }}>
                 <FormLabel title={"Resource Id"} />

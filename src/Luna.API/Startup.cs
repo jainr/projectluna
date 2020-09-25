@@ -175,10 +175,11 @@ namespace Luna.API
      options.Audience,
      $"api://{options.Audience}",
      this.configuration["AzureAD:ClientId"],
-     $"api://{this.configuration["AzureAD:ClientId"]}"
-
+     $"api://{this.configuration["AzureAD:ClientId"]}",
+     "9348a48a-9f97-4e9e-bce2-40d239840733",
+     "52ed21f2-32e1-4df0-86be-00f5795e7137"
     };
-                options.ClaimsIssuer = @"https://sts.windows.net/{tenantid}/";
+                options.ClaimsIssuer = @"https://login.microsoftonline.com/{tenantid}/v2";
 
                 // Instead of using the default validation (validating against a single tenant,
                 // as we do in line-of-business apps),
@@ -336,6 +337,7 @@ namespace Luna.API
             services.TryAddScoped<ITelemetryDataConnectorService, TelemetryDataConnectorService>();
             services.TryAddScoped<ISubscriptionCustomMeterUsageService, SubscriptionCustomMeterUsageService>();
             services.TryAddScoped<IAIAgentService, AIAgentService>();
+            services.TryAddScoped<IPublisherService, PublisherService>();
 
             services.TryAddScoped<ICustomMeterEventService, CustomMeterEventService>();
             // Register luna db client

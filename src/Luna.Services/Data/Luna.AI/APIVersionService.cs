@@ -256,7 +256,6 @@ namespace Luna.Services.Data.Luna.AI
             if (!string.IsNullOrEmpty(version.GitPersonalAccessToken))
             {
                 string secretName = $"gitpat-{Context.GetRandomString(12)}";
-                await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, secretName, version.GitPersonalAccessToken));
                 version.GitPersonalAccessTokenSecretName = secretName;
             }
 
@@ -335,12 +334,22 @@ namespace Luna.Services.Data.Luna.AI
 
             if (!string.IsNullOrEmpty(version.GitPersonalAccessToken))
             {
-                string secretName = string.IsNullOrEmpty(versionDb.GitPersonalAccessTokenSecretName) ? $"gitpat-{Context.GetRandomString(12)}" : versionDb.GitPersonalAccessTokenSecretName;
-                await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, secretName, version.GitPersonalAccessToken));
-                versionDb.GitPersonalAccessTokenSecretName = secretName;
+                string secretName = $"gitpat-{Context.GetRandomString(12)}";
+                version.GitPersonalAccessTokenSecretName = secretName;
             }
 
-            
+            if (version.VersionSourceType.Equals("git"))
+            {
+                if (!await _storageUtillity.ContainerExistsAsync("mlprojects"))
+                {
+                    await _storageUtillity.CreateContainerAsync("mlprojects");
+                }
+                string fileName = string.Format(@"{0}/{1}/{2}.zip", version.ProductName, version.DeploymentName, version.VersionName);
+
+                version.ProjectFileUrl = await _gitUtility.DownloadProjectAsZipToAzureStorageAsync(version.GitUrl, version.GitVersion, version.GitPersonalAccessToken, "mlprojects", fileName);
+            }
+
+
             // Copy over the changes
             versionDb.Copy(version);
             versionDb.LastUpdatedTime = DateTime.UtcNow;

@@ -43,7 +43,12 @@ namespace Luna.Clients
             var content = await client.GetStringAsync(requestUri).ConfigureAwait(false);
             _logger.LogInformation($"Received response GetOfferAsync. Response content: {content}");
             return JsonConvert.DeserializeObject<Offer>(content);
+        }
 
+        public string GetWebhookBaseUrl()
+        {
+            var client = _httpClientFactory.CreateClient("Luna");
+            return client.BaseAddress.AbsoluteUri;
         }
 
         /// <summary>
