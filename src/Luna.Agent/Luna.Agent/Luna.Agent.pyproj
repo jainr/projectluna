@@ -18,17 +18,8 @@
     <Name>Luna.Agent</Name>
     <RootNamespace>Luna.Agent</RootNamespace>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
-    <Environment>AZURE_CLIENT_ID=6aa36c4d-347b-4333-836d-009925b6b7e4
-AZURE_TENANT_ID=72f988bf-86f1-41af-91ab-2d7cd011db47
-AZURE_CLIENT_SECRET=s~X~9bo3yw-1EHL0Y.ToAbJl_ucTgqo68r
-KEY_VAULT_NAME=lunaailol-keyvault
-AGENT_MODE=LOCAL
-ODBC_CONNECTION_STRING=mssql+pyodbc://lunauserlunaailol:$s13gze0cAGL$ug.r2l&amp;rq_K@lunaailol-sqlserver.database.windows.net:1433/lunaailol-agentdb?driver=ODBC+Driver+17+for+SQL+Server
-AGENT_ID=e1500158-5f69-4c8e-878a-daeac07fcf71
-AGENT_KEY=c18e68bc442b44b79cbd964800adfb69
-AGENT_API_ENDPOINT=localhost
-AAD_VALID_AUDIENCES=52ed21f2-32e1-4df0-86be-00f5795e7137;9348a48a-9f97-4e9e-bce2-40d239840733;ad47785e-4af7-4cca-bef2-3822deef258a
-AAD_TOKEN_ISSUER=https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0</Environment>
+    <Environment>
+    </Environment>
     <WebBrowserPort>23456</WebBrowserPort>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

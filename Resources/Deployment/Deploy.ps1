@@ -358,6 +358,8 @@ $replyUrl = "https://" + $isvWebAppName + ".azurewebsites.net";
 $replyUrls.Add($replyUrl)
 $replyUrl = "https://" + $isvWebAppName + ".azurewebsites.net/Offers";
 $replyUrls.Add($replyUrl)
+$replyUrl = "https://" + $isvWebAppName + ".azurewebsites.net/Products";
+$replyUrls.Add($replyUrl)
 $replyUrl = "https://" + $isvWebAppName + ".azurewebsites.net/Subscriptions";
 $replyUrls.Add($replyUrl)
 $replyUrl = "https://" + $enduserWebAppName + ".azurewebsites.net/LandingPage";

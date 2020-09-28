@@ -128,3 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 src/Luna.Agent/Luna.Agent/mlruns/0/meta.yaml
+src/Luna.Agent/Luna.Agent/.azure/config
