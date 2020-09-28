@@ -89,7 +89,7 @@ class APISubscription(Base):
             # validate the userId
             users = AgentUser.ListAllBySubscriptionId(subscriptionId)
             if not any(user.ObjectId == objectId for user in users):
-                raise LunaUserException(HTTPStatus.Forbidden, "The subscription {} doesn't exist or you don't have permission to access it.".format(subscriptionId))
+                raise LunaUserException(HTTPStatus.FORBIDDEN, "The subscription {} doesn't exist or you don't have permission to access it.".format(subscriptionId))
 
         session = Session()
         subscription = session.query(APISubscription).filter_by(SubscriptionId = subscriptionId).first()

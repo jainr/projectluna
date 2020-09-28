@@ -4,3 +4,4 @@
 !obj\Any CPU
 !obj\Debug
 !env\
+!__pycache__\
