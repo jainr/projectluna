@@ -14,25 +14,29 @@ You can skip this section if you are not planning to publish a real time predict
 
 ### Create a real-time prediction product
 
-You can create a new AI product by click on the "New Product" button on the "Products" tab. You will need to provide the following information:
+You can create a new AI product by click on the "New AI Service" button on the "AI Services" tab. You will need to provide the following information:
 
-- Id: the product id. In this example, we are going to use rtp-product
-- Product Type: the type of the product, choose Real-time Prediction
-- Host Type: choose SaaS. "Bring Your Own Compute" host type is not supported yet.
-- Owner: use your AAD id
+- Id: the AI service id. In this example, we are going to use rtp-product
+- Owner: it will be auto filled with your AAD user id. You can update it if you want other people to be the owner.
+- Create AI service from: we are going to create the AI service from a "Deployed Model Service Endpoint" for real time prediction.
+- Host Type: choose SaaS. "Selfhost" host type is not supported yet.
+- Description: the description of your service
+- Logo Url: a url to a 90 x 90 logo image. A default Azure Machine Learning logo will be used if not specified. In this tutorial, we will use the default logo
+- Documentation url: url to the documentation page of your service. In this tutorial, you can point it to the Github repo you just created.
+- SaaS offer name: A SaaS offer will be automatically created if the SaaS offer name is specified. For each plan created in this AI service, an corresponding plan with same name will also be created in the SaaS offer. In this tutorial, we use same name "rtp-product" for the SaaS offer.
 
 ![create-rtp-product](../../images/luna.ai/create-new-rtp-product.png)
 
 Then click on "Save" button to save the changes.
 
-### Create a real-time prediction deployment
+### Create a real-time prediction plan
 
-After the product is created, you will see two sections on the "Product Details" page: Deployments and AML Workspaces. For a real-time prediction AI service, you don't need to register an AML workspace yet. We will cover that in the next section when creating the train your own model service.
+After the product is created, you will see two sections on the "AI Service Details" page: Service plans and AML Workspaces. For a real-time prediction AI service, you don't need to register an AML workspace yet. We will cover that in the next section when creating the train your own model service.
 
-To create a new deployment, click on the "New Deployment" button. You will need to provide the following information:
+To create a new service plan, click on the "New Plan" button. You will need to provide the following information:
 
-- Deployment Name: the name of the deployment. We are going to use *rtp-deployment* in this example.
-- Description: the description of the deployment, you can write your own description here
+- Plan Name: the name of the plan. We are going to use *rtp-deployment* in this example.
+- Description: the description of the plan, you can write your own description here
 
 ![create-rtp-deployment](../../images/luna.ai/create-new-rtp-deployment.png)
 
@@ -40,19 +44,33 @@ Then click on "Create" button to save the changes.
 
 ### Create a real-time prediction API version
 
-In Luna AI service, we allow you to create multiple version of APIs for a deployment. To create a new API version, click on the "New Version" button.
+In Luna AI service, we allow you to create multiple versions of APIs for a plan. To create a new API version, click on the "New Version" button.
 
 ![create-rtp-version](../../images/luna.ai/create-new-rtp-version-1.png)
 
+In the "New Version" panel, provide the following information:
+- Version Name: we will use "v1.0" in this tutorial
+- Real time predict API: the service endpoint we deployed earlier. See [the previous step](./deploy-pre-trained-model.md#Test-the-scoring-endpoint) about how to get the endpoint
+- Authentication: we will use key authentication in this tutorial
+- Key: the authentication key. See [the previous step](./deploy-pre-trained-model.md#Test-the-scoring-endpoint) about how to get the key.
+
 ## Publish a train-your-own-model AI service
 
-A train-your-own-model AI service allows the end user to call the APIs to train models using their own data, do batch inference with their own models and/or deploy the models to real time service endpoint for their online applications.
+A train-your-own-model AI service allows the end user to call the APIs to train models using their own data, do batch inference with their own models and/or deploy the models to real time service endpoint for their online applications. The service will be created from a machine learning project using Luna ML project template.
 
 You can skip this section if you are not planning to publish a train-your-own-model AI service.
 
-### Create a train-your-own-model product
+### Create a train-your-own-model AI service
 
-We are going to create a new product with name tyom-product for the train your own model AI service. For "Product Type", you should choose "Train Your Own Model"
+We are going to create a new AI service with name tyom-product for the train your own model AI service. In the "New AI Service" panel, provide the following information:
+- Id: the AI service id. In this example, we are going to use tyom-product
+- Owner: it will be auto filled with your AAD user id. You can update it if you want other people to be the owner.
+- Create AI service from: we are going to create the AI service from a "Machine Learning Project".
+- Host Type: choose SaaS. "Selfhost" host type is not supported yet.
+- Description: the description of your service
+- Logo Url: a url to a 90 x 90 logo image. A default Azure Machine Learning logo will be used if not specified. In this tutorial, we will use the default logo
+- Documentation url: url to the documentation page of your service. In this tutorial, you can point it to the Github repo you just created.
+- SaaS offer name: A SaaS offer will be automatically created if the SaaS offer name is specified. For each plan created in this AI service, an corresponding plan with same name will also be created in the SaaS offer. In this tutorial, we use same name "tyom-product" for the SaaS offer.
 
 ![create-tyom-product](../../images/luna.ai/create-new-tyom-product.png)
 
@@ -60,7 +78,7 @@ Then click on the "Save" button to save the changes.
 
 ### Register a Azure Machine Learning workspace
 
-In a "Train Your Own Model" AI service, the model training, batch inference and deployment are running in an Azure Machine Learning workspace as pipeline runs. We already published the AML pipelines in the previous step (TODO: add link). To create the AI service, you need to provide the information about your Azure Machine Learning workspace and how to connect to it.
+For an AI service created from Machine Learning Project, the operations including model training, batch inference and deployment are running in an Azure Machine Learning workspace as pipeline runs. To host the AI service, you need to provide the information about your Azure Machine Learning workspace and how to connect to it.
 
 In Luna service, we use an AAD application to connect to the Azure Machine Learning service. In this example, we will reuse an AAD application we created when deploying Luna service.
 

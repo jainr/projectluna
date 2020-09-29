@@ -632,12 +632,14 @@ namespace Luna.Services.Data
         {
             if (token.Split('.').Length != 3)
             {
+                /*
                 var offerParameters = await _offerParameterService.GetAllAsync("test1");
                 return new SubscriptionLayout(Guid.NewGuid(), "mysub", new OfferLayout("test1", "test 1"),
                     new List<PlanLayout>(new PlanLayout[] { new PlanLayout("test", "Test Plan") }),
                     new List<string>(new string[] { "SaaS" }),
                     offerParameters);
-                /*
+                */
+                
                 //This is a marketplace token
                 MarketplaceSubscription resolvedSubscription = await _fulfillmentManager.ResolveSubscriptionAsync(token);
                 Offer offer = await _offerService.GetAsync(resolvedSubscription.OfferId);
@@ -659,7 +661,7 @@ namespace Luna.Services.Data
                     new List<PlanLayout>(new PlanLayout[] { new PlanLayout(plan.PlanName, plan.PlanName) }),
                     hostTypes,
                     offerParameters);
-                */
+                
             }
             else
             {

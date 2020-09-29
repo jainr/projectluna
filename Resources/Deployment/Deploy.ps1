@@ -514,6 +514,7 @@ $appsettings["SecuredCredentials:Azure:Config:ControllerBaseUrl"] = $controllerB
 $appInsightsApp = Get-AzApplicationInsights -ResourceGroupName $resourceGroupName -name $apiWebAppInsightsName
 $appsettings["ApplicationInsights:InstrumentationKey"] = $appInsightsApp.InstrumentationKey;
 $appsettings["WebJob:APIServiceUrl"] = "https://" + $apiWebAppName + ".azurewebsites.net/api";
+$appsettings["LunaClient:BaseUri"]="https://" + $apiWebAppName + ".azurewebsites.net/api";
 
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $apiWebAppName -AppSettings $appsettings
 

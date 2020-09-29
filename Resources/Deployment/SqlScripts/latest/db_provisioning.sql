@@ -587,7 +587,6 @@ CREATE TABLE [dbo].[APIVersions](
 GO
 
 CREATE TABLE [dbo].[APISubscriptions](
-	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[SubscriptionId] [uniqueidentifier] NOT NULL,
 	[DeploymentId] [bigint] NOT NULL,
 	[Name] [nvarchar](64) NOT NULL,
@@ -658,7 +657,7 @@ GO
 
 CREATE VIEW [dbo].[agent_subscriptions]
 AS
-SELECT dbo.APISubscriptions.Id, dbo.APISubscriptions.SubscriptionId, dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.Products.ProductType, dbo.APISubscriptions.Owner, dbo.APISubscriptions.Name, dbo.APISubscriptions.Status, dbo.Products.HostType, dbo.APISubscriptions.CreatedTime, dbo.APISubscriptions.BaseUrl, dbo.APISubscriptions.PrimaryKeySecretName, dbo.APISubscriptions.SecondaryKeySecretName, 
+SELECT dbo.APISubscriptions.SubscriptionId, dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.Products.ProductType, dbo.APISubscriptions.Owner, dbo.APISubscriptions.Name, dbo.APISubscriptions.Status, dbo.Products.HostType, dbo.APISubscriptions.CreatedTime, dbo.APISubscriptions.BaseUrl, dbo.APISubscriptions.PrimaryKeySecretName, dbo.APISubscriptions.SecondaryKeySecretName, 
           dbo.APISubscriptions.AgentId, dbo.Publishers.PublisherId, 0 AS AMLWorkspaceId, '' AS AMLWorkspaceComputeClusterName, '' AS AMLWorkspaceDeploymentTargetType, '' AS AMLWorkspaceDeploymentClusterName, dbo.Offers.OfferName, dbo.Plans.PlanName
 FROM   dbo.Offers INNER JOIN
           dbo.Subscriptions ON dbo.Offers.Id = dbo.Subscriptions.OfferId INNER JOIN

@@ -34,7 +34,7 @@ export const getInitialUpdateSubscriptionModel = (): IUpdateSubscriptionModel =>
 export const getInitialSubscriptionV2 = (): ISubscriptionsV2Model => {
   return {
     subscriptionId: '',
-    subscriptionName: '',
+    name: '',
     userId: '',
     productName: '',
     deploymentName: '',

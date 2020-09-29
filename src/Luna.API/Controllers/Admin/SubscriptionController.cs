@@ -252,7 +252,8 @@ namespace Luna.API.Controllers.Admin
             // Do not log token content!
             _logger.LogInformation($"Resolve token for a subscription.");
 
-            var subscriptionLayout = await _subscriptionService.GetSubscriptionLayoutFromToken(token, AADAuthHelper.GetUserAccount(this.HttpContext));
+            var subscriptionLayout = await _fulfillmentManager.ResolveSubscriptionAsync(token);
+            //var subscriptionLayout = await _subscriptionService.GetSubscriptionLayoutFromToken(token, AADAuthHelper.GetUserAccount(this.HttpContext));
 
             return Ok(subscriptionLayout);
         }

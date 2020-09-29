@@ -209,7 +209,11 @@ def executeChildOperation(parentOperationNoun, parentOperationId, operationVerb,
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
         amlUtil = AzureMLUtils(workspace)
         if version.VersionSourceType == 'git':
-            opId = amlUtil.runProject(sub.ProductName, sub.DeploymentName, apiVersion, operationVerb, json.dumps(request.json), parentOperationId, sub.Owner, sub.SubscriptionId, computeCluster=sub.AMLWorkspaceComputeClusterName)
+            if os.environ["AGENT_MODE"] == "SAAS":
+                computeCluster = "default"
+            else:
+                computeCluster = sub.AMLWorkspaceComputeClusterName
+            opId = amlUtil.runProject(sub.ProductName, sub.DeploymentName, apiVersion, operationVerb, json.dumps(request.json), parentOperationId, sub.Owner, sub.SubscriptionId, computeCluster=computeCluster)
         elif version.VersionSourceType == 'amlPipeline':
             if parentOperationNoun != 'models':
                 return 'The parent resource type {} is not supported'.format(parentOperationNoun)

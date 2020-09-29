@@ -330,9 +330,9 @@ const Subscriptions: React.FunctionComponent = () => {
           return <span style={{cursor: 'pointer', color: 'rgb(0, 120, 212)'}}
                        onClick={() => {
                          editdetailsV2(item.subscriptionId)
-                       }}>{item.subscriptionName}</span>;
+                       }}>{item.name}</span>;
         } else {
-          return <span>{item.subscriptionName}</span>;
+          return <span>{item.name}</span>;
         }
       }
     },
@@ -1013,7 +1013,7 @@ const Subscriptions: React.FunctionComponent = () => {
                         <FormLabel title={"Name:"} toolTip={SubscriptionV2.Subscription.subscriptionName}/>
                         <TextField
                           name={'subscriptionName'}
-                          value={subscriptionV2Selected.subscriptionName}
+                          value={subscriptionV2Selected.name}
                           readOnly={true}/>
                       </Stack>
                       <Stack className={"form_row"}>

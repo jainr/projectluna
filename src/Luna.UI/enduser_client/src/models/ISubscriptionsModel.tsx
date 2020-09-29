@@ -91,7 +91,7 @@ export interface IOperationHistoryModel {
 
 export interface ISubscriptionsV2Model {
   subscriptionId: string,
-  subscriptionName: string,
+  name: string,
   userId: string,
   productName: string,
   deploymentName: string,

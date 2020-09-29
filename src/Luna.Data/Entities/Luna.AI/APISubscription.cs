@@ -39,9 +39,6 @@ namespace Luna.Data.Entities
             this.AgentId = subscription.AgentId;
         }
 
-        [JsonIgnore]
-        public long Id { get; set; }
-
         [Key]
         public Guid SubscriptionId { get; set; }
 

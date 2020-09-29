@@ -105,17 +105,20 @@ namespace Luna.Services.Data.Luna.AI
 
             using (var transaction = await _context.BeginTransactionAsync())
             {
-                Offer offer = new Offer();
-                offer.OfferName = product.SaaSOfferName;
-                offer.OfferAlias = product.SaaSOfferName;
-                offer.Owners = product.Owner;
-                offer.HostSubscription = Guid.Empty;
-                offer.OfferVersion = "v1";
-                await _offerService.CreateAsync(offer);
+                if (!string.IsNullOrEmpty(product.SaaSOfferName))
+                {
+                    Offer offer = new Offer();
+                    offer.OfferName = product.SaaSOfferName;
+                    offer.OfferAlias = product.SaaSOfferName;
+                    offer.Owners = product.Owner;
+                    offer.HostSubscription = Guid.Empty;
+                    offer.OfferVersion = "v1";
+                    await _offerService.CreateAsync(offer);
 
-                await CreateWebhooks(offer.OfferName);
+                    await CreateWebhooks(offer.OfferName);
 
-                product.OfferId = offer.Id;
+                    product.OfferId = offer.Id;
+                }
                 // Add product to db
                 _context.Products.Add(product);
                 await _context._SaveChangesAsync();
@@ -134,11 +137,11 @@ namespace Luna.Services.Data.Luna.AI
             webhook.WebhookName = "subscribeAIService";
             webhook.WebhookUrl = string.Format("{0}/apisubscriptions/createwithid?ProductName={1}&DeploymentName={2}&UserId={3}&SubscriptionName={4}&SubscriptionId={5}",
                 _lunaClient.GetWebhookBaseUrl(),
-                "system$$offerName",
-                "system$$planName",
-                "system$$subscriptionOwner",
-                "system$$subscriptionName",
-                "system$$subscriptionId");
+                "{system$$offerName}",
+                "{system$$planName}",
+                "{system$$subscriptionOwner}",
+                "{system$$subscriptionName}",
+                "{system$$subscriptionId}");
             await _webhookService.CreateAsync(offerName, webhook);
 
             webhook = new Webhook();
