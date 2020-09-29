@@ -560,20 +560,27 @@ Write-Host "enable managed identity"
 az webapp identity assign -g $controllerWebAppResourceGroupName -n $controllerWebAppName
 
 $setting = 'KEY_VAULT_NAME=' + $keyVaultName 
-$setting = $setting + ' AGENT_MODE=SAAS' 
-$setting = $setting + ' ODBC_CONNECTION_STRING="'+$odbcConnectionString+'"'
-$setting = $setting + ' AGENT_ID='+$agentId
-$setting = $setting + ' AGENT_KEY='+$agentKey
-$setting = $setting + ' AGENT_API_ENDPOINT=' + "https://"+ $controllerWebAppName +".azurewebsites.net"
-$setting = $setting + ' AAD_VALID_AUDIENCES=' + $webAppAADApplicationId
-$setting = $setting + ' https://login.microsoftonline.com/' + $tenantId + "/v2.0"
-
+az webapp config appsettings set -n $controllerWebAppName --settings $setting
+$setting = 'AGENT_MODE=SAAS' 
+az webapp config appsettings set -n $controllerWebAppName --settings $setting
+$setting = 'ODBC_CONNECTION_STRING="'+$odbcConnectionString+'"'
+az webapp config appsettings set -n $controllerWebAppName --settings $setting
+$setting = 'AGENT_ID='+$agentId
+az webapp config appsettings set -n $controllerWebAppName --settings $setting
+$setting = 'AGENT_KEY='+$agentKey
+az webapp config appsettings set -n $controllerWebAppName --settings $setting
+$setting = 'AGENT_API_ENDPOINT=' + "https://"+ $controllerWebAppName +".azurewebsites.net"
+az webapp config appsettings set -n $controllerWebAppName --settings $setting
+$setting = 'AAD_VALID_AUDIENCES=' + $webAppAADApplicationId
+az webapp config appsettings set -n $controllerWebAppName --settings $setting
+$setting = 'AAD_TOKEN_ISSUER=https://login.microsoftonline.com/' + $tenantId + "/v2.0"
 
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
 
 Pop-Location
 
 #restart the API app
+Start-Sleep 30
 Restart-AzWebApp -ResourceGroupName $resourceGroupName -Name $apiWebAppName
 
 #grant key vault access to API app

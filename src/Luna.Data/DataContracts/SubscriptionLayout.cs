@@ -62,8 +62,10 @@ namespace Luna.Data.DataContracts
 
         public List<OfferParameterLayout> Parameters { get; set; }
 
+        public string AgentUrl { get; set; }
+
         public SubscriptionLayout(Guid subscriptionId, string subscriptionName,
-            OfferLayout offer, List<PlanLayout> plans, List<string> hostTypes, List<OfferParameter> offerParameters=null)
+            OfferLayout offer, List<PlanLayout> plans, List<string> hostTypes, List<OfferParameter> offerParameters=null, string agentUrl = "")
         {
             this.SubscriptionId = subscriptionId;
             this.SubscriptionName = subscriptionName;
@@ -78,6 +80,7 @@ namespace Luna.Data.DataContracts
                     this.Parameters.Add(new OfferParameterLayout(param));
                 }
             }
+            this.AgentUrl = agentUrl;
         }
 
     }

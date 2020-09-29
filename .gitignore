@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 src/Luna.Agent/Luna.Agent/mlruns/0/meta.yaml
 src/Luna.Agent/Luna.Agent/.azure/config
+src/Luna.Agent/Luna.Agent/.azure/config

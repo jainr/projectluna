@@ -677,6 +677,7 @@ namespace Luna.Services.Data
                 SecurityToken decodedToken;
                 handler.ValidateToken(token, param, out decodedToken);
                 string prodName = "";
+                string agentUrl = "";
                 foreach (var claim in ((JwtSecurityToken)decodedToken).Claims)
                 {
                     if (claim.Type.Equals("uid"))
@@ -690,11 +691,20 @@ namespace Luna.Services.Data
                     {
                         prodName = claim.Value;
                     }
+                    if (claim.Type.Equals("url"))
+                    {
+                        agentUrl = claim.Value;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(prodName))
                 {
                     throw new LunaBadRequestUserException("The prod in JWT token is invalid.", UserErrorCode.InvalidToken);
+                }
+                    
+                if (string.IsNullOrEmpty(agentUrl))
+                {
+                    throw new LunaBadRequestUserException("The url in JWT token is invalid.", UserErrorCode.InvalidToken);
                 }
 
                 Product product = await _productService.GetAsync(prodName);
@@ -709,7 +719,8 @@ namespace Luna.Services.Data
                 return new SubscriptionLayout(Guid.NewGuid(), "",
                     new OfferLayout(product.ProductName, product.ProductName),
                     plans,
-                    hostTypes);
+                    hostTypes,
+                    agentUrl: agentUrl);
 
             }
 

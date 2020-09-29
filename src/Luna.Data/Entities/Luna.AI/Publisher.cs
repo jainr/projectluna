@@ -22,10 +22,13 @@ namespace Luna.Data.Entities.Luna.AI
         [JsonIgnore]
         public long Id { get; set; }
 
+        [JsonPropertyName("PublisherId")]
         public Guid PublisherId { get; set; }
-        
+
+        [JsonPropertyName("ControlPlaneUrl")]
         public string ControlPlaneUrl { get; set; }
 
+        [JsonPropertyName("Name")]
         public string Name { get; set; }
     }
 }

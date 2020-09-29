@@ -3,7 +3,7 @@ Routes and views for the flask application.
 """
 
 from datetime import datetime
-from flask import render_template, send_file
+from flask import render_template, send_file,redirect
 from flask import jsonify, request
 from Agent.Code.CodeUtils import CodeUtils
 from Agent.AzureML.AzureMLUtils import AzureMLUtils
@@ -503,15 +503,26 @@ def deleteAMLWorkspace(workspaceName):
 
 @app.route('/api/management/agentinfo', methods=['GET'])
 def getAgentInfo():
-    info = {
-        "AgentId" : os.environ['AGENT_ID'], 
-        "AgentKey" : os.environ['AGENT_KEY'], 
-        "AgentAPIEndpoint": os.environ['AGENT_API_ENDPOINT'],
-        "AgentAPIConnectionString": "{}:{}@{}".format(os.environ['AGENT_ID'], os.environ['AGENT_KEY'], os.environ['AGENT_API_ENDPOINT'])}
-    return jsonify(info), 200
+    try:
+        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
+        info = {
+            "AgentId" : os.environ['AGENT_ID'], 
+            "AgentKey" : os.environ['AGENT_KEY'], 
+            "AgentAPIEndpoint": os.environ['AGENT_API_ENDPOINT'],
+            "AgentAPIConnectionString": "{}:{}@{}".format(os.environ['AGENT_ID'], os.environ['AGENT_KEY'], os.environ['AGENT_API_ENDPOINT'])}
+        return jsonify(info), 200
+
+    except Exception as e:
+        return handleExceptions(e)
 
 @app.route('/')
 @app.route('/home')
 def home():
     """Renders the home page."""
     return jsonify("This is an API Service.")
+
+
+@app.route('/')
+@app.route('/portal')
+def portal():
+    return redirect("https://luna-sa.azurewebsites.net/", code=302)
