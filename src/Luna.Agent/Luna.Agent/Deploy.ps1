@@ -4,6 +4,8 @@ param (
 
     [Parameter(Mandatory=$true)]
     [string]$location = "West US 2",
+
+    [string]$folder = "default",
     
     [string]$webAppServicePlanName = "default",
 
@@ -47,6 +49,11 @@ function GetPassword{
     $psw = ("#%0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".tochararray() | Sort-Object {Get-Random})[0..21] -join ''
     return $psw + "3Fd"
 }
+
+if ($folder -ne "default"){
+    Push-Location -Path $folder
+}
+
 
 $resourceGroupName = GetNameForAzureResources -defaultName $resourceGroupName -resourceTypeSuffix "-rg" -uniqueName $name
 $webAppServicePlanName = GetNameForAzureResources -defaultName $webAppServicePlanName -resourceTypeSuffix "-serviceplan" -uniqueName $name
@@ -104,7 +111,7 @@ $variables = $sqlDatabaseUsernameVar, $sqlDatabasePasswordVar, $adminObjectIdVar
 
 $sqlServerInstanceName = $sqlServerName + ".database.windows.net"
 
-Invoke-Sqlcmd -ServerInstance $sqlServerInstanceName -Username $sqlAdminUser -Password $sqlAdminPassword -Database $sqlDbName -Variable $variables -InputFile ".\init.sql"
+Invoke-Sqlcmd -ServerInstance $sqlServerInstanceName -Username $sqlAdminUser -Password $sqlAdminPassword -Database $sqlDbName -Variable $variables -InputFile "init.sql"
 
 
 #create key vault
@@ -152,3 +159,8 @@ az webapp config appsettings set -n $agentApiWebAppName --settings $setting
 $webappIdentity = az webapp identity show --name $agentApiWebAppName --resource-group $resourceGroupName | ConvertFrom-Json
 
 az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $webappIdentity.principalId
+
+
+if ($folder -ne "default"){
+    Pop-Location -Path $folder
+}
