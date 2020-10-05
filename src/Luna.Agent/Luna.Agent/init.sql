@@ -189,6 +189,6 @@ Declare @adminAADObjectId uniqueidentifier
 SET @adminUserName = $(adminUserName)
 SET @adminAADObjectId = $(adminAADObjectId)
 
-INSERT INTO agent_users VALUES (@adminUserName, 'Service admin', 'Admin', null, @adminAADObjectId
+INSERT INTO agent_users VALUES (@adminUserName, 'Service admin', 'Admin', null, @adminAADObjectId)
 GO
 
