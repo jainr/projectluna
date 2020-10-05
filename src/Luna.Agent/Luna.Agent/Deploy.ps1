@@ -94,6 +94,8 @@ az group create --location $location --name $resourceGroupName
 #create sql server and database
 az sql server create --resource-group $resourceGroupName --location $location --name $sqlServerName --admin-user $sqlAdminUser --admin-password $sqlAdminPassword
 
+az sql server firewall-rule create --resource-group $resourceGroupName --server $sqlServerName -n "AllowAzureServiceAccess" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+
 if ($sqlFirewallRuleStartIp -ne 'default' -and $sqlFirewallRuleEndIp -ne 'default'){
     az sql server firewall-rule create --resource-group $resourceGroupName --server $sqlServerName -n "AllowClientAccess" --start-ip-address $sqlFirewallRuleStartIp --end-ip-address $sqlFirewallRuleEndIp
 }
@@ -162,5 +164,5 @@ az keyvault set-policy --name $keyVaultName --secret-permissions get list set de
 
 
 if ($folder -ne "default"){
-    Pop-Location -Path $folder
+    Pop-Location
 }
