@@ -45,6 +45,7 @@
     <Compile Include="Agent\Code\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Agent\Data\Offer.py" />
     <Compile Include="Agent\Data\KeyVaultHelper.py">
       <SubType>Code</SubType>
     </Compile>
@@ -80,6 +81,9 @@
     <Compile Include="config.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="main.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="runserver.py" />
     <Compile Include="Agent\__init__.py" />
     <Compile Include="Agent\views.py" />
@@ -95,6 +99,7 @@
     <Folder Include="Agent\Exception\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="xiwutest5f386e67.pubxml" />
     <None Include="lunaagent.pubxml" />
     <Content Include=".dockerignore">
       <SubType>Content</SubType>
@@ -102,6 +107,7 @@
     </Content>
     <None Include="Dockerfile" />
     <None Include="aigent-saas - Web Deploy.pubxml" />
+    <Content Include="mypy.ini" />
     <Content Include="web.config" />
     <None Include="aigent - Web Deploy.pubxml" />
     <Content Include="requirements.txt" />

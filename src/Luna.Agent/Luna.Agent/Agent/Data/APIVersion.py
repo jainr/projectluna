@@ -38,6 +38,8 @@ class APIVersion(Base):
 
     PublisherId = Column(String)
 
+    ConfigFile = Column(String)
+
     @staticmethod
     def Get(productName, deploymentName, versionName, publisherId):
         session = Session()
@@ -70,6 +72,7 @@ class APIVersion(Base):
                                                                    PublisherId = apiVersion["PublisherId"]).first()
                 if dbAPIVersion:
                     dbAPIVersion.LastUpdatedTime = apiVersion["LastUpdatedTime"]
+                    dbAPIVersion.ConfigFile = apiVersion["ConfigFile"]
                 else:
                     dbAPIVersion = APIVersion(**apiVersion)
                     session.add(dbAPIVersion)

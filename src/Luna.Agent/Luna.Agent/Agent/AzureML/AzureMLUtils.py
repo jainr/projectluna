@@ -38,7 +38,7 @@ class AzureMLUtils(object):
         workspaceName = infoList[-1]
         return subscriptionId, resourceGroupName, workspaceName
 
-    def __init__(self, workspace):
+    def __init__(self, workspace, config_file=None):
         if workspace.AADApplicationSecret:
             secret = workspace.AADApplicationSecret
         else:
@@ -50,7 +50,8 @@ class AzureMLUtils(object):
         subscriptionId, resourceGroupName, workspaceName = self.get_workspace_info_from_resource_id(workspace.ResourceId)
         ws = Workspace(subscriptionId, resourceGroupName, workspaceName, auth)
         self._workspace = ws
-        self._utils = ProjectUtils(run_mode='azureml')
+        if config_file:
+            self._utils = ProjectUtils(luna_config_file = config_file, run_mode='azureml')
 
     def get_pipeline_id_from_url(self, url):
         list = url.split('/')
@@ -81,7 +82,7 @@ class AzureMLUtils(object):
         exp.submit(pipeline, tags = tags, pipeline_parameters=parameters)
         return operationId
 
-    def runProject(self, productName, deploymentName, apiVersion, operationVerb, userInput, predecessorOperationId, userId, subscriptionId, computeCluster="default"):
+    def runProject(self, productName, deploymentName, apiVersion, operationVerb, userInput, predecessorOperationId, userId, subscriptionId, computeCluster="default", luna_config_file = 'luna_config.yml'):
         operationId = str('a' + uuid4().hex[1:])
         experimentName = subscriptionId
         entryPoint = self.GetOperationNameByVerb(operationVerb)

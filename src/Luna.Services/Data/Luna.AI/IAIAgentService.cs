@@ -25,6 +25,7 @@ namespace Luna.Services.Data
         Task<List<AgentSubscription>> GetAllSubscriptionsByAgentIdAsync(Guid agentId);
 
         Task<List<AgentAPIVersion>> GetAllAPIVersionByAgentIdAsync(Guid agentId);
+        Task<List<AgentOffer>> GetAllOfferByAgentIdAsync(Guid agentId);
 
         Task<string> GetProjectFileSaSUrlAsync(Guid agentId, Guid subscriptionId, string versionName);
 

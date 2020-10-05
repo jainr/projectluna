@@ -542,6 +542,7 @@ CREATE TABLE [dbo].[Products](
 	[LogoImageUrl] [nvarchar](max) NULL,
 	[DocumentationUrl] [nvarchar](max) NULL,
 	[SaaSOfferName] [nvarchar](50) NULL,
+	[DisplayName] [nvarchar](128) NULL,
 	[OfferId] [bigint] NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
@@ -620,6 +621,8 @@ CREATE TABLE [dbo].[Publishers](
 	[PublisherId] [uniqueidentifier] NOT NULL,
 	[ControlPlaneUrl] [nvarchar](max) NOT NULL,
 	[Name] [nvarchar](256) NOT NULL,
+	[LandingPageUrl] [nvarchar](max) NOT NULL,
+	[PublisherMicrosoftId] [nvarchar](256) NOT NULL,
 	PRIMARY KEY (PublisherId)
 )
 GO
@@ -630,8 +633,10 @@ Declare @publisherName nvarchar(256)
 SET @publisherId = $(publisherId)
 SET @controlPlaneUrl = $(controlPlaneUrl)
 SET @publisherName = $(publisherName)
+SET @publisherMicrosoftId = $(publisherMicrosoftId)
+SET @landingPageUrl = $(landingPageUrl)
 
-INSERT INTO [dbo].[Publishers] VALUES(@publisherId, @controlPlaneUrl, @publisherName)
+INSERT INTO [dbo].[Publishers] VALUES(@publisherId, @controlPlaneUrl, @publisherName, @landingPageUrl, @publisherMicrosoftId)
 GO
 
 Declare @agentId nvarchar(64)
@@ -647,7 +652,7 @@ GO
 CREATE VIEW [dbo].[agent_apiversions]
 AS
 SELECT dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.APIVersions.VersionName, dbo.APIVersions.RealTimePredictAPI, dbo.APIVersions.TrainModelAPI, dbo.APIVersions.BatchInferenceAPI, dbo.APIVersions.DeployModelAPI, dbo.APIVersions.AuthenticationType, dbo.APIVersions.CreatedTime, dbo.APIVersions.LastUpdatedTime, dbo.APIVersions.VersionSourceType, dbo.APIVersions.ProjectFileUrl, 
-          dbo.APIVersions.Id, dbo.APIVersions.AMLWorkspaceId, dbo.Publishers.PublisherId, dbo.APIVersions.AuthenticationKeySecretName, dbo.APISubscriptions.SubscriptionId, dbo.APISubscriptions.AgentId
+          dbo.APIVersions.Id, dbo.APIVersions.AMLWorkspaceId, dbo.Publishers.PublisherId, dbo.APIVersions.AuthenticationKeySecretName, dbo.APISubscriptions.SubscriptionId, dbo.APISubscriptions.AgentId, dbo.APIVersions.ConfigFile
 FROM   dbo.APIVersions INNER JOIN
           dbo.Deployments ON dbo.APIVersions.DeploymentId = dbo.Deployments.Id INNER JOIN
           dbo.Products ON dbo.Deployments.ProductId = dbo.Products.Id INNER JOIN

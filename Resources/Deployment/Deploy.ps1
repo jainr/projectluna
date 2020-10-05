@@ -5,6 +5,8 @@
     [Parameter(Mandatory=$true)]
     [string]$location = "centralus",
 
+    [string]$publisherMicrosoftid = "default",
+
     [string]$tenantId = "default",
 
     [string]$accountId = "default",
@@ -460,12 +462,14 @@ $controlPlaneUrlVar = "controlPlaneUrl='" + $controlPlaneUrl + "'"
 $agentIdVar = "agentId='" + $agentId + "'"
 $agentkeySecretNameVar = "agentKeySecretName='saas-agent-key'"
 $publisherNameVar = "publisherName='"+$companyName+"'"
+$publisherMicrosoftIdVar = "publisherMicrosoftId='"+$publisherMicrosoftid+"'"
+$LandingPageUrlVar = "landingPageUrl='https://" + $enduserWebAppName + ".azurewebsites.net/LandingPage'"
 
 
 $secretvalue = ConvertTo-SecureString $agentKey -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'saas-agent-key' -SecretValue $secretvalue
 
-$variables = $sqlDatabaseUsernameVar, $sqlDatabasePasswordVar, $publisherIdVar, $controlPlaneUrlVar, $agentIdVar, $agentkeySecretNameVar, $publisherNameVar
+$variables = $sqlDatabaseUsernameVar, $sqlDatabasePasswordVar, $publisherIdVar, $controlPlaneUrlVar, $agentIdVar, $agentkeySecretNameVar, $publisherNameVar, $publisherMicrosoftIdVar, $LandingPageUrlVar
 
 Write-Host $variables
 

@@ -37,6 +37,7 @@ export const initialProductValues: IProductModel = {
   documentationUrl: '',
   description: '',
   saasOfferName: '',
+  displayName: '',
   isDeleted: false,
   isSaved: false,
   isModified: false,
@@ -53,6 +54,7 @@ export const initialProductList: IProductModel[] = [{
   documentationUrl: 'documenation',
   saasOfferName: '',
   createdTime: '',
+  displayName: '',
   lastUpdatedTime: '',
   isDeleted: false,
   isSaved: false,
@@ -69,6 +71,7 @@ export const initialProductList: IProductModel[] = [{
   documentationUrl: 'documenation',
   saasOfferName: '',
   createdTime: '',
+  displayName: '',
   lastUpdatedTime: '',
   isDeleted: false,
   isSaved: false,
@@ -84,6 +87,7 @@ export const initialProductList: IProductModel[] = [{
   description: 'description',
   documentationUrl: 'documenation',
   saasOfferName: '',
+  displayName: '',
   createdTime: '',
   lastUpdatedTime: '',
   isDeleted: false,
@@ -119,6 +123,7 @@ const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
     saasOfferName: yup.string(),
     createdTime: yup.string(),
     documentationUrl: yup.string(),
+    displayName: yup.string(),
     lastUpdatedTime: yup.string()
   }
 );
@@ -151,6 +156,7 @@ export const deleteProductValidator: ObjectSchema<IProductModel> = yup.object().
     description: yup.string(),
     productType: yup.string(),
     saasOfferName: yup.string(),
+    displayName: yup.string(),
     documentationUrl: yup.string(),
     createdTime: yup.string(),
     lastUpdatedTime: yup.string()

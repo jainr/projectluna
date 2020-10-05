@@ -47,6 +47,7 @@ namespace Luna.Data.Repository
         public DbSet<AgentAPIVersion> AgentAPIVersions { get; set; }
 
         public DbSet<Publisher> Publishers { get; set; }
+        public DbSet<AgentOffer> AgentOffers { get; set; }
 
         // Wrappers for DbContext methods that are used
         public async Task<int> _SaveChangesAsync()
@@ -72,6 +73,8 @@ namespace Luna.Data.Repository
             modelBuilder.Entity<AgentSubscription>().HasNoKey();
 
             modelBuilder.Entity<AgentAPIVersion>().HasNoKey();
+
+            modelBuilder.Entity<AgentOffer>().HasNoKey();
 
             modelBuilder.Entity<ArmTemplateArmTemplateParameter>()
                 .HasKey(x => new { x.ArmTemplateId, x.ArmTemplateParameterId });

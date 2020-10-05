@@ -90,6 +90,18 @@ namespace Luna.API.Controllers.Admin
             return Ok(await _aiAgentService.GetAllAPIVersionByAgentIdAsync(agentId));
         }
 
+
+        [HttpGet("aiagents/{agentId}/offers")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [AllowAnonymous]
+        public async Task<ActionResult> GetAllOffersAsync(Guid agentId)
+        {
+            var receivedKey = Request.Headers["Authorization"].ToString();
+            await _aiAgentService.ValidateAgentKey(agentId, receivedKey);
+            _logger.LogInformation($"Get all offers for AI Agent {agentId.ToString()}");
+            return Ok(await _aiAgentService.GetAllOfferByAgentIdAsync(agentId));
+        }
+
         [HttpGet("aiagents/{agentId}/subscriptions/{subscriptionId}/projectFileUrl/{versionName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [AllowAnonymous]

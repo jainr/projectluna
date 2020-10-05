@@ -20,6 +20,7 @@ from azure.identity import DefaultAzureCredential
 from Agent.Data.AMLWorkspace import AMLWorkspace
 from Agent.Data.AgentUser import AgentUser
 from Agent.Data.Publisher import Publisher
+from Agent.Data.Offer import Offer
 from Agent.Exception.LunaExceptions import LunaServerException, LunaUserException
 from Agent.Auth.AuthHelper import AuthenticationHelper
 import json, os, io
@@ -119,7 +120,7 @@ def executeOperation(operationVerb, subscriptionId = 'default'):
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
 
-        amlUtil = AzureMLUtils(workspace)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
         if version.VersionSourceType == 'git':
             if os.environ["AGENT_MODE"] == "SAAS":
                 computeCluster = "default"
@@ -146,7 +147,7 @@ def executeOperation(operationVerb, subscriptionId = 'default'):
 def getOperationStatus(operationVerb, operationId, subscriptionId = 'default'):
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
         result = amlUtil.getOperationStatus(operationVerb, operationId, sub.Owner, sub.SubscriptionId)
         if result:
             return jsonify(result)
@@ -161,7 +162,7 @@ def listOperations(operationVerb, subscriptionId='default'):
     
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
         result = amlUtil.listAllOperations(operationVerb, sub.Owner, sub.SubscriptionId)
         return jsonify(result)
     except Exception as e:
@@ -173,7 +174,7 @@ def listOperationOutputs(operationNoun, subscriptionId = 'default'):
     
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
         result = amlUtil.listAllOperationOutputs(operationNoun, sub.Owner, sub.SubscriptionId)
         return jsonify(result)
     except Exception as e:
@@ -185,7 +186,7 @@ def getOperationOutput(operationNoun, operationId, subscriptionId = 'default'):
     
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
         result, outputType = amlUtil.getOperationOutput(operationNoun, operationId, sub.Owner, sub.SubscriptionId)
         if not result:
             raise LunaUserException(HTTP_Status.NOT_FOUND, "The specified operation didn't generate any output.")
@@ -207,7 +208,7 @@ def executeChildOperation(parentOperationNoun, parentOperationId, operationVerb,
     
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
         if version.VersionSourceType == 'git':
             if os.environ["AGENT_MODE"] == "SAAS":
                 computeCluster = "default"
@@ -515,6 +516,32 @@ def getAgentInfo():
             "AgentAPIEndpoint": os.environ['AGENT_API_ENDPOINT'],
             "AgentAPIConnectionString": "{}:{}@{}".format(os.environ['AGENT_ID'], os.environ['AGENT_KEY'], os.environ['AGENT_API_ENDPOINT'])}
         return jsonify(info), 200
+
+    except Exception as e:
+        return handleExceptions(e)
+
+@app.route('/api/management/marketplaceOffers', methods=['GET'])
+def getMarketplaceOffers():
+    try:
+        userId = request.args.get('userId')
+        if not userId:
+            raise LunaUserException(HTTPStatus.BAD_REQUEST, "Query parameter userId is required.")
+
+        offers = Offer.ListMarketplaceOffers(userId)
+        return jsonify(offers), 200
+
+    except Exception as e:
+        return handleExceptions(e)
+
+@app.route('/api/management/internalOffers', methods=['GET'])
+def getInternalOffers():
+    try:
+        userId = request.args.get('userId')
+        if not userId:
+            raise LunaUserException(HTTPStatus.BAD_REQUEST, "Query parameter userId is required.")
+
+        offers = Offer.ListInternalOffers(userId)
+        return jsonify(offers), 200
 
     except Exception as e:
         return handleExceptions(e)

@@ -47,6 +47,8 @@ namespace Luna.Data.Repository
 
         DbSet<Publisher> Publishers { get; set; }
 
+        DbSet<AgentOffer> AgentOffers { get; set; }
+
         // Wrappers for DbContext methods that are used
         Task<int> _SaveChangesAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

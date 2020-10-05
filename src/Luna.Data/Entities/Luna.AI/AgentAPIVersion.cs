@@ -46,5 +46,8 @@ namespace Luna.Data.Entities
         [JsonPropertyName("PublisherId")]
         public Guid PublisherId { get; set; }
 
+        [JsonPropertyName("ConfigFile")]
+        public string ConfigFile { get; set; }
+
     }
 }

@@ -1,7 +1,21 @@
-#Depending on the operating system of the host machines(s) that will build or run the containers, the image specified in the FROM statement may need to be changed.
-#For more information, please see https://aka.ms/containercompat 
+#FROM mcr.microsoft.com/mssql/server:2019-latest
+FROM ubuntu:18.04
 
-FROM mcr.microsoft.com/dotnet/framework/aspnet:4.8-windowsservercore-ltsc2019
-ARG source
-WORKDIR /inetpub/wwwroot
-COPY ${source:-obj/Docker/publish} .
+RUN apt-get update \
+ && apt-get install -y sudo
+ 
+RUN apt-get install -y python3.6 python3-pip gcc libssl-dev unixodbc-dev
+
+
+# We copy just the requirements.txt first to leverage Docker cache
+COPY ./requirements.txt /app/requirements.txt
+
+WORKDIR /app
+
+RUN pip3 install -r requirements.txt
+
+COPY . /app
+
+ENTRYPOINT [ "python3" ]
+
+CMD [ "main.py" ]

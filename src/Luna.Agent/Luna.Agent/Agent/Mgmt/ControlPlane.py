@@ -2,10 +2,12 @@ import requests
 from Agent.Data.APISubscription import APISubscription
 from Agent.Data.Publisher import Publisher
 from Agent.Data.APIVersion import APIVersion
+from Agent.Data.Offer import Offer
 
 GET_PROJECT_FILE_URL_URL_FORMAT = "{base_url}/api/aiagents/{agent_id}/subscriptions/{subscription_id}/projectFileUrl/{version_name}"
 GET_AGENT_SUBSCRIPTIONS_URL_FORMAT = "{base_url}/api/aiagents/{agent_id}/subscriptions"
 GET_AGENT_APIVERSIONS_URL_FORMAT = "{base_url}/api/aiagents/{agent_id}/apiVersions"
+GET_AGENT_OFFERS_URL_FORMAT = "{base_url}/api/aiagents/{agent_id}/offers"
 
 class ControlPlane(object):
     """description of class"""
@@ -37,6 +39,14 @@ class ControlPlane(object):
             apiversions = response.json()
 
         return apiversions
+    
+    def GetAgentOffersFromControlPlane(self, controlPlaneUrl):
+        requestUrl = GET_AGENT_OFFERS_URL_FORMAT.format(base_url=controlPlaneUrl, agent_id=self._agentId)
+        response = requests.get(requestUrl, headers=self.GetAuthHeader())
+        if response.status_code == 200:
+            offers = response.json()
+
+        return offers
 
     def GetAuthHeader(self):
         return {"Authorization": self._agentKey}
@@ -48,6 +58,8 @@ class ControlPlane(object):
             APISubscription.MergeWithDelete(subscriptions, publisher.PublisherId)
             apiVersions = self.GetAgentAPIVersionsFromControlPlane(publisher.ControlPlaneUrl)
             APIVersion.MergeWithDelete(apiVersions, publisher.PublisherId)
+            offers = self.GetAgentOffersFromControlPlane(publisher.ControlPlaneUrl)
+            Offer.MergeWithDelete(offers, publisher.PublisherId)
         return
 
 

@@ -100,11 +100,17 @@ Then click on "Certificates & Secrets" in the menu on the left side. Under "Clie
 
 Type in the name of you Azure Machine Learning service in the search window of Azure portal, find your Azure Machine Learning service and click on it.
 
-Click on access control
+Click on access control -> Add -> Add Role Assignment. In the popped up panel, choose "Contributor" as Role, in the "Select" textbox, type in *unique-name*-azureresourcemanage-aad. Select the service principal and click on Save.
+
+![azure-portal-role-assignment-aml](../../images/luna.ai/azure-portal-role-assignment-aml.png)
+
+To learn more about Azure role based access control, please see [Azure Role-based access control documentation](https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal)
+
+Go back to the Luna management portal, click on the pencil button next to the AI service. Click on "Register New Workspace"
 
 ![register-aml-workspace](../../images/luna.ai/register-aml-workspace.png)
 
-[Azure Role-based access control documentation](https://docs.microsoft.com/en-us/azure/role-based-access-control/role-assignments-portal)
+
 
 ### Create a train-your-own-model deployment
 

@@ -39,7 +39,8 @@ export const ProductMessages =
         LogoImageUrl: '',
         Description: '',
         SaaSOfferName: '',
-        DocumentationUrl: ''
+        DocumentationUrl: '',
+        DisplayName: ''
     },
     deployment: {
         DeploymentName: '',

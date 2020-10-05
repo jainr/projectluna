@@ -9,6 +9,7 @@ export interface IProductModel extends IBaseModel {
   description: string;
   saasOfferName: string;
   documentationUrl: string;
+  displayName: string;
   createdTime?: string;
   lastUpdatedTime?: string;
   Idlist?: string;

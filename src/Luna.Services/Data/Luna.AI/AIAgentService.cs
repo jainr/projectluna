@@ -230,6 +230,17 @@ namespace Luna.Services.Data
             return versions;
         }
 
+        public async Task<List<AgentOffer>> GetAllOfferByAgentIdAsync(Guid agentId)
+        {
+            _logger.LogInformation(LoggingUtils.ComposeGetAllResourcesMessage(typeof(AgentOffer).Name));
+
+            // Get all offers by agent id
+            var offers = await _context.AgentOffers.ToListAsync();
+            _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(AgentOffer).Name, offers.Count()));
+
+            return offers;
+        }
+
         public async Task<string> GetProjectFileSaSUrlAsync(Guid agentId, Guid subscriptionId, string versionName)
         {
             _logger.LogInformation($"Get project file SaS url for AI Agent {agentId} and subscription {subscriptionId}");

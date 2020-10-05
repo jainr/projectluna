@@ -161,6 +161,21 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
             <tr>
               <td colSpan={2}>
               <Stack className={"form_row"}>
+                      <FormLabel title={"Display Name (64 characters max):"} toolTip={ProductMessages.product.DisplayName} />
+                      <TextField
+                        name={'product.displayName'}
+                        value={values.product.displayName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'displayName', dirty)}
+                        placeholder={'Display Name'}
+                        style={ {width: "100%"} } />
+                    </Stack>
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={2}>
+              <Stack className={"form_row"}>
                       <FormLabel title={"Description (120 characters max):"} toolTip={ProductMessages.product.Description} />
                       <TextField
                         name={'product.description'}
@@ -310,7 +325,7 @@ const Products: React.FunctionComponent = () => {
   const Products = ({ products }) => {
     if (!products || products.length === 0) {
       return <tr>
-        <td colSpan={4}><span>No Products</span></td>
+        <td colSpan={4}><span>No AI Services</span></td>
       </tr>;
     } else {
       return (

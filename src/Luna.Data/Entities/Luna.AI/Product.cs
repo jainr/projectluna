@@ -50,6 +50,8 @@ namespace Luna.Data.Entities
 
         public DateTime LastUpdatedTime { get; set; }
 
+        public string DisplayName { get; set; }
+
         [JsonIgnore]
         public long? OfferId { get; set; }
 
