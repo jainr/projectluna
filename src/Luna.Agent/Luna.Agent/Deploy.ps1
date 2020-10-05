@@ -165,4 +165,7 @@ az keyvault set-policy --name $keyVaultName --secret-permissions get list set de
 
 if ($folder -ne "default"){
     Pop-Location
+    $zipFileName = $folder+".zip"
+    Remove-Item $zipFileName -Force -ErrorAction SilentlyContinue
+    Remove-Item $folder -Force -Recurse -ErrorAction SilentlyContinue
 }
