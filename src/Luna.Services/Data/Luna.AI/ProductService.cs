@@ -148,14 +148,14 @@ namespace Luna.Services.Data.Luna.AI
             webhook.WebhookName = "unsubscribeAIService";
             webhook.WebhookUrl = string.Format("{0}/apisubscriptions/delete?SubscriptionId={1}",
                 _lunaClient.GetWebhookBaseUrl(),
-                "system$$subscriptionId");
+                "{system$$subscriptionId}");
             await _webhookService.CreateAsync(offerName, webhook);
 
             webhook = new Webhook();
             webhook.WebhookName = "suspendAIService";
             webhook.WebhookUrl = string.Format("{0}/apisubscriptions/suspend?SubscriptionId={1}",
                 _lunaClient.GetWebhookBaseUrl(),
-                "system$$subscriptionId");
+                "{system$$subscriptionId}");
             await _webhookService.CreateAsync(offerName, webhook);
 
         }

@@ -69,7 +69,7 @@ const LandingPage: React.FunctionComponent = (props) => {
       console.log('will unmount');
       body.classList.remove('landing');
     }
-  })
+  }, [])
 
 
   // const handledSubmissionErrors = (result: Result<any>, setSubmitting: any): boolean => {

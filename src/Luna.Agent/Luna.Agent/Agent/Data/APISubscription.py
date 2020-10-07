@@ -116,6 +116,7 @@ class APISubscription(Base):
     def GetByKey(subscriptionKey):
         session = Session()
         secret_name = key_vault_helper.find_secret_name_by_value(subscriptionKey)
+        app.logger.info(secret_name)
         if secret_name:
             subscription = session.query(APISubscription).filter(or_(APISubscription.PrimaryKeySecretName == secret_name, APISubscription.SecondaryKeySecretName == secret_name)).first()            
         else:

@@ -630,6 +630,9 @@ GO
 Declare @publisherId nvarchar(64)
 Declare @controlPlaneUrl nvarchar(512)
 Declare @publisherName nvarchar(256)
+Declare @publisherMicrosoftId nvarchar(512)
+Declare @landingPageUrl nvarchar(256)
+
 SET @publisherId = $(publisherId)
 SET @controlPlaneUrl = $(controlPlaneUrl)
 SET @publisherName = $(publisherName)
