@@ -47,6 +47,8 @@ class LunaUtils(object):
         parser.add_argument("--deploymentName", type=str, help="deployment name")
         parser.add_argument("--apiVersion", type=str, help="api version")
         parser.add_argument("--subscriptionId", type=str, help="subscription id")
+        parser.add_argument("--deploymentTarget", type=str, default="default", help="deployment target")
+        parser.add_argument("--aksCluster", type=str,  default="default", help="aks cluster")
 
         args = parser.parse_args()
         userInput = json.loads(args.userInput)

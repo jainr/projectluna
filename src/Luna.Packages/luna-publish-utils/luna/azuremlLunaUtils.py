@@ -44,16 +44,16 @@ class AzureMLLunaUtils(BaseLunaUtils):
                         'subscriptionId':self._args.subscriptionId,
                         'modelId': self._args.operationId})
 
-    def GetDeploymentConfig(self, tags, deployment_target=None, aks_cluster=None):
+    def GetDeploymentConfig(self, tags, deployment_target='default', aks_cluster='default'):
 
         # Read default deployment target and aks cluster info from the config files
         
         workspace_full_path = os.path.join(self._luna_config['azureml']['test_workspace_path'], self._luna_config['azureml']['test_workspace_file_name'])
         with open(workspace_full_path) as file:
             documents = json.load(file)
-            if not deployment_target:
+            if deployment_target == 'default':
                 deployment_target = documents['DeploymentTarget']
-            if not aks_cluster and deployment_target == 'aks':
+            if aks_cluster == 'default' and deployment_target == 'aks':
                 aks_cluster = documents['AksCluster']
 
         with open(self._luna_config['deploy_config']) as file:
@@ -72,7 +72,7 @@ class AzureMLLunaUtils(BaseLunaUtils):
             deployment_config.tags = tags
         return deployment_config
 
-    def DeployModel(self, deployment_target=None, aks_cluster=None):
+    def DeployModel(self):
         
         ws = self.GetAMLWorkspace()
         model = Model(ws, self._args.predecessorOperationId)
@@ -88,8 +88,8 @@ class AzureMLLunaUtils(BaseLunaUtils):
                 'subscriptionId':self._args.subscriptionId,
                 'modelId': self._args.predecessorOperationId,
                 'endpointId': self._args.operationId},
-                deployment_target=deployment_target,
-                aks_cluster=aks_cluster)
+                deployment_target=self._args.deploymentTarget,
+                aks_cluster=self._args.aksCluster)
         
         service = Model.deploy(ws, self._args.operationId, [model], inference_config, deployment_config)
         service.wait_for_deployment(show_output = True)

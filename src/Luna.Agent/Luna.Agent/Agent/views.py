@@ -38,6 +38,7 @@ def handleExceptions(e):
     if isinstance(e, LunaUserException):
         return e.message, e.http_status_code
     else:
+        app.logger.info(e.message)
         return 'The server encountered an internal error and was unable to complete your request.', 500
 
 def getMetadata(subscriptionId, isRealTimePredict = False):
@@ -212,9 +213,24 @@ def executeChildOperation(parentOperationNoun, parentOperationId, operationVerb,
         if version.VersionSourceType == 'git':
             if os.environ["AGENT_MODE"] == "SAAS":
                 computeCluster = "default"
+                deploymentTarget = "default"
+                aksCluster="default"
             else:
                 computeCluster = sub.AMLWorkspaceComputeClusterName
-            opId = amlUtil.runProject(sub.ProductName, sub.DeploymentName, apiVersion, operationVerb, json.dumps(request.json), parentOperationId, sub.Owner, sub.SubscriptionId, computeCluster=computeCluster)
+                deploymentTarget = sub.AMLWorkspaceDeploymentTargetType
+                aksCluster = sub.AMLWorkspaceDeploymentClusterName
+
+            opId = amlUtil.runProject(sub.ProductName, 
+                                      sub.DeploymentName, 
+                                      apiVersion, 
+                                      operationVerb, 
+                                      json.dumps(request.json), 
+                                      parentOperationId, 
+                                      sub.Owner, 
+                                      sub.SubscriptionId, 
+                                      computeCluster=computeCluster,
+                                      deploymentTarget=deploymentTarget,
+                                      aksCluster=aksCluster)
         elif version.VersionSourceType == 'amlPipeline':
             if parentOperationNoun != 'models':
                 return 'The parent resource type {} is not supported'.format(parentOperationNoun)
@@ -286,6 +302,18 @@ def createOrUpdateSubscription(subscriptionId):
     
     except Exception as e:
         return handleExceptions(e)
+
+@app.route('/api/management/subscriptions/<subscriptionId>', methods=['DELETE'])
+def deleteSubscription(subscriptionId):
+    """ TODO: do we need this API? """
+    try:
+        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
+        APISubscription.Delete(subscriptionId)
+        return jsonify(request.json), 200
+    
+    except Exception as e:
+        return handleExceptions(e)
+
 @app.route('/api/management/subscriptions/<subscriptionId>/users', methods=['GET'])
 def listAllSubscriptionUsers(subscriptionId):
     try:

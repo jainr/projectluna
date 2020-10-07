@@ -82,7 +82,19 @@ class AzureMLUtils(object):
         exp.submit(pipeline, tags = tags, pipeline_parameters=parameters)
         return operationId
 
-    def runProject(self, productName, deploymentName, apiVersion, operationVerb, userInput, predecessorOperationId, userId, subscriptionId, computeCluster="default", luna_config_file = 'luna_config.yml'):
+    def runProject(self, 
+                   productName, 
+                   deploymentName, 
+                   apiVersion, 
+                   operationVerb, 
+                   userInput, 
+                   predecessorOperationId, 
+                   userId, 
+                   subscriptionId, 
+                   computeCluster="default", 
+                   luna_config_file = 'luna_config.yml',
+                   deploymentTarget = 'default',
+                   aksCluster = 'default'):
         operationId = str('a' + uuid4().hex[1:])
         experimentName = subscriptionId
         entryPoint = self.GetOperationNameByVerb(operationVerb)
@@ -97,7 +109,9 @@ class AzureMLUtils(object):
                                             'deploymentName': deploymentName,
                                             'apiVersion': apiVersion,
                                             'subscriptionId': subscriptionId,
-                                            'predecessorOperationId': predecessorOperationId}, 
+                                            'predecessorOperationId': predecessorOperationId,
+                                            'deploymentTarget': deploymentTarget,
+                                            'aksCluster': aksCluster}, 
                                 tags={'userId': userId, 
                                         'productName': productName, 
                                         'deploymentName': deploymentName, 

@@ -136,6 +136,9 @@ namespace Luna.API.Controllers.Admin
                 throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(AIAgent).Name),
                     UserErrorCode.NameMismatch);
             }
+
+            agent.CreatedBy = AADAuthHelper.GetUserAccount(this.HttpContext);
+
             agent.CreatedTime = DateTime.UtcNow;
             if (await _aiAgentService.ExistsAsync(agentId))
             {

@@ -83,6 +83,14 @@ class APISubscription(Base):
         return
 
     @staticmethod
+    def Delete(subscriptionId):
+        session = Session()
+        dbSubscription = session.query(APISubscription).filter_by(SubscriptionId = subscription.SubscriptionId).first()
+        session.delete(dbSubscription)
+        session.commit()
+        session.close()
+
+    @staticmethod
     def Get(subscriptionId, objectId="Admin"):
         """ the function will should only be called in local mode, otherwise, the keys might be out of date! """
         if objectId != "Admin":
