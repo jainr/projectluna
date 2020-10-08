@@ -7,23 +7,31 @@ import requests
 import time
 
 
-TRAINING_URL_FORMAT = "{base_url}/train?api-version={api_version}"
-BATCHINFERENCE_URL_FORMAT = "{base_url}/models/{model_id}/batchinference?api-version={api_version}"
-DEPLOY_URL_FORMAT = "{base_url}/models/{model_id}/deploy?api-version={api_version}"
-GET_TRAINING_OP_URL_FORMAT = "{base_url}/operations/training/{model_id}?api-version={api_version}"
-GET_INFERENCE_OP_URL_FORMAT = "{base_url}/operations/inference/{operation_id}?api-version={api_version}"
-GET_DEPLOYMENT_OP_URL_FORMAT = "{base_url}/operations/deployment/{endpoint_id}?api-version={api_version}"
+TRAINING_URL_FORMAT = "{base_url}/{api_type}/train?api-version={api_version}"
+BATCHINFERENCE_URL_FORMAT = "{base_url}/{api_type}/models/{model_id}/batchinference?api-version={api_version}"
+DEPLOY_URL_FORMAT = "{base_url}/{api_type}/models/{model_id}/deploy?api-version={api_version}"
+GET_TRAINING_OP_URL_FORMAT = "{base_url}/{api_type}/operations/training/{model_id}?api-version={api_version}"
+GET_INFERENCE_OP_URL_FORMAT = "{base_url}/{api_type}/operations/inference/{operation_id}?api-version={api_version}"
+GET_DEPLOYMENT_OP_URL_FORMAT = "{base_url}/{api_type}/operations/deployment/{endpoint_id}?api-version={api_version}"
 
-GET_MODEL_URL_FORMAT = "{base_url}/models/{model_id}?api-version={api_version}"
-GET_ENDPOINT_URL_FORMAT = "{base_url}/endpoints/{endpoint_id}?api-version={api_version}"
+GET_MODEL_URL_FORMAT = "{base_url}/{api_type}/models/{model_id}?api-version={api_version}"
+GET_ENDPOINT_URL_FORMAT = "{base_url}/{api_type}/endpoints/{endpoint_id}?api-version={api_version}"
+
+class LunaException(Exception):
+
+    def __init__(self, message):
+        self.message = message
 
 class LunaClient(object):
     
-    def __init__(self, base_url, key, api_version):
-        self._base_url = base_url
-        self._key = key
-        self._api_version = api_version
+    def __init__(self, base_url, api_version = None, key = None, subscription_id = None):
+        if not key and not subscription_id:
+            raise LunaException("At least one of the following parameters are needed: key or subscription_id.")
 
+        self._base_url = base_url
+        self._api_version = api_version
+        self._key = key
+        self._subscription_id = subscription_id
 
     def get_request_header(self):
         return {"Accept": "application/json", "Ocp-Apim-Subscription-Key": self._key}

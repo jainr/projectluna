@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="luna-publish-utils",
-    version="0.5.10",
+    version="0.7.2",
     description="Publishing utilities for project Luna",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -23,8 +23,8 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
     ],
-    packages=["luna", "luna.logging"],
+    packages=["luna", "luna.logging", "luna.dataset"],
     include_package_data=True,
-    install_requires=["azureml-sdk", "mlflow"],
+    install_requires=["azureml-sdk", "mlflow", "pandas"],
     entry_points={},
 )

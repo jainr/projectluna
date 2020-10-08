@@ -109,7 +109,7 @@ class ProjectUtils(object):
         return args, userInput
 
     def GetDeploymentConfig(self, dns_name_label,tags):
-        workspace_full_path = os.path.join(self.luna_config['azureml']['test_workspace_path'], self.luna_config['azureml']['test_workspace_file_name'])
+        workspace_full_path = os.path.join(self.luna_config['azureml']['workspace_config_path'], self.luna_config['azureml']['workspace_config_file_name'])
         with open(workspace_full_path) as file:
             documents = json.load(file)
             deployment_target = documents['DeploymentTarget']
@@ -166,7 +166,7 @@ class ProjectUtils(object):
     def WaitForRunCompletionByTags(self, experiment_name, tags, show_output = True):
         
         time.sleep(5)
-        ws = Workspace.from_config(path=self.luna_config['azureml']['test_workspace_path'], _file_name=self.luna_config['azureml']['test_workspace_file_name'])
+        ws = Workspace.from_config(path=self.luna_config['azureml']['workspace_config_path'], _file_name=self.luna_config['azureml']['workspace_config_file_name'])
         exp = Experiment(ws, experiment_name)
         runs = exp.get_runs(type='azureml.PipelineRun', tags=tags)
         run = next(runs)
@@ -175,7 +175,7 @@ class ProjectUtils(object):
     def WaitForRunCompletion(self, run_id, experiment_name):
         
         time.sleep(5)
-        ws = Workspace.from_config(path=self.luna_config['azureml']['test_workspace_path'], _file_name=self.luna_config['azureml']['test_workspace_file_name'])
+        ws = Workspace.from_config(path=self.luna_config['azureml']['workspace_config_path'], _file_name=self.luna_config['azureml']['workspace_config_file_name'])
         
         exp = Experiment(ws, experiment_name)
 
@@ -183,27 +183,27 @@ class ProjectUtils(object):
         run.wait_for_completion(show_output = False)
 
     def GetServiceEndpoint(self, endpoint_id):
-        ws = Workspace.from_config(path=self.luna_config['azureml']['test_workspace_path'], _file_name=self.luna_config['azureml']['test_workspace_file_name'])
+        ws = Workspace.from_config(path=self.luna_config['azureml']['workspace_config_path'], _file_name=self.luna_config['azureml']['workspace_config_file_name'])
         return Webservice(ws, endpoint_id)
     
     def GetAciServiceEndpoint(self, endpoint_id):
-        ws = Workspace.from_config(path=self.luna_config['azureml']['test_workspace_path'], _file_name=self.luna_config['azureml']['test_workspace_file_name'])
+        ws = Workspace.from_config(path=self.luna_config['azureml']['workspace_config_path'], _file_name=self.luna_config['azureml']['workspace_config_file_name'])
         return AciWebservice(ws, endpoint_id)
 
     def GetAksServiceEndpoint(self, endpoint_id):
-        ws = Workspace.from_config(path=self.luna_config['azureml']['test_workspace_path'], _file_name=self.luna_config['azureml']['test_workspace_file_name'])
+        ws = Workspace.from_config(path=self.luna_config['azureml']['workspace_config_path'], _file_name=self.luna_config['azureml']['workspace_config_file_name'])
         return AksWebservice(ws, endpoint_id)
 
     def RunProject(self, entry_point, experiment_name, parameters, tags, azureml_workspace=None, compute_cluster="default"):
 
         if not azureml_workspace:
-            azureml_workspace = Workspace.from_config(path=self.luna_config['azureml']['test_workspace_path'], _file_name=self.luna_config['azureml']['test_workspace_file_name'])
+            azureml_workspace = Workspace.from_config(path=self.luna_config['azureml']['workspace_config_path'], _file_name=self.luna_config['azureml']['workspace_config_file_name'])
 
         if azureml_workspace:
             run_config = RunConfiguration.load(self.luna_config['azureml']['run_config'])
 
             if compute_cluster == "default":
-                workspace_full_path = os.path.join(self.luna_config['azureml']['test_workspace_path'], self.luna_config['azureml']['test_workspace_file_name'])
+                workspace_full_path = os.path.join(self.luna_config['azureml']['workspace_config_path'], self.luna_config['azureml']['workspace_config_file_name'])
                 with open(workspace_full_path) as file:
                     documents = json.load(file)
                     aml_compute = documents['AmlCompute']
@@ -237,13 +237,13 @@ class ProjectUtils(object):
     def PublishAMLPipeline(self, entry_point, name, description, azureml_workspace=None, parameters={}, compute_cluster="default"):
 
         if not azureml_workspace:
-            azureml_workspace = Workspace.from_config(path=self.luna_config['azureml']['test_workspace_path'], _file_name=self.luna_config['azureml']['test_workspace_file_name'])
+            azureml_workspace = Workspace.from_config(path=self.luna_config['azureml']['workspace_config_path'], _file_name=self.luna_config['azureml']['workspace_config_file_name'])
 
         if azureml_workspace:
             run_config = RunConfiguration.load(self.luna_config['azureml']['run_config'])
             
             if compute_cluster == "default":
-                workspace_full_path = os.path.join(self.luna_config['azureml']['test_workspace_path'], self.luna_config['azureml']['test_workspace_file_name'])
+                workspace_full_path = os.path.join(self.luna_config['azureml']['workspace_config_path'], self.luna_config['azureml']['workspace_config_file_name'])
                 with open(workspace_full_path) as file:
                     documents = json.load(file)
                     aml_compute = documents['AmlCompute']

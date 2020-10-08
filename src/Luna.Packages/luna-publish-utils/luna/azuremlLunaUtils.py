@@ -27,8 +27,8 @@ class AzureMLLunaUtils(BaseLunaUtils):
             run = Run.get_context(allow_offline=False)
             return run.experiment.workspace
         except:
-            return Workspace.from_config(path=self._luna_config["azureml"]["test_workspace_path"], 
-                _file_name=self._luna_config["azureml"]["test_workspace_file_name"])
+            return Workspace.from_config(path=self._luna_config["azureml"]["workspace_config_path"], 
+                _file_name=self._luna_config["azureml"]["workspace_config_file_name"])
     
     def RegisterModel(self, model_path, description, luna_python_model=None):
         ws = self.GetAMLWorkspace()
@@ -48,7 +48,7 @@ class AzureMLLunaUtils(BaseLunaUtils):
 
         # Read default deployment target and aks cluster info from the config files
         
-        workspace_full_path = os.path.join(self._luna_config['azureml']['test_workspace_path'], self._luna_config['azureml']['test_workspace_file_name'])
+        workspace_full_path = os.path.join(self._luna_config['azureml']['workspace_config_path'], self._luna_config['azureml']['workspace_config_file_name'])
         with open(workspace_full_path) as file:
             documents = json.load(file)
             if deployment_target == 'default':
