@@ -94,7 +94,6 @@ namespace Luna.Data.Entities
 
         public string EntryPointUrl { get; set; }
 
-        [NotMapped]
         public Guid AgentId { get; set; } 
 
         [NotMapped]
@@ -108,6 +107,7 @@ namespace Luna.Data.Entities
 
         [NotMapped]
         public string BaseUrl { get; set; }
+
 
         [NotMapped]
         public List<SubscriptionParameter> InputParameters { get; set; }

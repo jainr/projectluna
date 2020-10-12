@@ -19,6 +19,7 @@ namespace Luna.Services.Utilities.ExpressionEvaluation
         static public string PlanNameParameterName = "system$$planName";
         static public string OperationTypeParameterName = "system$$operationType";
         static public string SubscriptionNameParameterName = "system$$subscriptionName";
+        static public string AgentIdParameterName = "system$$agentId";
 
         //TODO: should put the list in some better place. Database?
         static public string[] ReservedParameterNames = new string[] { 
@@ -27,7 +28,8 @@ namespace Luna.Services.Utilities.ExpressionEvaluation
             SubscriptionIdParameterName,
             PlanNameParameterName, 
             OperationTypeParameterName,
-            SubscriptionNameParameterName
+            SubscriptionNameParameterName,
+            AgentIdParameterName
         };
         /// <summary>
         /// The evaluation context

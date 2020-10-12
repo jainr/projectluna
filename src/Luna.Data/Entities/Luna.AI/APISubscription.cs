@@ -83,5 +83,7 @@ namespace Luna.Data.Entities
 
         public Guid? AgentId { get; set; }
 
+        public string HostType { get; set; }
+
     }
 }

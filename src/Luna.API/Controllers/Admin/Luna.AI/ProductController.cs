@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Luna.Clients.Azure.Auth;
+using Luna.Clients.Controller;
 using Luna.Clients.Exceptions;
 using Luna.Clients.Logging;
 using Luna.Data.DataContracts.Luna.AI;
@@ -128,6 +129,12 @@ namespace Luna.API.Controllers.Admin
             {
                 throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(Product).Name),
                     UserErrorCode.NameMismatch);
+            }
+
+            if (!ControllerHelper.ValidateStringFormat(productName, ValidStringFormat.LOWER_CASE_NUMBER_AND_HYPHEN_50))
+            {
+                throw new LunaBadRequestUserException($"The product name is invalid. The naming rule: {ControllerHelper.GetStringFormatDescription(ValidStringFormat.LOWER_CASE_NUMBER_AND_HYPHEN_50)}", 
+                    UserErrorCode.InvalidParameter);
             }
 
             if (await _productService.ExistsAsync(productName))

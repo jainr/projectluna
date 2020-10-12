@@ -165,20 +165,21 @@ class AzureMLUtils(object):
 
     def getOperationOutput(self, operationNoun, operationId, userId, subscriptionId, downloadFiles = True):
         operationName = self.GetOperationNameByNoun(operationNoun)
-
-        if operationName == 'train':
+        
+        outputType = self._utils.GetOutputType(operationName)
+        if operationName == 'train' or outputType == 'model':
             
             tags = [['userId', userId], ['modelId', operationId], ['subscriptionId', subscriptionId]]
             models = Model.list(self._workspace, tags = tags)
             if len(models) == 0:
-                return None
+                return None, None
             model = models[0]
             result = {'id': operationId,
                       'description': model.description,
                       'created_time': model.created_time}
             return result, "model"
 
-        if operationName == 'deploy':
+        if operationName == 'deploy' or outputType == 'endpoint':
             
             tags = [['userId', userId], ['endpointId', operationId], ['subscriptionId', subscriptionId]]
             endpoints = Webservice.list(self._workspace, tags = tags)
@@ -207,7 +208,6 @@ class AzureMLUtils(object):
             run = next(runs)
             child_runs = run.get_children()
             child_run = next(child_runs)
-            outputType = self._utils.GetOutputType(operationName)
             if outputType == 'json':
                 with tempfile.TemporaryDirectory() as tmp:
                     path = os.path.join(tmp, 'output.json')
@@ -226,8 +226,10 @@ class AzureMLUtils(object):
                         return zip_file_path, "file"
                 else:
                     return "file", "file"
+            else:
+                return None, None
         except StopIteration:
-            return None
+            return None, None
 
     def zipdir(self, path, ziph, dir):
     # ziph is zipfile handle

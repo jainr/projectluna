@@ -508,6 +508,7 @@ const Products: React.FunctionComponent = () => {
             globalContext.showProcessing();
             var CreateProductResult = await ProductService.create(values.product);
             if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'product', CreateProductResult)) {
+              toast.error(formError)
               globalContext.hideProcessing();
               return;
             }

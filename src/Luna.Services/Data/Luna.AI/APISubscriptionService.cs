@@ -151,8 +151,6 @@ namespace Luna.Services.Data.Luna.AI
                 apiSubscription.SubscriptionId = Guid.NewGuid();
             }
 
-            apiSubscription.BaseUrl = _options.CurrentValue.Config.ControllerBaseUrl;
-
             // backward compat
             if (string.IsNullOrEmpty(apiSubscription.ProductName))
             {
@@ -194,6 +192,14 @@ namespace Luna.Services.Data.Luna.AI
             {
                 var agent = await _aiAgentService.GetSaaSAgentAsync();
                 apiSubscription.AgentId = agent.AgentId;
+                apiSubscription.HostType = "SaaS";
+                apiSubscription.BaseUrl = _options.CurrentValue.Config.ControllerBaseUrl;
+            }
+            else
+            {
+                var agent = await _aiAgentService.GetAsync(apiSubscription.AgentId.Value);
+                apiSubscription.HostType = "Selfhost";
+                apiSubscription.BaseUrl = agent.AgentId.ToString();
             }
 
             // Add apiSubscription to db

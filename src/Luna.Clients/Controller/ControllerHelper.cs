@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Luna.Clients.Controller.Auth;
 using Luna.Clients.Exceptions;
@@ -13,9 +14,25 @@ using Newtonsoft.Json;
 
 namespace Luna.Clients.Controller
 {
+    public enum ValidStringFormat
+    {
+        LOWER_CASE_NUMBER_AND_HYPHEN_50,
+    }
+
     public static class ControllerHelper
     {
         private static HttpClient HttpClient = new HttpClient();
+
+        private static Dictionary<ValidStringFormat, string> StringFormats = new Dictionary<ValidStringFormat, string> 
+        {
+            { ValidStringFormat.LOWER_CASE_NUMBER_AND_HYPHEN_50, "^[a-z][a-z0-9-]{4,49}$" } 
+        };
+
+        private static Dictionary<ValidStringFormat, string> StringFormatDescriptions = new Dictionary<ValidStringFormat, string>
+        {
+            { ValidStringFormat.LOWER_CASE_NUMBER_AND_HYPHEN_50, 
+                "Contains only lower case letters, numbers and hyphens; Start with lower case letter; No more than 50 characters." }
+        };
 
         public static string GetLunaGeneratedUuid()
         {
@@ -83,6 +100,18 @@ namespace Luna.Clients.Controller
             }
 
             return pipelineList;
+        }
+
+        public static bool ValidateStringFormat(string name, ValidStringFormat validFormat)
+        {
+            var match = Regex.Match(name, ControllerHelper.StringFormats[validFormat]);
+
+            return match.Success;
+        }
+
+        public static string GetStringFormatDescription(ValidStringFormat validFormat)
+        {
+            return StringFormatDescriptions[validFormat];
         }
 
     }

@@ -110,7 +110,8 @@ namespace Luna.API.Controllers.Admin
             [FromQuery] Guid subscriptionId,
             [FromQuery] string productName,
             [FromQuery] string deploymentName,
-            [FromQuery] string userId)
+            [FromQuery] string userId,
+            [FromQuery] Guid? agentId)
         {
             APISubscription apiSubscription = new APISubscription()
             {
@@ -118,7 +119,8 @@ namespace Luna.API.Controllers.Admin
                 SubscriptionId = subscriptionId,
                 ProductName = productName,
                 DeploymentName = deploymentName,
-                Owner = userId
+                Owner = userId,
+                AgentId = agentId
             };
 
             return await CreateInternal(apiSubscription);

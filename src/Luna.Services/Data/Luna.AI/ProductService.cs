@@ -135,13 +135,14 @@ namespace Luna.Services.Data.Luna.AI
         {
             Webhook webhook = new Webhook();
             webhook.WebhookName = "subscribeAIService";
-            webhook.WebhookUrl = string.Format("{0}/apisubscriptions/createwithid?ProductName={1}&DeploymentName={2}&UserId={3}&SubscriptionName={4}&SubscriptionId={5}",
+            webhook.WebhookUrl = string.Format("{0}/apisubscriptions/createwithid?ProductName={1}&DeploymentName={2}&UserId={3}&SubscriptionName={4}&SubscriptionId={5}&AgentId={6}",
                 _lunaClient.GetWebhookBaseUrl(),
                 "{system$$offerName}",
                 "{system$$planName}",
                 "{system$$subscriptionOwner}",
                 "{system$$subscriptionName}",
-                "{system$$subscriptionId}");
+                "{system$$subscriptionId}",
+                "{system$$agentId}");
             await _webhookService.CreateAsync(offerName, webhook);
 
             webhook = new Webhook();

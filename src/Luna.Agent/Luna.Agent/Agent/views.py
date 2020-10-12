@@ -38,7 +38,7 @@ def handleExceptions(e):
     if isinstance(e, LunaUserException):
         return e.message, e.http_status_code
     else:
-        app.logger.info(e.message)
+        app.logger.info(e)
         return 'The server encountered an internal error and was unable to complete your request.', 500
 
 def getMetadata(subscriptionId, isRealTimePredict = False):
@@ -190,7 +190,7 @@ def getOperationOutput(operationNoun, operationId, subscriptionId = 'default'):
         amlUtil = AzureMLUtils(workspace, version.ConfigFile)
         result, outputType = amlUtil.getOperationOutput(operationNoun, operationId, sub.Owner, sub.SubscriptionId)
         if not result:
-            raise LunaUserException(HTTP_Status.NOT_FOUND, "The specified operation didn't generate any output.")
+            raise LunaUserException(HTTPStatus.NOT_FOUND, "The specified operation doesn't exist or it didn't generate any output.")
         if outputType == "file":
             with open(result, 'rb') as bites:
                 return send_file(

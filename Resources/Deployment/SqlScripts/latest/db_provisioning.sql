@@ -335,6 +335,7 @@ CREATE TABLE [dbo].[Subscriptions](
 	[ProvisioningType] [nvarchar](64) NULL,
 	[RetryCount] int NULL,
 	[EntryPointUrl] [nvarchar](1024) NULL,
+	[AgentId] [uniqueidentifier] NULL,
 	CONSTRAINT FK_offer_id_subscriptions FOREIGN KEY (OfferId) REFERENCES Offers(Id),
 	CONSTRAINT FK_plan_id_subscriptions FOREIGN KEY (PlanId) REFERENCES Plans(Id),
 	PRIMARY KEY CLUSTERED (
@@ -599,6 +600,7 @@ CREATE TABLE [dbo].[APISubscriptions](
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
 	[AgentId] [uniqueidentifier] NULL,
+	[HostType] [nvarchar](32) NULL,
 	PRIMARY KEY (SubscriptionId),
 	CONSTRAINT FK_DeploymentId_APISubscriptions FOREIGN KEY (DeploymentId) REFERENCES Deployments(Id)
 )
@@ -665,7 +667,7 @@ GO
 
 CREATE VIEW [dbo].[agent_subscriptions]
 AS
-SELECT dbo.APISubscriptions.SubscriptionId, dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.Products.ProductType, dbo.APISubscriptions.Owner, dbo.APISubscriptions.Name, dbo.APISubscriptions.Status, dbo.Products.HostType, dbo.APISubscriptions.CreatedTime, dbo.APISubscriptions.BaseUrl, dbo.APISubscriptions.PrimaryKeySecretName, dbo.APISubscriptions.SecondaryKeySecretName, 
+SELECT dbo.APISubscriptions.SubscriptionId, dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.Products.ProductType, dbo.APISubscriptions.Owner, dbo.APISubscriptions.Name, dbo.APISubscriptions.Status, dbo.APISubscriptions.HostType, dbo.APISubscriptions.CreatedTime, dbo.APISubscriptions.BaseUrl, dbo.APISubscriptions.PrimaryKeySecretName, dbo.APISubscriptions.SecondaryKeySecretName, 
           dbo.APISubscriptions.AgentId, dbo.Publishers.PublisherId, 0 AS AMLWorkspaceId, '' AS AMLWorkspaceComputeClusterName, '' AS AMLWorkspaceDeploymentTargetType, '' AS AMLWorkspaceDeploymentClusterName, dbo.Offers.OfferName, dbo.Plans.PlanName
 FROM   dbo.Offers INNER JOIN
           dbo.Subscriptions ON dbo.Offers.Id = dbo.Subscriptions.OfferId INNER JOIN

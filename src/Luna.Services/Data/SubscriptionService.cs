@@ -240,6 +240,11 @@ namespace Luna.Services.Data
 
             subscription.ProvisioningType = nameof(ProvisioningType.Subscribe);
 
+            if (subscription.AgentId == null)
+            {
+                var agent = await _aiAgentService.GetSaaSAgentAsync();
+                subscription.AgentId = agent.AgentId;
+            }
             subscription.RetryCount = 0;
 
             List<CustomMeter> customMeterList = await _customMeterService.GetAllAsync(offer.OfferName);
@@ -632,37 +637,38 @@ namespace Luna.Services.Data
         {
             if (token.Split('.').Length != 3)
             {
-                
-                var offerParameters = await _offerParameterService.GetAllAsync("test1");
-                return new SubscriptionLayout(Guid.NewGuid(), "mysub", new OfferLayout("test1", "test 1"),
-                    new List<PlanLayout>(new PlanLayout[] { new PlanLayout("test", "Test Plan") }),
-                    new List<string>(new string[] { "SaaS" }),
-                    offerParameters);
-                /*
-                
-                //This is a marketplace token
-                MarketplaceSubscription resolvedSubscription = await _fulfillmentManager.ResolveSubscriptionAsync(token);
-                Offer offer = await _offerService.GetAsync(resolvedSubscription.OfferId);
-                Plan plan = await _planService.GetAsync(resolvedSubscription.OfferId, resolvedSubscription.PlanId);
-                var offerParameters = await _offerParameterService.GetAllAsync(resolvedSubscription.OfferId);
-                Product product = await _productService.GetByOfferNameAsync(offer.Id);
-                List<string> hostTypes = new List<string>();
-                if (product == null)
+                if (token.Equals("foo"))
                 {
-                    hostTypes.Add("SaaS");
+                    var offerParameters = await _offerParameterService.GetAllAsync("test1");
+                    return new SubscriptionLayout(Guid.NewGuid(), "mysub", new OfferLayout("test1", "test 1"),
+                        new List<PlanLayout>(new PlanLayout[] { new PlanLayout("test", "Test Plan") }),
+                        new List<string>(new string[] { "SaaS" }),
+                        offerParameters);
                 }
                 else
                 {
-                    hostTypes = GetHostTypes(product.HostType);
+                    //This is a marketplace token
+                    MarketplaceSubscription resolvedSubscription = await _fulfillmentManager.ResolveSubscriptionAsync(token);
+                    Offer offer = await _offerService.GetAsync(resolvedSubscription.OfferId);
+                    Plan plan = await _planService.GetAsync(resolvedSubscription.OfferId, resolvedSubscription.PlanId);
+                    var offerParameters = await _offerParameterService.GetAllAsync(resolvedSubscription.OfferId);
+                    Product product = await _productService.GetByOfferNameAsync(offer.Id);
+                    List<string> hostTypes = new List<string>();
+                    if (product == null)
+                    {
+                        hostTypes.Add("SaaS");
+                    }
+                    else
+                    {
+                        hostTypes = GetHostTypes(product.HostType);
+                    }
+
+                    return new SubscriptionLayout(resolvedSubscription.SubscriptionId, resolvedSubscription.SubscriptionName,
+                        new OfferLayout(offer.OfferName, offer.OfferName),
+                        new List<PlanLayout>(new PlanLayout[] { new PlanLayout(plan.PlanName, plan.PlanName) }),
+                        hostTypes,
+                        offerParameters);
                 }
-                
-                return new SubscriptionLayout(resolvedSubscription.SubscriptionId, resolvedSubscription.SubscriptionName,
-                    new OfferLayout(offer.OfferName, offer.OfferName),
-                    new List<PlanLayout>(new PlanLayout[] { new PlanLayout(plan.PlanName, plan.PlanName) }),
-                    hostTypes,
-                    offerParameters);
-                */
-                
             }
             else
             {

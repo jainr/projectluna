@@ -27,7 +27,7 @@ namespace Luna.Services.Utilities.ExpressionEvaluation
         /// <param name="subscriptionId">The subscription Id</param>
         /// <param name="planName">The plan name</param>
         /// <param name="operationType">The operation type</param>
-        public Context(string offerName, string subscriptionOwner, Guid subscriptionId, string planName, string operationType, string subscriptionName)
+        public Context(string offerName, string subscriptionOwner, Guid subscriptionId, string planName, string operationType, string subscriptionName, Guid agentId)
         {
             // If you add any parameter here, also add it to the reserved parameter name in ExpressionEvaluationUtils.cs so ISV won't use it.
             Parameters.Add(ExpressionEvaluationUtils.OfferNameParameterName, offerName);
@@ -36,6 +36,7 @@ namespace Luna.Services.Utilities.ExpressionEvaluation
             Parameters.Add(ExpressionEvaluationUtils.PlanNameParameterName, planName);
             Parameters.Add(ExpressionEvaluationUtils.OperationTypeParameterName, operationType);
             Parameters.Add(ExpressionEvaluationUtils.SubscriptionNameParameterName, subscriptionName);
+            Parameters.Add(ExpressionEvaluationUtils.AgentIdParameterName, agentId);
         }
 
         /// <summary>

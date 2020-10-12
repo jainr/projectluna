@@ -2,7 +2,7 @@ import * as yup from "yup";
 import { ObjectSchema } from "yup";
 import { IProductModel } from "../../../models";
 import { v4 as uuid } from "uuid";
-import { productNameRegExp } from "./RegExp";
+import { objectIdNameRegExp } from "./RegExp";
 import { ErrorMessage } from "./ErrorMessage";
 import adalContext from "../../../adalConfig";
 
@@ -108,7 +108,7 @@ const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
   {
     clientId: yup.string(),
     productName: yup.string()
-      .matches(productNameRegExp,
+      .matches(objectIdNameRegExp,
         {
           message: ErrorMessage.productName,
           excludeEmptyString: true
@@ -118,12 +118,17 @@ const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
     productType: yup.string()
       .required("Product Type is a required field"),
     hostType: yup.string().required("Host Type is a required field"),
-    logoImageUrl: yup.string(),
-    description: yup.string(),
-    saasOfferName: yup.string(),
+    logoImageUrl: yup.string().url(ErrorMessage.Url),
+    description: yup.string().max(120, "The description is too long. Must be no more than 120 characters"),
+    saasOfferName: yup.string()
+    .matches(objectIdNameRegExp,
+      {
+        message: ErrorMessage.saasOffername,
+        excludeEmptyString: true
+      }),
     createdTime: yup.string(),
-    documentationUrl: yup.string(),
-    displayName: yup.string(),
+    documentationUrl: yup.string().url(ErrorMessage.Url),
+    displayName: yup.string().max(64, "The display name is too long. Must be no more than 64 characters"),
     lastUpdatedTime: yup.string()
   }
 );
@@ -144,7 +149,7 @@ export const deleteProductValidator: ObjectSchema<IProductModel> = yup.object().
           return true;
 
         return value.toLowerCase() === productName.toLowerCase();
-      }).matches(productNameRegExp,
+      }).matches(objectIdNameRegExp,
         {
           message: ErrorMessage.productName,
           excludeEmptyString: true

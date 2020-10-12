@@ -374,7 +374,7 @@ namespace Luna.Services.Provisoning
                 using (WebClient client = new WebClient())
                 {
                     string content = client.DownloadString(templatePath);
-                    Context context = await SetContext(offer.OfferName, subscription.Owner, subscriptionId, plan.PlanName, subscription.ProvisioningType, subscription.Name);
+                    Context context = await SetContext(offer.OfferName, subscription.Owner, subscriptionId, plan.PlanName, subscription.ProvisioningType, subscription.Name, subscription.AgentId);
                     var paramList = ARMTemplateHelper.GetArmTemplateParameters(content);
                     foreach (var param in paramList)
                     {
@@ -432,7 +432,7 @@ namespace Luna.Services.Provisoning
                 // Only run the webhook if it is specified.
                 if(urlString != null)
                 {
-                    Context context = await SetContext(offer.OfferName, subscription.Owner, subscriptionId, plan.PlanName, subscription.ProvisioningType, subscription.Name);
+                    Context context = await SetContext(offer.OfferName, subscription.Owner, subscriptionId, plan.PlanName, subscription.ProvisioningType, subscription.Name, subscription.AgentId);
                     UriBuilder webhookUri = new UriBuilder(urlString);
                     var query = HttpUtility.ParseQueryString(webhookUri.Query);
 
@@ -449,7 +449,7 @@ namespace Luna.Services.Provisoning
                             {
                                 //re-evaluate the parameter and reset the context
                                 await EvaluateParameters(offer, plan, subscription);
-                                context = await SetContext(offer.OfferName, subscription.Owner, subscriptionId, plan.PlanName, subscription.ProvisioningType, subscription.Name);
+                                context = await SetContext(offer.OfferName, subscription.Owner, subscriptionId, plan.PlanName, subscription.ProvisioningType, subscription.Name, subscription.AgentId);
 
                                 if (context.Parameters.ContainsKey(parameterName))
                                 {
@@ -684,9 +684,9 @@ namespace Luna.Services.Provisoning
         /// <param name="planName">The plan name</param>
         /// <param name="operationType">The operation type</param>
         /// <returns>The context</returns>
-        private async Task<Context> SetContext(string offerName, string subscriptionOwner, Guid subscriptionId, string planName, string operationType, string subscriptionName)
+        private async Task<Context> SetContext(string offerName, string subscriptionOwner, Guid subscriptionId, string planName, string operationType, string subscriptionName, Guid agentId)
         {
-            Context context = new Context(offerName, subscriptionOwner, subscriptionId, planName, operationType, subscriptionName);
+            Context context = new Context(offerName, subscriptionOwner, subscriptionId, planName, operationType, subscriptionName, agentId);
             var subParams = await _subscriptionParameterService.GetAllAsync(subscriptionId);
             foreach (var param in subParams)
             {
@@ -815,7 +815,7 @@ namespace Luna.Services.Provisoning
         private async Task<Dictionary<string, object>> EvaluateParameters(Offer offer, Plan plan, Subscription subscription)
         {
             ExpressionEvaluationUtils util = new ExpressionEvaluationUtils(
-                await SetContext(offer.OfferName, subscription.Owner, subscription.SubscriptionId, plan.PlanName, subscription.ProvisioningType, subscription.Name));
+                await SetContext(offer.OfferName, subscription.Owner, subscription.SubscriptionId, plan.PlanName, subscription.ProvisioningType, subscription.Name, subscription.AgentId));
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();
             foreach (var param in await _armTemplateParameterService.GetAllAsync(offer.OfferName))

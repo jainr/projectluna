@@ -64,36 +64,7 @@ CREATE TABLE [dbo].[agent_apiversions](
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[agent_apiversions1]    Script Date: 10/2/2020 10:18:35 AM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[agent_apiversions1](
-	[Id] [bigint] IDENTITY(1,1) NOT NULL,
-	[DeploymentName] [nvarchar](50) NOT NULL,
-	[ProductName] [nvarchar](50) NOT NULL,
-	[VersionName] [nvarchar](50) NOT NULL,
-	[RealTimePredictAPI] [nvarchar](max) NULL,
-	[TrainModelAPI] [nvarchar](max) NULL,
-	[BatchInferenceAPI] [nvarchar](max) NULL,
-	[DeployModelAPI] [nvarchar](max) NULL,
-	[AuthenticationType] [nvarchar](50) NULL,
-	[CreatedTime] [datetime2](7) NOT NULL,
-	[LastUpdatedTime] [datetime2](7) NOT NULL,
-	[VersionSourceType] [nvarchar](50) NOT NULL,
-	[ProjectFileUrl] [nvarchar](max) NULL,
-	[AMLWorkspaceId] [bigint] NULL,
-	[AuthenticationKeySecretName] [nchar](10) NULL,
-	[PublisherId] [uniqueidentifier] NULL,
- CONSTRAINT [PK_agent_apiversions1] PRIMARY KEY CLUSTERED 
-(
-	[DeploymentName] ASC,
-	[ProductName] ASC,
-	[VersionName] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
-GO
+
 /****** Object:  Table [dbo].[agent_offers]    Script Date: 10/2/2020 10:18:35 AM ******/
 SET ANSI_NULLS ON
 GO

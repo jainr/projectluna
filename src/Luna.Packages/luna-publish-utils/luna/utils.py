@@ -299,19 +299,19 @@ class ProjectUtils(object):
         return None
 
 
-def GetOperationNameByNoun(self, operationNoun):
-    
-    with open(self.luna_config['MLproject']) as file:
-        documents = yaml.full_load(file)
-        for operation in documents['entry_points']:
-            if documents['entry_points'][operation]['noun'] == operationNoun:
-                return operation
+    def GetOperationNameByNoun(self, operationNoun):
+        
+        with open(self.luna_config['MLproject']) as file:
+            documents = yaml.full_load(file)
+            for operation in documents['entry_points']:
+                if documents['entry_points'][operation]['noun'] == operationNoun:
+                    return operation
 
-    return None
+        return None
 
 
-def GetOutputType(self, operationName):
-    
-    with open(self.luna_config['MLproject']) as file:
-        documents = yaml.full_load(file)
-        return documents['entry_points'][operationName]['output']
+    def GetOutputType(self, operationName):
+        
+        with open(self.luna_config['MLproject']) as file:
+            documents = yaml.full_load(file)
+            return documents['entry_points'][operationName]['output']
