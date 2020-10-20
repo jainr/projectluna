@@ -33,7 +33,11 @@ param (
 
     [string]$sqlFirewallRuleStartIp = "default",
 
-    [string]$sqlFirewallRuleEndIp = "default"
+    [string]$sqlFirewallRuleEndIp = "default",
+
+    [string]$headerBackgroundColor = "#3376CD",
+
+    [string]$homepageTitle = "Luna AI Agent"
 )
 
 function GetNameForAzureResources{
@@ -50,10 +54,42 @@ function GetPassword{
     return $psw + "3Fd"
 }
 
-if ($folder -ne "default"){
-    Push-Location -Path $folder
+function Get-KuduApiAuthorisationHeaderValue($resourceGroupName, $webAppName){
+    $publishingCredentials = az webapp deployment list-publishing-credentials --resource-group $resourceGroupName -n webAppName | ConvertFrom-Json
+    return ("Basic {0}" -f [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $publishingCredentials.PublishingUserName, $publishingCredentials.PublishingPassword))))
 }
 
+
+function UpdateScriptConfigFile($resourceGroupName, $webAppName, $configuration){
+    $accessToken = (Get-KuduApiAuthorisationHeaderValue $resourceGroupName $webAppName)[-1]
+
+    $tempFileName = "config.js"
+    $Header = @{
+        "Authorization"=$accessToken
+        "If-Match"="*"
+    }
+
+    $tempFilePath = "$env:temp\"+$tempFileName
+
+    $configuration | Out-File $tempFilePath
+
+    $apiUrl = "https://" + $webAppName + ".scm.azurewebsites.net/api/vfs/site/wwwroot/"+$tempFileName
+
+    Invoke-RestMethod -Uri $apiUrl `
+                        -Headers $Header `
+                        -Method PUT `
+                        -InFile $tempFilePath `
+                        -ContentType "multipart/form-data"
+
+}
+
+if ($folder -ne "default"){
+    $apiFolder = $folder + "/api"
+    Push-Location -Path $apiFolder
+}
+else{
+    Push-Location "Luna.Agent"
+}
 
 $resourceGroupName = GetNameForAzureResources -defaultName $resourceGroupName -resourceTypeSuffix "-rg" -uniqueName $name
 $webAppServicePlanName = GetNameForAzureResources -defaultName $webAppServicePlanName -resourceTypeSuffix "-serviceplan" -uniqueName $name
@@ -162,6 +198,31 @@ $webappIdentity = az webapp identity show --name $agentApiWebAppName --resource-
 
 az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $webappIdentity.principalId
 
+if ($folder -ne "default"){
+    Pop-Location
+    $portalFolder = $folder + "/portal"
+    Push-Location -Path $portalFolder
+}
+else{
+    Pop-Location
+    Push-Location "/Luna.Agent.Portal/build"
+}
+
+az webapp up -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName -l $location
+
+$config = 'var BASE_URL = "https://'+$agentApiWebAppName+'.azurewebsites.net/api/management";
+var HEADER_HEX_COLOR = "'+$headerBackgroundColor+'";
+var SITE_TITLE = "'+$homepageTitle+'";
+var MSAL_CONFIG = {
+  appId: "'+$agentApiAADApplicationId+'",
+  redirectUri: "https://'+$agentPortalWebAppName+'.azurewebsites.net/",
+  scopes: [
+    "user.read",
+    "User.ReadBasic.All"
+  ]
+};'
+
+UpdateScriptConfigFile -resourceGroupName $resourceGroupName -webAppName $enduserWebAppName -configuration $config
 
 if ($folder -ne "default"){
     Pop-Location

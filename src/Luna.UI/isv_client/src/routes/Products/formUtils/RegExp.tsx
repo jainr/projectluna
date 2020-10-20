@@ -5,7 +5,7 @@ export const emailRegExp = /((([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*
 export const aplicationID_AADTenantRegExp = /^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/;  
 export const productNameRegExp = /^[a-z][a-z0-9-]{4,49}$/;
 export const deploymentNameRegExp = /^[a-z_-][a-z0-9_-]*$/;
-export const versionNameRegExp = /^[a-z0-9_\.-]*$/;
+export const versionNameRegExp = /^[a-z0-9\.-]{1,50}$/;
 export const workSpaceNameRegExp = /^[a-z_-][a-z0-9_-]*$/;
 export const objectIdNameRegExp = /^[a-z][a-z0-9-]{4,49}$/;
 

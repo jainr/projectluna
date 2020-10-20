@@ -2,7 +2,7 @@ import * as yup from "yup";
 import { ObjectSchema } from "yup";
 import { IDeploymentsModel, IDeploymentVersionModel } from "../../../models";
 import { v4 as uuid } from "uuid";
-import { deploymentNameRegExp, versionNameRegExp } from "./RegExp";
+import { objectIdNameRegExp, versionNameRegExp } from "./RegExp";
 import { ErrorMessage } from "./ErrorMessage";
 
 export const shallowCompare = (obj1, obj2) =>
@@ -91,7 +91,7 @@ const deploymentValidator: ObjectSchema<IDeploymentsModel> = yup.object().shape(
     versionName: yup.string(),
     deploymentName: yup.string()
       .required("Id is a required field")
-      .matches(deploymentNameRegExp,
+      .matches(objectIdNameRegExp,
         {
           message: ErrorMessage.deploymentName,
           excludeEmptyString: true
@@ -140,30 +140,30 @@ const versionFormValidator: ObjectSchema<IDeploymentVersionModel> = yup.object()
     authenticationKey: yup.string(),
     //amlWorkspaceName: yup.mixed().notRequired(),
     amlWorkspaceName: yup.mixed()
-    .when('source', {is: (val) => { return val === 'aml_pipelines'}, 
+    .when('versionSourceType', {is: (val) => { return val === 'git' || val === 'amlPipeline'}, 
                 then: yup.string().required('AMLWorkspace is Required'),
                 otherwise: yup.mixed().notRequired()}),
-    realTimePredictAPI: yup.string(),
+    realTimePredictAPI: yup.string().url("It must be an valid url."),
     trainModelId: yup.string(),
     advancedSettings: yup.string().nullable(true),
     selectedVersionName:yup.string(),
     versionSourceType:yup.string(),
-    gitUrl:yup.mixed()
-    .when('source', {is: (val) => { return val === 'git'}, 
-                then: yup.string().required('Git url is Required'),
-                otherwise: yup.mixed().notRequired()}),
+    gitUrl:yup.string()
+    .when('versionSourceType', {is: (val) => { return val === 'git'}, 
+                then: yup.string().required('Git url is Required').url("It must be an valid url."),
+                otherwise: yup.string().notRequired()}),
     gitPersonalAccessToken:yup.mixed()
-    .when('source', {is: (val) => { return val === 'git'}, 
+    .when('versionSourceType', {is: (val) => { return val === 'git'}, 
                 then: yup.string().required('Git personal access token is Required'),
                 otherwise: yup.mixed().notRequired()}),
     gitVersion:yup.mixed()
-    .when('source', {is: (val) => { return val === 'git'}, 
+    .when('versionSourceType', {is: (val) => { return val === 'git'}, 
                 then: yup.string().required('Git version is Required'),
                 otherwise: yup.mixed().notRequired()}),
     projectFileUrl:yup.string(),
     projectFileContent:yup.string(),
     configFile:yup.mixed()
-    .when('source', {is: (val) => { return val === 'git'}, 
+    .when('versionSourceType', {is: (val) => { return val === 'git'}, 
                 then: yup.string().required('Config file name is Required'),
                 otherwise: yup.mixed().notRequired()})
   }

@@ -888,8 +888,8 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
 
     let authTypes: IChoiceGroupOption[] = [];
     if (productType === "RTP") {
-      authTypes.push({ key: 'Token', text: 'Token' });
       authTypes.push({ key: 'Key', text: 'Key' });
+      authTypes.push({ key: 'Token', text: 'Token' });
       authTypes.push({ key: 'None', text: 'None' });
 
     } else if (productType === "BI") {
@@ -1070,14 +1070,14 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
             productType === 'RTP' ?
               <React.Fragment>
                 <Stack className={"form_row"}>
-                  <FormLabel title={"Real-time Predict API:"} toolTip={ProductMessages.Version.RealtimePredictAPI} />
+                  <FormLabel title={"Model service endpoint Url:"} toolTip={ProductMessages.Version.RealtimePredictAPI} />
                   <TextField
                     name={'version.realTimePredictAPI'}
                     value={values.version.realTimePredictAPI}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     errorMessage={getVersionFormErrorString(touched, errors, 'realTimePredictAPI')}
-                    placeholder={'Real-time Predict API'}
+                    placeholder={'Model service endpoint Url'}
                     className="txtFormField" />
                 </Stack>
 
@@ -1549,7 +1549,7 @@ export const VersionList: React.FunctionComponent<IDeploymentVersionListProps> =
     v.deploymentName = selectedDeploymentName;
     v.productName = productName;
     setIsVersionEdit(false);
-    v.authenticationType = "Token";
+    v.authenticationType = "Key";
     //TODO: confirm what the default authenticationtypes should be for the other product types
     /*if (productType == "RTP") {
       v.authenticationType = "Token";

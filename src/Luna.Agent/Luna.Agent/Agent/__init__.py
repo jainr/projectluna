@@ -2,7 +2,7 @@
 The flask application package.
 """
 
-from flask import Flask
+from flask import Flask, request
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 import urllib, os, logging
@@ -13,6 +13,7 @@ from azure.storage.blob import BlobServiceClient
 from Agent.Data.AlchemyEncoder import AlchemyEncoder
 from Agent.Data.KeyVaultHelper import KeyVaultHelper
 from logging import StreamHandler
+from applicationinsights.flask.ext import AppInsights
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -33,8 +34,18 @@ engine = create_engine(odbc_connection_string)
 
 Session = sessionmaker(bind=engine, autoflush=False)
 
-streamHandler = StreamHandler()
-app.logger.addHandler(streamHandler)
-app.logger.setLevel(logging.DEBUG)
+if 'APPINSIGHTS_INSTRUMENTATIONKEY' in os.environ:
+    app.config['APPINSIGHTS_INSTRUMENTATIONKEY'] = os.environ['APPINSIGHTS_INSTRUMENTATIONKEY']
+    appinsights = AppInsights(app)
+else:
+    streamHandler = StreamHandler()
+    app.logger.addHandler(streamHandler)
+    app.logger.setLevel(logging.DEBUG)
+
+@app.after_request
+def after_request(response):
+    if 'APPINSIGHTS_INSTRUMENTATIONKEY' in os.environ:
+        appinsights.flush()
+    return response
 
 import Agent.views

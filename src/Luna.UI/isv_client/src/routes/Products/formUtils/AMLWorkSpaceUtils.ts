@@ -2,7 +2,7 @@ import * as yup from "yup";
 import { ObjectSchema } from "yup";
 import { IAMLWorkSpaceModel } from "../../../models";
 import { v4 as uuid } from "uuid";
-import { workSpaceNameRegExp } from "./RegExp";
+import { objectIdNameRegExp } from "./RegExp";
 import { ErrorMessage } from "./ErrorMessage";
 import { guidRegExp } from "../../Offers/formUtils/RegExp";
 
@@ -48,11 +48,11 @@ const aMLWorkSpaceValidator: ObjectSchema<IAMLWorkSpaceModel> = yup.object().sha
         excludeEmptyString: true
       })
       .required('Tenant Id is required'),
-    aadApplicationSecrets: yup.string(),
-    resourceId: yup.string(),
+    aadApplicationSecrets: yup.string().required('AAD application secret is required'),
+    resourceId: yup.string().required('Resource id is required'),
     registeredTime: yup.string(),
     workspaceName: yup.string()
-      .matches(workSpaceNameRegExp,
+      .matches(objectIdNameRegExp,
         {
           message: ErrorMessage.workSpaceName,
           excludeEmptyString: true
@@ -71,7 +71,7 @@ export const deleteAMLWorkSpaceValidator: ObjectSchema<IAMLWorkSpaceModel> = yup
     registeredTime: yup.string(),
     workspaceName: yup.string(),
     selectedWorkspaceName: yup.string()
-      .matches(workSpaceNameRegExp,
+      .matches(objectIdNameRegExp,
         {
           message: ErrorMessage.workSpaceName,
           excludeEmptyString: true

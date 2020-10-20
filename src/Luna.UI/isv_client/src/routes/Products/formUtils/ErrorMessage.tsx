@@ -1,10 +1,10 @@
 export const ErrorMessage = {
-    productName :"An product name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 5 and 50.",
+    productName :"A product name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 5 and 50.",
     saasOffername :"A SaaS offer name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 5 and 50.",
     
     Url : "It must be a valid url.",
-    deploymentName :"An deployment name must consist only of lowercase, alphanumeric characters, dashes or underscores",
-    versionName :"A deployment version name must consist only of lowercase, alphanumeric characters, dashes or underscores",
+    deploymentName :"An deployment name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 5 and 50.",
+    versionName :"A version name must consist only of alphanumeric characters, hyphens or dots and the length must between 1 and 50.",
     workSpaceName :"An offer ID must consist only of lowercase, alphanumeric characters, dashes or underscores",
     parameterName :"Parameter Name must consist only of lowercase, alphanumeric characters, dashes or underscores",
     hostSubscription:"Host subscription ID must be in valid GUID format",    

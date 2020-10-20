@@ -6,6 +6,12 @@ import os
 import requests
 import time
 
+EXECUTE_OP_URL_FORMAT = "{base_url}/{api_type}/{operation_name}?api-version={api_version}"
+EXECUTE_SUCCESSOR_OP_URL_FORMAT = "{base_url}/{api_type}/{predecessor_operation_noun}/{predecessor_operation_id}/{operation_name}?api-version={api_version}"
+GET_OP_STATUS_URL_FORMAT = "{base_url}/{api_type}/operations/{operation_name}/{operation_id}?api-version={api_version}"
+LIST_OP_STATUS_URL_FORMAT = "{base_url}/{api_type}/operations/{operation_name}?api-version={api_version}"
+GET_OP_OUTPUT_URL_FORMAT = "{base_url}/{api_type}/{operation_output_name}/{operation_id}?api-version={api_version}"
+LIST_OP_OUTPUT_URL_FORMAT = "{base_url}/{api_type}/{operation_output_name}?api-version={api_version}"
 
 TRAINING_URL_FORMAT = "{base_url}/{api_type}/train?api-version={api_version}"
 BATCHINFERENCE_URL_FORMAT = "{base_url}/{api_type}/models/{model_id}/batchinference?api-version={api_version}"
@@ -32,9 +38,78 @@ class LunaClient(object):
         self._api_version = api_version
         self._key = key
         self._subscription_id = subscription_id
+        self._api_type = "saas-api"
 
     def get_request_header(self):
-        return {"Accept": "application/json", "Ocp-Apim-Subscription-Key": self._key}
+        return {"Accept": "application/json", "api-key": self._key}
+
+    def execute_operation(self, operation_name, input, predecessor_operation_output_name = None, predecessor_operation_id = None):
+        if not predecessor_operation_id or not predecessor_operation_id:
+            execute_op_url = EXECUTE_OP_URL_FORMAT.format(base_url=self._base_url, 
+                api_type=self._api_type, 
+                operation_name=operation_name, 
+                api_version=self._api_version)
+        else:
+            execute_op_url = EXECUTE_SUCCESSOR_OP_URL_FORMAT.format(base_url=self._base_url, 
+                api_type=self._api_type, 
+                operation_name=operation_name, 
+                api_version=self._api_version, 
+                predecessor_operation_noun=predecessor_operation_output_name, 
+                predecessor_operation_id=predecessor_operation_id)
+
+        response = requests.post(execute_op_url, headers=self.get_request_header(), data=json.dumps(input))
+        print(response)
+        if response.status_code == 200:
+            return response.json()['operationId']
+
+        return None
+
+    def get_operation_status(self, operation_name, operation_id):
+        get_op_status_url = GET_OP_STATUS_URL_FORMAT.format(base_url = self._base_url, 
+                api_type=self._api_type, 
+                operation_name=operation_name, 
+                operation_id=operation_id,
+                api_version=self._api_version)
+        response = requests.get(get_op_status_url, headers=self.get_request_header())
+        if response.status_code == 200:
+            return response.json()
+
+        return None
+
+    def get_operation_output(self, operation_output_name, operation_id):
+        get_op_output_url = GET_OP_OUTPUT_URL_FORMAT.format(base_url = self._base_url, 
+                api_type=self._api_type, 
+                operation_output_name=operation_output_name, 
+                operation_id=operation_id,
+                api_version=self._api_version)
+        response = requests.get(get_op_output_url, headers=self.get_request_header())
+        if response.status_code == 200:
+            return response.json()
+
+        return None
+
+    def list_operations(self, operation_name):
+        list_op_status_url = GET_OP_STATUS_URL_FORMAT.format(base_url = self._base_url, 
+                api_type=self._api_type, 
+                operation_name=operation_name,
+                api_version=self._api_version)
+        response = requests.get(list_op_status_url, headers=self.get_request_header())
+        if response.status_code == 200:
+            return response.json()
+
+        return None
+
+    def list_operation_outputs(self, operation_output_name):
+        list_op_output_url = GET_OP_OUTPUT_URL_FORMAT.format(base_url = self._base_url, 
+                api_type=self._api_type, 
+                operation_output_name=operation_output_name, 
+                api_version=self._api_version)
+        response = requests.get(list_op_output_url, headers=self.get_request_header())
+        if response.status_code == 200:
+            return response.json()
+
+        return None
+
 
     def train_model(self, user_input):
         training_url = TRAINING_URL_FORMAT.format(base_url=self._base_url, api_version=self._api_version)
