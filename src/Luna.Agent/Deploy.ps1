@@ -54,35 +54,6 @@ function GetPassword{
     return $psw + "3Fd"
 }
 
-function Get-KuduApiAuthorisationHeaderValue($resourceGroupName, $webAppName){
-    $publishingCredentials = az webapp deployment list-publishing-credentials --resource-group $resourceGroupName -n webAppName | ConvertFrom-Json
-    return ("Basic {0}" -f [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $publishingCredentials.PublishingUserName, $publishingCredentials.PublishingPassword))))
-}
-
-
-function UpdateScriptConfigFile($resourceGroupName, $webAppName, $configuration){
-    $accessToken = (Get-KuduApiAuthorisationHeaderValue $resourceGroupName $webAppName)[-1]
-
-    $tempFileName = "config.js"
-    $Header = @{
-        "Authorization"=$accessToken
-        "If-Match"="*"
-    }
-
-    $tempFilePath = "$env:temp\"+$tempFileName
-
-    $configuration | Out-File $tempFilePath
-
-    $apiUrl = "https://" + $webAppName + ".scm.azurewebsites.net/api/vfs/site/wwwroot/"+$tempFileName
-
-    Invoke-RestMethod -Uri $apiUrl `
-                        -Headers $Header `
-                        -Method PUT `
-                        -InFile $tempFilePath `
-                        -ContentType "multipart/form-data"
-
-}
-
 if ($folder -ne "default"){
     $apiFolder = $folder + "/api"
     Push-Location -Path $apiFolder
@@ -222,7 +193,8 @@ var MSAL_CONFIG = {
   ]
 };'
 
-UpdateScriptConfigFile -resourceGroupName $resourceGroupName -webAppName $agentPortalWebAppName -configuration $config
+
+$config | Out-File "appConfig.js"
 
 if ($folder -ne "default"){
     Pop-Location
