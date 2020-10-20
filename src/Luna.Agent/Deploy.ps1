@@ -222,7 +222,7 @@ var MSAL_CONFIG = {
   ]
 };'
 
-UpdateScriptConfigFile -resourceGroupName $resourceGroupName -webAppName $enduserWebAppName -configuration $config
+UpdateScriptConfigFile -resourceGroupName $resourceGroupName -webAppName $agentPortalWebAppName -configuration $config
 
 if ($folder -ne "default"){
     Pop-Location
