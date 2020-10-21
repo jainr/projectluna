@@ -179,15 +179,6 @@ else{
     Push-Location "/Luna.Agent.Portal/build"
 }
 
-$config | Out-File "appConfig.js"
-
-az webapp create -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName --runtime "node|10.14"
-
-az webapp config set -n $agentPortalWebAppName -g $resourceGroupName --startup-file "start.sh"
-
-az webapp up -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName
-
-
 $config = 'var BASE_URL = "https://'+$agentApiWebAppName+'.azurewebsites.net/api/management";
 var HEADER_HEX_COLOR = "'+$headerBackgroundColor+'";
 var SITE_TITLE = "'+$homepageTitle+'";
@@ -199,6 +190,17 @@ var MSAL_CONFIG = {
     "User.ReadBasic.All"
   ]
 };'
+
+$config | Out-File "appConfig.js"
+
+az webapp create -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName --runtime "node|10.14"
+
+az webapp config set -n $agentPortalWebAppName -g $resourceGroupName --startup-file "start.sh"
+
+az webapp up -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName
+
+
+
 
 
 
