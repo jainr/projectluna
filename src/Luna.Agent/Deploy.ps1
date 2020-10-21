@@ -178,9 +178,10 @@ else{
     Pop-Location
     Push-Location "/Luna.Agent.Portal/build"
 }
-az webapp create -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName
 
-az webapp config set -n $agentPortalWebAppName -g $resourceGroupName --startup-file 'pm2 serve /home/site/wwwroot --no-daemon –spa'
+az webapp create -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName --runtime "node|10.14"
+
+az webapp config set -n $agentPortalWebAppName -g $resourceGroupName --startup-file "pm2 serve /home/site/wwwroot --no-daemon –spa"
 
 az webapp up -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName
 
