@@ -179,9 +179,11 @@ else{
     Push-Location "/Luna.Agent.Portal/build"
 }
 
+$config | Out-File "appConfig.js"
+
 az webapp create -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName --runtime "node|10.14"
 
-az webapp config set -n $agentPortalWebAppName -g $resourceGroupName --startup-file "pm2 serve /home/site/wwwroot --no-daemon –spa"
+az webapp config set -n $agentPortalWebAppName -g $resourceGroupName --startup-file "start.sh"
 
 az webapp up -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName
 
@@ -199,7 +201,6 @@ var MSAL_CONFIG = {
 };'
 
 
-$config | Out-File "appConfig.js"
 
 if ($folder -ne "default"){
     Pop-Location
