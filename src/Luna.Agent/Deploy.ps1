@@ -178,8 +178,12 @@ else{
     Pop-Location
     Push-Location "/Luna.Agent.Portal/build"
 }
+az webapp create -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName
 
-az webapp up -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName -l $location
+az webapp config set -n $agentPortalWebAppName -g $resourceGroupName --startup-file 'pm2 serve /home/site/wwwroot --no-daemon –spa'
+
+az webapp up -n $agentPortalWebAppName -p $webAppServicePlanName -g $resourceGroupName
+
 
 $config = 'var BASE_URL = "https://'+$agentApiWebAppName+'.azurewebsites.net/api/management";
 var HEADER_HEX_COLOR = "'+$headerBackgroundColor+'";
