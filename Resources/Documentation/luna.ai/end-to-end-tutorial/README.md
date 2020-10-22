@@ -37,8 +37,7 @@ We are going to use a simple sklearn Logistic Regression classification model as
 
 - [Publish an SaaS offer](./publish-saas-offer.md)
 - [Send a welcome letter using webhook](./send-welcome-letter-using-webhook.md)
-- [Test SaaS offer](./test-ai-service.md)
-- [Config usage based billing](./config-meter-based-billing.md)
+- [Test SaaS offer](./test-saas-offer.md)
 
 ## Management and Maintenance
 

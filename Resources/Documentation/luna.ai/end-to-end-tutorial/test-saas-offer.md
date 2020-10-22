@@ -49,109 +49,24 @@ Now you can use either the [Postman collection or the python notebook we used to
 Publishing a SaaS offer in Azure Marketplace requires some marketing and legal materials. We understand that could take long or collabaration with other department in your organization. Here we are going to show you how can you test the SaaS offer using REST API.
 
 ### Get AAD token
+The easiest way to get a valid AAD token is to retreving that from a API call from your management portal
+- Log in to your management portal
+- Open Developer Tools in your broswer (F12 for Edge)
+- Go to Network
+- Click on any tab in your management portal
+- Find the GET call and find the Authorization header. 
+- Copy the token. You will only need the part after "Bearer ".
 
-Before creating your subscription, you need to get an AAD token to be able to call the REST APIs
-
-#### Find the AAD application info
-
-- Login into Azure Portal, type in "AAD" in the search textbox and select "Azure Active Directory"
-- In the menu on the left side, select "App Registration"
-- Select "All applications", and in the search text box, type in "uniqueName-apiapp-aad" where uniqueName is the unique name you used when deploying Luna service.
-- Select the filtered item.
-- On the overview page, write down the "Application (client) ID" and the "Directory (tenant) ID"
-- Select "Authentication" in the menu on the left side, scroll down to the bottom and select "Yes" for the "Treat application as a public client." option. Click on Save.
-
-#### Get the AAD token
-
-- Open a Windows PowerShell window with administrator permission
-- Run *install-module -name MSAL.PS* to install the MSAL.PS module and accept all the terms. If it says you need to install the latest PowerShellGet, run *install-module -name PowerShellGet -Force* to update the PowerShellGet module first and restart the Windows PowerShell window
-- Replace the uniqueName, clientId and tenantId in the following PowerShell script, and run it:
-
-  ```powershell
-  $uniqueName = "uniqueName"
-  $clientId = "clientId"
-  $tenantId = "tenantId"
-  
-  $resourceUrl = "https://graph.microsoft.com/"
-  $redirectUri = "https://" + $uniqueName + "-isvapp.azurewebsites.net"
-  $scopes = "api://" + $clientId + "/user_impersonation"
-
-  $accessToken = Get-MsalToken -ClientId $clientId `
-                             -RedirectUri $redirectUri `
-                             -TenantId $tenantId `
-                             -Scopes $scopes
-  
-  $accessToken.AccessToken
-  ```
-
-- copy the token. Depending on the tool you are using to run the PowerShell script, you may get linebreakers when copying the token. If that's the case, remove all the linebreakers. The valid token is a string without linebreakers.
-
-### Create a subscirption using REST API
-
-First, we will need to generate a new GUID as subscription id.
-
-Then in Postman, create a new request:
-
-```http
-PUT https://uniqueName-apipp.azurewebsites.net/api/subscriptions/generated-guid
-```
-
-where *uniqueName* is the unique name you used when deploying Luna service and *generated-guid* is subscription id.
-
-- Change the http method to PUT
-- In the request URL textbox, enter "https://uniqueName-apipp.azurewebsites.net/api/subscriptions/generated-guid"
-- On the "Body" tab, select "raw" and change the type to "JSON" in the dropdown list.
-- Put the following JSON string into the request body text field:
-
-  ```json
-  {
-    "SubscriptionId": "generated-guid",
-    "Name": "subscription-name",
-    "OfferName": "your-offer-name",
-    "PlanName": "your-plan-name",
-    "quantity": 1,
-    "Owner": "your-aad-id",
-    "BeneficiaryTenantId": "00000000-0000-0000-0000-000000000000",
-    "PurchaserTenantId": "00000000-0000-0000-0000-000000000000",
-    "InputParameters": [
-        {
-            "Name":"servicetype",
-            "Type":"string",
-            "Value":"real-time prediction"
-        },
-        {
-            "Name":"email",
-            "Type":"string",
-            "Value":"your-email"
-        },
-        {
-            "Name":"productupdate",
-            "Type":"boolean",
-            "Value":"true"
-        }]
-  }
-  ```
-
-- Update the subscription id, subscription name, offer name, plan name, owner, service type value, and your email in the request body.
-- On the "Authorization" tab, select "Bearer Token" as type and add the token you got from the previous step. Make sure there's no linebreakers in the token.
-- Submit the request.
-
-In the backend, Luna service started a state machine running all the provisioning steps as you configured, including calling the webhook to subscribe the AI service. The state machine runs every minute to move to the next state. it will take 3 to 5 minutes to finish the provisioning. You can use the following request to query the provisioning status:
-
-```http
-GET https://uniqueName-apipp.azurewebsites.net/api/subscriptions/generated-guid
-```
-
-where *uniqueName* is the unique name you used when deploying Luna service and *generated-guid* is subscription id you generated in the previous step. Make sure you configured the same Bearer token on the "Authorization" tab before sending the request.
-
-Since the offer is not published in Azure Marketplace, the provisioning will fail at the last step when trying to notify Azure Marketplace to activate the subscription. It is expected. When you see the "provisioningStatus" of the GET request is "NotificationFailed", you can continue to run the following http request to get your base url and subscription key:
-
-```http
-GET https://uniqueName-apipp.azurewebsites.net/api/apisubscriptions/generated-guid
-```
-
-Again, use the same Bearer token for authentication. You should see the baseUrl and keys in the response body. Now you can use either the [Postman collection or the python notebook we used to test the AI service](./test-ai-service.md) to continue the test.
+### Test Azure Marketplace SaaS offer using REST API
+You can then test the Azure Marketplace SaaS offer using the Postman collection.
+- Download the Postman collection form [here](https://www.getpostman.com/collections/58bf0dae770ca1fc1f20)
+- Right click on the collection and select Edit
+- In the Authorization tab, update the token you obtained in the previous step. Remember you only need the part after "Bearer "
+- In the Variables tab, update the variables. If you are running the test multiple times, you need to use a new subscription-id every time you run it.
+- Run the PUT request to create a subscription
+- Run the GET request to get the subscription. The create subscription request will trigger a state machine processing the request. This process will take a few minutes. Eventually, the "provisioningStatus" in the returned payload should be "NotificationFailed". Since you don't have the Azure Marketplace offer created yet, this is expected.
+- You can also find the base URL and keys to test your AI service.
 
 ## Next Step
 
-[Config usage based billing](./config-meter-based-billing.md)
+[Deploy a hotfix](./deploy-a-hotfix.md)

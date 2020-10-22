@@ -22,7 +22,9 @@ To use your offer for this tutorial, you need to:
 
 ## Create and configure an offer in Luna management portal
 
-To create an SaaS offer in Luna, you can login to the Luna management portal (where you published the AI service earlier), go to the "Offers" tab and click on "New Offer". You need to provide the following info:
+If you specified SaaS offer name when creating the AI service, the SaaS offer will be automatically created and configured. You can simply go to SaaS offers tab in the management portal to find your SaaS offer. 
+
+To create a new SaaS offer in Luna, you can login to the Luna management portal (where you published the AI service earlier), go to the "Offers" tab and click on "New Offer". You need to provide the following info:
 
 - ID: the offer id. If you created an SaaS offer in Azure Marketplace, you will need to use the same offer id
 - Alias: a friendly name for your offer
@@ -129,4 +131,4 @@ Now you have your SaaS offer and plan published in Luna service.
 
 ## Next step
 
-[Test SaaS offer](./test-ai-service.md)
+[Test SaaS offer](./test-saas-offer.md)

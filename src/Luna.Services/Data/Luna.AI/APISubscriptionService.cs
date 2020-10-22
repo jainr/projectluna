@@ -188,7 +188,7 @@ namespace Luna.Services.Data.Luna.AI
 
 
             // Assign SaaS agent id
-            if (apiSubscription.AgentId == null)
+            if (apiSubscription.AgentId == null || apiSubscription.AgentId == Guid.Empty)
             {
                 var agent = await _aiAgentService.GetSaaSAgentAsync();
                 apiSubscription.AgentId = agent.AgentId;
