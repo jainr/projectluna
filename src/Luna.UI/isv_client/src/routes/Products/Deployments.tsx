@@ -888,8 +888,8 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
 
     let authTypes: IChoiceGroupOption[] = [];
     if (productType === "RTP") {
-      authTypes.push({ key: 'Key', text: 'Key' });
       authTypes.push({ key: 'Token', text: 'Token' });
+      authTypes.push({ key: 'Key', text: 'Key' });
       authTypes.push({ key: 'None', text: 'None' });
 
     } else if (productType === "BI") {
@@ -1549,7 +1549,7 @@ export const VersionList: React.FunctionComponent<IDeploymentVersionListProps> =
     v.deploymentName = selectedDeploymentName;
     v.productName = productName;
     setIsVersionEdit(false);
-    v.authenticationType = "Key";
+    v.authenticationType = "Token";
     //TODO: confirm what the default authenticationtypes should be for the other product types
     /*if (productType == "RTP") {
       v.authenticationType = "Token";

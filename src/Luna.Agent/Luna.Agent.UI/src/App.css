@@ -1,0 +1,23 @@
+/*
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the MIT License.
+*/
+
+html, body {
+    background-color: #F5F5F7;
+}
+
+main {
+    display: flex;
+    margin-left: 324px;
+    margin-top: 48px;
+}
+
+main > div {
+    flex: 1;
+    overflow-y: auto;
+}
+
+main > div > div {
+    margin: 20px;
+}

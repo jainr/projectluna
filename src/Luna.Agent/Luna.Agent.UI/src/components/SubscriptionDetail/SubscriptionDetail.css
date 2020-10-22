@@ -1,0 +1,36 @@
+/*
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the MIT License.
+*/
+
+.wrapper {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+.wrapper > .column {
+    margin: 20px;
+    width: 20%;
+    min-width: 240px;
+    flex: 1;
+}
+.baseURL {
+    margin: 20px auto 30px 0;
+    width: 50%;
+}
+.backArea {
+    margin-bottom: 20px;
+}
+
+.items {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.items > * {
+    width: 32%;
+    margin-right: 13px;
+}

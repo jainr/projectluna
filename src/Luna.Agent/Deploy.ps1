@@ -85,11 +85,11 @@ if ($sqlDatabaseUserPassword -eq 'default'){
 
 if ($agentApiAADApplicationId -eq 'default'){
 
-    $resouceAccesses = '[{\"resourceAppId\":\"00000002-0000-0000-c000-000000000000\",\"resourceAccess\":[{\"id\":\"a42657d6-7f20-40e3-b6f0-cee03008a62a\",\"type\":\"Scope\"}]}]'
+    $resouceAccesses = '[{\"resourceAppId\":\"00000002-0000-0000-c000-000000000000\",\"resourceAccess\":[{\"id\":\"311a71cc-e848-46a1-bdf8-97ff7156d8e6\",\"type\":\"Scope\"},{\"id\":\"cba73afc-7f69-4d86-8450-4978e04ecd1a\",\"type\":\"Scope\"}]}]'
     $appDisplayName = $name + '-aadapplication-apiapp'
-    $replyUrls = "https://"+ $agentPortalWebAppName +".azurewebsites.net"
+    $replyUrls = "https://"+ $agentPortalWebAppName +".azurewebsites.net/"
 
-    $aadApp = az ad app create --display-name $appDisplayName --reply-urls $replyUrls --available-to-other-tenants false --required-resource-accesses $resouceAccesses | ConvertFrom-Json
+    $aadApp = az ad app create --display-name $appDisplayName --reply-urls $replyUrls --available-to-other-tenants true --required-resource-accesses $resouceAccesses --oauth2-allow-implicit-flow true | ConvertFrom-Json
 
     $agentApiAADApplicationId = $aadApp.appId
 }
