@@ -579,7 +579,9 @@ az webapp config appsettings set -n $controllerWebAppName --settings $setting
 $setting = 'AAD_VALID_AUDIENCES=' + $webAppAADApplicationId
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
 $setting = 'AAD_TOKEN_ISSUER=https://login.microsoftonline.com/' + $tenantId + "/v2.0"
+az webapp config appsettings set -n $controllerWebAppName --settings $setting
 
+$setting = 'APPINSIGHTS_INSTRUMENTATIONKEY='+$appInsightsApp.InstrumentationKey
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
 
 Pop-Location

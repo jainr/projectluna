@@ -54,7 +54,7 @@ class App extends React.Component<AuthComponentProps, IAppState> {
         setTimeout(() => {
           // Refresh token every 60s.
           var refreshToken = setInterval(()=> {
-            this.props.getAccessToken(window.MSAL_CONFIG.scopes);
+            this.props.getRefreshAccessToken(window.MSAL_CONFIG.scopes);
           }, 60000);
         }, 5000);
       }

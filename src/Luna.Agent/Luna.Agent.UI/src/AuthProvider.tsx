@@ -18,6 +18,7 @@ export interface AuthComponentProps {
   login: Function;
   logout: Function;
   getAccessToken: Function;
+  getRefreshAccessToken: Function;
   setError: Function;
   userPhoto: string | ArrayBuffer | null | undefined;
 }
@@ -66,6 +67,7 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
         login={() => this.login()}
         logout={() => this.logout()}
         getAccessToken={(scopes: string[]) => this.getAccessToken(scopes)}
+        getRefreshAccessToken={(scopes: string[]) => this.getRefreshAccessToken(scopes)}
         setError={(message: string, debug: string) => this.setErrorMessage(message, debug)}
         {...this.props} {...this.state} />;
     }
@@ -104,6 +106,37 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
           scopes: scopes
         });
 
+        console.info(`Token created: ${silentResult.accessToken}`);
+        return silentResult.accessToken;
+      } 
+      catch (err) {
+        // If a silent request fails, it may be because the user needs
+        // to login or grant consent to one or more of the requested scopes
+        if (this.isInteractionRequired(err)) {
+          var interactiveResult = await this.userAgentApplication.acquireTokenPopup({
+            scopes: scopes
+          });
+          return interactiveResult.accessToken;
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    async getRefreshAccessToken(scopes: string[]): Promise<string> {
+      
+      //remove session storage keys
+      const keys = await Object.keys(sessionStorage).filter(x => x.indexOf('authority') > 0)
+      keys.forEach(x => sessionStorage.removeItem(x));
+      try {
+        // Get the access token silently
+        // If the cache contains a non-expired token, this function
+        // will just return the cached token. Otherwise, it will
+        // make a request to the Azure OAuth endpoint to get a token
+        var silentResult = await this.userAgentApplication.acquireTokenSilent({
+          scopes: scopes
+        });
+        console.info(`Token updated: ${silentResult.accessToken}`);
         return silentResult.accessToken;
       } catch (err) {
         // If a silent request fails, it may be because the user needs
