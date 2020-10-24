@@ -38,7 +38,7 @@ class AzureMLUtils(object):
         workspaceName = infoList[-1]
         return subscriptionId, resourceGroupName, workspaceName
 
-    def __init__(self, workspace, config_file=None):
+    def __init__(self, workspace, config_file=None, sourceType="git"):
         if workspace.AADApplicationSecret:
             secret = workspace.AADApplicationSecret
         else:
@@ -50,7 +50,7 @@ class AzureMLUtils(object):
         subscriptionId, resourceGroupName, workspaceName = self.get_workspace_info_from_resource_id(workspace.ResourceId)
         ws = Workspace(subscriptionId, resourceGroupName, workspaceName, auth)
         self._workspace = ws
-        if config_file:
+        if config_file and sourceType == "git":
             self._utils = ProjectUtils(luna_config_file = config_file, run_mode='azureml')
 
     def get_pipeline_id_from_url(self, url):
@@ -166,8 +166,7 @@ class AzureMLUtils(object):
     def getOperationOutput(self, operationNoun, operationId, userId, subscriptionId, downloadFiles = True):
         operationName = self.GetOperationNameByNoun(operationNoun)
         
-        outputType = self._utils.GetOutputType(operationName)
-        if operationName == 'train' or outputType == 'model':
+        if operationName == 'train':
             
             tags = [['userId', userId], ['modelId', operationId], ['subscriptionId', subscriptionId]]
             models = Model.list(self._workspace, tags = tags)
@@ -179,7 +178,7 @@ class AzureMLUtils(object):
                       'created_time': model.created_time}
             return result, "model"
 
-        if operationName == 'deploy' or outputType == 'endpoint':
+        if operationName == 'deploy':
             
             tags = [['userId', userId], ['endpointId', operationId], ['subscriptionId', subscriptionId]]
             endpoints = Webservice.list(self._workspace, tags = tags)
@@ -196,6 +195,7 @@ class AzureMLUtils(object):
 
             return result, "endpoint"
         
+        outputType = self._utils.GetOutputType(operationName)
         tags = {'userId': userId,
                 'operationId': operationId,
                 'operationName': operationName,

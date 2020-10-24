@@ -121,7 +121,7 @@ def executeOperation(operationVerb, subscriptionId = 'default'):
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
 
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
         if version.VersionSourceType == 'git':
             if os.environ["AGENT_MODE"] == "SAAS":
                 computeCluster = "default"
@@ -148,12 +148,12 @@ def executeOperation(operationVerb, subscriptionId = 'default'):
 def getOperationStatus(operationVerb, operationId, subscriptionId = 'default'):
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
         result = amlUtil.getOperationStatus(operationVerb, operationId, sub.Owner, sub.SubscriptionId)
         if result:
             return jsonify(result)
         else:
-            raise LunaUserException(HTTPStatus.NOT_FOUND, 'Object with id {} does not exist.'.format(operationId))
+            raise LunaUserException(HTTPStatus.NOT_FOUND, 'Operation with id {} does not exist.'.format(operationId))
     except Exception as e:
         return handleExceptions(e)
 
@@ -163,7 +163,7 @@ def listOperations(operationVerb, subscriptionId='default'):
     
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
         result = amlUtil.listAllOperations(operationVerb, sub.Owner, sub.SubscriptionId)
         return jsonify(result)
     except Exception as e:
@@ -175,8 +175,12 @@ def listOperationOutputs(operationNoun, subscriptionId = 'default'):
     
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
         result = amlUtil.listAllOperationOutputs(operationNoun, sub.Owner, sub.SubscriptionId)
+        if result:
+            return jsonify(result)
+        else:
+            raise LunaUserException(HTTPStatus.NOT_FOUND, 'Object with id {} does not exist.'.format(operationId))
         return jsonify(result)
     except Exception as e:
         return handleExceptions(e)
@@ -187,7 +191,7 @@ def getOperationOutput(operationNoun, operationId, subscriptionId = 'default'):
     
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
         result, outputType = amlUtil.getOperationOutput(operationNoun, operationId, sub.Owner, sub.SubscriptionId)
         if not result:
             raise LunaUserException(HTTPStatus.NOT_FOUND, "The specified operation doesn't exist or it didn't generate any output.")
@@ -209,7 +213,7 @@ def executeChildOperation(parentOperationNoun, parentOperationId, operationVerb,
     
     try:
         sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile)
+        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
         if version.VersionSourceType == 'git':
             if os.environ["AGENT_MODE"] == "SAAS":
                 computeCluster = "default"
