@@ -105,7 +105,7 @@ namespace Luna.Clients.Azure.Auth
             if (AdminList.Length > 0)
             {
                 string userAccount = GetUserAccount(context);
-                if (!AdminList.Contains(userAccount))
+                if (!AdminList.Contains(userAccount, StringComparer.InvariantCultureIgnoreCase))
                 {
                     logger.LogInformation($"The user account {userAccount} is not in the admin account list.");
                     return false;

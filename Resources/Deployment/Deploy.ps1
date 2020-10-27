@@ -546,6 +546,7 @@ $config = 'var Configs = {
 
 UpdateScriptConfigFile -resourceGroupName $resourceGroupName -webAppName $enduserWebAppName -configuration $config
 
+
 Write-Host "Deploy webjob."
 $webjobZipPath = $buildLocation + "/webjob.zip"
 Deploy-WebJob -resourceGroupName $resourceGroupName -webAppName $apiWebAppName -webJobName $apiWebJobName -webJobZipPath $webjobZipPath
@@ -583,6 +584,15 @@ az webapp config appsettings set -n $controllerWebAppName --settings $setting
 
 $setting = 'APPINSIGHTS_INSTRUMENTATIONKEY='+$appInsightsApp.InstrumentationKey
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
+
+Write-Host "Update CORS"
+
+$corsUrl = "https://" + $isvWebAppName + ".azurewebsites.net"
+az webapp cors add -g $resourceGroupName -n $apiWebAppName --allowed-origins $corsUrl
+$corsUrl = "https://" + $enduserWebAppName + ".azurewebsites.net"
+az webapp cors add -g $resourceGroupName -n $apiWebAppName --allowed-origins $corsUrl
+
+az webapp cors add -g $controllerWebAppResourceGroupName -n $controllerWebAppName --allowed-origins "*"
 
 Pop-Location
 

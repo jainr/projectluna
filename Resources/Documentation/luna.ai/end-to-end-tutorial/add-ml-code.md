@@ -11,7 +11,7 @@ In this tutorial, we will add the sklearn pip package:
 ```yaml
 - pip:
   ...
-  sklearn
+  - sklearn
 ```
 
 ## Create conda environment for local test
@@ -60,23 +60,23 @@ The NumpyJSONEncoder helps you serialize Numpy data types to JSON strings. You c
 You can add following code to the *train* function of LunaPythonModel class to train a sklearn Logistic Regression classification model:
 
 ```python
-train_data = pd.read_csv(user_input["trainingDataSource"])
-
-label_column_name = user_input['labelColumnName'] if 'labelColumnName' in user_input else train_data.columns[-1]
-description = user_input['description'] if 'description' in user_input else 'this is my model description'
-
-X = train_data.drop([label_column_name], axis=1)
-
-Y = train_data[label_column_name]
-
-log_reg = LogisticRegression()
-log_reg.fit(X, Y)
-
-model_path = 'models'
-model_file = os.path.join(model_path, "model.pkl")
-pickle.dump(log_reg, open(model_file, 'wb'))
-
-return model_path, description
+        train_data = pd.read_csv(user_input["trainingDataSource"])
+        
+        label_column_name = user_input['labelColumnName'] if 'labelColumnName' in user_input else train_data.columns[-1]
+        description = user_input['description'] if 'description' in user_input else 'this is my model description'
+        
+        X = train_data.drop([label_column_name], axis=1)
+        
+        Y = train_data[label_column_name]
+        
+        log_reg = LogisticRegression()
+        log_reg.fit(X, Y)
+        
+        model_path = 'models'
+        model_file = os.path.join(model_path, "model.pkl")
+        pickle.dump(log_reg, open(model_file, 'wb'))
+        
+        return model_path, description
 ```
 
 The user_input is an dictionary contains the JSON contain from user API request. In this case, a sample user input will be:
@@ -98,28 +98,28 @@ After you trained and vaidated the model, you can save the model file/files to a
 You can add the following code to the batch_inference function to perform batch inference using a Logistic Regression classification model:
 
 ```python
-data = pd.read_csv(user_input["dataSource"])
-output_filename = user_input["output"]
-
-model_file = os.path.join(model_path, "models", "model.pkl")
-model = pickle.load(open(model_file, 'rb'))
-
-y_proba = model.predict(data)
-
-temp_filename = "imputation_result.csv"
-with open(temp_filename, "wt") as temp_file:
-    pd.DataFrame(y_proba).to_csv(temp_file, header=False)
-
-with open(temp_filename , 'rb') as fh:
-    response = requests.put(output_filename,
-                        data=fh,
-                        headers={
-                                    'content-type': 'text/csv',
-                                    'x-ms-blob-type': 'BlockBlob'
-                                }
-                        )
-
-return
+        data = pd.read_csv(user_input["dataSource"])
+        output_filename = user_input["output"]
+        
+        model_file = os.path.join(model_path, "models", "model.pkl")
+        model = pickle.load(open(model_file, 'rb'))
+        
+        y_proba = model.predict(data)
+        
+        temp_filename = "imputation_result.csv"
+        with open(temp_filename, "wt") as temp_file:
+            pd.DataFrame(y_proba).to_csv(temp_file, header=False)
+        
+        with open(temp_filename , 'rb') as fh:
+            response = requests.put(output_filename,
+                                data=fh,
+                                headers={
+                                            'content-type': 'text/csv',
+                                            'x-ms-blob-type': 'BlockBlob'
+                                        }
+                                )
+        
+        return
 ```
 
 A sample user input will look like:
@@ -145,30 +145,30 @@ The model can be deployed to a service endpoint (AKS or Azure Container Instance
 In this tutorial, you can add the following code to *load_context* function to load the model into memory and save it in *_model* property:
 
 ```python
-## DO NOT CHANGE! Set mlflow as default run mode
-if (self._run_mode != 'azureml'):
-    self._run_mode = 'mlflow'
-
-## DO NOT CHANGE! Get the model path
-model_path = LunaUtils.GetModelPath(run_mode = self._run_mode, context = context)
-
-model_file = os.path.join(model_path, 'models/model.pkl')
-self._model = pickle.load( open( model_file, "rb" ) )
-return
+        ## DO NOT CHANGE! Set mlflow as default run mode
+        if (self._run_mode != 'azureml'):
+            self._run_mode = 'mlflow'
+        
+        ## DO NOT CHANGE! Get the model path
+        model_path = LunaUtils.GetModelPath(run_mode = self._run_mode, context = context)
+        
+        model_file = os.path.join(model_path, 'models/model.pkl')
+        self._model = pickle.load( open( model_file, "rb" ) )
+        return
 ```
 
 Then you can add the following code to the *predict* function to predict the label using the model. The NumpyJSONEncoder is for encoding Numpy data types into JSON:
 
 ```python
-## DO NOT CHANGE! Get the model path
-model_path = LunaUtils.GetModelPath(run_mode = self._run_mode, context = context)
+        ## DO NOT CHANGE! Get the model path
+        model_path = LunaUtils.GetModelPath(run_mode = self._run_mode, context = context)
+                
+        user_input = json.loads(model_input)
         
-user_input = json.loads(model_input)
-
-scoring_result = {"result": self._model.predict(user_input["records"])}
-
-scoring_result = json.dumps(scoring_result, cls=NumpyJSONEncoder)
-return AMLResponse(scoring_result, 200)
+        scoring_result = {"result": self._model.predict(user_input["records"])}
+        
+        scoring_result = json.dumps(scoring_result, cls=NumpyJSONEncoder)
+        return AMLResponse(scoring_result, 200)
 ```
 
 ## Next Step

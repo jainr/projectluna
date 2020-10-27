@@ -18,7 +18,7 @@ You will need to following information for the deployment:
 
 - Tenant id: The tenant id of your organization.
 - Subscription id: The subscription id you want to deploy Luna service to
-- Location: Which azure region you want to deploy the Luna service to. It should be in format like "westus2".
+- Location: Which azure region you want to deploy the Luna service to. It should be in format like "westus2" (one word, all lower case).
 - A unique name: it is a string with only **lower case letters** and **less than 12 characters**. It will be used as prefix of all Azure and AAD resources. To avoid any failure during deployment, please make it as unique as possible.
 - Admin accounts: the AAD accounts who you want to assign admin permission to your Luna service. It can be mutiple AAD accounts seperated by semicolons.
 - (only if you are running the script from your dev machine and using any kind of VPN or proxy service) The IP range of your VPN or proxy service: we can add the IP range to Azure SQL Server firewall rule so you can access your SQL database. We will detect your local ip (without VPN or proxy) and add it to the firewall rule automatically. Contact your network admin for the IP range of your VPN or proxy service.
