@@ -105,6 +105,10 @@ else{
 
 az login --only-show-errors
 
+function GetPassword{
+    $psw = ("#%0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".tochararray() | Sort-Object {Get-Random})[0..21] -join ''
+    return $psw + "3Fd"
+}
 
 function GetNameForAzureResources{
     param($uniqueName, $defaultName, $resourceTypeSuffix)
@@ -279,7 +283,7 @@ $publisherId = (New-Guid).ToString()
 
 add-type -AssemblyName System.Web
 
-$sqlServerAdminPasswordRaw = [System.Web.Security.Membership]::GeneratePassword(24,5)
+$sqlServerAdminPasswordRaw = GetPassword
 $sqlServerAdminPassword = ConvertTo-SecureString $sqlServerAdminPasswordRaw.ToString() -AsPlainText -Force
 
 if ($buildLocation -eq "default"){
@@ -450,11 +454,7 @@ Write-Host "Execute SQL script to create database user and objects."
 $sqlDatabaseUserName = "lunauser" + $uniqueName
 $sqlDatabaseUsernameVar = "username='" + $sqlDatabaseUserName + "'"
 
-$sqlDatabasePassword = ([System.Web.Security.Membership]::GeneratePassword(24,5))
-# replace characters which are not allowed as password in ODBC connection string
-$reservedChars = "[", "]", "(", ")", ",", ";", "?", "*", "!", "@", "=", "{", "}"
-
-$reservedChars | ForEach-Object -Process {$sqlDatabasePassword = $sqlDatabasePassword.Replace($_, "$")}
+$sqlDatabasePassword = GetPassword
 $sqlDatabasePasswordVar = "password='" + $sqlDatabasePassword + "'"
 $publisherIdVar = "publisherId='" + $publisherId + "'"
 $controlPlaneUrl = "https://"+ $apiWebAppName +".azurewebsites.net"

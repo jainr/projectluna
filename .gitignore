@@ -131,3 +131,4 @@ src/Luna.Agent/Luna.Agent/mlruns/0/meta.yaml
 src/Luna.Agent/Luna.Agent/.azure/config
 src/Luna.Agent/Luna.Agent/.azure/config
 src/Luna.Packages/luna-client/test.py
+src/Luna.Agent/Luna.Agent/.azure/config
