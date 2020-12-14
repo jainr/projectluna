@@ -49,6 +49,12 @@ namespace Luna.Data.Repository
 
         DbSet<AgentOffer> AgentOffers { get; set; }
 
+        DbSet<AzureSynapseWorkspace> AzureSynapseWorkspaces { get; set; }
+
+        DbSet<AzureDatabricksWorkspace> AzureDatabricksWorkspaces { get; set; }
+
+        DbSet<GitRepo> GitRepos { get; set; }
+
         // Wrappers for DbContext methods that are used
         Task<int> _SaveChangesAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();

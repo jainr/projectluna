@@ -232,13 +232,16 @@ namespace Luna.Services.Data.Luna.AI
             if (!string.IsNullOrEmpty(version.AMLWorkspaceName))
             {
                 // Get the amlWorkspace associated with the AMLWorkspaceName provided
-                var amlWorkspace = await _amlWorkspaceService.GetWithSecretsAsync(version.AMLWorkspaceName);
+                var amlWorkspace = await _amlWorkspaceService.GetAsync(version.AMLWorkspaceName, returnSecret: true);
 
                 version.AMLWorkspaceName = amlWorkspace.WorkspaceName;
                 version.AMLWorkspaceId = amlWorkspace.Id;
 
                 // Update the apiVersion API
-                version = UpdateUrl(version, amlWorkspace);
+                if (product.ProductType.Equals("tyom", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    version = UpdateUrl(version, amlWorkspace);
+                }
             }
             
             // add athentication key to keyVault if authentication type is key
@@ -256,6 +259,7 @@ namespace Luna.Services.Data.Luna.AI
             if (!string.IsNullOrEmpty(version.GitPersonalAccessToken))
             {
                 string secretName = $"gitpat-{Context.GetRandomString(12)}";
+                await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, secretName, version.GitPersonalAccessToken));
                 version.GitPersonalAccessTokenSecretName = secretName;
             }
 
@@ -315,7 +319,7 @@ namespace Luna.Services.Data.Luna.AI
             if (!string.IsNullOrEmpty(version.AMLWorkspaceName))
             {
                 // Get the amlWorkspace associated with the AMLWorkspaceName provided
-                var amlWorkspace = await _amlWorkspaceService.GetWithSecretsAsync(version.AMLWorkspaceName);
+                var amlWorkspace = await _amlWorkspaceService.GetAsync(version.AMLWorkspaceName, returnSecret: true);
 
                 // Update the apiVersion API
                 version = UpdateUrl(version, amlWorkspace);

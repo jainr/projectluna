@@ -583,6 +583,7 @@ CREATE TABLE [dbo].[APIVersions](
 	[ProjectFileUrl] [nvarchar](max) NULL,
 	[GitVersion] [nvarchar](max) NULL,
 	[ConfigFile] [nvarchar](256) NULL,
+	[ModelId] [nvarchar](256) NULL,
 	PRIMARY KEY (Id),
 	CONSTRAINT FK_DeploymentId_APIVersions FOREIGN KEY (DeploymentId) REFERENCES Deployments(Id)
 )
@@ -657,7 +658,7 @@ GO
 CREATE VIEW [dbo].[agent_apiversions]
 AS
 SELECT dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.APIVersions.VersionName, dbo.APIVersions.RealTimePredictAPI, dbo.APIVersions.TrainModelAPI, dbo.APIVersions.BatchInferenceAPI, dbo.APIVersions.DeployModelAPI, dbo.APIVersions.AuthenticationType, dbo.APIVersions.CreatedTime, dbo.APIVersions.LastUpdatedTime, dbo.APIVersions.VersionSourceType, dbo.APIVersions.ProjectFileUrl, 
-          dbo.APIVersions.Id, dbo.APIVersions.AMLWorkspaceId, dbo.Publishers.PublisherId, dbo.APIVersions.AuthenticationKeySecretName, dbo.APISubscriptions.SubscriptionId, dbo.APISubscriptions.AgentId, dbo.APIVersions.ConfigFile
+          dbo.APIVersions.Id, dbo.APIVersions.AMLWorkspaceId, dbo.Publishers.PublisherId, dbo.APIVersions.AuthenticationKeySecretName, dbo.APISubscriptions.SubscriptionId, dbo.APISubscriptions.AgentId, dbo.APIVersions.ConfigFile, dbo.APIVersions.ModelId
 FROM   dbo.APIVersions INNER JOIN
           dbo.Deployments ON dbo.APIVersions.DeploymentId = dbo.Deployments.Id INNER JOIN
           dbo.Products ON dbo.Deployments.ProductId = dbo.Products.Id INNER JOIN

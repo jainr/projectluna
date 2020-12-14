@@ -350,6 +350,9 @@ namespace Luna.API
             services.TryAddScoped<IAPIVersionService, APIVersionService>();
             services.TryAddScoped<IAPISubscriptionService, APISubscriptionService>();
             services.TryAddScoped<IAMLWorkspaceService, AMLWorkspaceService>();
+            services.TryAddScoped<IAzureSynapseWorkspaceService, AzureSynapseWorkspaceService>();
+            services.TryAddScoped<IAzureDatabricksWorkspaceService, AzureDatabricksWorkspaceService>();
+            services.TryAddScoped<IGitRepoService, GitRepoService>();
 
             services.AddCors();
 
@@ -381,6 +384,9 @@ namespace Luna.API
                 o.Conventions.Controller<DeploymentController>().HasApiVersion(latest);
                 o.Conventions.Controller<ProductController>().HasApiVersion(latest);
                 o.Conventions.Controller<AIAgentController>().HasApiVersion(latest);
+                o.Conventions.Controller<AzureDatabricksWorkspaceController>().HasApiVersion(latest);
+                o.Conventions.Controller<AzureSynapseWorkspaceController>().HasApiVersion(latest);
+                o.Conventions.Controller<GitRepoController>().HasApiVersion(latest);
             });
 
             // Register the Swagger generator, defining 1 or more Swagger documents

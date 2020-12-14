@@ -19,10 +19,10 @@ using Luna.Data.Constants;
 
 namespace Luna.Services.Data.Luna.AI
 {
-    public class AMLWorkspaceService : IAMLWorkspaceService
+    public class AzureSynapseWorkspaceService : IAzureSynapseWorkspaceService
     {
         private readonly ISqlDbContext _context;
-        private readonly ILogger<AMLWorkspaceService> _logger;
+        private readonly ILogger<AzureSynapseWorkspaceService> _logger;
         private readonly IKeyVaultHelper _keyVaultHelper;
         private readonly IOptionsMonitor<AzureConfigurationOption> _options;
 
@@ -33,8 +33,8 @@ namespace Luna.Services.Data.Luna.AI
         /// <param name="sqlDbContext">The context to be injected.</param>
         /// <param name="logger">The logger.</param>
         /// <param name="keyVaultHelper">The key vault helper.</param>
-        public AMLWorkspaceService(IOptionsMonitor<AzureConfigurationOption> options,
-            ISqlDbContext sqlDbContext, ILogger<AMLWorkspaceService> logger, IKeyVaultHelper keyVaultHelper)
+        public AzureSynapseWorkspaceService(IOptionsMonitor<AzureConfigurationOption> options,
+            ISqlDbContext sqlDbContext, ILogger<AzureSynapseWorkspaceService> logger, IKeyVaultHelper keyVaultHelper)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
@@ -43,43 +43,43 @@ namespace Luna.Services.Data.Luna.AI
         }
 
         /// <summary>
-        /// Get all registered AML workspaces
+        /// Get all registered Azure Synapse workspaces
         /// </summary>
-        /// <returns>The list of all registere AML workspaces</returns>
-        public async Task<List<AMLWorkspace>> GetAllAsync()
+        /// <returns>The list of all registered Synapse workspaces</returns>
+        public async Task<List<AzureSynapseWorkspace>> GetAllAsync()
         {
-            _logger.LogInformation(LoggingUtils.ComposeGetAllResourcesMessage(typeof(AMLWorkspace).Name));
+            _logger.LogInformation(LoggingUtils.ComposeGetAllResourcesMessage(typeof(AzureSynapseWorkspace).Name));
 
-            // Get all products
-            var workspaces = await _context.AMLWorkspaces.ToListAsync();
+            // Get all Azure Synapse workspace
+            var workspaces = await _context.AzureSynapseWorkspaces.ToListAsync();
 
             // Do not return the secrets
             foreach (var workspace in workspaces)
             {
                 workspace.AADApplicationSecrets = LunaConstants.SECRET_NOT_CHANGED_VALUE;
             }
-            _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(AMLWorkspace).Name, workspaces.Count()));
+            _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(AzureSynapseWorkspace).Name, workspaces.Count()));
 
             return workspaces;
         }
 
         /// <summary>
-        /// Get an AML workspace by name
+        /// Get an Azure Synapse workspace by name
         /// </summary>
         /// <param name="workspaceName">The workspace name</param>
         /// <param name="returnSecret">If return AAD secret</param>
         /// <returns></returns>
-        public async Task<AMLWorkspace> GetAsync(string workspaceName, bool returnSecret = false)
+        public async Task<AzureSynapseWorkspace> GetAsync(string workspaceName, bool returnSecret = false)
         {
             if (!await ExistsAsync(workspaceName))
             {
-                throw new LunaNotFoundUserException(LoggingUtils.ComposeNotFoundErrorMessage(typeof(AMLWorkspace).Name,
+                throw new LunaNotFoundUserException(LoggingUtils.ComposeNotFoundErrorMessage(typeof(AzureSynapseWorkspace).Name,
                     workspaceName));
             }
-            _logger.LogInformation(LoggingUtils.ComposeGetSingleResourceMessage(typeof(AMLWorkspace).Name, workspaceName));
+            _logger.LogInformation(LoggingUtils.ComposeGetSingleResourceMessage(typeof(AzureSynapseWorkspace).Name, workspaceName));
 
             // Get the product that matches the provided productName
-            var workspace = await _context.AMLWorkspaces.SingleOrDefaultAsync(o => (o.WorkspaceName == workspaceName));
+            var workspace = await _context.AzureSynapseWorkspaces.SingleOrDefaultAsync(o => (o.WorkspaceName == workspaceName));
 
             if (returnSecret)
             {
@@ -91,7 +91,7 @@ namespace Luna.Services.Data.Luna.AI
                 workspace.AADApplicationSecrets = LunaConstants.SECRET_NOT_CHANGED_VALUE;
             }
 
-            _logger.LogInformation(LoggingUtils.ComposeReturnValueMessage(typeof(AMLWorkspace).Name,
+            _logger.LogInformation(LoggingUtils.ComposeReturnValueMessage(typeof(AzureSynapseWorkspace).Name,
                workspaceName,
                JsonSerializer.Serialize(workspace)));
 
@@ -105,26 +105,26 @@ namespace Luna.Services.Data.Luna.AI
         /// <returns></returns>
         public async Task<bool> ExistsAsync(string workspaceName)
         {
-            _logger.LogInformation(LoggingUtils.ComposeCheckResourceExistsMessage(typeof(AMLWorkspace).Name, workspaceName));
+            _logger.LogInformation(LoggingUtils.ComposeCheckResourceExistsMessage(typeof(AzureSynapseWorkspace).Name, workspaceName));
 
             // Check that only one workspace with this workspaceName exists and has not been deleted
-            var count = await _context.AMLWorkspaces
+            var count = await _context.AzureSynapseWorkspaces
                 .CountAsync(p => (p.WorkspaceName == workspaceName));
 
             // More than one instance of an object with the same name exists, this should not happen
             if (count > 1)
             {
-                throw new NotSupportedException(LoggingUtils.ComposeFoundDuplicatesErrorMessage(typeof(AMLWorkspace).Name, workspaceName));
+                throw new NotSupportedException(LoggingUtils.ComposeFoundDuplicatesErrorMessage(typeof(AzureSynapseWorkspace).Name, workspaceName));
 
             }
             else if (count == 0)
             {
-                _logger.LogInformation(LoggingUtils.ComposeResourceExistsOrNotMessage(typeof(AMLWorkspace).Name, workspaceName, false));
+                _logger.LogInformation(LoggingUtils.ComposeResourceExistsOrNotMessage(typeof(AzureSynapseWorkspace).Name, workspaceName, false));
                 return false;
             }
             else
             {
-                _logger.LogInformation(LoggingUtils.ComposeResourceExistsOrNotMessage(typeof(AMLWorkspace).Name, workspaceName, true));
+                _logger.LogInformation(LoggingUtils.ComposeResourceExistsOrNotMessage(typeof(AzureSynapseWorkspace).Name, workspaceName, true));
                 return true;
             }
         }
@@ -132,41 +132,39 @@ namespace Luna.Services.Data.Luna.AI
         /// <summary>
         /// Create a new workspace
         /// </summary>
-        /// <param name="workspace">AML workspace</param>
-        /// <returns>AML workspace</returns>
-        public async Task<AMLWorkspace> CreateAsync(AMLWorkspace workspace)
+        /// <param name="workspace">Azure Synapse workspace</param>
+        /// <returns>Azure Synapse workspace</returns>
+        public async Task<AzureSynapseWorkspace> CreateAsync(AzureSynapseWorkspace workspace)
         {
             if (workspace is null)
             {
-                throw new LunaBadRequestUserException(LoggingUtils.ComposePayloadNotProvidedErrorMessage(typeof(AMLWorkspace).Name),
+                throw new LunaBadRequestUserException(LoggingUtils.ComposePayloadNotProvidedErrorMessage(typeof(AzureSynapseWorkspace).Name),
                     UserErrorCode.PayloadNotProvided);
             }
 
             // Check that a workspace with the same name does not already exist
             if (await ExistsAsync(workspace.WorkspaceName))
             {
-                throw new LunaConflictUserException(LoggingUtils.ComposeAlreadyExistsErrorMessage(typeof(AMLWorkspace).Name,
+                throw new LunaConflictUserException(LoggingUtils.ComposeAlreadyExistsErrorMessage(typeof(AzureSynapseWorkspace).Name,
                         workspace.WorkspaceName));
             }
 
             // Add secret to keyvault
             if (workspace.AADApplicationSecrets == null)
             {
-                throw new LunaBadRequestUserException("AAD Application Secrets is needed with the aml workspace", UserErrorCode.AuthKeyNotProvided);
+                throw new LunaBadRequestUserException("AAD Application Secrets is needed with the Azure Synapse workspace", UserErrorCode.AuthKeyNotProvided);
             }
 
-            _logger.LogInformation(LoggingUtils.ComposeCreateResourceMessage(typeof(AMLWorkspace).Name, workspace.WorkspaceName, payload: JsonSerializer.Serialize(workspace)));
+            _logger.LogInformation(LoggingUtils.ComposeCreateResourceMessage(typeof(AzureSynapseWorkspace).Name, workspace.WorkspaceName, payload: JsonSerializer.Serialize(workspace)));
 
-            workspace.Region = await ControllerHelper.GetRegion(workspace);
-
-            string secretName = string.Format(LunaConstants.AML_SECRET_NAME_FORMAT, Context.GetRandomString(12));
+            string secretName = string.Format(LunaConstants.SYNAPSE_SECRET_NAME_FORMAT, Context.GetRandomString(12));
 
             await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, secretName, workspace.AADApplicationSecrets));
 
             try
             {
                 workspace.AADApplicationSecretName = secretName;
-                _context.AMLWorkspaces.Add(workspace);
+                _context.AzureSynapseWorkspaces.Add(workspace);
                 await _context._SaveChangesAsync();
             }
             catch(Exception e)
@@ -177,7 +175,7 @@ namespace Luna.Services.Data.Luna.AI
             }
 
             // Add workspace to db
-            _logger.LogInformation(LoggingUtils.ComposeResourceCreatedMessage(typeof(AMLWorkspace).Name, workspace.WorkspaceName));
+            _logger.LogInformation(LoggingUtils.ComposeResourceCreatedMessage(typeof(AzureSynapseWorkspace).Name, workspace.WorkspaceName));
 
             return workspace;
         }
@@ -185,28 +183,28 @@ namespace Luna.Services.Data.Luna.AI
         /// <summary>
         /// Update an existing workspace
         /// </summary>
-        /// <param name="workspace">AML workspace</param>
-        /// <returns>AML workspace</returns>
-        public async Task<AMLWorkspace> UpdateAsync(string workspaceName, AMLWorkspace workspace)
+        /// <param name="workspace">Azure Synapse workspace</param>
+        /// <returns>Azure Synapse workspace</returns>
+        public async Task<AzureSynapseWorkspace> UpdateAsync(string workspaceName, AzureSynapseWorkspace workspace)
         {
             if (workspace is null)
             {
-                throw new LunaBadRequestUserException(LoggingUtils.ComposePayloadNotProvidedErrorMessage(typeof(AMLWorkspace).Name),
+                throw new LunaBadRequestUserException(LoggingUtils.ComposePayloadNotProvidedErrorMessage(typeof(AzureSynapseWorkspace).Name),
                     UserErrorCode.PayloadNotProvided);
             }
 
             if (workspace.AADApplicationSecrets == null)
             {
-                throw new LunaBadRequestUserException("AAD Application Secrets is needed with the AML workspace", UserErrorCode.ArmTemplateNotProvided);
+                throw new LunaBadRequestUserException("AAD Application Secrets is needed with the Azure Synapse workspace", UserErrorCode.ArmTemplateNotProvided);
             }
 
-            _logger.LogInformation(LoggingUtils.ComposeUpdateResourceMessage(typeof(AMLWorkspace).Name, workspace.WorkspaceName, payload: JsonSerializer.Serialize(workspace)));
+            _logger.LogInformation(LoggingUtils.ComposeUpdateResourceMessage(typeof(AzureSynapseWorkspace).Name, workspace.WorkspaceName, payload: JsonSerializer.Serialize(workspace)));
 
             var workspaceDb = await GetAsync(workspaceName);
 
             if (workspaceName != workspace.WorkspaceName)
             {
-                throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(AMLWorkspace).Name),
+                throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(AzureSynapseWorkspace).Name),
                     UserErrorCode.NameMismatch);
             }
 
@@ -217,8 +215,6 @@ namespace Luna.Services.Data.Luna.AI
                 // Get secrets so we can connect to the workspace to get region info in the next step.
                 workspace.AADApplicationSecrets = oldSecretValue;
             }
-
-            workspace.Region = await ControllerHelper.GetRegion(workspace);
 
             // Copy over the changes
             workspaceDb.Copy(workspace);
@@ -232,7 +228,7 @@ namespace Luna.Services.Data.Luna.AI
             try
             {
                 // Update workspaceDb values and save changes in db
-                _context.AMLWorkspaces.Update(workspaceDb);
+                _context.AzureSynapseWorkspaces.Update(workspaceDb);
                 await _context._SaveChangesAsync();
             }
             catch(Exception e)
@@ -243,7 +239,7 @@ namespace Luna.Services.Data.Luna.AI
                 }
                 throw new LunaServerException(e.Message, innerException: e);
             }
-            _logger.LogInformation(LoggingUtils.ComposeResourceUpdatedMessage(typeof(AMLWorkspace).Name, workspace.WorkspaceName));
+            _logger.LogInformation(LoggingUtils.ComposeResourceUpdatedMessage(typeof(AzureSynapseWorkspace).Name, workspace.WorkspaceName));
 
             return workspaceDb;
         }
@@ -253,14 +249,14 @@ namespace Luna.Services.Data.Luna.AI
         /// </summary>
         /// <param name="workspaceName">The workspace name</param>
         /// <returns></returns>
-        public async Task<AMLWorkspace> DeleteAsync(string workspaceName)
+        public async Task<AzureSynapseWorkspace> DeleteAsync(string workspaceName)
         {
-            _logger.LogInformation(LoggingUtils.ComposeDeleteResourceMessage(typeof(AMLWorkspace).Name, workspaceName));
+            _logger.LogInformation(LoggingUtils.ComposeDeleteResourceMessage(typeof(AzureSynapseWorkspace).Name, workspaceName));
 
             var workspace = await GetAsync(workspaceName);
 
             // Remove the workspace from the db
-            _context.AMLWorkspaces.Remove(workspace);
+            _context.AzureSynapseWorkspaces.Remove(workspace);
             await _context._SaveChangesAsync();
 
             // Delete secret from key vault
@@ -273,11 +269,11 @@ namespace Luna.Services.Data.Luna.AI
                 catch 
                 {
                     // Log the warning and ignore the exception
-                    _logger.LogWarning($"Failed to delete secret {workspace.AADApplicationSecretName} while deleting AML workspace {workspace.WorkspaceName}");
+                    _logger.LogWarning($"Failed to delete secret {workspace.AADApplicationSecretName} while deleting Azure Synapse workspace {workspace.WorkspaceName}");
                 }
             }
 
-            _logger.LogInformation(LoggingUtils.ComposeResourceDeletedMessage(typeof(AMLWorkspace).Name, workspaceName));
+            _logger.LogInformation(LoggingUtils.ComposeResourceDeletedMessage(typeof(AzureSynapseWorkspace).Name, workspaceName));
 
             return workspace;
         }

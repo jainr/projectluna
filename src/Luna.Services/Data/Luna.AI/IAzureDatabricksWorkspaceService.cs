@@ -8,13 +8,13 @@ namespace Luna.Services.Data
     /// <summary>
     /// Interface that handles basic CRUD functionality for the workspace resource.
     /// </summary>
-    public interface IAMLWorkspaceService
+    public interface IAzureDatabricksWorkspaceService
     {
         /// <summary>
         /// Gets all workspaces.
         /// </summary>
         /// <returns>A list of workspaces.</returns>
-        Task<List<AMLWorkspace>> GetAllAsync();
+        Task<List<AzureDatabricksWorkspace>> GetAllAsync();
 
         /// <summary>
         /// Gets an workspace by name.
@@ -22,14 +22,14 @@ namespace Luna.Services.Data
         /// <param name="workspaceName">The name of the workspace to get.</param>
         /// <param name="returnSecret">If return AAD secret</param>
         /// <returns>The workspace.</returns>
-        Task<AMLWorkspace> GetAsync(string workspaceName, bool returnSecret = false);
+        Task<AzureDatabricksWorkspace> GetAsync(string workspaceName, bool returnSecret = false);
 
         /// <summary>
         /// Creates an workspace.
         /// </summary>
         /// <param name="workspace">The workspace to create.</param>
         /// <returns>The created workspace.</returns>
-        Task<AMLWorkspace> CreateAsync(AMLWorkspace workspace);
+        Task<AzureDatabricksWorkspace> CreateAsync(AzureDatabricksWorkspace workspace);
 
         /// <summary>
         /// Updates an workspace.
@@ -37,14 +37,14 @@ namespace Luna.Services.Data
         /// <param name="workspaceName">The name of the workspace to update.</param>
         /// <param name="workspace">The updated workspace.</param>
         /// <returns>The updated workspace.</returns>
-        Task<AMLWorkspace> UpdateAsync(string workspaceName, AMLWorkspace workspace);
+        Task<AzureDatabricksWorkspace> UpdateAsync(string workspaceName, AzureDatabricksWorkspace workspace);
 
         /// <summary>
         /// Deletes an workspace.
         /// </summary>
         /// <param name="workspaceName">The name of the workspace to delete.</param>
         /// <returns>The deleted workspace.</returns>
-        Task<AMLWorkspace> DeleteAsync(string workspaceName);
+        Task<AzureDatabricksWorkspace> DeleteAsync(string workspaceName);
 
         /// <summary>
         /// Checks if an workspace exists.

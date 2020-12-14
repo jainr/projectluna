@@ -22,43 +22,28 @@ namespace Luna.API.Controllers.Admin
     [Consumes("application/json")]
     [Produces("application/json")]
     [Route("api")]
-    public class AMLWorkspaceController : ControllerBase
+    public class AzureSynapseWorkspaceController : ControllerBase
     {
-        private readonly IAMLWorkspaceService _workspaceService;
+        private readonly IAzureSynapseWorkspaceService _workspaceService;
 
-        private readonly ILogger<AMLWorkspaceController> _logger;
+        private readonly ILogger<AzureSynapseWorkspaceController> _logger;
 
         /// <summary>
         /// Constructor that uses dependency injection.
         /// </summary>
         /// <param name="workspaceService">The service to inject.</param>
         /// <param name="logger">The logger.</param>
-        public AMLWorkspaceController(IAMLWorkspaceService workspaceService, ILogger<AMLWorkspaceController> logger)
+        public AzureSynapseWorkspaceController(IAzureSynapseWorkspaceService workspaceService, ILogger<AzureSynapseWorkspaceController> logger)
         {
             _workspaceService = workspaceService ?? throw new ArgumentNullException(nameof(workspaceService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
-        /// Get deployed pipelines from a workspace.
-        /// </summary>
-        /// <param name="workspaceName">The name of the workspace to get.</param>
-        /// <returns>HTTP 200 OK with workspace JSON object in response body.</returns>
-        [HttpGet("amlworkspaces/{workspaceName}/pipelines")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> GetAllPipelinesAsync(string workspaceName)
-        {
-            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
-            _logger.LogInformation($"Get workspace {workspaceName}");
-            var workspace = await _workspaceService.GetAsync(workspaceName, returnSecret: true);
-            return Ok(await ControllerHelper.GetAllPipelines(workspace));
-        }
-
-        /// <summary>
         /// Gets all workspaces.
         /// </summary>
         /// <returns>HTTP 200 OK with workspace JSON objects in response body.</returns>
-        [HttpGet("amlworkspaces")]
+        [HttpGet("azuresynapseworkspaces")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAllAsync()
         {
@@ -72,7 +57,7 @@ namespace Luna.API.Controllers.Admin
         /// </summary>
         /// <param name="workspaceName">The name of the workspace to get.</param>
         /// <returns>HTTP 200 OK with workspace JSON object in response body.</returns>
-        [HttpGet("amlworkspaces/{workspaceName}", Name = nameof(GetAsync) + nameof(AMLWorkspace))]
+        [HttpGet("azuresynapseworkspaces/{workspaceName}", Name = nameof(GetAsync) + nameof(AzureSynapseWorkspace))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAsync(string workspaceName)
         {
@@ -87,10 +72,10 @@ namespace Luna.API.Controllers.Admin
         /// <param name="workspaceName">The name of the workspace to update.</param>
         /// <param name="workspace">The updated workspace object.</param>
         /// <returns>HTTP 204 NO CONTENT.</returns>
-        [HttpPut("amlworkspaces/{workspaceName}")]
+        [HttpPut("azuresynapseworkspaces/{workspaceName}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> CreateOrUpdateAsync(string workspaceName, [FromBody] AMLWorkspace workspace)
+        public async Task<ActionResult> CreateOrUpdateAsync(string workspaceName, [FromBody] AzureSynapseWorkspace workspace)
         {
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
             if (workspace == null)
@@ -100,7 +85,7 @@ namespace Luna.API.Controllers.Admin
 
             if (!workspaceName.Equals(workspace.WorkspaceName))
             {
-                throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(AMLWorkspace).Name),
+                throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(AzureSynapseWorkspace).Name),
                     UserErrorCode.NameMismatch);
             }
 
@@ -114,7 +99,7 @@ namespace Luna.API.Controllers.Admin
             {
                 _logger.LogInformation($"Create workspace {workspaceName} with payload {JsonConvert.SerializeObject(workspace)}");
                 await _workspaceService.CreateAsync(workspace);
-                return CreatedAtRoute(nameof(GetAsync) + nameof(AMLWorkspace), new { workspaceName = workspace.WorkspaceName }, workspace);
+                return CreatedAtRoute(nameof(GetAsync) + nameof(AzureSynapseWorkspace), new { workspaceName = workspace.WorkspaceName }, workspace);
             }
         }
 
@@ -123,7 +108,7 @@ namespace Luna.API.Controllers.Admin
         /// </summary>
         /// <param name="workspaceName">The name of the workspace to delete.</param>
         /// <returns>HTTP 204 NO CONTENT.</returns>
-        [HttpDelete("amlworkspaces/{workspaceName}")]
+        [HttpDelete("azuresynapseworkspaces/{workspaceName}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<ActionResult> DeleteAsync(string workspaceName)
         {

@@ -8,13 +8,13 @@ namespace Luna.Services.Data
     /// <summary>
     /// Interface that handles basic CRUD functionality for the workspace resource.
     /// </summary>
-    public interface IAMLWorkspaceService
+    public interface IAzureSynapseWorkspaceService
     {
         /// <summary>
         /// Gets all workspaces.
         /// </summary>
         /// <returns>A list of workspaces.</returns>
-        Task<List<AMLWorkspace>> GetAllAsync();
+        Task<List<AzureSynapseWorkspace>> GetAllAsync();
 
         /// <summary>
         /// Gets an workspace by name.
@@ -22,14 +22,14 @@ namespace Luna.Services.Data
         /// <param name="workspaceName">The name of the workspace to get.</param>
         /// <param name="returnSecret">If return AAD secret</param>
         /// <returns>The workspace.</returns>
-        Task<AMLWorkspace> GetAsync(string workspaceName, bool returnSecret = false);
+        Task<AzureSynapseWorkspace> GetAsync(string workspaceName, bool returnSecret = false);
 
         /// <summary>
         /// Creates an workspace.
         /// </summary>
         /// <param name="workspace">The workspace to create.</param>
         /// <returns>The created workspace.</returns>
-        Task<AMLWorkspace> CreateAsync(AMLWorkspace workspace);
+        Task<AzureSynapseWorkspace> CreateAsync(AzureSynapseWorkspace workspace);
 
         /// <summary>
         /// Updates an workspace.
@@ -37,14 +37,14 @@ namespace Luna.Services.Data
         /// <param name="workspaceName">The name of the workspace to update.</param>
         /// <param name="workspace">The updated workspace.</param>
         /// <returns>The updated workspace.</returns>
-        Task<AMLWorkspace> UpdateAsync(string workspaceName, AMLWorkspace workspace);
+        Task<AzureSynapseWorkspace> UpdateAsync(string workspaceName, AzureSynapseWorkspace workspace);
 
         /// <summary>
         /// Deletes an workspace.
         /// </summary>
         /// <param name="workspaceName">The name of the workspace to delete.</param>
         /// <returns>The deleted workspace.</returns>
-        Task<AMLWorkspace> DeleteAsync(string workspaceName);
+        Task<AzureSynapseWorkspace> DeleteAsync(string workspaceName);
 
         /// <summary>
         /// Checks if an workspace exists.
