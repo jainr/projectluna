@@ -99,15 +99,23 @@ namespace Luna.Data.Entities
         [NotMapped]
         public string Token { get; set; }
 
+        public string BaseUrl { get; set; }
+
         [NotMapped]
         public string PrimaryKey { get; set; }
+
+        [JsonIgnore]
+        public string PrimaryKeySecretName { get; set; }
 
         [NotMapped]
         public string SecondaryKey { get; set; }
 
-        [NotMapped]
-        public string BaseUrl { get; set; }
+        [JsonIgnore]
+        public string SecondaryKeySecretName { get; set; }
 
+        public long? AIServiceId { get; set; }
+
+        public long? AIServicePlanId { get; set; }
 
         [NotMapped]
         public List<SubscriptionParameter> InputParameters { get; set; }

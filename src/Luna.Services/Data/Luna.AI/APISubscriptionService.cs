@@ -19,8 +19,8 @@ namespace Luna.Services.Data.Luna.AI
     public class APISubscriptionService : IAPISubscriptionService
     {
         private readonly ISqlDbContext _context;
-        private readonly IProductService _productService;
-        private readonly IDeploymentService _deploymentService;
+        private readonly IAIServiceService _productService;
+        private readonly IAIServicePlanService _deploymentService;
         private readonly IAIAgentService _aiAgentService;
         private readonly ILogger<APISubscriptionService> _logger;
         private readonly IOptionsMonitor<AzureConfigurationOption> _options;
@@ -33,7 +33,7 @@ namespace Luna.Services.Data.Luna.AI
         /// <param name="productService">The service to be injected.</param>
         /// <param name="deploymentService">The service to be injected.</param>
         /// <param name="logger">The logger.</param>
-        public APISubscriptionService(ISqlDbContext sqlDbContext, IProductService productService, IDeploymentService deploymentService, IAIAgentService aiAgentService,
+        public APISubscriptionService(ISqlDbContext sqlDbContext, IAIServiceService productService, IAIServicePlanService deploymentService, IAIAgentService aiAgentService,
             ILogger<APISubscriptionService> logger, IOptionsMonitor<AzureConfigurationOption> options, IKeyVaultHelper keyVaultHelper)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
@@ -64,11 +64,11 @@ namespace Luna.Services.Data.Luna.AI
 
             foreach (var apiSubscription in apiSubscriptions)
             {
-                var deployment = await _context.Deployments.FindAsync(apiSubscription.DeploymentId);
-                var product = await _context.Products.FindAsync(deployment.ProductId);
+                var deployment = await _context.AIServicePlans.FindAsync(apiSubscription.DeploymentId);
+                var product = await _context.AIServices.FindAsync(deployment.AIServiceId);
 
-                apiSubscription.ProductName = product.ProductName;
-                apiSubscription.DeploymentName = deployment.DeploymentName;
+                apiSubscription.ProductName = product.AIServiceName;
+                apiSubscription.DeploymentName = deployment.AIServicePlanName;
                 apiSubscription.PrimaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, apiSubscription.PrimaryKeySecretName);
                 apiSubscription.SecondaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, apiSubscription.SecondaryKeySecretName);
             }
@@ -96,23 +96,23 @@ namespace Luna.Services.Data.Luna.AI
                     apiSubscriptionId.ToString()));
             }
 
-            var deployment = await _context.Deployments.FindAsync(apiSubscription.DeploymentId);
+            var deployment = await _context.AIServicePlans.FindAsync(apiSubscription.DeploymentId);
             // Check if deployment exists
             if (deployment is null)
             {
                 throw new LunaNotFoundUserException(LoggingUtils.ComposeNotFoundErrorMessage(typeof(APISubscription).Name,
                     apiSubscriptionId.ToString()));
             }
-            apiSubscription.DeploymentName = deployment.DeploymentName;
+            apiSubscription.DeploymentName = deployment.AIServicePlanName;
 
-            var product = await _context.Products.FindAsync(deployment.ProductId);
+            var product = await _context.AIServices.FindAsync(deployment.AIServiceId);
             // Check if product exists
             if (product is null)
             {
                 throw new LunaNotFoundUserException(LoggingUtils.ComposeNotFoundErrorMessage(typeof(APISubscription).Name,
                     apiSubscriptionId.ToString()));
             }
-            apiSubscription.ProductName = product.ProductName;
+            apiSubscription.ProductName = product.AIServiceName;
             apiSubscription.PrimaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, apiSubscription.PrimaryKeySecretName);
             apiSubscription.SecondaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, apiSubscription.SecondaryKeySecretName);
 
@@ -269,7 +269,7 @@ namespace Luna.Services.Data.Luna.AI
         /// <returns>The subscription.</returns>
         public async Task<APISubscription> DeleteAsync(Guid apiSubscriptionId)
         {
-            _logger.LogInformation(LoggingUtils.ComposeDeleteResourceMessage(typeof(Product).Name, apiSubscriptionId.ToString()));
+            _logger.LogInformation(LoggingUtils.ComposeDeleteResourceMessage(typeof(AIService).Name, apiSubscriptionId.ToString()));
 
             // Get the offer that matches the offerName provide
             var apiSubscription = await GetAsync(apiSubscriptionId);
@@ -277,7 +277,7 @@ namespace Luna.Services.Data.Luna.AI
             // Remove the product from the db
             _context.APISubscriptions.Remove(apiSubscription);
             await _context._SaveChangesAsync();
-            _logger.LogInformation(LoggingUtils.ComposeResourceDeletedMessage(typeof(Product).Name, apiSubscriptionId.ToString()));
+            _logger.LogInformation(LoggingUtils.ComposeResourceDeletedMessage(typeof(AIService).Name, apiSubscriptionId.ToString()));
 
             return apiSubscription;
         }
@@ -346,7 +346,7 @@ namespace Luna.Services.Data.Luna.AI
             }
             else
             {
-                _logger.LogInformation(LoggingUtils.ComposeResourceExistsOrNotMessage(typeof(Product).Name, apiSubscriptionId.ToString(), true));
+                _logger.LogInformation(LoggingUtils.ComposeResourceExistsOrNotMessage(typeof(AIService).Name, apiSubscriptionId.ToString(), true));
                 // count = 1
                 return true;
             }

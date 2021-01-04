@@ -186,6 +186,9 @@ namespace Luna.API.Controllers.Provisioning
                     switch (provision.ProvisioningStatus)
                     {
                         case nameof(ProvisioningState.ProvisioningPending):
+                            await _provisioningService.SubscribeAIServiceAsync(provision.SubscriptionId);
+                            break;
+                        case nameof(ProvisioningState.DeployResourceGroupPending):
                             await _provisioningService.CreateResourceGroupAsync(provision.SubscriptionId);
                             break;
                         case nameof(ProvisioningState.DeployResourceGroupRunning):

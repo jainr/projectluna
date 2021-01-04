@@ -3,6 +3,8 @@
     public enum ProvisioningState
     {
         ProvisioningPending,
+        AIServiceFailed,
+        DeployResourceGroupPending,
         DeployResourceGroupRunning,
         ArmTemplatePending,
         ArmTemplateRunning,

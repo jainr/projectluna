@@ -24,7 +24,6 @@ namespace Luna.Data.Entities
         /// <param name="workspace">The object to be copied.</param>
         public void Copy(AzureDatabricksWorkspace workspace)
         {
-            Region = workspace.Region;
             ResourceId = workspace.ResourceId;
             AADApplicationId = workspace.AADApplicationId;
             AADTenantId = workspace.AADTenantId;
@@ -36,9 +35,9 @@ namespace Luna.Data.Entities
 
         public string WorkspaceName { get; set; }
 
-        public string Region { get; set; }
-
         public string ResourceId { get; set; }
+
+        public string WorkspaceUrl { get; set; }
         
         public Guid AADApplicationId { get; set; }
 

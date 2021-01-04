@@ -6,13 +6,18 @@ from datetime import datetime
 from flask import render_template, send_file,redirect
 from flask import jsonify, request
 from Agent.Code.CodeUtils import CodeUtils
-from Agent.AzureML.AzureMLUtils import AzureMLUtils
+from Agent.Azure.AzureMLUtils import AzureMLUtils
+from Agent.Azure.AzureDatabricksUtils import AzureDatabricksUtils
 from Agent.Mgmt.ControlPlane import ControlPlane
 from datetime import datetime
 from uuid import uuid4
 import pathlib
+from Agent.Data.AzureDatabricksWorkspace import AzureDatabricksWorkspace
+from Agent.Data.AMLPipelineEndpoint import AMLPipelineEndpoint
 from Agent.Data.APISubscription import APISubscription
+from Agent.Data.Subscription import Subscription
 from Agent.Data.APIVersion import APIVersion
+from Agent.Data.MLModel import MLModel
 from sqlalchemy.orm import sessionmaker
 from Agent import engine, Session, app, key_vault_client
 from azure.keyvault.secrets import SecretClient
@@ -26,7 +31,6 @@ from Agent.Auth.AuthHelper import AuthenticationHelper
 import json, os, io
 from http import HTTPStatus
 import requests
-
 
 def getToken():
     bearerToken = request.headers.get("Authorization")
@@ -98,62 +102,196 @@ def getSubscriptionAPIVersionAndWorkspace(subscriptionId, apiVersion):
 
     return sub, version, workspace
 
-@app.route('/predict', methods=['POST'])
-@app.route('/<subscriptionId>/predict', methods=['POST'])
-def realtimePredict(subscriptionId = 'default'):
-    
-    sub, version, workspace, apiVersion = getMetadata(subscriptionId, True)
-    
-    requestUrl = version.RealTimePredictAPI
-    headers = {'Content-Type': 'application/json'}
-    if version.AuthenticationType == 'Key':
-        secret = key_vault_client.get_secret(version.AuthenticationKeySecretName).value
-        headers['Authorization'] = 'Bearer {}'.format(secret)
-    response = requests.post(requestUrl, json.dumps(request.json), headers=headers)
-    if response.ok:
-        return response.json(), response.status_code
-    return response.text, response.status_code
+def getAPIVersion(subscription):
+    version = request.args.get('api-version')
+    if not version:
+        raise LunaUserException(HTTPStatus.BAD_REQUEST, 'The api-version query parameter is not provided.')
 
-@app.route('/saas-api/<operationVerb>', methods=['POST'])
-@app.route('/api/<subscriptionId>/<operationVerb>', methods=['POST'])
-def executeOperation(operationVerb, subscriptionId = 'default'):
+    apiVersion = APIVersion.Get(subscription.AIServiceName, subscription.AIServicePlanName, version)
+    if not apiVersion:
+        raise LunaUserException(HTTPStatus.NOT_FOUND, 'The specified api version does not exist or you do not have permission to access it.')
+
+    return apiVersion;
+
+def validateAPIKeyAndGetSubscription(subscriptionId):
+    
+    subscriptionKey = request.headers.get('api-key')
+    if subscriptionKey:
+        sub = Subscription.GetByKey(subscriptionKey)
+        if not sub:
+            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'The api key is invalid.')
+        if subscriptionId != "default" and subscriptionId.lower() != sub.SubscriptionId.lower():
+            raise LunaUserException(HTTPStatus.UNAUTHORIZED, "The subscription {} doesn't exist or api key is invalid.".format(subscriptionId))
+    #else:
+    #    objectId = AuthenticationHelper.ValidateSignitureAndUser(getToken(), subscriptionId)
+    #    sub = Subscription.Get(subscriptionId, objectId)
+    #    if not sub:
+    #        raise LunaUserException(HTTPStatus.NOT_FOUND, 'The subscription {} does not exist.'.format(subscriptionId))
+
+    return sub
+
+@app.route('/apiv2/models', methods=['GET'])
+@app.route('/apiv2/<subscriptionId>/models', methods=['GET'])
+def listModels(subscriptionId = 'default'):
     
     try:
-        sub, version, workspace, apiVersion = getMetadata(subscriptionId)
+        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        apiVersion = getAPIVersion(subscription);
+        if (apiVersion.PlanType != 'model'):
+            raise LunaUserException(HTTPStatus.NOT_FOUND, "No model published in the current AI service plan.");
+        models = MLModel.ListAll(apiVersion.Id);
 
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
-        if version.VersionSourceType == 'git':
-            if os.environ["AGENT_MODE"] == "SAAS":
-                computeCluster = "default"
-            else:
-                computeCluster = sub.AMLWorkspaceComputeClusterName
-            opId = amlUtil.runProject(sub.ProductName, sub.DeploymentName, apiVersion, operationVerb, json.dumps(request.json), 'na', sub.Owner, sub.SubscriptionId, computeCluster=computeCluster)
-        elif version.VersionSourceType == 'amlPipeline':
-            url = None
-            if operationVerb == 'train':
-                url = version.TrainModelAPI
-
-            if url and url != "":
-                opId = amlUtil.submitPipelineRun(url, sub.ProductName, sub.DeploymentName, apiVersion, operationVerb, json.dumps(request.json), 'na', sub.Owner, sub.SubscriptionId)
-            else:
-                return 'The operation {} is not supported'.format(operationVerb)
+        return jsonify(models)
+    except Exception as e:
+        return handleExceptions(e)
     
+@app.route('/apiv2/models/<modelName>', methods=['GET'])
+@app.route('/apiv2/<subscriptionId>/models/<modelName>', methods=['GET'])
+def getModel(modelName, subscriptionId = 'default'):
+    try:
+        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        apiVersion = getAPIVersion(subscription);
+        if (apiVersion.PlanType != 'model'):
+            raise LunaUserException(HTTPStatus.NOT_FOUND, "No model published in the current AI service plan.");
+
+        mlModel = MLModel.Get(apiVersion.Id, modelName)
+        if apiVersion.LinkedServiceType == 'AML':
+            amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
+            amlUtil = AzureMLUtils(amlWorkspace)
+            modelZipFilePath = amlUtil.downloadModel(mlModel)
+        elif apiVersion.LinkedServiceType == 'ADB':
+            adbWorkspace = AzureDatabricksWorkspace.GetByIdWithSecrets(apiVersion.AzureDatabricksWorkspaceId)
+            adbUtil = AzureDatabricksUtils(adbWorkspace)
+            modelZipFilePath = adbUtil.downloadModel(mlModel)
+        else:
+            raise LunaUserException(HTTPStatus.NOT_FOUND, "Can not connect to the model repository. Contact the publisher to correct the error.");
+        
+        with open(modelZipFilePath, 'rb') as bites:
+            return send_file(
+                 io.BytesIO(bites.read()),
+                 attachment_filename='model_{}.zip'.format(modelName),
+                 mimetype='application/zip'
+            )
+    except Exception as e:
+        return handleExceptions(e)
+
+@app.route('/apiv2/predict', methods=['POST'])
+@app.route('/apiv2/<subscriptionId>/predict', methods=['POST'])
+def realtimePredict(subscriptionId = 'default'):
+    try:
+        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        apiVersion = getAPIVersion(subscription);
+        if (apiVersion.PlanType != 'endpoint'):
+            raise LunaUserException(HTTPStatus.NOT_FOUND, "No service endpoint published in the current AI service plan.")
+    
+        headers = {'Content-Type': 'application/json'}
+
+        if apiVersion.IsManualInputEndpoint:
+            requestUrl = apiVersion.EndpointUrl
+            if apiVersion.EndpointAuthType == 'API_KEY':
+                secret = key_vault_client.get_secret(apiVersion.EndpointAuthSecretName).value
+                if apiVersion.EndpointAuthAddTo == 'HEADER':
+                    headers[apiVersion.EndpointAuthKey] = secret
+                elif apiVersion.EndpointAuthType == 'QUERY_ARAMETER':
+                    requestUrl = "{}?{}={}".format(requestUrl, apiVersion.EndpointAuthKey, secret)
+                else:
+                    raise LunaServerException("Unknow endpoint auth add-to target.")
+            elif apiVersion.EndpointAuthType == 'SERVICE_PRINCIPAL':
+                raise LunaUserException(HTTPStatus.NOT_IMPLEMENTED, "Service principal auth is not supported yet.")
+        elif apiVersion.LinkedServiceType == 'AML':
+            amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
+            amlUtil = AzureMLUtils(amlWorkspace)
+            endpoint = amlUtil.getEndpoint(apiVersion)
+            requestUrl = endpoint.scoring_uri
+            if endpoint.auth_enabled:
+                if endpoint.token_auth_enabled:
+                    key, refresh = endpoint.get_token()
+                else:
+                    key, secondaryKey = endpoint.get_keys()
+                headers['Authorization'] = 'Bearer {}'.format(key)
+        elif apiVersion.LinkedServiceType == 'ADB':
+            adbWorkspace = AzureDatabricksWorkspace.GetByIdWithSecrets(apiVersion.AzureDatabricksWorkspaceId)
+            adbUtil = AzureDatabricksUtils(adbWorkspace)
+            requestUrl = "{}/model/{}/{}/invocations".format(adbWorkspace.WorkspaceUrl, apiVersion.EndpointName, apiVersion.EndpointVersion)
+            headers["Authorization"] = "Bearer {}".format(adbUtil.getAccessToken())
+
+        response = requests.post(requestUrl, json.dumps(request.json), headers=headers)
+        if response.ok:
+            return response.json(), response.status_code
+        return response.text, response.status_code
+    except Exception as e:
+        return handleExceptions(e)
+    
+@app.route('/apiv2/operations/metadata', methods=['GET'])
+@app.route('/apiv2/<subscriptionId>/operations/metadata', methods=['GET'])
+def listPublishedOperations(subscriptionId = 'default'):
+    try:
+        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        apiVersion = getAPIVersion(subscription);
+        if apiVersion.PlanType == 'pipeline':
+            if apiVersion.LinkedServiceType != 'AML':
+                raise LunaServerException("No AML workspace found for subscription {}".format(subscriptionId))
+            pipelines = AMLPipelineEndpoint.ListAll(apiVersion.Id)
+        else:
+            raise LunaUserException(HTTPStatus.NOT_FOUND, "No operation published in the current AI service plan.".format(operationName))
+        return jsonify(pipelines)
+    
+    except Exception as e:
+        return handleExceptions(e)
+
+@app.route('/apiv2/<operationName>', methods=['POST'])
+@app.route('/apiv2/<subscriptionId>/<operationName>', methods=['POST'])
+def executeOperation(operationName, subscriptionId = 'default'):
+    
+    try:
+        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        apiVersion = getAPIVersion(subscription);
+        if apiVersion.PlanType == 'pipeline':
+            if apiVersion.LinkedServiceType != 'AML':
+                raise LunaServerException("No AML workspace found for subscription {}".format(subscriptionId))
+            pipeline = AMLPipelineEndpoint.Get(apiVersion.Id, operationName)
+            if not pipeline:
+                raise LunaUserException(HTTPStatus.NOT_FOUND, "Operation {} is not supported.".format(operationName))
+            amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
+            amlUtil = AzureMLUtils(amlWorkspace)
+            opId = amlUtil.submitPipelineRun(subscription, apiVersion, pipeline, request.json)
+
+        elif apiVersion.PlanType == 'mlproject':
+            if apiVersion.LinkedServiceType == "ADB":
+                adbWorkspace = AzureDatabricksWorkspace.GetByIdWithSecrets(apiVersion.AzureDatabricksWorkspaceId)
+                adbUtil = AzureDatabricksUtils(adbWorkspace)
+                opId = adbUtil.runProject(subscription, apiVersion, operationName, request.json)
+
+        else:
+            raise LunaUserException(HTTPStatus.NOT_FOUND, "No operation named {} published in the current AI service plan.".format(operationName))
+            
         return jsonify({'operationId': opId})
     
     except Exception as e:
         return handleExceptions(e)
 
-@app.route('/saas-api/operations/<operationVerb>/<operationId>', methods=['GET'])
-@app.route('/api/<subscriptionId>/operations/<operationVerb>/<operationId>', methods=['GET'])
-def getOperationStatus(operationVerb, operationId, subscriptionId = 'default'):
+@app.route('/apiv2/operations/<operationName>/<operationId>', methods=['GET'])
+@app.route('/apiv2/<subscriptionId>/operations/<operationName>/<operationId>', methods=['GET'])
+def getOperationStatus(operationName, operationId, subscriptionId = 'default'):
+
     try:
-        sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
-        result = amlUtil.getOperationStatus(operationVerb, operationId, sub.Owner, sub.SubscriptionId)
-        if result:
-            return jsonify(result)
-        else:
-            raise LunaUserException(HTTPStatus.NOT_FOUND, 'Operation with id {} does not exist.'.format(operationId))
+        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        apiVersion = getAPIVersion(subscription);
+        
+        if apiVersion.PlanType == 'pipeline':
+            if apiVersion.LinkedServiceType != 'AML':
+                raise LunaServerException("No AML workspace found for subscription {}".format(subscriptionId))
+            amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
+            amlUtil = AzureMLUtils(amlWorkspace)
+            result = amlUtil.getOperationStatus(operationName, operationId, subscription.Owner, subscription.SubscriptionId)
+            
+        elif apiVersion.PlanType == 'mlproject':
+            if apiVersion.LinkedServiceType == "ADB":
+                adbWorkspace = AzureDatabricksWorkspace.GetByIdWithSecrets(apiVersion.AzureDatabricksWorkspaceId)
+                adbUtil = AzureDatabricksUtils(adbWorkspace)
+                result = adbUtil.getOperationStatus(operationName, operationId, subscription.Owner, subscription.SubscriptionId)
+
+        return jsonify(result)
     except Exception as e:
         return handleExceptions(e)
 

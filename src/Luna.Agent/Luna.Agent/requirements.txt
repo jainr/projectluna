@@ -7,5 +7,7 @@ pyodbc
 azure-keyvault-secrets
 azure.identity==1.2.0
 azure-storage-blob
-pyjwt
+PyJWT<2.0.0
+databricks-cli
 applicationinsights
+mlflow

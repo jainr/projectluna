@@ -16,6 +16,7 @@ using Luna.Services.Utilities.ExpressionEvaluation;
 using Luna.Clients.Azure;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Luna.Data.Constants;
+using Luna.Data.Enums;
 
 namespace Luna.Services.Data.Luna.AI
 {
@@ -130,6 +131,27 @@ namespace Luna.Services.Data.Luna.AI
         }
 
         /// <summary>
+        /// Get git repo type
+        /// </summary>
+        /// <param name="gitRepo">The git repo</param>
+        /// <returns>The type</returns>
+        private string GetGitRepoType(GitRepo gitRepo)
+        {
+            if ((new Uri(gitRepo.HttpUrl)).Host.Equals(LunaConstants.GITHUB_REPO_HOST, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return GitRepoTypes.GitHub.ToString();
+            }
+            else if ((new Uri(gitRepo.HttpUrl)).Host.EndsWith(LunaConstants.AZURE_DEVOPS_REPO_HOST_SUFFIX, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return GitRepoTypes.AzureDevOps.ToString();
+            }
+            else
+            {
+                throw new LunaBadRequestUserException("Only GitHub or Azure DevOps repos are supported.", UserErrorCode.InvalidParameter);
+            }
+        }
+
+        /// <summary>
         /// Register a new Git repo
         /// </summary>
         /// <param name="gitRepo">Git repo</param>
@@ -149,8 +171,7 @@ namespace Luna.Services.Data.Luna.AI
                         gitRepo.RepoName));
             }
 
-            // Add secret to keyvault
-            if (gitRepo.PersonalAccessTokenSecretName == null)
+            if (gitRepo.PersonalAccessToken == null)
             {
                 throw new LunaBadRequestUserException("Personal access token is needed with the Git Repo", UserErrorCode.AuthKeyNotProvided);
             }
@@ -160,10 +181,10 @@ namespace Luna.Services.Data.Luna.AI
             string secretName = string.Format(LunaConstants.GIT_SECRET_NAME_FORMAT, Context.GetRandomString(12));
 
             await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, secretName, gitRepo.PersonalAccessToken));
-
+            gitRepo.PersonalAccessTokenSecretName = secretName;
+            gitRepo.Type = GetGitRepoType(gitRepo);
             try
             {
-                gitRepo.PersonalAccessToken = secretName;
                 _context.GitRepos.Add(gitRepo);
                 await _context._SaveChangesAsync();
             }
@@ -193,7 +214,7 @@ namespace Luna.Services.Data.Luna.AI
                     UserErrorCode.PayloadNotProvided);
             }
 
-            if (gitRepo.PersonalAccessTokenSecretName == null)
+            if (gitRepo.PersonalAccessToken == null)
             {
                 throw new LunaBadRequestUserException("AAD Application Secrets is needed with the Git repo", UserErrorCode.ArmTemplateNotProvided);
             }
@@ -207,6 +228,8 @@ namespace Luna.Services.Data.Luna.AI
                 throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(GitRepo).Name),
                     UserErrorCode.NameMismatch);
             }
+
+            gitRepo.Type = GetGitRepoType(gitRepo);
 
             var oldSecretValue = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, gitRepoDb.PersonalAccessTokenSecretName);
 

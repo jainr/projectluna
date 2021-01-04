@@ -1,3 +1,4 @@
+using Luna.Data.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,6 +17,9 @@ namespace Luna.Data.Entities
         /// </summary>
         public APIVersion()
         {
+            IsManualInputEndpoint = false;
+            AMLPipelineEndpoints = new List<AMLPipelineEndpoint>();
+            MLModels = new List<MLModel>();
         }
 
         /// <summary>
@@ -24,21 +28,29 @@ namespace Luna.Data.Entities
         /// <param name="version">The object to be copied.</param>
         public void Copy(APIVersion version)
         {
-            this.ProductName = version.ProductName;
-            this.DeploymentName = version.DeploymentName;
-            this.RealTimePredictAPI = version.RealTimePredictAPI;
-            this.BatchInferenceAPI = version.BatchInferenceAPI;
-            this.TrainModelAPI = version.TrainModelAPI;
-            this.DeployModelAPI = version.DeployModelAPI;
-            this.AuthenticationType = version.AuthenticationType;
-            this.AuthenticationKey = version.AuthenticationKey;
-            this.VersionSourceType = version.VersionSourceType;
-            this.GitPersonalAccessToken = version.GitPersonalAccessToken;
-            this.GitUrl = version.GitUrl;
+            this.AIServiceName = version.AIServiceName;
+            this.AIServicePlanName = version.AIServicePlanName;
+            this.CreatedTime = version.CreatedTime;
+            this.GitRepoId = version.GitRepoId;
+            this.AMLWorkspaceId = version.AMLWorkspaceId;
+            this.AzureDatabricksWorkspaceId = version.AzureDatabricksWorkspaceId;
+            this.AzureSynapseWorkspaceId = version.AzureSynapseWorkspaceId;
+            this.EndpointAuthAddTo = version.EndpointAuthAddTo;
+            this.EndpointAuthClientId = version.EndpointAuthClientId;
+            this.EndpointAuthKey = version.EndpointAuthKey;
+            this.EndpointAuthTenantId = version.EndpointAuthTenantId;
+            this.EndpointAuthType = version.EndpointAuthType;
+            this.EndpointName = version.EndpointName;
+            this.EndpointVersion = version.EndpointVersion;
+            this.EndpointSwaggerUrl = version.EndpointSwaggerUrl;
+            this.EndpointUrl = version.EndpointUrl;
             this.GitVersion = version.GitVersion;
-            this.ProjectFileUrl = version.ProjectFileUrl;
-            this.ConfigFile = version.ConfigFile;
-            this.ModelId = version.ModelId;
+            this.IsManualInputEndpoint = version.IsManualInputEndpoint;
+            this.IsRunProjectOnManagedCompute = version.IsRunProjectOnManagedCompute;
+            this.IsUseDefaultRunConfig = version.IsUseDefaultRunConfig;
+            this.LinkedServiceComputeTarget = version.LinkedServiceComputeTarget;
+            this.LinkedServiceType = version.LinkedServiceType;
+            this.RunConfigFile = version.RunConfigFile;
         }
 
         public string GetVersionIdFormat()
@@ -46,68 +58,113 @@ namespace Luna.Data.Entities
             return VersionName.Replace(".", "-");
         }
 
+        public bool IsLinkedToAML()
+        {
+            return !string.IsNullOrEmpty(this.LinkedServiceType) && 
+                this.LinkedServiceType.Equals(LinkedServiceTypes.AML.ToString(), StringComparison.InvariantCultureIgnoreCase) &&
+                !string.IsNullOrEmpty(this.AMLWorkspaceName);
+        }
+        public bool IsLinkedToADB()
+        {
+            return !string.IsNullOrEmpty(this.LinkedServiceType) &&
+                this.LinkedServiceType.Equals(LinkedServiceTypes.ADB.ToString(), StringComparison.InvariantCultureIgnoreCase) &&
+                !string.IsNullOrEmpty(this.AzureDatabricksWorkspaceName);
+        }
+        public bool IsLinkedToSynapse()
+        {
+            return !string.IsNullOrEmpty(this.LinkedServiceType) &&
+                this.LinkedServiceType.Equals(LinkedServiceTypes.Synapse.ToString(), StringComparison.InvariantCultureIgnoreCase) &&
+                !string.IsNullOrEmpty(this.AzureSynapseWorkspaceName);
+        }
+
         [Key]
         [System.Text.Json.Serialization.JsonIgnore]
         public long Id { get; set; }
         [System.Text.Json.Serialization.JsonIgnore]
-        public long DeploymentId { get; set; }
+        public long AIServicePlanId { get; set; }
         [NotMapped]
-        public string ProductName { get; set; }
+        public string AIServiceName { get; set; }
         [NotMapped]
-        public string DeploymentName { get; set; }
+        public string AIServicePlanName { get; set; }
 
         public string VersionName { get; set; }
-        [NotMapped]
-        public string TrainModelId { get; set; }
-        [NotMapped]
-        public string BatchInferenceId { get; set; }
-        [NotMapped]
-        public string DeployModelId { get; set; }
-
-        public string RealTimePredictAPI { get; set; }
-
-        public string TrainModelAPI { get; set; }
-
-        public string BatchInferenceAPI { get; set; }
-
-        public string DeployModelAPI { get; set; }
-
-        public string AuthenticationType { get; set; }
-
-        [NotMapped]
-        public string AuthenticationKey { get; set; }
-
-        [JsonIgnore]
-        public string AuthenticationKeySecretName { get; set; }
-
-        [System.Text.Json.Serialization.JsonIgnore]
-        public long AMLWorkspaceId { get; set; }
-
-        [NotMapped]
-        public string AMLWorkspaceName { get; set; }
-
-        public string AdvancedSettings { get; set; }
 
         public DateTime CreatedTime { get; set; }
 
         public DateTime LastUpdatedTime { get; set; }
-        public string GitUrl { get; set; }
+
+        // Linked Services
+        [JsonIgnore]
+        public long? AMLWorkspaceId { get; set; }
 
         [NotMapped]
-        public string GitPersonalAccessToken { get; set; }
+        public string AMLWorkspaceName { get; set; }
 
         [JsonIgnore]
-        public string GitPersonalAccessTokenSecretName { get; set; }
+        public long? AzureDatabricksWorkspaceId { get; set; }
 
+        [NotMapped]
+        public string AzureDatabricksWorkspaceName { get; set; }
+
+        [JsonIgnore]
+        public long? AzureSynapseWorkspaceId { get; set; }
+
+        [NotMapped]
+        public string AzureSynapseWorkspaceName { get; set; }
+
+        [JsonIgnore]
+        public long? GitRepoId { get; set; }
+
+        [NotMapped]
+        public string GitRepoName { get; set; }
+
+        // For AML and ADB only
+        public string EndpointName { get; set; }
+
+        public string EndpointVersion { get; set; }
+
+        public bool IsManualInputEndpoint { get; set; }
+
+        // For manual only
+        public string EndpointUrl { get; set; }
+
+        public string EndpointSwaggerUrl { get; set; }
+
+        public string EndpointAuthType { get; set; }
+
+        public string EndpointAuthKey { get; set; }
+
+        public string EndpointAuthAddTo { get; set; }
+
+        [NotMapped]
+        public string EndpointAuthSecret { get; set; }
+
+        [JsonIgnore]
+        public string EndpointAuthSecretName { get; set; }
+
+        public Guid? EndpointAuthTenantId { get; set; }
+
+        public Guid? EndpointAuthClientId { get; set; }
+
+        // Fields for ml project deployment
         public string GitVersion { get; set; }
 
-        public string VersionSourceType { get; set; }
+        [NotMapped]
+        public List<MLModel> MLModels { get; set; }
 
-        public string ProjectFileUrl { get; set; }
+        [NotMapped]
+        public List<AMLPipelineEndpoint> AMLPipelineEndpoints { get; set; }
 
-        public string ConfigFile { get; set; }
+        // Support AML and ADB
+        public string LinkedServiceType { get; set; }
 
-        public string ModelId { get; set; }
+        // Support AML and ADB
+        public string RunConfigFile { get; set; }
 
+        public bool IsUseDefaultRunConfig { get; set; }
+
+        public bool IsRunProjectOnManagedCompute { get; set; }
+
+        public string LinkedServiceComputeTarget { get; set; }
     }
 }

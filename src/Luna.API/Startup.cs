@@ -5,7 +5,6 @@ using System.Reflection;
 using Luna.API.Controllers.Admin;
 using Luna.Clients;
 using Luna.Clients.Azure;
-using Luna.Clients.Azure.APIM;
 using Luna.Clients.Azure.Auth;
 using Luna.Clients.Azure.Storage;
 using Luna.Clients.CustomMetering;
@@ -279,28 +278,12 @@ namespace Luna.API
             // Register the db context interface
             services.TryAddScoped<ISqlDbContext, SqlDbContext>();
 
-            services.AddOptions<APIMConfigurationOption>().Configure(
-                options =>
-                {
-                    this.configuration.Bind("SecuredCredentials:APIM", options);
-                });
-
-
             services.AddOptions<AzureConfigurationOption>().Configure(
                 options =>
                 {
                     this.configuration.Bind("SecuredCredentials:Azure", options);
                 });
 
-            services.AddHttpClient<IProductAPIM, ProductAPIM>();
-            services.AddHttpClient<IAPIVersionSetAPIM, APIVersionSetAPIM>();
-            services.AddHttpClient<IAPIVersionAPIM, APIVersionAPIM>();
-            services.AddHttpClient<IProductAPIVersionAPIM, ProductAPIVersionAPIM>();
-            services.AddHttpClient<IOperationAPIM, OperationAPIM>();
-            services.AddHttpClient<IPolicyAPIM, PolicyAPIM>();
-            services.AddHttpClient<IAPISubscriptionAPIM, APISubscriptionAPIM>();
-            services.AddHttpClient<IUserAPIM, UserAPIM>();
-            services.AddHttpClient<IClientCertAPIM, ClientCertAPIM>();
             services.AddHttpClient<IGitUtility, GitUtility>();
 
             services.AddOptions<StorageAccountConfigurationOption>().Configure(
@@ -345,8 +328,8 @@ namespace Luna.API
             services.TryAddScoped<LunaClient>();
 
             // Register Luna.AI services
-            services.TryAddScoped<IProductService, ProductService>();
-            services.TryAddScoped<IDeploymentService, DeploymentService>();
+            services.TryAddScoped<IAIServiceService, AIServiceService>();
+            services.TryAddScoped<IAIServicePlanService, AIServicePlanService>();
             services.TryAddScoped<IAPIVersionService, APIVersionService>();
             services.TryAddScoped<IAPISubscriptionService, APISubscriptionService>();
             services.TryAddScoped<IAMLWorkspaceService, AMLWorkspaceService>();
@@ -381,8 +364,8 @@ namespace Luna.API
                 o.Conventions.Controller<AMLWorkspaceController>().HasApiVersion(latest);
                 o.Conventions.Controller<APISubscriptionController>().HasApiVersion(latest);
                 o.Conventions.Controller<APIVersionController>().HasApiVersion(latest);
-                o.Conventions.Controller<DeploymentController>().HasApiVersion(latest);
-                o.Conventions.Controller<ProductController>().HasApiVersion(latest);
+                o.Conventions.Controller<AIServicePlanController>().HasApiVersion(latest);
+                o.Conventions.Controller<AIServiceController>().HasApiVersion(latest);
                 o.Conventions.Controller<AIAgentController>().HasApiVersion(latest);
                 o.Conventions.Controller<AzureDatabricksWorkspaceController>().HasApiVersion(latest);
                 o.Conventions.Controller<AzureSynapseWorkspaceController>().HasApiVersion(latest);

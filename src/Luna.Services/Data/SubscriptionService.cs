@@ -36,9 +36,9 @@ namespace Luna.Services.Data
         private readonly ICustomMeterService _customMeterService;
         private readonly ICustomMeterDimensionService _customMeterDimensionService;
         private readonly IFulfillmentManager _fulfillmentManager;
-        private readonly IProductService _productService;
+        private readonly IAIServiceService _productService;
         private readonly IAIAgentService _aiAgentService;
-        private readonly IDeploymentService _deploymentService;
+        private readonly IAIServicePlanService _deploymentService;
         private readonly IAPISubscriptionService _apiSubscriptionService;
         private readonly ILogger<SubscriptionService> _logger;
 
@@ -59,9 +59,9 @@ namespace Luna.Services.Data
             ICustomMeterDimensionService customMeterDimensionService,
             ICustomMeterService customMeterService,
             IFulfillmentManager fulfillmentManager,
-            IProductService productService,
+            IAIServiceService productService,
             IAIAgentService aiAgentService,
-            IDeploymentService deploymentService,
+            IAIServicePlanService deploymentService,
             IAPISubscriptionService apiSubscriptionService,
             ILogger<SubscriptionService> logger)
         {
@@ -255,11 +255,14 @@ namespace Luna.Services.Data
                 _context.Subscriptions.Add(subscription);
                 await _context._SaveChangesAsync();
 
-                // Add subscription parameters
-                foreach (var param in subscription.InputParameters)
+                if (subscription.InputParameters != null)
                 {
-                    param.SubscriptionId = subscription.SubscriptionId;
-                    _context.SubscriptionParameters.Add(param);
+                    // Add subscription parameters
+                    foreach (var param in subscription.InputParameters)
+                    {
+                        param.SubscriptionId = subscription.SubscriptionId;
+                        _context.SubscriptionParameters.Add(param);
+                    }
                 }
                 await _context._SaveChangesAsync();
 
@@ -269,22 +272,6 @@ namespace Luna.Services.Data
                 }
 
                 await _context._SaveChangesAsync();
-
-                // Create API subscription if a product is linked or not
-                /*
-                var product = await _productService.GetByOfferNameAsync(offer.Id);
-                if (product != null)
-                {
-                    if (await _apiSubscriptionService.ExistsAsync(subscription.SubscriptionId))
-                    {
-                        await _apiSubscriptionService.UpdateAsync(subscription.SubscriptionId, new APISubscription(subscription));
-                    }
-                    else
-                    {
-                        await _apiSubscriptionService.CreateAsync(new APISubscription(subscription));
-                    }
-                }
-                */
 
                 transaction.Commit();
             }
@@ -652,7 +639,7 @@ namespace Luna.Services.Data
                     Offer offer = await _offerService.GetAsync(resolvedSubscription.OfferId);
                     Plan plan = await _planService.GetAsync(resolvedSubscription.OfferId, resolvedSubscription.PlanId);
                     var offerParameters = await _offerParameterService.GetAllAsync(resolvedSubscription.OfferId);
-                    Product product = await _productService.GetByOfferNameAsync(offer.Id);
+                    AIService product = await _productService.GetByOfferIdAsync(offer.Id);
                     List<string> hostTypes = new List<string>();
                     if (product == null)
                     {
@@ -660,7 +647,7 @@ namespace Luna.Services.Data
                     }
                     else
                     {
-                        hostTypes = GetHostTypes(product.HostType);
+                        hostTypes = new List<string>();
                     }
 
                     return new SubscriptionLayout(resolvedSubscription.SubscriptionId, resolvedSubscription.SubscriptionName,
@@ -716,17 +703,17 @@ namespace Luna.Services.Data
                     throw new LunaBadRequestUserException("The url in JWT token is invalid.", UserErrorCode.InvalidToken);
                 }
 
-                Product product = await _productService.GetAsync(prodName);
-                List<Deployment> deploymentList = await _deploymentService.GetAllAsync(prodName);
+                AIService product = await _productService.GetAsync(prodName);
+                List<AIServicePlan> deploymentList = await _deploymentService.GetAllAsync(prodName);
                 List<PlanLayout> plans = new List<PlanLayout>();
                 foreach (var dep in deploymentList)
                 {
-                    plans.Add(new PlanLayout(dep.DeploymentName, dep.DeploymentName));
+                    plans.Add(new PlanLayout(dep.AIServicePlanName, dep.AIServicePlanName));
                 }
-                var hostTypes = GetHostTypes(product.HostType);
+                var hostTypes = new List<string>();
 
                 return new SubscriptionLayout(Guid.NewGuid(), "",
-                    new OfferLayout(product.ProductName, product.ProductName),
+                    new OfferLayout(product.AIServiceName, product.AIServiceName),
                     plans,
                     hostTypes,
                     agentUrl: agentUrl);

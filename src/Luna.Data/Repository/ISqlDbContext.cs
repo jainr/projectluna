@@ -32,8 +32,8 @@ namespace Luna.Data.Repository
 
         DbSet<TelemetryDataConnector> TelemetryDataConnectors { get; set; }
 
-        DbSet<Product> Products { get; set; }
-        DbSet<Deployment> Deployments { get; set; }
+        DbSet<AIService> AIServices { get; set; }
+        DbSet<AIServicePlan> AIServicePlans { get; set; }
         DbSet<APIVersion> APIVersions { get; set; }
         DbSet<AMLWorkspace> AMLWorkspaces { get; set; }
 
@@ -54,6 +54,9 @@ namespace Luna.Data.Repository
         DbSet<AzureDatabricksWorkspace> AzureDatabricksWorkspaces { get; set; }
 
         DbSet<GitRepo> GitRepos { get; set; }
+
+        DbSet<AMLPipelineEndpoint> AMLPipelineEndpoints { get; set; }
+        DbSet<MLModel> MLModels { get; set; }
 
         // Wrappers for DbContext methods that are used
         Task<int> _SaveChangesAsync();

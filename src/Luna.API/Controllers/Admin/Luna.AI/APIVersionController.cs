@@ -40,49 +40,49 @@ namespace Luna.API.Controllers.Admin
         }
 
         /// <summary>
-        /// Get all apiVersions within a deployment within an product.
+        /// Get all apiVersions within a ai service plan within an ai service.
         /// </summary>
-        /// <param name="productName">The name of the product.</param>
-        /// <param name="deploymentName">The name of the deployment.</param>
+        /// <param name="aiServiceName">The name of the ai service.</param>
+        /// <param name="aiServicePlanName">The name of the ai service plan.</param>
         /// <returns>HTTP 200 OK with apiVersions JSON objects in response body.</returns>
-        [HttpGet("products/{productName}/deployments/{deploymentName}/apiVersions")]
+        [HttpGet("aiservices/{aiServiceName}/plans/{aiServicePlanName}/apiVersions")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> GetAllAsync(string productName, string deploymentName)
+        public async Task<ActionResult> GetAllAsync(string aiServiceName, string aiServicePlanName)
         {
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
-            _logger.LogInformation($"Get all apiVersions in deployment {deploymentName} in product {productName}.");
-            return Ok(await _apiVersionService.GetAllAsync(productName, deploymentName));
+            _logger.LogInformation($"Get all apiVersions in ai service plan {aiServicePlanName} in ai service {aiServiceName}.");
+            return Ok(await _apiVersionService.GetAllAsync(aiServiceName, aiServicePlanName));
         }
 
         /// <summary>
         /// Get an apiVersion
         /// </summary>
-        /// <param name="productName">The name of the product.</param>
-        /// <param name="deploymentName">The name of the deployment.</param>
+        /// <param name="aiServiceName">The name of the ai service.</param>
+        /// <param name="aiServicePlanName">The name of the ai service plan.</param>
         /// <param name="versionName">The name of apiversion</param>
         /// <returns>HTTP 200 OK with one apiVersion JSON objects in response body.</returns>
-        [HttpGet("products/{productName}/deployments/{deploymentName}/apiVersions/{versionName}", Name = nameof(GetAsync) + nameof(APIVersion))]
+        [HttpGet("aiservices/{aiServiceName}/plans/{aiServicePlanName}/apiVersions/{versionName}", Name = nameof(GetAsync) + nameof(APIVersion))]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> GetAsync(string productName, string deploymentName, string versionName)
+        public async Task<ActionResult> GetAsync(string aiServiceName, string aiServicePlanName, string versionName)
         {
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
-            _logger.LogInformation($"Get apiVersion {versionName.ToString()} in deployment {deploymentName} in product {productName}.");
-            return Ok(await _apiVersionService.GetAsync(productName, deploymentName, versionName));
+            _logger.LogInformation($"Get apiVersion {versionName.ToString()} in ai service plan {aiServicePlanName} in ai service {aiServiceName}.");
+            return Ok(await _apiVersionService.GetAsync(aiServiceName, aiServicePlanName, versionName));
         }
 
         /// <summary>
-        /// Creates pr update a apiVersion within a deployment within an product.
+        /// Creates pr update a apiVersion within a ai service plan within an ai service.
         /// </summary>
-        /// <param name="productName">The name of the product.</param>
-        /// <param name="deploymentName">The name of the deployment.</param>
+        /// <param name="aiServiceName">The name of the ai service.</param>
+        /// <param name="aiServicePlanName">The name of the ai service plan.</param>
         /// <param name="versionName">The name of apiversion</param>
         /// <param name="apiVersion">The apiVersion object to create.</param>
         /// <returns>HTTP 201 CREATED with URI to created resource in response header.</returns>
         /// <returns>HTTP 200 OK with updated apiVersion JSON objects in response body.</returns>
-        [HttpPut("products/{productName}/deployments/{deploymentName}/apiVersions/{versionName}")]
+        [HttpPut("aiservices/{aiServiceName}/plans/{aiServicePlanName}/apiVersions/{versionName}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> CreateOrUpdateAsync(string productName, string deploymentName, string versionName, [FromBody] APIVersion apiVersion)
+        public async Task<ActionResult> CreateOrUpdateAsync(string aiServiceName, string aiServicePlanName, string versionName, [FromBody] APIVersion apiVersion)
         {
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
             if (apiVersion == null)
@@ -96,55 +96,37 @@ namespace Luna.API.Controllers.Admin
                     UserErrorCode.NameMismatch);
             }
 
-            if(await _apiVersionService.ExistsAsync(productName, deploymentName, versionName))
+            if(await _apiVersionService.ExistsAsync(aiServiceName, aiServicePlanName, versionName))
             {
-                _logger.LogInformation($"Update apiVersion {versionName} in deployment {deploymentName} in product {productName} with payload {JsonSerializer.Serialize(apiVersion)}.");
-                apiVersion = await _apiVersionService.UpdateAsync(productName, deploymentName, versionName, apiVersion);
+                _logger.LogInformation($"Update apiVersion {versionName} in ai service plan {aiServicePlanName} in ai service {aiServiceName} with payload {JsonSerializer.Serialize(apiVersion)}.");
+                apiVersion = await _apiVersionService.UpdateAsync(aiServiceName, aiServicePlanName, versionName, apiVersion);
                 return Ok(apiVersion);
             }
             else
             {
-                _logger.LogInformation($"Create apiVersion {versionName} in deployment {deploymentName} in product {productName} with payload {JsonSerializer.Serialize(apiVersion)}.");
-                await _apiVersionService.CreateAsync(productName, deploymentName, apiVersion);
-                return CreatedAtRoute(nameof(GetAsync) + nameof(APIVersion), new { productName = productName, deploymentName = deploymentName, versionName = versionName }, apiVersion);
+                _logger.LogInformation($"Create apiVersion {versionName} in ai service plan {aiServicePlanName} in ai service {aiServiceName} with payload {JsonSerializer.Serialize(apiVersion)}.");
+                await _apiVersionService.CreateAsync(aiServiceName, aiServicePlanName, apiVersion);
+                return CreatedAtRoute(nameof(GetAsync) + nameof(APIVersion), new { aiServiceName = aiServiceName, aiServicePlanName = aiServicePlanName, versionName = versionName }, apiVersion);
             }
-
         }
 
 
         /// <summary>
         /// Delete an apiVersion
         /// </summary>
-        /// <param name="productName">The name of the product.</param>
-        /// <param name="deploymentName">The name of the deployment.</param>
+        /// <param name="aiServiceName">The name of the ai service.</param>
+        /// <param name="aiServicePlanName">The name of the ai service plan.</param>
         /// <param name="versionName">The name of apiversion</param>
         /// <returns>HTTP 204 NO CONTENT</returns>
-        [HttpDelete("products/{productName}/deployments/{deploymentName}/apiVersions/{versionName}")]
+        [HttpDelete("aiservices/{aiServiceName}/plans/{aiServicePlanName}/apiVersions/{versionName}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<ActionResult> DeleteAsync(string productName, string deploymentName, string versionName)
+        public async Task<ActionResult> DeleteAsync(string aiServiceName, string aiServicePlanName, string versionName)
         {
 
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
-            _logger.LogInformation($"Delete apiVersion {versionName.ToString()} in deployment {deploymentName} in product {productName}.");
-            await _apiVersionService.DeleteAsync(productName, deploymentName, versionName);
+            _logger.LogInformation($"Delete apiVersion {versionName.ToString()} in ai service plan {aiServicePlanName} in ai service {aiServiceName}.");
+            await _apiVersionService.DeleteAsync(aiServiceName, aiServicePlanName, versionName);
             return NoContent();
-        }
-
-        /// <summary>
-        /// Get apiVersion source types
-        /// </summary>
-        /// <returns>The apiVersion</returns>
-        [HttpGet("apiVersions/sourceTypes")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> GetSourceTypes()
-        {
-            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
-            List<APIVersionSourceType> list = new List<APIVersionSourceType>();
-
-            list.Add(new APIVersionSourceType() { DisplayName = "Azure ML Pipelines", id = "amlPipeline" });
-            list.Add(new APIVersionSourceType() { DisplayName = "Git repo", id = "git" });
-            _logger.LogInformation($"Get apiVersion source types.");
-            return Ok(list);
         }
     }
 }

@@ -180,15 +180,15 @@ DROP TABLE [dbo].[APIVersions]
 END
 GO
 
-IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'Deployments' AND sch.name = 'dbo')
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'AIServicePlans' AND sch.name = 'dbo')
 BEGIN
-DROP TABLE [dbo].[Deployments]
+DROP TABLE [dbo].[AIServicePlans]
 END
 GO
 
-IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'Products' AND sch.name = 'dbo')
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'AIServices' AND sch.name = 'dbo')
 BEGIN
-DROP TABLE [dbo].[Products]
+DROP TABLE [dbo].[AIServices]
 END
 GO
 
@@ -225,6 +225,8 @@ CREATE TABLE [dbo].[Offers](
 	[ContainerName] [uniqueidentifier] NOT NULL,
 	[ManualActivation] [bit],
 	[ManualCompleteOperation] [bit],
+	[AIServiceId] [bigint],
+	[IsAzureMarketplaceOffer] [bit],
 	PRIMARY KEY (Id)
 ) ON [PRIMARY]
 GO
@@ -336,8 +338,13 @@ CREATE TABLE [dbo].[Subscriptions](
 	[RetryCount] int NULL,
 	[EntryPointUrl] [nvarchar](1024) NULL,
 	[AgentId] [uniqueidentifier] NULL,
+	[BaseUrl] [nvarchar](1024) NULL,
+	[PrimaryKeySecretName] [nvarchar](64) NULL,
+	[SecondaryKeySecretName] [nvarchar](64) NULL,
+	[AIServiceId] bigint NULL,
+	[AIServicePlanId] bigint NULL,
 	CONSTRAINT FK_offer_id_subscriptions FOREIGN KEY (OfferId) REFERENCES Offers(Id),
-	CONSTRAINT FK_plan_id_subscriptions FOREIGN KEY (PlanId) REFERENCES Plans(Id),
+	CONSTRAINT FK_plan_id_subscriptions FOREIGN KEY (PlanId) REFERENCES Plans(Id)
 	PRIMARY KEY CLUSTERED (
 		[SubscriptionId] ASC
 	)
@@ -533,59 +540,124 @@ CREATE TABLE [dbo].[AMLWorkspaces](
 )
 GO
 
-CREATE TABLE [dbo].[Products](
+CREATE TABLE [dbo].[AzureSynapseWorkspaces](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
-	[ProductName] [nvarchar](50) NOT NULL,
-	[ProductType] [nvarchar](64) NOT NULL,
-	[HostType] [nvarchar](64) NOT NULL,
+	[WorkspaceName] [nvarchar](50) NOT NULL,
+	[ResourceId] [nvarchar](max) NOT NULL,
+	[AADApplicationId] [uniqueidentifier] NOT NULL,
+	[AADTenantId] [uniqueidentifier] NULL,
+	[AADApplicationSecretName] [nvarchar](128) NOT NULL,
+	PRIMARY KEY (Id)
+)
+GO
+
+CREATE TABLE [dbo].[AzureDatabricksWorkspaces](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
+	[WorkspaceName] [nvarchar](50) NOT NULL,
+	[ResourceId] [nvarchar](max) NOT NULL,
+	[WorkspaceUrl] [nvarchar](max) NOT NULL,
+	[AADApplicationId] [uniqueidentifier] NOT NULL,
+	[AADTenantId] [uniqueidentifier] NULL,
+	[AADApplicationSecretName] [nvarchar](128) NOT NULL,
+	PRIMARY KEY (Id)
+)
+GO
+
+CREATE TABLE [dbo].[GitRepos](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
+	[RepoName] [nvarchar](50) NOT NULL,
+	[Type] [nvarchar](16) NOT NULL,
+	[HttpUrl] [nvarchar](max) NOT NULL,
+	[CommitHashOrBranch] [nvarchar](256) NOT NULL,
+	[PersonalAccessTokenSecretName] [nvarchar](32) NOT NULL,
+	PRIMARY KEY (Id)
+)
+GO
+
+CREATE TABLE [dbo].[AIServices](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
+	[DisplayName] [nvarchar](128) NULL,
+	[AIServiceName] [nvarchar](50) NOT NULL,
 	[Owner] [nvarchar](512) NOT NULL,
 	[Description] [nvarchar](256) NOT NULL,
 	[LogoImageUrl] [nvarchar](max) NULL,
 	[DocumentationUrl] [nvarchar](max) NULL,
+	[Tags] [nvarchar](max) NULL,
 	[SaaSOfferName] [nvarchar](50) NULL,
-	[DisplayName] [nvarchar](128) NULL,
-	[OfferId] [bigint] NULL,
+	[SaaSOfferId] [bigint] NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
 	PRIMARY KEY (Id)
 )
 GO
 
-CREATE TABLE [dbo].[Deployments](
+CREATE TABLE [dbo].[AIServicePlans](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
-	[ProductId] [bigint] NOT NULL,
-	[DeploymentName] [nvarchar](50) NOT NULL,
+	[AIServiceId] [bigint] NOT NULL,
+	[AIServicePlanName] [nvarchar](50) NOT NULL,
+	[AIServicePlanDisplayName] [nvarchar](128) NOT NULL,
 	[Description] [nvarchar](1024) NOT NULL,
+	[PlanType] [nvarchar](32) NOT NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
 	PRIMARY KEY (Id),
-	CONSTRAINT FK_ProductId_Deployments FOREIGN KEY (ProductId) REFERENCES Products(Id)
+	CONSTRAINT FK_AIServiceId_AIServicePlans FOREIGN KEY (AIServiceId) REFERENCES AIServices(Id)
 )
 GO
 
 CREATE TABLE [dbo].[APIVersions](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
-	[DeploymentId] [bigint] NOT NULL,
+	[AIServicePlanId] [bigint] NOT NULL,
 	[VersionName] [nvarchar](50) NOT NULL,
-	[RealTimePredictAPI] [nvarchar](max) NULL,
-	[TrainModelAPI] [nvarchar](max) NULL,
-	[BatchInferenceAPI] [nvarchar](max) NULL,
-	[DeployModelAPI] [nvarchar](max) NULL,
-	[AuthenticationType] [nvarchar](8) NOT NULL,
-	[AuthenticationKeySecretName] [nvarchar](256) NULL,
 	[AMLWorkspaceId] [bigint] NULL,
+	[AzureDatabricksWorkspaceId] [bigint] NULL,
+	[AzureSynapseWorkspaceId] [bigint] NULL,
+	[GitRepoId] [bigint] NULL,
+	[ModelName] [nvarchar](128) NULL,
+	[ModelVersion] [int] NULL,
+	[EndpointName] [nvarchar](128) NULL,
+	[EndpointName] [nvarchar](64) NULL,
+	[IsManualInputEndpoint] [bit] NULL,
+	[EndpointUrl] [nvarchar](max) NULL,
+	[EndpointSwaggerUrl] [nvarchar](max) NULL,
+	[EndpointAuthType] [nvarchar](32) NULL,
+	[EndpointAuthKey] [nvarchar](256) NULL,
+	[EndpointAuthAddTo] [nvarchar](16) NULL,
+	[EndpointAuthSecretName] [nvarchar](32) NULL,
+	[EndpointAuthTenantId] [uniqueidentifier] NULL,
+	[EndpointAuthClientId] [uniqueidentifier] NULL,
+	[GitVersion] [nvarchar](256) NULL,
+	[LinkedServiceType] [nvarchar](16) NULL,
+	[RunConfigFile] [nvarchar](256) NULL,
+	[IsUseDefaultRunConfig] [bit] NULL,
+	[IsRunProjectOnManagedCompute] [bit] NULL,
+	[LinkedServiceComputeTarget] [nvarchar](256) NULL,
 	[AdvancedSettings] [nvarchar](max) NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
-	[VersionSourceType] [nvarchar](64) NULL,
-	[GitUrl] [nvarchar](max) NULL,
-	[GitPersonalAccessTokenSecretName] [nvarchar](256) NULL,
-	[ProjectFileUrl] [nvarchar](max) NULL,
-	[GitVersion] [nvarchar](max) NULL,
-	[ConfigFile] [nvarchar](256) NULL,
-	[ModelId] [nvarchar](256) NULL,
 	PRIMARY KEY (Id),
-	CONSTRAINT FK_DeploymentId_APIVersions FOREIGN KEY (DeploymentId) REFERENCES Deployments(Id)
+	CONSTRAINT FK_AIServicePlanId_APIVersions FOREIGN KEY (AIServicePlanId) REFERENCES AIServicePlans(Id)
+)
+GO
+
+CREATE TABLE [dbo].[AMLPipelineEndpoints](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
+	[APIVersionId] [bigint] NOT NULL,
+	[PipelineEndpointName] [nvarchar](128) NULL,
+	[PipelineEndpointId] [uniqueidentifier] NULL,
+	PRIMARY KEY (Id),
+	CONSTRAINT FK_APIVersionId_AMLPipelineEndpoints FOREIGN KEY (APIVersionId) REFERENCES APIVersions(Id)
+)
+GO
+
+CREATE TABLE [dbo].[MLModels](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
+	[APIVersionId] [bigint] NOT NULL,
+	[ModelName] [nvarchar](128) NULL,
+	[ModelAlternativeName] [nvarchar](128) NULL,
+	[ModelVersion] [bigint] NULL,
+	PRIMARY KEY (Id),
+	CONSTRAINT FK_APIVersionId_MLModels FOREIGN KEY (APIVersionId) REFERENCES APIVersions(Id)
 )
 GO
 
@@ -603,7 +675,7 @@ CREATE TABLE [dbo].[APISubscriptions](
 	[AgentId] [uniqueidentifier] NULL,
 	[HostType] [nvarchar](32) NULL,
 	PRIMARY KEY (SubscriptionId),
-	CONSTRAINT FK_DeploymentId_APISubscriptions FOREIGN KEY (DeploymentId) REFERENCES Deployments(Id)
+	CONSTRAINT FK_DeploymentId_APISubscriptions FOREIGN KEY (DeploymentId) REFERENCES AIServicePlans(Id)
 )
 GO
 
@@ -651,42 +723,4 @@ SET @agentId = $(agentId)
 SET @agentKeySecretName = $(agentKeySecretName)
 
 INSERT INTO [dbo].[AIAgents] VALUES(@agentId, @agentKeySecretName, 'system', getutcdate(), getutcdate(), 1)
-GO
-
--- Create Views
-
-CREATE VIEW [dbo].[agent_apiversions]
-AS
-SELECT dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.APIVersions.VersionName, dbo.APIVersions.RealTimePredictAPI, dbo.APIVersions.TrainModelAPI, dbo.APIVersions.BatchInferenceAPI, dbo.APIVersions.DeployModelAPI, dbo.APIVersions.AuthenticationType, dbo.APIVersions.CreatedTime, dbo.APIVersions.LastUpdatedTime, dbo.APIVersions.VersionSourceType, dbo.APIVersions.ProjectFileUrl, 
-          dbo.APIVersions.Id, dbo.APIVersions.AMLWorkspaceId, dbo.Publishers.PublisherId, dbo.APIVersions.AuthenticationKeySecretName, dbo.APISubscriptions.SubscriptionId, dbo.APISubscriptions.AgentId, dbo.APIVersions.ConfigFile, dbo.APIVersions.ModelId
-FROM   dbo.APIVersions INNER JOIN
-          dbo.Deployments ON dbo.APIVersions.DeploymentId = dbo.Deployments.Id INNER JOIN
-          dbo.Products ON dbo.Deployments.ProductId = dbo.Products.Id INNER JOIN
-          dbo.APISubscriptions ON dbo.Deployments.Id = dbo.APISubscriptions.DeploymentId CROSS JOIN
-          dbo.Publishers
-GO
-
-CREATE VIEW [dbo].[agent_subscriptions]
-AS
-SELECT dbo.APISubscriptions.SubscriptionId, dbo.Deployments.DeploymentName, dbo.Products.ProductName, dbo.Products.ProductType, dbo.APISubscriptions.Owner, dbo.APISubscriptions.Name, dbo.APISubscriptions.Status, dbo.APISubscriptions.HostType, dbo.APISubscriptions.CreatedTime, dbo.APISubscriptions.BaseUrl, dbo.APISubscriptions.PrimaryKeySecretName, dbo.APISubscriptions.SecondaryKeySecretName, 
-          dbo.APISubscriptions.AgentId, dbo.Publishers.PublisherId, 0 AS AMLWorkspaceId, '' AS AMLWorkspaceComputeClusterName, '' AS AMLWorkspaceDeploymentTargetType, '' AS AMLWorkspaceDeploymentClusterName, dbo.Offers.OfferName, dbo.Plans.PlanName
-FROM   dbo.Offers INNER JOIN
-          dbo.Subscriptions ON dbo.Offers.Id = dbo.Subscriptions.OfferId INNER JOIN
-          dbo.Plans ON dbo.Subscriptions.PlanId = dbo.Plans.Id AND dbo.Offers.Id = dbo.Plans.OfferId RIGHT OUTER JOIN
-          dbo.APISubscriptions INNER JOIN
-          dbo.Deployments ON dbo.APISubscriptions.DeploymentId = dbo.Deployments.Id INNER JOIN
-          dbo.Products ON dbo.Deployments.ProductId = dbo.Products.Id ON dbo.Subscriptions.SubscriptionId = dbo.APISubscriptions.SubscriptionId CROSS JOIN
-          dbo.Publishers
-GO
-
-CREATE VIEW [dbo].[agent_amlworkspaces]
-AS
-SELECT Id, WorkspaceName, ResourceId, AADApplicationId, AADTenantId, AADApplicationSecretName, Region, '' AS AADApplicationSecret
-FROM   dbo.AMLWorkspaces
-GO
-
-CREATE VIEW [dbo].[agent_publishers]
-AS
-SELECT dbo.Publishers.*
-FROM   dbo.Publishers
 GO

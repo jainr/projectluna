@@ -34,6 +34,8 @@ namespace Luna.Data.Entities
             this.OfferVersion = offer.OfferVersion;
             this.Owners = offer.Owners;
             this.HostSubscription = offer.HostSubscription;
+            this.AIServiceId = offer.AIServiceId;
+            this.IsAzureMarketplaceOffer = offer.IsAzureMarketplaceOffer;
         }
     
         [JsonIgnore]
@@ -60,6 +62,10 @@ namespace Luna.Data.Entities
         public bool ManualActivation { get; set; }
 
         public bool ManualCompleteOperation { get; set; }
+
+        public long? AIServiceId { get; set; }
+
+        public bool IsAzureMarketplaceOffer { get; set; }
     
         [JsonIgnore]
         public virtual ICollection<AadSecretTmp> AadSecretTmps { get; set; }
