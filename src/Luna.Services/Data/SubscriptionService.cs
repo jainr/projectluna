@@ -37,7 +37,7 @@ namespace Luna.Services.Data
         private readonly ICustomMeterDimensionService _customMeterDimensionService;
         private readonly IFulfillmentManager _fulfillmentManager;
         private readonly IAIServiceService _productService;
-        private readonly IAIAgentService _aiAgentService;
+        private readonly IGatewayService _gatewayService;
         private readonly IAIServicePlanService _deploymentService;
         private readonly IAPISubscriptionService _apiSubscriptionService;
         private readonly ILogger<SubscriptionService> _logger;
@@ -60,7 +60,7 @@ namespace Luna.Services.Data
             ICustomMeterService customMeterService,
             IFulfillmentManager fulfillmentManager,
             IAIServiceService productService,
-            IAIAgentService aiAgentService,
+            IGatewayService gatewayService,
             IAIServicePlanService deploymentService,
             IAPISubscriptionService apiSubscriptionService,
             ILogger<SubscriptionService> logger)
@@ -74,7 +74,7 @@ namespace Luna.Services.Data
             _offerParameterService = offerParameterService ?? throw new ArgumentNullException(nameof(offerParameterService));
             _fulfillmentManager = fulfillmentManager ?? throw new ArgumentNullException(nameof(fulfillmentManager));
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
-            _aiAgentService = aiAgentService ?? throw new ArgumentNullException(nameof(aiAgentService));
+            _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
             _deploymentService = deploymentService ?? throw new ArgumentNullException(nameof(deploymentService));
             _apiSubscriptionService = apiSubscriptionService ?? throw new ArgumentNullException(nameof(apiSubscriptionService));
         }
@@ -99,16 +99,6 @@ namespace Luna.Services.Data
             {
                 sub.PlanName = (await _context.Plans.FindAsync(sub.PlanId)).PlanName;
                 sub.OfferName = (await _context.Offers.FindAsync(sub.OfferId)).OfferName;
-                try
-                {
-                    var apiSubscription = await _apiSubscriptionService.GetAsync(sub.SubscriptionId);
-                    sub.PrimaryKey = apiSubscription.PrimaryKey;
-                    sub.SecondaryKey = apiSubscription.SecondaryKey;
-                    sub.BaseUrl = apiSubscription.BaseUrl;
-                }
-                catch (LunaNotFoundUserException)
-                {
-                }
             }
             _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(Subscription).Name, subscriptionList.Count()));
 
@@ -240,12 +230,13 @@ namespace Luna.Services.Data
 
             subscription.ProvisioningType = nameof(ProvisioningType.Subscribe);
 
-            if (subscription.AgentId == null)
-            {
-                var agent = await _aiAgentService.GetSaaSAgentAsync();
-                subscription.AgentId = agent.AgentId;
-            }
             subscription.RetryCount = 0;
+
+            if (!string.IsNullOrEmpty(subscription.GatewayName))
+            {
+                var gateway = await _gatewayService.GetAsync(subscription.GatewayName);
+                subscription.GatewayId = gateway.Id;
+            }
 
             List<CustomMeter> customMeterList = await _customMeterService.GetAllAsync(offer.OfferName);
 
@@ -662,11 +653,11 @@ namespace Luna.Services.Data
                 var jwt_token = new JwtSecurityToken(token);
                 string agentId = jwt_token.Header["aid"].ToString();
 
-                var aiAgent = await _aiAgentService.GetAsync(new Guid(agentId));
+                var aiAgent = await _gatewayService.GetAsync("");
 
                 var handler = new JwtSecurityTokenHandler();
                 var param = new TokenValidationParameters();
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(aiAgent.AgentKey));
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(""));
                 param.IssuerSigningKey = key;
                 param.ValidateAudience = false;
                 param.ValidIssuer = agentId;

@@ -28,9 +28,15 @@ from Agent.Data.Publisher import Publisher
 from Agent.Data.Offer import Offer
 from Agent.Exception.LunaExceptions import LunaServerException, LunaUserException
 from Agent.Auth.AuthHelper import AuthenticationHelper
+from Agent.Data.GitRepo import GitRepo
+from Agent.Azure.GitUtils import GitUtils
 import json, os, io
 from http import HTTPStatus
 import requests
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+import binascii
 
 def getToken():
     bearerToken = request.headers.get("Authorization")
@@ -40,67 +46,10 @@ def getToken():
 
 def handleExceptions(e):
     if isinstance(e, LunaUserException):
-        return e.message, e.http_status_code
+        return e.message, e.http_status_code.value
     else:
         app.logger.info(e)
         return 'The server encountered an internal error and was unable to complete your request.', 500
-
-def getMetadata(subscriptionId, isRealTimePredict = False):
-    
-    apiVersion = request.args.get('api-version')
-    if not apiVersion:
-        raise LunaUserException(HTTPStatus.BAD_REQUEST, 'The api-version query parameter is not provided.')
-
-    # Verify key first if api-key is provided. Otherwise, try AAD auth
-    subscriptionKey = request.headers.get('api-key')
-    if subscriptionKey:
-        sub = APISubscription.GetByKey(subscriptionKey)
-        if not sub:
-            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'The api key is invalid.')
-        if subscriptionId != "default" and subscriptionId.lower() != sub.SubscriptionId.lower():
-            raise LunaUserException(HTTPStatus.UNAUTHORIZED, "The subscription {} doesn't exist or api key is invalid.".format(subscriptionId))
-    else:
-        objectId = AuthenticationHelper.ValidateSignitureAndUser(getToken(), subscriptionId)
-        sub = APISubscription.Get(subscriptionId, objectId)
-        if not sub:
-            raise LunaUserException(HTTPStatus.NOT_FOUND, 'The subscription {} does not exist.'.format(subscriptionId))
-    
-    version = APIVersion.Get(sub.ProductName, sub.DeploymentName, apiVersion, sub.PublisherId)
-    if not version:
-        raise LunaUserException(HTTPStatus.NOT_FOUND, 'The api version {} does not exist.'.format(apiVersion))
-
-    if isRealTimePredict:
-        if os.environ["AGENT_MODE"] == "LOCAL":
-            raise LunaUserException(HTTPStatus.BAD_REQUEST, 'Cannot call SaaS service from local agent.')
-        if version.AMLWorkspaceId and version.AMLWorkspaceId != 0:
-            workspace = AMLWorkspace.GetByIdWithSecrets(version.AMLWorkspaceId)
-        else:
-            workspace = None
-    else:
-        if os.environ["AGENT_MODE"] == "SAAS":
-            workspace = AMLWorkspace.GetByIdWithSecrets(version.AMLWorkspaceId)
-        elif os.environ["AGENT_MODE"] == "LOCAL":
-            if (not sub.AMLWorkspaceId) or sub.AMLWorkspaceId == 0:
-                raise LunaUserException(HTTPStatus.METHOD_NOT_ALLOWED, 'There is not an Azure Machine Learning workspace configured for this subscription. Please contact your admin to finish the configuration.'.format(version.AMLWorkspaceId))
-            workspace = AMLWorkspace.GetByIdWithSecrets(sub.AMLWorkspaceId)
-        
-        if not workspace:
-            raise LunaServerException('The workspace with id {} is not found.'.format(version.AMLWorkspaceId))
-
-        publisher = Publisher.Get(sub.PublisherId)
-        if version.VersionSourceType == 'git':
-            CodeUtils.getLocalCodeFolder(sub.SubscriptionId, sub.ProductName, sub.DeploymentName, version, pathlib.Path(__file__).parent.absolute(), publisher.ControlPlaneUrl)
-    return sub, version, workspace, apiVersion
-
-def getSubscriptionAPIVersionAndWorkspace(subscriptionId, apiVersion):
-    sub = APISubscription.Get(subscriptionId)
-    version = APIVersion.Get(sub.ProductName, sub.DeploymentName, apiVersion, sub.PublisherId)
-    if os.environ["AGENT_MODE"] == "SAAS":
-        workspace = AMLWorkspace.GetByIdWithSecrets(version.AMLWorkspaceId)
-    elif os.environ["AGENT_MODE"] == "LOCAL":
-        workspace = AMLWorkspace.GetByIdWithSecrets(sub.AMLWorkspaceId)
-
-    return sub, version, workspace
 
 def getAPIVersion(subscription):
     version = request.args.get('api-version')
@@ -113,8 +62,54 @@ def getAPIVersion(subscription):
 
     return apiVersion;
 
-def validateAPIKeyAndGetSubscription(subscriptionId):
+def convertOnelinePemtoPemData(pem):
     
+    result = "-----BEGIN CERTIFICATE-----\n"
+
+    index = 0
+
+    while index*64 < len(pem):
+        if (index + 1) * 64 < len(pem):
+            result = "{}{}\n".format(result, pem[index*64:index*64+64])
+        else:
+            result = "{}{}\n".format(result, pem[index*64:])
+        index = index + 1
+
+    result = "{}-----END CERTIFICATE-----\n".format(result)
+
+    return str.encode(result)
+
+def validateAPIKeyAndGetSubscription(subscriptionId, serviceName = None, planName = None):
+    
+    pem = request.headers.get('X-ARR-ClientCert')
+    if not pem:
+        pem = "MIIDEjCCAfqgAwIBAgIQd8JlPHPUz41AD9vEd2UhhjANBgkqhkiG9w0BAQsFADASMRAwDgYDVQQDDAdsdW5hLmFpMB4XDTIxMDExNTE2MzAxOVoXDTIyMDExNTE2NTAxOVowEjEQMA4GA1UEAwwHbHVuYS5haTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKXi+qHK6YISiGrGbXgXC4+tm37vR5vIS+L6q5o7VK2vAYrR4axcWak3pPWtgr/MG46bhole0Lz92kZA2H4Pc6krZNFYfhjTkm/KZ4LN8YYPTy25ZCRX51QXl9wvbqoZ5ZwJxr5n44kQ1e+3Ay5MNdO5zKcjFmAUfy1cDhpB37hFh5R1nGL1ePw45SzmPOqJ6tdP3nUz4edJu8eaHt8WDViA5vS1wPh1JuW+oPqr46ufo9VQ6nGQp6SY6O6+E7LrbOaFOf+JbepcbAf7gZ2sprCA6q1bwFJskWofT1pFouDxFNqWLseaRNM+VI4dweBli+PX5bxc1e/G68gfJSolDpkCAwEAAaNkMGIwDgYDVR0PAQH/BAQDAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATASBgNVHREECzAJggdsdW5hLmFpMB0GA1UdDgQWBBTK4a+0Galc8Sy9fkBxMs3oszECnjANBgkqhkiG9w0BAQsFAAOCAQEAWIfmsu5ZCOXkJS9jLXAK7bmZBjGezanjB/WaKCIwfPUOx2YWHMYLFLgS39QF0ZntBh3QCxtgAxySsjWd7UFszLEOsIhkKHQnPro8BZ2hG3aJZNiiU6MlSA6Zd6ddpVsgZOVtG1K5CdeM5vCLF+qKobMdjWy9FmWO8fcUrWT1wkvf2aBoedqbzQCwIE5Q3mTyIa3maPGLxkrs4lRbpVuKKfPVuEzLgtjjt0V+le7VkZKLuJ6mMKmR3HN3dEE9RJzE2yCWjWKTBnYj1slWmJw+G/TNgezlJE6Fl5/wZ2IeGJOrgkfV+haS9hH3rymAflxvc8PlAcDy9J+yVxpwKRDBeQ=="
+    if pem:
+        cert = x509.load_pem_x509_certificate(convertOnelinePemtoPemData(pem), default_backend())
+
+        #validate thumbprint
+        if binascii.hexlify(cert.fingerprint(hashes.SHA1())).upper() != b"46FE14FDE5F55158FCD472E43A80474802D8A5CB":
+            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
+        if cert.issuer.rfc4514_string() != 'CN=luna.ai':
+            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
+        if cert.subject.rfc4514_string() != 'CN=luna.ai':
+            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
+        if datetime.utcnow() > cert.not_valid_after or datetime.utcnow() < cert.not_valid_before:
+            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
+
+        sub = Subscription()
+        sub.AIServiceName = serviceName
+        sub.AIServicePlanName = planName
+        subscriptionId = request.headers.get('Luna-Subscription')
+        if not subscriptionId:
+            raise LunaUserException(HTTPStatus.BAD_REQUEST, 'Subscription id id not available.')
+        sub.SubscriptionId = subscriptionId
+        user = request.headers.get('Luna-User')
+        if not user:
+            raise LunaUserException(HTTPStatus.BAD_REQUEST, 'User id id not available.')
+        sub.Owner = user
+        return sub
+
     subscriptionKey = request.headers.get('api-key')
     if subscriptionKey:
         sub = Subscription.GetByKey(subscriptionKey)
@@ -174,12 +169,13 @@ def getModel(modelName, subscriptionId = 'default'):
             )
     except Exception as e:
         return handleExceptions(e)
+    
 
 @app.route('/apiv2/predict', methods=['POST'])
-@app.route('/apiv2/<subscriptionId>/predict', methods=['POST'])
-def realtimePredict(subscriptionId = 'default'):
+@app.route('/apim/<serviceName>/<planName>/predict', methods=['POST'])
+def realtimePredict(subscriptionId = 'default', serviceName = None, planName = None):
     try:
-        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        subscription = validateAPIKeyAndGetSubscription(subscriptionId, serviceName, planName);
         apiVersion = getAPIVersion(subscription);
         if (apiVersion.PlanType != 'endpoint'):
             raise LunaUserException(HTTPStatus.NOT_FOUND, "No service endpoint published in the current AI service plan.")
@@ -231,20 +227,26 @@ def listPublishedOperations(subscriptionId = 'default'):
         if apiVersion.PlanType == 'pipeline':
             if apiVersion.LinkedServiceType != 'AML':
                 raise LunaServerException("No AML workspace found for subscription {}".format(subscriptionId))
-            pipelines = AMLPipelineEndpoint.ListAll(apiVersion.Id)
+            operations = AMLPipelineEndpoint.ListAll(apiVersion.Id)
+        elif apiVersion.PlanType == 'mlproject':
+            gitUtil = GitUtils(GitRepo.GetById(apiVersion.GitRepoId))
+            operations = gitUtil.getEntryPoints(apiVersion.GitVersion)
         else:
             raise LunaUserException(HTTPStatus.NOT_FOUND, "No operation published in the current AI service plan.".format(operationName))
-        return jsonify(pipelines)
+        return jsonify(operations)
     
     except Exception as e:
         return handleExceptions(e)
 
 @app.route('/apiv2/<operationName>', methods=['POST'])
 @app.route('/apiv2/<subscriptionId>/<operationName>', methods=['POST'])
-def executeOperation(operationName, subscriptionId = 'default'):
+@app.route('/apim/<serviceName>/<planName>/<operationName>', methods=['POST'])
+@app.route('/apiv2/operations/<predecessorOperationId>/<operationName>', methods=['POST'])
+@app.route('/api/<subscriptionId>/operations/<predecessorOperationId>/<operationName>', methods=['POST'])
+def executeOperation(operationName, predecessorOperationId = 'na', subscriptionId = 'default', serviceName = None, planName = None):
     
     try:
-        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        subscription = validateAPIKeyAndGetSubscription(subscriptionId, serviceName, planName);
         apiVersion = getAPIVersion(subscription);
         if apiVersion.PlanType == 'pipeline':
             if apiVersion.LinkedServiceType != 'AML':
@@ -254,14 +256,30 @@ def executeOperation(operationName, subscriptionId = 'default'):
                 raise LunaUserException(HTTPStatus.NOT_FOUND, "Operation {} is not supported.".format(operationName))
             amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
             amlUtil = AzureMLUtils(amlWorkspace)
-            opId = amlUtil.submitPipelineRun(subscription, apiVersion, pipeline, request.json)
+            if predecessorOperationId != 'na':
+                result = amlUtil.getOperationStatus(predecessorOperationId, subscription.Owner, subscription.SubscriptionId)
+                if result["status"] != 'Completed':
+                    raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation {} is not in Completed status.".format(predecessorOperationId))
+
+            opId = amlUtil.submitPipelineRun(subscription, apiVersion, pipeline, request.json, predecessorOperationId = predecessorOperationId)
 
         elif apiVersion.PlanType == 'mlproject':
             if apiVersion.LinkedServiceType == "ADB":
                 adbWorkspace = AzureDatabricksWorkspace.GetByIdWithSecrets(apiVersion.AzureDatabricksWorkspaceId)
                 adbUtil = AzureDatabricksUtils(adbWorkspace)
-                opId = adbUtil.runProject(subscription, apiVersion, operationName, request.json)
-
+                if predecessorOperationId != 'na':
+                    result = adbUtil.getOperationStatus(predecessorOperationId, subscription.Owner, subscription.SubscriptionId)
+                    if result["status"] != 'FINISHED':
+                        raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation {} is not in FINISHED status.".format(predecessorOperationId))
+                opId = adbUtil.runProject(subscription, apiVersion, operationName, request.json, predecessorOperationId = predecessorOperationId)
+            elif apiVersion.LinkedServiceType == "AML":
+                amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
+                amlUtil = AzureMLUtils(amlWorkspace)
+                if predecessorOperationId != 'na':
+                    result = amlUtil.getOperationStatus(predecessorOperationId, subscription.Owner, subscription.SubscriptionId)
+                    if result["status"] != 'Completed':
+                        raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation {} is not in Completed status.".format(predecessorOperationId))
+                opId = amlUtil.runProject(subscription, apiVersion, operationName, request.json, predecessorOperationId = predecessorOperationId)
         else:
             raise LunaUserException(HTTPStatus.NOT_FOUND, "No operation named {} published in the current AI service plan.".format(operationName))
             
@@ -270,69 +288,103 @@ def executeOperation(operationName, subscriptionId = 'default'):
     except Exception as e:
         return handleExceptions(e)
 
-@app.route('/apiv2/operations/<operationName>/<operationId>', methods=['GET'])
-@app.route('/apiv2/<subscriptionId>/operations/<operationName>/<operationId>', methods=['GET'])
-def getOperationStatus(operationName, operationId, subscriptionId = 'default'):
+@app.route('/apiv2/operations/<operationId>/status', methods=['GET'])
+@app.route('/apiv2/<subscriptionId>/operations/<operationId>/status', methods=['GET'])
+def getOperationStatus(operationId, subscriptionId = 'default'):
 
     try:
         subscription = validateAPIKeyAndGetSubscription(subscriptionId);
         apiVersion = getAPIVersion(subscription);
         
-        if apiVersion.PlanType == 'pipeline':
-            if apiVersion.LinkedServiceType != 'AML':
-                raise LunaServerException("No AML workspace found for subscription {}".format(subscriptionId))
+        if apiVersion.LinkedServiceType == 'AML':
             amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
             amlUtil = AzureMLUtils(amlWorkspace)
-            result = amlUtil.getOperationStatus(operationName, operationId, subscription.Owner, subscription.SubscriptionId)
+            if apiVersion.PlanType == 'pipeline':
+                runType = "azureml.PipelineRun"
+            elif apiVersion.PlanType == 'mlproject':
+                runType = "azureml.scriptrun"
+            else:
+                raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation not supported.")
+            result = amlUtil.getOperationStatus(operationId, subscription.Owner, subscription.SubscriptionId, runType)
+
+        elif apiVersion.LinkedServiceType == 'ADB':
+            adbWorkspace = AzureDatabricksWorkspace.GetByIdWithSecrets(apiVersion.AzureDatabricksWorkspaceId)
+            adbUtil = AzureDatabricksUtils(adbWorkspace)
+            result = adbUtil.getOperationStatus(operationId, subscription.Owner, subscription.SubscriptionId)
+        else:
+            raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation not supported.")
+
+        return jsonify(result)
+    except Exception as e:
+        return handleExceptions(e)
+
+@app.route('/apiv2/operations/<operationName>', methods=['GET'])
+@app.route('/apiv2/<subscriptionId>/operations/<operationName>', methods=['GET'])
+def listOperations(operationName, subscriptionId='default'):
+    
+    try:
+        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        apiVersion = getAPIVersion(subscription);
+        
+        if apiVersion.LinkedServiceType == 'AML':
+            amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
+            amlUtil = AzureMLUtils(amlWorkspace)
+            if apiVersion.PlanType == 'pipeline':
+                runType = "azureml.PipelineRun"
+            elif apiVersion.PlanType == 'mlproject':
+                runType = "azureml.scriptrun"
+            else:
+                raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation not supported.")
+            result = amlUtil.listAllOperations(operationName, subscription.Owner, subscription.SubscriptionId, runType)
+
+        elif apiVersion.LinkedServiceType == 'ADB':
+            adbWorkspace = AzureDatabricksWorkspace.GetByIdWithSecrets(apiVersion.AzureDatabricksWorkspaceId)
+            adbUtil = AzureDatabricksUtils(adbWorkspace)
+            result = adbUtil.listAllOperations(operationName, subscription.Owner, subscription.SubscriptionId)
+        else:
+            raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation not supported.")
+
+        return jsonify(result)
+    except Exception as e:
+        return handleExceptions(e)
+
+@app.route('/apiv2/operations/<operationId>/output', methods=['GET'])
+@app.route('/apiv2/<subscriptionId>/operations/<operationId>/output', methods=['GET'])
+def getOperationOutput(operationId, subscriptionId = 'default'):
+    try:
+        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        apiVersion = getAPIVersion(subscription);
+        outputType = request.args.get('output-type')
+        if not outputType:
+            outputType = "json"
             
-        elif apiVersion.PlanType == 'mlproject':
-            if apiVersion.LinkedServiceType == "ADB":
+        if apiVersion.LinkedServiceType == 'AML':
+            if apiVersion.PlanType == 'pipeline':
+                runType = "azureml.PipelineRun"
+            elif apiVersion.PlanType == 'mlproject':
+                runType = "azureml.scriptrun"
+            else:
+                raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation not supported.")
+            amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
+            amlUtil = AzureMLUtils(amlWorkspace)
+            operation = amlUtil.getOperationStatus(operationId, subscription.Owner, subscription.SubscriptionId, runType)
+            if operation["status"] != 'Completed':
+                raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation {} is not in Completed status.".format(operationId))
+
+            result = amlUtil.getOperationOutput(operationId, subscription.Owner, subscription.SubscriptionId, runType, outputType)
+        elif apiVersion.LinkedServiceType == "ADB":
+            if apiVersion.PlanType == 'mlproject':
                 adbWorkspace = AzureDatabricksWorkspace.GetByIdWithSecrets(apiVersion.AzureDatabricksWorkspaceId)
                 adbUtil = AzureDatabricksUtils(adbWorkspace)
-                result = adbUtil.getOperationStatus(operationName, operationId, subscription.Owner, subscription.SubscriptionId)
-
-        return jsonify(result)
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/saas-api/operations/<operationVerb>', methods=['GET'])
-@app.route('/api/<subscriptionId>/operations/<operationVerb>', methods=['GET'])
-def listOperations(operationVerb, subscriptionId='default'):
-    
-    try:
-        sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
-        result = amlUtil.listAllOperations(operationVerb, sub.Owner, sub.SubscriptionId)
-        return jsonify(result)
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/saas-api/<operationNoun>', methods=['GET'])
-@app.route('/api/<subscriptionId>/<operationNoun>', methods=['GET'])
-def listOperationOutputs(operationNoun, subscriptionId = 'default'):
-    
-    try:
-        sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
-        result = amlUtil.listAllOperationOutputs(operationNoun, sub.Owner, sub.SubscriptionId)
-        if result:
-            return jsonify(result)
+                operation = adbUtil.getOperationStatus(operationId, subscription.Owner, subscription.SubscriptionId)
+                if operation["status"] != 'FINISHED':
+                    raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation {} is not in FINISHED status.".format(operationId))
+                result = adbUtil.getOperationOutput(operationId, subscription.Owner, subscription.SubscriptionId, outputType)
+            else:
+                raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation is not supported.")
         else:
-            raise LunaUserException(HTTPStatus.NOT_FOUND, 'Object with id {} does not exist.'.format(operationId))
-        return jsonify(result)
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/saas-api/<operationNoun>/<operationId>', methods=['GET'])
-@app.route('/api/<subscriptionId>/<operationNoun>/<operationId>', methods=['GET'])
-def getOperationOutput(operationNoun, operationId, subscriptionId = 'default'):
-    
-    try:
-        sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
-        result, outputType = amlUtil.getOperationOutput(operationNoun, operationId, sub.Owner, sub.SubscriptionId)
-        if not result:
-            raise LunaUserException(HTTPStatus.NOT_FOUND, "The specified operation doesn't exist or it didn't generate any output.")
+            raise LunaUserException(HTTPStatus.BAD_REQUEST, "Operation is not supported.")
+        
         if outputType == "file":
             with open(result, 'rb') as bites:
                 return send_file(
@@ -341,378 +393,6 @@ def getOperationOutput(operationNoun, operationId, subscriptionId = 'default'):
                      mimetype='application/zip'
                 )
         return jsonify(result)
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/saas-api/<parentOperationNoun>/<parentOperationId>/<operationVerb>', methods=['POST'])
-@app.route('/api/<subscriptionId>/<parentOperationNoun>/<parentOperationId>/<operationVerb>', methods=['POST'])
-def executeChildOperation(parentOperationNoun, parentOperationId, operationVerb, subscriptionId = 'default'):
-    
-    try:
-        sub, version, workspace, apiVersion = getMetadata(subscriptionId)
-        amlUtil = AzureMLUtils(workspace, version.ConfigFile, version.VersionSourceType)
-        if version.VersionSourceType == 'git':
-            if os.environ["AGENT_MODE"] == "SAAS":
-                computeCluster = "default"
-                deploymentTarget = "default"
-                aksCluster="default"
-            else:
-                computeCluster = sub.AMLWorkspaceComputeClusterName
-                deploymentTarget = sub.AMLWorkspaceDeploymentTargetType
-                aksCluster = sub.AMLWorkspaceDeploymentClusterName
-
-            opId = amlUtil.runProject(sub.ProductName, 
-                                      sub.DeploymentName, 
-                                      apiVersion, 
-                                      operationVerb, 
-                                      json.dumps(request.json), 
-                                      parentOperationId, 
-                                      sub.Owner, 
-                                      sub.SubscriptionId, 
-                                      computeCluster=computeCluster,
-                                      deploymentTarget=deploymentTarget,
-                                      aksCluster=aksCluster)
-        elif version.VersionSourceType == 'amlPipeline':
-            if parentOperationNoun != 'models':
-                return 'The parent resource type {} is not supported'.format(parentOperationNoun)
-            url = None
-            if operationVerb == 'batchinference':
-                url = version.BatchInferenceAPI
-            elif operationVerb == 'deploy':
-                url = version.DeployModelAPI
-
-            if url and url != "":
-                opId = amlUtil.submitPipelineRun(url, sub.ProductName, sub.DeploymentName, apiVersion, operationVerb, json.dumps(request.json), parentOperationId, sub.Owner, sub.SubscriptionId)
-            else:
-                return 'The operation {} is not supported'.format(operationVerb)
-    
-        return jsonify({'operationId': opId})
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/saas-api/<operationNoun>/<operationId>', methods=['DELETE'])
-@app.route('/api/<subscriptionId>/<operationNoun>/<operationId>', methods=['DELETE'])
-def deleteOperationOutput(operationNoun, operationId, subscriptionId = 'default'):
-    return jsonify({})
-
-
-@app.route('/api/management/refreshMetadata', methods=['POST'])
-def refreshMetadata():
-    try:
-        app.logger.info(getToken())
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        controlPlane = ControlPlane(os.environ['AGENT_ID'], os.environ['AGENT_KEY'])
-        controlPlane.UpdateMetadataDatabase()
-        return "The metadata database is refreshed", 200
-
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/subscriptions', methods=['GET'])
-def listAllSubscriptions():
-    try:
-        objectId = AuthenticationHelper.ValidateSignitureAndUser(getToken())
-        if objectId == "Admin":
-            subscriptions = APISubscription.ListAll()
-        else:
-            subscriptions = APISubscription.ListAllByUserObjectId(objectId)
-        return jsonify(subscriptions), 200
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/subscriptions/<subscriptionId>', methods=['GET'])
-def getSubscription(subscriptionId):
-    try:
-        objectId = AuthenticationHelper.ValidateSignitureAndUser(getToken(), subscriptionId)
-        subscription = APISubscription.Get(subscriptionId, objectId)
-        return jsonify(subscription), 200
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/subscriptions/<subscriptionId>', methods=['PUT'])
-def createOrUpdateSubscription(subscriptionId):
-    """ TODO: do we need this API? """
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        subscription = APISubscription(**request.json)
-        APISubscription.Update(subscription)
-        return jsonify(request.json), 202
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/subscriptions/<subscriptionId>', methods=['DELETE'])
-def deleteSubscription(subscriptionId):
-    """ TODO: do we need this API? """
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        APISubscription.Delete(subscriptionId)
-        return jsonify(request.json), 200
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/subscriptions/<subscriptionId>/users', methods=['GET'])
-def listAllSubscriptionUsers(subscriptionId):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        users = AgentUser.ListAllBySubscriptionId(subscriptionId)
-        return jsonify(users), 200
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/subscriptions/<subscriptionId>/users/<userId>', methods=['GET'])
-def getSubscriptionUser(subscriptionId, userId):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        user = AgentUser.GetUser(subscriptionId, userId)
-        return jsonify(user), 200
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/subscriptions/<subscriptionId>/users/<userId>', methods=['PUT'])
-def addSubscriptionUser(subscriptionId, userId):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        if AgentUser.GetUser(subscriptionId, userId):
-            return "The user with user id {userId} already exists in subscription {subscriptionId}".format(userId = userId, subscriptionId = subscriptionId), 409
-
-        if "ObjectId" not in request.json:
-            raise LunaUserException(HTTPStatus.BAD_REQUEST, "The object id is required")
-        
-        user = AgentUser(**request.json)
-        if subscriptionId != user.SubscriptionId:
-            return "The subscription id in request body doesn't match the subscription id in request url.", 400
-        if userId != user.AADUserId:
-            return "The user id in request body doesn't match the user id in request url.", 400
-        AgentUser.Create(user)
-        return jsonify(request.json), 202
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/subscriptions/<subscriptionId>/users/<userId>', methods=['DELETE'])
-def removeSubscriptionUser(subscriptionId, userId):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        if not AgentUser.GetUser(subscriptionId, userId):
-            return "The user with user id {userId} doesn't exist in subscription {subscriptionId}".format(userId = userId, subscriptionId = subscriptionId), 404
-        AgentUser.DeleteUser(subscriptionId, userId)
-        return jsonify({}), 204
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/admins', methods=['GET'])
-def listAllAdmins():
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        admins = AgentUser.ListAllAdmin()
-        return jsonify(admins), 200
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/admins/<userId>', methods=['GET'])
-def getAdmin(userId):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        admin = AgentUser.GetAdmin(userId)
-        if not admin:
-            return "The admin with user id {userId} doesn't exist.".format(userId = userId), 404
-        return jsonify(admin), 200
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/admins/<userId>', methods=['PUT'])
-def addAdmin(userId):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        if AgentUser.GetAdmin(userId):
-            return "The admin with user id {userId} already exists.".format(userId = userId), 409
-
-        if "ObjectId" not in request.json:
-            raise LunaUserException(HTTPStatus.BAD_REQUEST, "The object id is required")
-        user = AgentUser(**request.json)
-
-        if user.Role != "Admin":
-            return "The role of the admin user must be Admin.", 400
-        if userId != user.AADUserId:
-            return "The user id in request body doesn't match the user id in request url.", 400
-        AgentUser.Create(user)
-        return jsonify(request.json), 202
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/admins/<userId>', methods=['DELETE'])
-def removeAdmin(userId):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        objectId = AuthenticationHelper.GetUserObjectId(getToken())
-        admin = AgentUser.GetAdmin(userId)
-        if not admin:
-            return "The admin with user id {userId} doesn't exist.".format(userId = userId), 404
-        if admin.ObjectId.lower() == objectId:
-            raise LunaUserException(HTTPStatus.CONFLICT, "Admin cannot remove themselves from Admin list.")
-        AgentUser.DeleteAdmin(userId)
-        return jsonify({}), 204
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/publishers', methods=['GET'])
-def listAllPublishers():
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        publishers = Publisher.ListAll()
-        return jsonify(publishers), 200
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/publishers/<publisherId>', methods=['GET'])
-def getPublisher(publisherId):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        publisher = Publisher.Get(publisherId)
-        if not publisher:
-            return "The publisher with id {publisherId} doesn't exist.".format(publisherId = publisherId), 404
-        return jsonify(publisher), 200
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/publishers/<publisherId>', methods=['PUT'])
-def addPublisher(publisherId):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        publisher = Publisher(**request.json)
-
-        if publisherId != publisher.PublisherId:
-            return "The id in request body doesn't match the publisher id in request url.", 400
-        
-
-        if Publisher.Get(publisherId):
-            Publisher.Update(publisherId, publisher)
-        else:
-            Publisher.Create(publisher)
-        return jsonify(request.json), 202
-
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/publishers/<publisherId>', methods=['DELETE'])
-def removePublisher(publisherId):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        if not Publisher.Get(publisherId):
-            return "The publisher with id {publisherId} doesn't exist.".format(publisherId = publisherId), 404
-        Publisher.Delete(publisherId)
-        return jsonify({}), 204
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/amlworkspaces', methods=['GET'])
-def listAllAMLWorkspaces():
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        workspaces = AMLWorkspace.ListAll()
-        return jsonify(workspaces), 200
-    
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/amlworkspaces/<workspaceName>', methods=['GET'])
-def getAMLWorkspace(workspaceName):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        workspace = AMLWorkspace.Get(workspaceName)
-        if workspace:
-            return jsonify(workspace), 200
-        else:
-            return "Can not find the workspace with name {}".format(workspaceName), 404
-        
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/amlworkspaces/<workspaceName>', methods=['PUT'])
-def createOrUpdateAMLWorkspace(workspaceName):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        workspace = AMLWorkspace(**request.json)
-        if workspaceName != workspace.WorkspaceName:
-            return "The workspace name in request body doesn't match the workspace name in request url.", 400
-        if AMLWorkspace.Exist(workspaceName):
-            AMLWorkspace.Update(workspace)
-            return jsonify(request.json), 200
-        else:
-            AMLWorkspace.Create(workspace)
-            return jsonify(request.json), 202
-            
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/amlworkspaces/<workspaceName>', methods=['DELETE'])
-def deleteAMLWorkspace(workspaceName):
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        if not AMLWorkspace.Exist(workspaceName):
-            return "Workspace with name {} doesn't exist.".format(workspaceName), 404
-
-        if len(APISubscription.ListAllByWorkspaceName(workspaceName)) != 0:
-            return "The workspace {} is still being used by API subscription. Reconfigure the subscriptions before deleting the workspace.".format(workspaceName), 409
-        AMLWorkspace.Delete(workspaceName)
-        return jsonify({}), 204
-        
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/agentinfo', methods=['GET'])
-def getAgentInfo():
-    try:
-        AuthenticationHelper.ValidateSignitureAndAdmin(getToken())
-        info = {
-            "AgentId" : os.environ['AGENT_ID'], 
-            "AgentKey" : os.environ['AGENT_KEY'], 
-            "AgentAPIEndpoint": os.environ['AGENT_API_ENDPOINT'],
-            "AgentAPIConnectionString": "{}:{}@{}".format(os.environ['AGENT_ID'], os.environ['AGENT_KEY'], os.environ['AGENT_API_ENDPOINT'])}
-        return jsonify(info), 200
-
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/marketplaceOffers', methods=['GET'])
-def getMarketplaceOffers():
-    try:
-        userId = request.args.get('userId')
-        if not userId:
-            raise LunaUserException(HTTPStatus.BAD_REQUEST, "Query parameter userId is required.")
-
-        offers = Offer.ListMarketplaceOffers(userId)
-        return jsonify(offers), 200
-
-    except Exception as e:
-        return handleExceptions(e)
-
-@app.route('/api/management/internalOffers', methods=['GET'])
-def getInternalOffers():
-    try:
-        userId = request.args.get('userId')
-        if not userId:
-            raise LunaUserException(HTTPStatus.BAD_REQUEST, "Query parameter userId is required.")
-
-        offers = Offer.ListInternalOffers(userId)
-        return jsonify(offers), 200
-
     except Exception as e:
         return handleExceptions(e)
 

@@ -19,6 +19,7 @@ namespace Luna.Services.Data.Luna.AI
         private readonly ISqlDbContext _context;
         private readonly IAIServiceService _aiServiceService;
         private readonly IPlanService _planService;
+        private readonly IGatewayService _gatewayService;
         private readonly ILogger<AIServicePlanService> _logger;
 
         /// <summary>
@@ -27,12 +28,15 @@ namespace Luna.Services.Data.Luna.AI
         /// <param name="sqlDbContext">The context to be injected.</param>
         /// <param name="aiServiceService">The service to be injected.</param>
         /// <param name="planService">The service to be injected.</param>
+        /// <param name="gatewayService">The service to be injected.</param>
         /// <param name="logger">The logger.</param>
-        public AIServicePlanService(ISqlDbContext sqlDbContext, IAIServiceService aiServiceService, IPlanService planService, ILogger<AIServicePlanService> logger)
+        public AIServicePlanService(ISqlDbContext sqlDbContext, IAIServiceService aiServiceService, 
+            IPlanService planService, IGatewayService gatewayService, ILogger<AIServicePlanService> logger)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
             _aiServiceService = aiServiceService ?? throw new ArgumentNullException(nameof(aiServiceService));
             _planService = planService ?? throw new ArgumentNullException(nameof(planService));
+            _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -54,6 +58,14 @@ namespace Luna.Services.Data.Luna.AI
             foreach(var aiServicePlan in aiServicePlans)
             {
                 aiServicePlan.AIServiceName = aiService.AIServiceName;
+                var values = await _context.AIServicePlanGateways.
+                    Where(v => v.AIServicePlanId == aiServicePlan.Id).
+                    Select(x => x.GatewayId).
+                    ToListAsync();
+                foreach (var value in values)
+                {
+                    aiServicePlan.GatewayNames.Add((await _context.Gateways.FindAsync(value)).Name);
+                }
             }
 
             _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(AIServicePlan).Name, aiServicePlans.Count()));
@@ -86,6 +98,14 @@ namespace Luna.Services.Data.Luna.AI
                 .SingleOrDefaultAsync(a => (a.AIServiceId == aiService.Id) && (a.AIServicePlanName == aiServicePlanName));
 
             aiServicePlan.AIServiceName = aiService.AIServiceName;
+            var values = await _context.AIServicePlanGateways.
+                Where(v => v.AIServicePlanId == aiServicePlan.Id).
+                Select(x => x.GatewayId).
+                ToListAsync();
+            foreach (var value in values)
+            {
+                aiServicePlan.GatewayNames.Add((await _context.Gateways.FindAsync(value)).Name);
+            }
             _logger.LogInformation(LoggingUtils.ComposeReturnValueMessage(typeof(AIServicePlan).Name,
                 aiServicePlanName,
                 JsonSerializer.Serialize(aiServicePlan)));
@@ -127,6 +147,7 @@ namespace Luna.Services.Data.Luna.AI
             // Update the aiServicePlan last updated time
             aiServicePlan.LastUpdatedTime = aiServicePlan.CreatedTime;
 
+
             using (var transaction = await _context.BeginTransactionAsync())
             {
                 // Create SaaS plan if SaaS offer is associated with the aiService
@@ -149,6 +170,32 @@ namespace Luna.Services.Data.Luna.AI
                 _context.AIServicePlans.Add(aiServicePlan);
 
                 await _context._SaveChangesAsync();
+
+                if (aiServicePlan.GatewayNames.Count == 0)
+                {
+                    foreach (var gateway in await _gatewayService.GetAllAsync())
+                    {
+                        await _context.AIServicePlanGateways.AddAsync(new AIServicePlanGateway() {
+                            AIServicePlanId = aiServicePlan.Id,
+                            GatewayId = gateway.Id
+                        });
+                    }
+                }
+                else
+                {
+                    foreach (var gatewayName in aiServicePlan.GatewayNames)
+                    {
+                        var gateway = await _gatewayService.GetAsync(gatewayName);
+                        await _context.AIServicePlanGateways.AddAsync(new AIServicePlanGateway()
+                        {
+                            AIServicePlanId = aiServicePlan.Id,
+                            GatewayId = gateway.Id
+                        });
+                    }
+                }
+
+                await _context._SaveChangesAsync();
+
                 transaction.Commit();
             }
 
@@ -189,9 +236,44 @@ namespace Luna.Services.Data.Luna.AI
             // Update the aiServicePlan last updated time
             aiServicePlanDb.LastUpdatedTime = DateTime.UtcNow;
 
-            // Update aiServicePlan values and save changes in db
-            _context.AIServicePlans.Update(aiServicePlanDb);
-            await _context._SaveChangesAsync();
+            using (var transaction = await _context.BeginTransactionAsync())
+            {
+                if (aiServicePlan.GatewayNames.Count > 0)
+                {
+                    List<long> gatewayIds = new List<long>();
+                    foreach (var gatewayName in aiServicePlan.GatewayNames)
+                    {
+                        var gateway = await _gatewayService.GetAsync(gatewayName);
+                        gatewayIds.Add(gateway.Id);
+                    }
+
+                    foreach (var id in gatewayIds)
+                    {
+                        if (await _context.AIServicePlanGateways.CountAsync(v => v.AIServicePlanId == aiServicePlanDb.Id && v.GatewayId == id) == 0)
+                        {
+                            await _context.AIServicePlanGateways.AddAsync(new AIServicePlanGateway()
+                            {
+                                AIServicePlanId = aiServicePlanDb.Id,
+                                GatewayId = id
+                            });
+                        }
+                    }
+                    await _context._SaveChangesAsync();
+                    foreach (var value in _context.AIServicePlanGateways.Where(v => v.AIServicePlanId == aiServicePlanDb.Id))
+                    {
+                        if (!gatewayIds.Contains(value.GatewayId))
+                        {
+                            _context.AIServicePlanGateways.Remove(value);
+                        }
+                    }
+                    await _context._SaveChangesAsync();
+                }
+
+                // Update aiServicePlan values and save changes in db
+                _context.AIServicePlans.Update(aiServicePlanDb);
+                await _context._SaveChangesAsync();
+                transaction.Commit();
+            }
             _logger.LogInformation(LoggingUtils.ComposeResourceUpdatedMessage(typeof(AIServicePlan).Name, aiServicePlanName));
 
             return aiServicePlanDb;

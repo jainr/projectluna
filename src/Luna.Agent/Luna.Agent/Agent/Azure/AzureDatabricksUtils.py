@@ -13,6 +13,7 @@ from adal import AuthenticationContext
 import base64
 from Agent.Data.GitRepo import GitRepo
 import mlflow
+from mlflow.tracking import MlflowClient
 
 AAD_RESOURCE_URL_FORMAT = "https://login.microsoftonline.com/{}"
 MGMT_TOKEN_RESOURCE_ID = "https://management.core.windows.net/"
@@ -92,6 +93,7 @@ class AzureDatabricksUtils(object):
         
         #with open('backend_config.json', 'w+') as file:
         #    json.dump(backend_config, file)
+        mlflow.set_tracking_uri("databricks")
         mlflow.set_registry_uri("databricks")
         # mlflow.set_tracking_uri(os.environ['ODBC_CONNECTION_STRING'])
         exp_name = self.getExperimentName(subscription.SubscriptionId)
@@ -99,20 +101,22 @@ class AzureDatabricksUtils(object):
 
         if not exp:
             mlflow.create_experiment(exp_name)
-
-        repo = GitRepo.GetById(apiVersion.GitRepoId)
-        fullUrl = "https://{}@{}".format(repo.PersonalAccessToken, repo.HttpUrl[8:])
-        mlflow.run(fullUrl, 
+            
+        mlflow.set_experiment(exp_name)
+        with mlflow.start_run():
+            repo = GitRepo.GetById(apiVersion.GitRepoId)
+            fullUrl = "https://{}@{}".format(repo.PersonalAccessToken, repo.HttpUrl[8:])
+            mlflow.run(fullUrl, 
                      parameters = userInput,
                      entry_point = operationName, 
                      experiment_name=exp_name, 
                      backend="databricks", 
                      backend_config = backend_config,
-                     version = repo.CommitHashOrBranch,
+                     version = apiVersion.GitVersion,
                      synchronous = False)
         
-        operationId = str('a' + uuid4().hex[1:])
-        tags={'userId': subscription.Owner, 
+            operationId = str('a' + uuid4().hex[1:])
+            tags={'userId': subscription.Owner, 
               'aiServiceName': subscription.AIServiceName, 
               'aiServicePlanName': subscription.AIServicePlanName, 
               'apiVersion': apiVersion.VersionName,
@@ -120,13 +124,39 @@ class AzureDatabricksUtils(object):
               'operationId': operationId,
               'subscriptionId': subscription.SubscriptionId,
               'predecessorOperationId': predecessorOperationId}
-        mlflow.set_experiment(exp_name)
-        mlflow.set_tags(tags)
+            mlflow.set_tags(tags)
 
         return operationId
-
-    def getOperationStatus(self, operationName, operationId, userId, subscriptionId):
+    
+    def getOperationOutput(self, operationId, userId, subscriptionId, outputType = "json"):
         
+        runInfo, operationName = self.getRunInfoByTags(operationId, userId, subscriptionId)
+        client = MlflowClient()
+
+        if outputType == "json":
+            try:
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = os.path.join(tmp, 'output/output.json')
+                    files = client.download_artifacts(runInfo['run_id'], 'output/output.json', tmp)
+                    with open(path) as file:
+                        return json.load(file)
+            except Exception as ex:
+                raise LunaUserException(HTTPStatus.NOT_FOUND, "JSON output of operation {} does not exist or you do not have permission to access it.".format(operationId))
+        elif outputType == "file":
+            tmp = tempfile.TemporaryDirectory().name
+            localPath = os.path.join(tmp, "output")
+            if not os.path.exists(localPath):
+                os.makedirs(localPath)
+            local_path = client.download_artifacts(runInfo['run_id'], "output", localPath)
+        
+            zip_file_path = os.path.join(tmp, "output_{}.zip".format(operationId))
+            zipf = zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED)
+            self.zipdir(localPath, zipf, "output_{}".format(operationId))
+            zipf.close()
+            return zip_file_path
+
+    def getRunInfoByTags(self, operationId, userId, subscriptionId):
+               
         os.environ['MLFLOW_TRACKING_URI'] = 'databricks'
         os.environ['DATABRICKS_HOST'] = self._workspace.WorkspaceUrl
         os.environ['DATABRICKS_TOKEN'] = self.getAccessToken()
@@ -141,8 +171,52 @@ class AzureDatabricksUtils(object):
         if runs.shape[0] == 0:
             raise LunaUserException(HTTPStatus.NOT_FOUND, "The operation {} does not exist or you do not have permission to acces it.".format(operationId))
 
+        operationName = runs.iloc[0]['tags.operationName']
+        filter_string = "tags.mlflow.parentRunId ILIKE '{}'".format(runs.iloc[0]['run_id'])
+        
+        runs = mlflow.search_runs([exp.experiment_id], filter_string=filter_string)
+
+        if runs.shape[0] == 0:
+            raise LunaUserException(HTTPStatus.NOT_FOUND, "The operation {} does not exist or you do not have permission to acces it.".format(operationId))
+
+        return runs.iloc[0], operationName
+
+    def listAllOperations(self, operationName, userId, subscriptionId):
+        
+        os.environ['MLFLOW_TRACKING_URI'] = 'databricks'
+        os.environ['DATABRICKS_HOST'] = self._workspace.WorkspaceUrl
+        os.environ['DATABRICKS_TOKEN'] = self.getAccessToken()
+        
+        mlflow.set_registry_uri("databricks")
+        
+        exp_name = self.getExperimentName(subscriptionId)
+        exp = mlflow.get_experiment_by_name(exp_name)
+        filter_string = "tags.userId ILIKE '{}' AND tags.operationName ILIKE '{}' AND tags.subscriptionId ILIKE '{}'".format(userId, operationName, subscriptionId)
+        runs = mlflow.search_runs([exp.experiment_id], filter_string=filter_string)
+
+        resultList = []
+        for index, row in runs.iterrows():
+            
+            filter_string = "tags.mlflow.parentRunId ILIKE '{}'".format(row['run_id'])
+            child_runs = mlflow.search_runs([exp.experiment_id], filter_string=filter_string)
+            result = {'operationId': row["tags.operationId"],
+                      'operationName': operationName,
+                      'startTime': child_runs.iloc[0]['start_time'],
+                      'endTime': child_runs.iloc[0]['end_time'],
+                      'status': child_runs.iloc[0]['status']
+                }
+            resultList.append(result)
+
+        return resultList
+
+    def getOperationStatus(self, operationId, userId, subscriptionId):
+ 
+        run, operationName = self.getRunInfoByTags(operationId, userId, subscriptionId)
         result = {'operationId': operationId,
-                      'status': runs.iloc[0]['status']
+                  'operationName': operationName,
+                  'startTime': run['start_time'],
+                  'endTime': run['end_time'],
+                  'status': run['status']
                 }
 
         return result

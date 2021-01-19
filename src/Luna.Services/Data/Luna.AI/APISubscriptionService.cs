@@ -21,7 +21,7 @@ namespace Luna.Services.Data.Luna.AI
         private readonly ISqlDbContext _context;
         private readonly IAIServiceService _productService;
         private readonly IAIServicePlanService _deploymentService;
-        private readonly IAIAgentService _aiAgentService;
+        private readonly IGatewayService _aiAgentService;
         private readonly ILogger<APISubscriptionService> _logger;
         private readonly IOptionsMonitor<AzureConfigurationOption> _options;
         private readonly IKeyVaultHelper _keyVaultHelper;
@@ -33,7 +33,7 @@ namespace Luna.Services.Data.Luna.AI
         /// <param name="productService">The service to be injected.</param>
         /// <param name="deploymentService">The service to be injected.</param>
         /// <param name="logger">The logger.</param>
-        public APISubscriptionService(ISqlDbContext sqlDbContext, IAIServiceService productService, IAIServicePlanService deploymentService, IAIAgentService aiAgentService,
+        public APISubscriptionService(ISqlDbContext sqlDbContext, IAIServiceService productService, IAIServicePlanService deploymentService, IGatewayService aiAgentService,
             ILogger<APISubscriptionService> logger, IOptionsMonitor<AzureConfigurationOption> options, IKeyVaultHelper keyVaultHelper)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
@@ -185,22 +185,6 @@ namespace Luna.Services.Data.Luna.AI
             apiSubscription.SecondaryKey = Guid.NewGuid().ToString("N");
             await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, apiSubscription.PrimaryKeySecretName, apiSubscription.PrimaryKey));
             await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, apiSubscription.SecondaryKeySecretName, apiSubscription.SecondaryKey));
-
-
-            // Assign SaaS agent id
-            if (apiSubscription.AgentId == null || apiSubscription.AgentId == Guid.Empty)
-            {
-                var agent = await _aiAgentService.GetSaaSAgentAsync();
-                apiSubscription.AgentId = agent.AgentId;
-                apiSubscription.HostType = "SaaS";
-                apiSubscription.BaseUrl = _options.CurrentValue.Config.ControllerBaseUrl;
-            }
-            else
-            {
-                var agent = await _aiAgentService.GetAsync(apiSubscription.AgentId.Value);
-                apiSubscription.HostType = "Selfhost";
-                apiSubscription.BaseUrl = agent.AgentId.ToString();
-            }
 
             // Add apiSubscription to db
             _context.APISubscriptions.Add(apiSubscription);

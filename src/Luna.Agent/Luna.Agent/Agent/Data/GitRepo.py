@@ -14,8 +14,6 @@ class GitRepo(Base):
 
     HttpUrl = Column(String)
 
-    CommitHashOrBranch = Column(String)
-
     PersonalAccessTokenSecretName = Column(String)
 
     PersonalAccessToken = ""

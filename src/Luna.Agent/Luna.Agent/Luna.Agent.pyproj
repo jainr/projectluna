@@ -17,7 +17,7 @@
     <SuppressCollectPythonCloudServiceFiles>true</SuppressCollectPythonCloudServiceFiles>
     <Name>Luna.Agent</Name>
     <RootNamespace>Luna.Agent</RootNamespace>
-    <InterpreterId>MSBuild|env1|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <Environment>
     </Environment>
     <WebBrowserPort>23456</WebBrowserPort>
@@ -35,7 +35,7 @@
   <ItemGroup>
     <Compile Include="Agent\Auth\AuthHelper.py" />
     <Compile Include="Agent\Auth\test.py" />
-    <Compile Include="Agent\Azure\GitRepoUtils.py" />
+    <Compile Include="Agent\Azure\GitUtils.py" />
     <Compile Include="Agent\Azure\AzureDatabricksUtils.py">
       <SubType>Code</SubType>
     </Compile>
@@ -114,15 +114,16 @@
     </Content>
     <None Include="Dockerfile" />
     <None Include="aigent-saas - Web Deploy.pubxml" />
+    <Content Include="startup.sh" />
     <Content Include="web.config" />
     <None Include="aigent - Web Deploy.pubxml" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="env1\">
-      <Id>env1</Id>
+    <Interpreter Include="..\env\">
+      <Id>env</Id>
       <Version>3.7</Version>
-      <Description>env1 (Python 3.7 (64-bit))</Description>
+      <Description>env (Python 3.7 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>

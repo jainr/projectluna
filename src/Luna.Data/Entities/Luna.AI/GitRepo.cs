@@ -25,7 +25,6 @@ namespace Luna.Data.Entities
         public void Copy(GitRepo repo)
         {
             HttpUrl = repo.HttpUrl;
-            CommitHashOrBranch = repo.CommitHashOrBranch;
         }
     
         [Key]
@@ -37,9 +36,7 @@ namespace Luna.Data.Entities
         public string RepoName { get; set; }
 
         public string HttpUrl { get; set; }
-
-        public string CommitHashOrBranch { get; set; }
-        
+                
         [NotMapped]
         public string PersonalAccessToken { get; set; }
 

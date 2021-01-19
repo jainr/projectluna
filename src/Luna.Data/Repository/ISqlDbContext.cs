@@ -39,7 +39,7 @@ namespace Luna.Data.Repository
 
         DbSet<APISubscription> APISubscriptions { get; set; }
 
-        DbSet<AIAgent> AIAgents { get; set; }
+        DbSet<Gateway> Gateways { get; set; }
 
         DbSet<AgentSubscription> AgentSubscriptions { get; set; }
 
@@ -57,6 +57,8 @@ namespace Luna.Data.Repository
 
         DbSet<AMLPipelineEndpoint> AMLPipelineEndpoints { get; set; }
         DbSet<MLModel> MLModels { get; set; }
+
+        DbSet<AIServicePlanGateway> AIServicePlanGateways { get; set; }
 
         // Wrappers for DbContext methods that are used
         Task<int> _SaveChangesAsync();

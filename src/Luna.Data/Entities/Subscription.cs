@@ -113,9 +113,17 @@ namespace Luna.Data.Entities
         [JsonIgnore]
         public string SecondaryKeySecretName { get; set; }
 
+        [JsonIgnore]
         public long? AIServiceId { get; set; }
 
+        [JsonIgnore]
         public long? AIServicePlanId { get; set; }
+
+        [NotMapped]
+        public string GatewayName { get; set; }
+
+        [JsonIgnore]
+        public long? GatewayId { get; set; }
 
         [NotMapped]
         public List<SubscriptionParameter> InputParameters { get; set; }

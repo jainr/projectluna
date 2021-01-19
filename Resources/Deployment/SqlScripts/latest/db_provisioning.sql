@@ -343,6 +343,7 @@ CREATE TABLE [dbo].[Subscriptions](
 	[SecondaryKeySecretName] [nvarchar](64) NULL,
 	[AIServiceId] bigint NULL,
 	[AIServicePlanId] bigint NULL,
+	[GatewayId] bigint NULL,
 	CONSTRAINT FK_offer_id_subscriptions FOREIGN KEY (OfferId) REFERENCES Offers(Id),
 	CONSTRAINT FK_plan_id_subscriptions FOREIGN KEY (PlanId) REFERENCES Plans(Id)
 	PRIMARY KEY CLUSTERED (
@@ -679,17 +680,31 @@ CREATE TABLE [dbo].[APISubscriptions](
 )
 GO
 
-CREATE TABLE [dbo].[AIAgents](
+CREATE TABLE [dbo].[Gateways](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
-	[AgentId] [uniqueidentifier] NOT NULL,
-	[AgentKeySecretName] [nvarchar](64) NOT NULL,
-	[CreatedBy] [nvarchar](256) NOT NULL,
-	[LastHeartbeatReportedTime] [datetime2](7) NOT NULL,
-	[CreatedTime] [datetime2](7) NULL,
-	[IsSaaSAgent] [bit] NOT NULL,
+	[Name] [nvarchar](50) NOT NULL,
+	[GatewayId] [uniqueidentifier] NOT NULL,
+	[DisplayName] [nvarchar](256) NOT NULL,
+	[EndpointUrl] [nvarchar](max) NOT NULL,
+	[Description] [nvarchar](max) NOT NULL,
+	[Tags] [nvarchar](max) NOT NULL,
+	[CreatedBy] [nvarchar](512) NOT NULL,
+	[CreatedTime] [datetime2](7) NOT NULL,
+	[LastUpdatedTime] [datetime2](7) NOT NULL,
+	[IsPrivate] [bit] NOT NULL,
 	PRIMARY KEY (Id)
 )
 GO
+
+CREATE TABLE [AIServicePlanGateways](
+	[AIServicePlanId] [bigint] NOT NULL,
+	[GatewayId] [bigint] NOT NULL,
+	PRIMARY KEY (AIServicePlanId, GatewayId),
+	CONSTRAINT FK_AIServicePlanId_AIServicePlanGateways FOREIGN KEY (AIServicePlanId) REFERENCES AIServicePlans(Id),
+	CONSTRAINT FK_GatewayId_AIServicePlanGateways FOREIGN KEY (GatewayId) REFERENCES Gateways(Id)
+)
+GO
+	
 
 CREATE TABLE [dbo].[Publishers](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,

@@ -26,17 +26,20 @@ namespace Luna.API.Controllers.Admin
         private readonly IAIServicePlanService _aIServicePlanService;
         private readonly ILogger<RestrictedUserController> _logger;
         private readonly IAPIVersionService _apiVersionService;
+        private readonly IGatewayService _gatewayService;
 
         /// <summary>
         /// Constructor that uses dependency injection.
         /// </summary>
         /// <param name="deploymentService">The service to inject.</param>
         /// <param name="logger">The logger.</param>
-        public AIServicePlanController(IAIServicePlanService aiServicePlanService, ILogger<RestrictedUserController> logger, IAPIVersionService apiVersionService)
+        public AIServicePlanController(IAIServicePlanService aiServicePlanService, ILogger<RestrictedUserController> logger, 
+            IAPIVersionService apiVersionService, IGatewayService gatewayService)
         {
             _aIServicePlanService = aiServicePlanService ?? throw new ArgumentNullException(nameof(aiServicePlanService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _apiVersionService = apiVersionService ?? throw new ArgumentNullException(nameof(apiVersionService));
+            _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
         }
 
         /// <summary>
@@ -92,6 +95,16 @@ namespace Luna.API.Controllers.Admin
                     UserErrorCode.NameMismatch);
             }
 
+            if (aiServicePlan.GatewayNames != null)
+            {
+                foreach(var gatewayName in aiServicePlan.GatewayNames)
+                {
+                    if (!await _gatewayService.ExistsAsync(gatewayName))
+                    {
+                        throw new LunaBadRequestUserException($"Gateway {gatewayName} doesn't exist.", UserErrorCode.InvalidParameter);
+                    }
+                }
+            }
             if (await _aIServicePlanService.ExistsAsync(aiServiceName, aiServicePlanName))
             {
                 _logger.LogInformation($"Update aiServicePlan {aiServicePlanName} in aiService {aiServiceName} with payload {JsonSerializer.Serialize(aiServicePlan)}.");

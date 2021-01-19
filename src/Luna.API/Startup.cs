@@ -319,7 +319,7 @@ namespace Luna.API
             services.TryAddScoped<IArmTemplateArmTemplateParameterService, ArmTemplateArmTemplateParameterService>();
             services.TryAddScoped<ITelemetryDataConnectorService, TelemetryDataConnectorService>();
             services.TryAddScoped<ISubscriptionCustomMeterUsageService, SubscriptionCustomMeterUsageService>();
-            services.TryAddScoped<IAIAgentService, AIAgentService>();
+            services.TryAddScoped<IGatewayService, GatewayService>();
             services.TryAddScoped<IPublisherService, PublisherService>();
 
             services.TryAddScoped<ICustomMeterEventService, CustomMeterEventService>();
@@ -366,7 +366,7 @@ namespace Luna.API
                 o.Conventions.Controller<APIVersionController>().HasApiVersion(latest);
                 o.Conventions.Controller<AIServicePlanController>().HasApiVersion(latest);
                 o.Conventions.Controller<AIServiceController>().HasApiVersion(latest);
-                o.Conventions.Controller<AIAgentController>().HasApiVersion(latest);
+                o.Conventions.Controller<GatewayController>().HasApiVersion(latest);
                 o.Conventions.Controller<AzureDatabricksWorkspaceController>().HasApiVersion(latest);
                 o.Conventions.Controller<AzureSynapseWorkspaceController>().HasApiVersion(latest);
                 o.Conventions.Controller<GitRepoController>().HasApiVersion(latest);

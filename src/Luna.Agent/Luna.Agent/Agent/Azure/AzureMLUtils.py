@@ -12,6 +12,10 @@ import os
 from Agent.Exception.LunaExceptions import LunaServerException, LunaUserException
 from Agent.Data.AMLPipelineEndpoint import AMLPipelineEndpoint
 from http import HTTPStatus
+import mlflow
+import mlflow.azureml
+from Agent.Data.GitRepo import GitRepo
+from mlflow.exceptions import ExecutionException
 
 class AzureMLUtils(object):
     """The utlitiy class to execute and monitor runs in AML"""
@@ -95,129 +99,93 @@ class AzureMLUtils(object):
         pipeline = PublishedPipeline.get(workspace = self._workspace, id = pipelineEndpoint.PipelineEndpointId.lower())
         exp.submit(pipeline, tags = tags, pipeline_parameters=userInput)
         return operationId
-
-    def runProject(self, 
-                   productName, 
-                   deploymentName, 
-                   apiVersion, 
-                   operationVerb, 
-                   userInput, 
-                   predecessorOperationId, 
-                   userId, 
-                   subscriptionId, 
-                   computeCluster="default", 
-                   luna_config_file = 'luna_config.yml',
-                   deploymentTarget = 'default',
-                   aksCluster = 'default'):
+     
+    def runProject(self, subscription, apiVersion, operationName, userInput, predecessorOperationId='na'):
+        
         operationId = str('a' + uuid4().hex[1:])
-        experimentName = subscriptionId
-        entryPoint = self.GetOperationNameByVerb(operationVerb)
-        if entryPoint:
-            run_id = self._utils.RunProject(azureml_workspace = self._workspace, 
-                                entry_point = entryPoint, 
-                                experiment_name = experimentName, 
-                                parameters={'operationId': operationId, 
-                                            'userId': userId,
-                                            'userInput': userInput,
-                                            'productName': productName,
-                                            'deploymentName': deploymentName,
-                                            'apiVersion': apiVersion,
-                                            'subscriptionId': subscriptionId,
-                                            'predecessorOperationId': predecessorOperationId,
-                                            'deploymentTarget': deploymentTarget,
-                                            'aksCluster': aksCluster}, 
-                                tags={'userId': userId, 
-                                        'productName': productName, 
-                                        'deploymentName': deploymentName, 
-                                        'apiVersion': apiVersion,
-                                        'operationName': entryPoint,
-                                        'subscriptionId': subscriptionId,
-                                        'predecessorOperationId': predecessorOperationId,
-                                        'operationId': operationId},
-                                compute_cluster= computeCluster)
-        else:
-            raise LunaUserException(HTTPStatus.NOT_FOUND, 'Operation "{}" in not supported in current service.'.format(operationVerb))
+        experimentName = subscription.SubscriptionId
+        tags={'userId': subscription.Owner, 
+              'aiServiceName': subscription.AIServiceName, 
+              'aiServicePlanName': subscription.AIServicePlanName, 
+              'apiVersion': apiVersion.VersionName,
+              'operationName': operationName,
+              'operationId': operationId,
+              'subscriptionId': subscription.SubscriptionId,
+              'predecessorOperationId': predecessorOperationId}
+        
+        mlflow.set_tracking_uri(self._workspace.get_mlflow_tracking_uri())
+        mlflow.set_experiment(experimentName)
+        backend_config = {"COMPUTE": apiVersion.LinkedServiceComputeTarget, "USE_CONDA": True}
+        
+        repo = GitRepo.GetById(apiVersion.GitRepoId)
+        fullUrl = "https://{}@{}".format(repo.PersonalAccessToken, repo.HttpUrl[8:])
+        # work around a logging issue in AML to avoid logging PAT
+        os.environ['AZUREML_GIT_REPOSITORY_URI'] = repo.HttpUrl
+        try:
+            run = mlflow.projects.run(uri=fullUrl, 
+                                  version = apiVersion.GitVersion,
+                                  entry_point= operationName,
+                                  parameters=userInput,
+                                  backend = "azureml",
+                                  backend_config = backend_config,
+                                  synchronous=False)
+        except ExecutionException as e:
+            raise LunaUserException(HTTPStatus.BAD_REQUEST, str(e.message))
+        run._run.set_tags(tags)
         return operationId
 
-    def getOperationStatus(self, operationVerb, operationId, userId, subscriptionId):
+    def getOperationStatus(self, operationId, userId, subscriptionId, runType = "azureml.PipelineRun"):
         experimentName = subscriptionId
         exp = Experiment(self._workspace, experimentName)
-        operationName = self.GetOperationNameByVerb(operationVerb)
         tags = {'userId': userId,
                 'operationId': operationId,
-                'operationName': operationName,
                 'subscriptionId': subscriptionId}
-        runs = exp.get_runs(type='azureml.PipelineRun', tags=tags)
+        runs = exp.get_runs(type=runType, tags=tags)
         try:
             run = next(runs)
+            details = run.get_details()
             result = {'operationId': operationId,
+                      'operationName': run.tags["operationName"],
+                      'startTime': details["startTimeUtc"],
+                      'endTime': details["endTimeUtc"],
                       'status': run.status
                 }
             return result
         except StopIteration:
-            raise LunaUserException(HTTPStatus.NOT_FOUND, 'Operation "{}" with id {} does not exist.'.format(operationVerb, operationId))
+            raise LunaUserException(HTTPStatus.NOT_FOUND, 'Operation with id {} does not exist.'.format(operationId))
 
-    def listAllOperations(self, operationVerb, userId, subscriptionId):
+    def listAllOperations(self, operationName, userId, subscriptionId, runType = "azureml.PipelineRun"):
         experimentName = subscriptionId
-        operationName = self.GetOperationNameByVerb(operationVerb)
         exp = Experiment(self._workspace, experimentName)
         tags = {'userId': userId,
                 'operationName': operationName,
                 'subscriptionId': subscriptionId}
-        runs = exp.get_runs(type='azureml.PipelineRun', tags=tags)
+        runs = exp.get_runs(type=runType, tags=tags)
         resultList = []
         while True:
             try:
                 run = next(runs)
+                details = run.get_details()
                 result = {'operationId': run.tags["operationId"],
-                        'status': run.status
+                          'operationName': operationName,
+                          'startTime': details["startTimeUtc"],
+                          'endTime': details["endTimeUtc"],
+                          'status': run.status
                     }
                 resultList.append(result)
             except StopIteration:
                 break
         return resultList
 
-    def getOperationOutput(self, operationNoun, operationId, userId, subscriptionId, downloadFiles = True):
-        operationName = self.GetOperationNameByNoun(operationNoun)
+    def getOperationOutput(self, operationName, operationId, userId, subscriptionId, runType="azureml.PipelineRun", outputType = "json"):
         
-        if operationName == 'train':
-            
-            tags = [['userId', userId], ['modelId', operationId], ['subscriptionId', subscriptionId]]
-            models = Model.list(self._workspace, tags = tags)
-            if len(models) == 0:
-                return None, None
-            model = models[0]
-            result = {'id': operationId,
-                      'description': model.description,
-                      'created_time': model.created_time}
-            return result, "model"
-
-        if operationName == 'deploy':
-            
-            tags = [['userId', userId], ['endpointId', operationId], ['subscriptionId', subscriptionId]]
-            endpoints = Webservice.list(self._workspace, tags = tags)
-            if len(endpoints) == 0:
-                return None, None
-            endpoint = endpoints[0]
-            primaryKey, secondaryKey = endpoint.get_keys()
-            result = {'id': operationId,
-                      'description': endpoint.description,
-                      'created_time': endpoint.created_time,
-                      'scoring_uri': endpoint.scoring_uri,
-                      'primary_key': primaryKey,
-                      'secondary_key': secondaryKey}
-
-            return result, "endpoint"
-        
-        outputType = self._utils.GetOutputType(operationName)
         tags = {'userId': userId,
                 'operationId': operationId,
-                'operationName': operationName,
                 'subscriptionId': subscriptionId}
 
         experimentName = subscriptionId
         exp = Experiment(self._workspace, experimentName)
-        runs = exp.get_runs(type='azureml.PipelineRun', tags=tags)
+        runs = exp.get_runs(type=runType, tags=tags)
         try:
             run = next(runs)
             child_runs = run.get_children()
@@ -229,17 +197,14 @@ class AzureMLUtils(object):
                     with open(path) as file:
                         return json.load(file), "json"
             elif outputType == 'file':
-                if downloadFiles:
-                        tmp = tempfile.TemporaryDirectory().name
-                        path = os.path.join(tmp, "outputs")
-                        zip_file_path = os.path.join(tmp, "output_{}.zip".format(operationId))
-                        files = child_run.download_files("/outputs", path, append_prefix=False)
-                        zipf = zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED)
-                        self.zipdir(path, zipf, "outputs")
-                        zipf.close()
-                        return zip_file_path, "file"
-                else:
-                    return "file", "file"
+                tmp = tempfile.TemporaryDirectory().name
+                path = os.path.join(tmp, "outputs")
+                zip_file_path = os.path.join(tmp, "output_{}.zip".format(operationId))
+                files = child_run.download_files("/outputs", path, append_prefix=False)
+                zipf = zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED)
+                self.zipdir(path, zipf, "outputs")
+                zipf.close()
+                return zip_file_path, "file"
             else:
                 return None, None
         except StopIteration:

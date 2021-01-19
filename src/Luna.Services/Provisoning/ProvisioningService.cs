@@ -42,6 +42,7 @@ namespace Luna.Services.Provisoning
         private readonly ISubscriptionCustomMeterUsageService _subscriptionCustomMeterUsageService;
         private readonly IAIServiceService _aiServiceService;
         private readonly IAIServicePlanService _aiServicePlanService;
+        private readonly IGatewayService _gatewayService;
         private readonly IStorageUtility _storageUtility;
         private readonly IKeyVaultHelper _keyVaultHelper;
         private readonly IOptionsMonitor<AzureConfigurationOption> _options;
@@ -53,7 +54,7 @@ namespace Luna.Services.Provisoning
             IFulfillmentClient fulfillmentclient, IIpAddressService ipAddressService,
             ISubscriptionParameterService subscriptionParameterService, IArmTemplateParameterService armTemplateParameterService,
             IWebhookParameterService webhookParameterService, ISubscriptionCustomMeterUsageService subscriptionCustomMeterUsageService,
-            IAIServiceService aIServiceService, IAIServicePlanService aIServicePlanService,
+            IAIServiceService aIServiceService, IAIServicePlanService aIServicePlanService, IGatewayService gatewayService,
             IKeyVaultHelper keyVaultHelper, IOptionsMonitor<AzureConfigurationOption> options,
             IStorageUtility storageUtility, ILogger<ProvisioningService> logger)
         {
@@ -67,6 +68,7 @@ namespace Luna.Services.Provisoning
             _subscriptionCustomMeterUsageService = subscriptionCustomMeterUsageService ?? throw new ArgumentNullException(nameof(subscriptionCustomMeterUsageService));
             _aiServiceService = aIServiceService ?? throw new ArgumentNullException(nameof(aIServiceService));
             _aiServicePlanService = aIServicePlanService ?? throw new ArgumentNullException(nameof(aIServicePlanService));
+            _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
             _keyVaultHelper = keyVaultHelper ?? throw new ArgumentNullException(nameof(keyVaultHelper));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _storageUtility = storageUtility ?? throw new ArgumentNullException(nameof(storageUtility));
@@ -275,23 +277,54 @@ namespace Luna.Services.Provisoning
                 Offer offer = await FindOfferById(subscription.OfferId);
                 if (offer != null && offer.AIServiceId.HasValue)
                 {
-                    _logger.LogInformation($"Subscribing AI service.");
-                    AIService service = await _aiServiceService.GetByOfferIdAsync(subscription.OfferId);
-                    Plan plan = await FindPlanById(subscription.PlanId);
-                    AIServicePlan servicePlan = await _aiServicePlanService.GetAsync(service.AIServiceName, plan.PlanName);
-                    subscription.AIServiceId = service.Id;
-                    subscription.AIServicePlanId = servicePlan.Id;
+                    if (subscription.ProvisioningType.Equals(nameof(ProvisioningType.Subscribe)))
+                    {
+                        _logger.LogInformation($"Subscribing AI service.");
+                        AIService service = await _aiServiceService.GetByOfferIdAsync(subscription.OfferId);
+                        Plan plan = await FindPlanById(subscription.PlanId);
+                        AIServicePlan servicePlan = await _aiServicePlanService.GetAsync(service.AIServiceName, plan.PlanName);
+                        subscription.AIServiceId = service.Id;
+                        subscription.AIServicePlanId = servicePlan.Id;
 
-                    // TODO: set the correct url when implementing the scale out solution.
-                    subscription.BaseUrl = _options.CurrentValue.Config.ControllerBaseUrl;
+                        Gateway gateway = null;
+                        if (subscription.GatewayId.HasValue)
+                        {
+                            gateway = await _context.Gateways.FindAsync(subscription.GatewayId);
+                        }
+                        else
+                        {
+                            gateway = await _gatewayService.GetLeastUsedPublicGatewayAsync();
+                        }
 
-                    subscription.PrimaryKeySecretName = string.Format(LunaConstants.PRIMARY_KEY_SECRET_NAME_FORMAT, subscription.SubscriptionId.ToString());
-                    subscription.SecondaryKeySecretName = string.Format(LunaConstants.SECONDARY_KEY_SECRET_NAME_FORMAT, subscription.SubscriptionId.ToString());
-                    subscription.PrimaryKey = Guid.NewGuid().ToString("N");
-                    subscription.SecondaryKey = Guid.NewGuid().ToString("N");
-                    await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.PrimaryKeySecretName, subscription.PrimaryKey));
-                    await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName, subscription.SecondaryKey));
-                    _logger.LogInformation($"Subscribed the AI service {service.AIServiceName} with plan {servicePlan.AIServicePlanName}.");
+                        if (gateway != null)
+                        {
+                            subscription.GatewayId = gateway.Id;
+                            subscription.BaseUrl = gateway.EndpointUrl;
+                        }
+                        else
+                        {
+                            throw new LunaServerException($"Can not find the gateway for subscription {subscription.SubscriptionId}");
+                        }
+                        // TODO: set the correct url when implementing the scale out solution.
+                        subscription.BaseUrl = _options.CurrentValue.Config.ControllerBaseUrl;
+
+                        subscription.PrimaryKeySecretName = string.Format(LunaConstants.PRIMARY_KEY_SECRET_NAME_FORMAT, subscription.SubscriptionId.ToString());
+                        subscription.SecondaryKeySecretName = string.Format(LunaConstants.SECONDARY_KEY_SECRET_NAME_FORMAT, subscription.SubscriptionId.ToString());
+                        subscription.PrimaryKey = Guid.NewGuid().ToString("N");
+                        subscription.SecondaryKey = Guid.NewGuid().ToString("N");
+                        await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.PrimaryKeySecretName, subscription.PrimaryKey));
+                        await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName, subscription.SecondaryKey));
+                        _logger.LogInformation($"Subscribed the AI service {service.AIServiceName} with plan {servicePlan.AIServicePlanName}.");
+                    }
+                    else if (subscription.ProvisioningType.Equals(nameof(ProvisioningType.Update)))
+                    {
+                        _logger.LogInformation("Update AI service subscription");
+                        AIService service = await _aiServiceService.GetByOfferIdAsync(subscription.OfferId);
+                        Plan plan = await FindPlanById(subscription.PlanId);
+                        AIServicePlan servicePlan = await _aiServicePlanService.GetAsync(service.AIServiceName, plan.PlanName);
+                        subscription.AIServicePlanId = servicePlan.Id;
+                        _logger.LogInformation($"Updated the AI service {service.AIServiceName} with plan {servicePlan.AIServicePlanName}.");
+                    }
                 }
                 else
                 {
@@ -573,40 +606,46 @@ namespace Luna.Services.Provisoning
             try
             {
                 Offer offer = await FindOfferById(subscription.OfferId);
-
-                if (subscription.ProvisioningStatus.Equals(ProvisioningState.NotificationPending.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                    && offer.ManualCompleteOperation)
+                if (offer.IsAzureMarketplaceOffer)
                 {
-                    _logger.LogInformation($"ManualCompleteOperation of offer {offer.OfferName} is set to true. Will not complete the operation automatically.");
-
-                    return await TransitToNextState(subscription, ProvisioningState.ManualCompleteOperationPending);
-                }
-
-                // Don't need to update marketplace operation for delete data
-                if (!subscription.ProvisioningType.Equals(nameof(ProvisioningType.DeleteData)))
-                {
-                    Plan plan = await FindPlanById(subscription.PlanId);
-
-                    OperationUpdate update = new OperationUpdate
+                    if (subscription.ProvisioningStatus.Equals(ProvisioningState.NotificationPending.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                        && offer.ManualCompleteOperation)
                     {
-                        PlanId = plan.PlanName,
-                        Quantity = subscription.Quantity,
-                        Status = OperationUpdateStatusEnum.Success
-                    };
+                        _logger.LogInformation($"ManualCompleteOperation of offer {offer.OfferName} is set to true. Will not complete the operation automatically.");
 
-                    _logger.LogInformation(
-                        LoggingUtils.ComposeHttpClientLogMessage(
-                            _fulfillmentClient.GetType().Name,
-                            nameof(_fulfillmentClient.UpdateSubscriptionOperationAsync),
-                            subscriptionId));
+                        return await TransitToNextState(subscription, ProvisioningState.ManualCompleteOperationPending);
+                    }
 
-                    var result = await _fulfillmentClient.UpdateSubscriptionOperationAsync(
-                        subscriptionId,
-                        subscription.OperationId ?? Guid.Empty,
-                        update,
-                        Guid.NewGuid(),
-                        Guid.NewGuid(),
-                        default);
+                    // Don't need to update marketplace operation for delete data
+                    if (!subscription.ProvisioningType.Equals(nameof(ProvisioningType.DeleteData)))
+                    {
+                        Plan plan = await FindPlanById(subscription.PlanId);
+
+                        OperationUpdate update = new OperationUpdate
+                        {
+                            PlanId = plan.PlanName,
+                            Quantity = subscription.Quantity,
+                            Status = OperationUpdateStatusEnum.Success
+                        };
+
+                        _logger.LogInformation(
+                            LoggingUtils.ComposeHttpClientLogMessage(
+                                _fulfillmentClient.GetType().Name,
+                                nameof(_fulfillmentClient.UpdateSubscriptionOperationAsync),
+                                subscriptionId));
+
+                        var result = await _fulfillmentClient.UpdateSubscriptionOperationAsync(
+                            subscriptionId,
+                            subscription.OperationId ?? Guid.Empty,
+                            update,
+                            Guid.NewGuid(),
+                            Guid.NewGuid(),
+                            default);
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation($"Offer {offer.OfferName} is not an Azure Marketplace offer. Skip the activation.");
                 }
 
                 switch (subscription.ProvisioningType)
@@ -629,6 +668,7 @@ namespace Luna.Services.Provisoning
                     default:
                         throw new ArgumentException($"Provisioning type {subscription.ProvisioningType} is not supported.");
                 }
+
                 subscription.ActivatedBy = activatedBy;
                 return await TransitToNextState(subscription, ProvisioningState.Succeeded);
             }

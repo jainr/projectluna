@@ -1,4 +1,5 @@
 azureml-sdk
+azureml-mlflow
 flask
 requests
 luna-publish-utils==0.7.3
@@ -11,3 +12,4 @@ PyJWT<2.0.0
 databricks-cli
 applicationinsights
 mlflow
+pyyaml

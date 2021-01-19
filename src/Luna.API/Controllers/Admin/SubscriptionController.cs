@@ -34,6 +34,7 @@ namespace Luna.API.Controllers.Admin
         private readonly IProvisioningService _provisioningService;
         private readonly ICustomMeterEventService _customMeterEventService;
         private readonly IAPISubscriptionService _apiSubscriptionService;
+        private readonly IOfferService _offerService;
         private readonly ILogger<SubscriptionController> _logger;
 
         /// <summary>
@@ -44,7 +45,8 @@ namespace Luna.API.Controllers.Admin
         /// <param name="provisioningService">The provisioning service instance</param>
         /// <param name="logger">The logger.</param>
         public SubscriptionController(ISubscriptionService subscriptionService, IFulfillmentManager fulfillmentManager,
-            IProvisioningService provisioningService, ICustomMeterEventService customMeterEventService, IAPISubscriptionService apiSubscriptionService, ILogger<SubscriptionController> logger)
+            IProvisioningService provisioningService, ICustomMeterEventService customMeterEventService, IOfferService offerService,
+            IAPISubscriptionService apiSubscriptionService, ILogger<SubscriptionController> logger)
         {
             _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
             _fulfillmentManager = fulfillmentManager ?? throw new ArgumentNullException(nameof(fulfillmentManager));
@@ -52,6 +54,7 @@ namespace Luna.API.Controllers.Admin
             _customMeterEventService = customMeterEventService ?? throw new ArgumentNullException(nameof(customMeterEventService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _apiSubscriptionService = apiSubscriptionService ?? throw new ArgumentNullException(nameof(apiSubscriptionService));
+            _offerService = offerService ?? throw new ArgumentNullException(nameof(offerService));
         }
 
         /// <summary>
@@ -161,28 +164,6 @@ namespace Luna.API.Controllers.Admin
                     UserErrorCode.NameMismatch);
             }
 
-            if (subscription.Token != null && subscription.Token.Split('.').Length == 3)
-            {
-                AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, subscription.Owner);
-                var apiSubscription = new APISubscription(subscription);
-                if (await _apiSubscriptionService.ExistsAsync(subscriptionId))
-                {
-                    _logger.LogInformation($"Update apiSubscription {apiSubscription.Name} with payload {JsonSerializer.Serialize(apiSubscription)}.");
-                    await _apiSubscriptionService.UpdateAsync(subscriptionId, apiSubscription);
-                    return Ok(await _apiSubscriptionService.GetAsync(subscriptionId));
-                }
-                else
-                {
-                    _logger.LogInformation($"Create apiSubscription {apiSubscription.Name} with payload {JsonSerializer.Serialize(apiSubscription)}.");
-                    // Create a new apiSubscription
-                    await _apiSubscriptionService.CreateAsync(apiSubscription);
-                    return CreatedAtRoute(nameof(GetAsync) + nameof(APISubscription), new
-                    {
-                        apiSubscriptionId = apiSubscription.SubscriptionId
-                    }, apiSubscription);
-                }
-            }
-
             if (await _subscriptionService.ExistsAsync(subscriptionId))
             {
                 _logger.LogInformation($"Update subscription {subscriptionId} with payload {JsonSerializer.Serialize(subscription)}.");
@@ -202,8 +183,19 @@ namespace Luna.API.Controllers.Admin
                 {
                     throw new LunaConflictUserException($"The subscription {subscription.SubscriptionId} is already in plan {subscription.PlanName}.");
                 }
-                // Update existing subscription
-                await _fulfillmentManager.RequestUpdateSubscriptionAsync(subscriptionId, subscription.PlanName);
+
+                if (sub.Offer.IsAzureMarketplaceOffer)
+                {
+                    _logger.LogInformation($"Send request to Azure Marketplace to update subscription {subscriptionId}.");
+                    // Update existing subscription
+                    await _fulfillmentManager.RequestUpdateSubscriptionAsync(subscriptionId, subscription.PlanName);
+                }
+                else
+                {
+                    _logger.LogInformation($"Update subscription {subscriptionId}.");
+                    await _subscriptionService.UpdateAsync(subscription, Guid.NewGuid());
+                }
+
                 return Ok(await _subscriptionService.GetAsync(subscriptionId));
             }
             else
@@ -230,8 +222,17 @@ namespace Luna.API.Controllers.Admin
 
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, subscription.Owner);
 
-            _logger.LogInformation($"Delete subscription {subscriptionId}.");
-            await _fulfillmentManager.RequestCancelSubscriptionAsync(subscriptionId);
+            if (subscription.Offer.IsAzureMarketplaceOffer)
+            {
+                _logger.LogInformation($"Send request to Azure Marketplace to cancel subscription {subscriptionId}.");
+                await _fulfillmentManager.RequestCancelSubscriptionAsync(subscriptionId);
+            }
+            else
+            {
+                _logger.LogInformation($"Delete subscription {subscriptionId}.");
+                await _subscriptionService.UnsubscribeAsync(subscriptionId, Guid.NewGuid());
+            }
+
             return NoContent();
         }
 

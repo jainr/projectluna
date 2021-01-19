@@ -17,6 +17,7 @@ namespace Luna.Data.Entities
         /// </summary>
         public AIServicePlan()
         {
+            GatewayNames = new List<string>();
         }
 
         /// <summary>
@@ -27,6 +28,7 @@ namespace Luna.Data.Entities
         {
             this.AIServicePlanDisplayName = servicePlan.AIServicePlanDisplayName;
             this.Description = servicePlan.Description;
+            
         }
 
         public bool IsModelPlanType()
@@ -68,10 +70,16 @@ namespace Luna.Data.Entities
 
         public DateTime LastUpdatedTime { get; set; }
 
+        [NotMapped]
+        public List<string> GatewayNames { get; set; }
+
         [JsonIgnore]
         public virtual AIService AIService { get; set; }
 
         [JsonIgnore]
         public virtual ICollection<APIVersion> Versions { get; set; }
+
+        [JsonIgnore]
+        public virtual ICollection<AIServicePlanGateway> AIServicePlanGateways { get; set; }
     }
 }

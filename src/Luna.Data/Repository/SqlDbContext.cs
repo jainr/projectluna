@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Luna.Data.Entities;
 using Luna.Data.Entities.Luna.AI;
@@ -41,7 +42,7 @@ namespace Luna.Data.Repository
         public DbSet<APIVersion> APIVersions { get; set; }
         public DbSet<AMLWorkspace> AMLWorkspaces { get; set; }
         public DbSet<APISubscription> APISubscriptions { get; set; }
-        public DbSet<AIAgent> AIAgents { get; set; }
+        public DbSet<Gateway> Gateways { get; set; }
 
         public DbSet<AgentSubscription> AgentSubscriptions { get; set; }
         public DbSet<AgentAPIVersion> AgentAPIVersions { get; set; }
@@ -57,6 +58,7 @@ namespace Luna.Data.Repository
 
         public DbSet<AMLPipelineEndpoint> AMLPipelineEndpoints { get; set; }
         public DbSet<MLModel> MLModels { get; set; }
+        public DbSet<AIServicePlanGateway> AIServicePlanGateways { get; set; }
 
         // Wrappers for DbContext methods that are used
         public async Task<int> _SaveChangesAsync()
@@ -90,6 +92,9 @@ namespace Luna.Data.Repository
 
             modelBuilder.Entity<WebhookWebhookParameter>()
                     .HasKey(x => new { x.WebhookId, x.WebhookParameterId });
+
+            modelBuilder.Entity<AIServicePlanGateway>()
+                .HasKey(x => new { x.AIServicePlanId, x.GatewayId });
 
             modelBuilder.Entity<Plan>(plan =>
             {
