@@ -40,7 +40,9 @@ namespace Luna.Services.Data
         private readonly IGatewayService _gatewayService;
         private readonly IAIServicePlanService _deploymentService;
         private readonly IAPISubscriptionService _apiSubscriptionService;
+        private readonly IKeyVaultHelper _keyVaultHelper;
         private readonly ILogger<SubscriptionService> _logger;
+        private readonly IOptionsMonitor<AzureConfigurationOption> _options;
 
         /// <summary>
         /// Constructor that uses dependency injection.
@@ -63,7 +65,7 @@ namespace Luna.Services.Data
             IGatewayService gatewayService,
             IAIServicePlanService deploymentService,
             IAPISubscriptionService apiSubscriptionService,
-            ILogger<SubscriptionService> logger)
+            ILogger<SubscriptionService> logger, IOptionsMonitor<AzureConfigurationOption> options, IKeyVaultHelper keyVaultHelper)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
             _offerService = offerService ?? throw new ArgumentNullException(nameof(offerService));
@@ -77,6 +79,8 @@ namespace Luna.Services.Data
             _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
             _deploymentService = deploymentService ?? throw new ArgumentNullException(nameof(deploymentService));
             _apiSubscriptionService = apiSubscriptionService ?? throw new ArgumentNullException(nameof(apiSubscriptionService));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _keyVaultHelper = keyVaultHelper ?? throw new ArgumentNullException(nameof(keyVaultHelper));
         }
 
         /// <summary>
@@ -99,6 +103,14 @@ namespace Luna.Services.Data
             {
                 sub.PlanName = (await _context.Plans.FindAsync(sub.PlanId)).PlanName;
                 sub.OfferName = (await _context.Offers.FindAsync(sub.OfferId)).OfferName;
+                if (!string.IsNullOrEmpty(sub.PrimaryKeySecretName))
+                {
+                    sub.PrimaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, sub.PrimaryKeySecretName);
+                }
+                if (!string.IsNullOrEmpty(sub.SecondaryKeySecretName))
+                {
+                    sub.SecondaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, sub.SecondaryKeySecretName);
+                }
             }
             _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(Subscription).Name, subscriptionList.Count()));
 
@@ -152,16 +164,16 @@ namespace Luna.Services.Data
 
             subscription.OfferName = (await _context.Offers.FindAsync(subscription.OfferId)).OfferName;
             subscription.PlanName = (await _context.Plans.FindAsync(subscription.PlanId)).PlanName;
-            try
+
+            if (!string.IsNullOrEmpty(subscription.PrimaryKeySecretName))
             {
-                var apiSubscription = await _apiSubscriptionService.GetAsync(subscription.SubscriptionId);
-                subscription.PrimaryKey = apiSubscription.PrimaryKey;
-                subscription.SecondaryKey = apiSubscription.SecondaryKey;
-                subscription.BaseUrl = apiSubscription.BaseUrl;
+                subscription.PrimaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.PrimaryKeySecretName);
             }
-            catch(LunaNotFoundUserException)
+            if (!string.IsNullOrEmpty(subscription.SecondaryKeySecretName))
             {
+                subscription.SecondaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName);
             }
+
             _logger.LogInformation(LoggingUtils.ComposeReturnValueMessage(typeof(Subscription).Name,
                 subscriptionId.ToString(),
                 JsonSerializer.Serialize(subscription)));

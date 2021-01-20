@@ -5,7 +5,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Luna.Clients.Exceptions;
 using Luna.Clients.Logging;
+using Luna.Data.Constants;
 using Luna.Data.DataContracts;
+using Luna.Data.DataContracts.Luna.AI;
 using Luna.Data.Entities;
 using Luna.Data.Enums;
 using Luna.Data.Repository;
@@ -31,6 +33,48 @@ namespace Luna.Services.Data
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        /// <summary>
+        /// Get all AI marketplace offers
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<AIMarketplaceOffer>> GetAIMarketplaceOffersAsync()
+        {
+            var offers = await GetAllAsync();
+            List<AIMarketplaceOffer> aimpOffers = new List<AIMarketplaceOffer>();
+            foreach(var offer in offers)
+            {
+                if (offer.AIServiceId.HasValue)
+                {
+                    var aiService = await _context.AIServices.FindAsync(offer.AIServiceId.Value);
+                    var aimpOffer = new AIMarketplaceOffer()
+                    {
+                        OfferName = offer.OfferName,
+                        OfferDisplayName = aiService.DisplayName,
+                        PublisherName = aiService.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY) == null ? "Unknown" : aiService.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY),
+                        LogoImageUrl = aiService.LogoImageUrl,
+                        DocumentationUrl = aiService.DocumentationUrl,
+                        Description = aiService.Description,
+                        SubscribePageUrl = aiService.DocumentationUrl
+                    };
+
+                    // Consolidate display name so we don't need to get AIServicePlan
+                    var plans = await _context.AIServicePlans.Where(p => p.AIServiceId == aiService.Id).ToListAsync();
+                    foreach (var plan in plans)
+                    {
+                        aimpOffer.Plans.Add(new AIMarketplacePlan()
+                        {
+                            PlanName = plan.AIServicePlanName,
+                            PlanDisplayName = plan.AIServicePlanDisplayName,
+                            Description = plan.Description
+                        });
+                    }
+                    aimpOffers.Add(aimpOffer);
+                }
+            }
+
+            return aimpOffers;
         }
 
         /// <summary>

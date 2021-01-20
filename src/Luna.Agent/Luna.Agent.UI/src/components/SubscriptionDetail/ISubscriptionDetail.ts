@@ -2,33 +2,16 @@
 // Licensed under the MIT License.
 
 export interface ISubscriptionDetail {
-  AMLWorkspaceComputeClusterName: string;
-  AMLWorkspaceDeploymentClusterName: string;
-  AMLWorkspaceDeploymentTargetType: string;
-  AMLWorkspaceId: number;
-  AMLWorkspaceName: string;
-  Admins: any[];
-  AgentId: string;
-  AvailablePlans: any[];
-  BaseUrl: string;
-  CreatedTime: string;
-  DeploymentName: string;
-  HostType: string;
-  Id: number;
-  OfferName?: any;
-  PlanName?: any;
-  PrimaryKey: string;
-  PrimaryKeySecretName: string;
-  ProductName: string;
-  ProductType: string;
-  PublisherId: string;
-  SecondaryKey: string;
-  SecondaryKeySecretName: string;
-  Status: string;
-  SubscriptionId: string;
-  SubscriptionName: string;
-  UserId: string;
-  Users: any[];
+  baseUrl: string;
+  createdTime: string;
+  offerName?: any;
+  planName?: any;
   primaryKey: string;
+  primaryKeySecretName: string;
   secondaryKey: string;
+  secondaryKeySecretName: string;
+  status: string;
+  subscriptionId: string;
+  subscriptionName: string;
+  owner: string;
 }

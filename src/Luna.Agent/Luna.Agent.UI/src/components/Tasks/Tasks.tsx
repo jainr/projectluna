@@ -5,11 +5,11 @@ import * as React from 'react';
 import FooterLinks from '../FooterLinks/FooterLinks';
 import { UnderConstruction } from '../_subcomponents/UnderConstruction/UnderConstruction';
 
-/** @component Tasks View. */
+/** @component FeatureStores View. */
 function Tasks() {
   return (
     <div className="Tasks">
-      <UnderConstruction title="Tasks" />
+      <UnderConstruction title="Feature Store" />
       <FooterLinks />
     </div>
   );

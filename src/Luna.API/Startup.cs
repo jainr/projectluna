@@ -176,7 +176,8 @@ namespace Luna.API
      this.configuration["AzureAD:ClientId"],
      $"api://{this.configuration["AzureAD:ClientId"]}",
      "9348a48a-9f97-4e9e-bce2-40d239840733",
-     "52ed21f2-32e1-4df0-86be-00f5795e7137"
+     "52ed21f2-32e1-4df0-86be-00f5795e7137",
+     "32194131-5cf5-4acd-b59c-d7671f882b70"
     };
                 options.ClaimsIssuer = @"https://login.microsoftonline.com/{tenantid}/v2";
 

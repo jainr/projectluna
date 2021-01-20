@@ -17,5 +17,6 @@ namespace Luna.Data.Constants
         public const string SECONDARY_KEY_SECRET_NAME_FORMAT = "secondary-{0}";
         public const string GITHUB_REPO_HOST = "github.com";
         public const string AZURE_DEVOPS_REPO_HOST_SUFFIX = ".visualstudio.com";
+        public const string PUBLISHER_TAG_KEY = "publisher";
     }
 }

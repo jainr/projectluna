@@ -12,7 +12,6 @@ import { getUserByEmail, getOtherUserPhoto } from '../../GraphService';
 import { IUserLookUp } from '../../interfaces/IUserLookUp';
 import { PanelStyles } from '../../helpers/PanelStyles';
 import { CustomInfoAddUserLabel } from '../_subcomponents/CustomInfoAddUserLabel';
-import { DefaultSettings } from './SubscriptionDetail.DefaultSettings';
 import { DeleteSubscription } from './SubscriptionDetail.DeleteSubscription';
 
 /** @component Subscription Detail sub view. */
@@ -21,47 +20,18 @@ const SubscriptionDetail: React.FunctionComponent = () => {
   const id = params.id;
 
   const [subscriptionData, setData] = React.useState<ISubscriptionDetail>({
-    AMLWorkspaceName: "",
-    AMLWorkspaceId: 0,
-    Admins: [{
-      AADUserId: "",
-      Description: "",
-      Id: 1,
-      Role: "",
-      SubscriptionId: ""
-    }],
-    AgentId: "",
-    AvailablePlans: [""],
-    BaseUrl: "",
-    CreatedTime: "",
-    DeploymentName: "",
-    HostType: "",
-    Id: 0,
-    OfferName: "",
-    PlanName: "",
-    PrimaryKey: "",
-    ProductName: "",
-    ProductType: "",
-    PublisherId: "",
-    SecondaryKey: "",
-    Status: "",
-    SubscriptionId: "",
-    SubscriptionName: "",
-    UserId: "",
+    baseUrl: "",
+    createdTime: "",
+    offerName: "",
+    planName: "",
     primaryKey: "",
     secondaryKey: "",
-    PrimaryKeySecretName: "",
-    SecondaryKeySecretName: "",
-    AMLWorkspaceComputeClusterName: "",
-    AMLWorkspaceDeploymentClusterName: "",
-    AMLWorkspaceDeploymentTargetType: "",
-    Users: [{
-      AADUserId: "",
-      Description: "",
-      Id: 0,
-      Role: "",
-      SubscriptionId: ""
-    }]
+    status: "",
+    subscriptionId: "",
+    subscriptionName: "",
+    owner: "",
+    primaryKeySecretName: "",
+    secondaryKeySecretName: ""
   });
 
   const [isCopySuccess, setSuccess] = React.useState<boolean>(false);
@@ -103,7 +73,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
 
   const renderLabel = (): JSX.Element => {
     const copyClick = () => {
-      const urlValue = subscriptionData?.BaseUrl;
+      const urlValue = subscriptionData?.baseUrl;
       const selBox = document.createElement('textarea');
       selBox.style.position = 'fixed';
       selBox.style.left = '0';
@@ -129,7 +99,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
         <Stack horizontal verticalAlign="baseline" horizontalAlign="space-between">
           <Text variant={'mediumPlus'}>Base URL</Text>
 
-          <CommandButton onClick={copyClick} iconProps={{ iconName: 'Copy' }}>Copy URL</CommandButton>
+          <CommandButton onClick={copyClick} iconProps={{ iconName: 'Copy' }}>Copy</CommandButton>
         </Stack>
       </Stack>
     )
@@ -138,7 +108,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
 
   const renderLabel2 = (): JSX.Element => {
     const copyClick = () => {
-      const urlValue = subscriptionData?.PrimaryKey;
+      const urlValue = subscriptionData?.primaryKey;
       const selBox = document.createElement('textarea');
       selBox.style.position = 'fixed';
       selBox.style.left = '0';
@@ -164,7 +134,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
         <Stack horizontal verticalAlign="baseline" horizontalAlign="space-between">
           <Text variant={'mediumPlus'}>Primary Key</Text>
 
-          <CommandButton onClick={copyClick} iconProps={{ iconName: 'Copy' }}>Copy URL</CommandButton>
+          <CommandButton onClick={copyClick} iconProps={{ iconName: 'Copy' }}>Copy</CommandButton>
         </Stack>
       </Stack>
     )
@@ -173,7 +143,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
 
   const renderLabel3 = (): JSX.Element => {
     const copyClick = () => {
-      const urlValue = subscriptionData?.SecondaryKey;
+      const urlValue = subscriptionData?.secondaryKey;
       const selBox = document.createElement('textarea');
       selBox.style.position = 'fixed';
       selBox.style.left = '0';
@@ -199,7 +169,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
         <Stack horizontal verticalAlign="baseline" horizontalAlign="space-between">
           <Text variant={'mediumPlus'}>Secondary Key</Text>
 
-          <CommandButton onClick={copyClick} iconProps={{ iconName: 'Copy' }}>Copy URL</CommandButton>
+          <CommandButton onClick={copyClick} iconProps={{ iconName: 'Copy' }}>Copy</CommandButton>
         </Stack>
       </Stack>
     )
@@ -377,10 +347,14 @@ const SubscriptionDetail: React.FunctionComponent = () => {
             <DeleteSubscription SubscriptionId={id} />
           </StackItem>
         </Stack>
+        
+        <p style={{ display: subscriptionData?.baseUrl && subscriptionData?.baseUrl.length >= 1 ? "none" : "block" }}>
+            <Text variant={'medium'}>Loading Subscription Details...</Text>
+        </p>
 
         <div className="items">
           <TextField
-            value={subscriptionData?.BaseUrl}
+            value={subscriptionData?.baseUrl}
             readOnly={true}
             borderless={true}
             label="Base URL"
@@ -388,7 +362,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
             onRenderLabel={renderLabel}
           ></TextField>
           <TextField
-            value={subscriptionData?.PrimaryKey}
+            value={subscriptionData?.primaryKey}
             readOnly={true}
             borderless={true}
             label="Primary Key"
@@ -397,7 +371,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
             onRenderLabel={renderLabel2}
           ></TextField>
           <TextField
-            value={subscriptionData?.SecondaryKey}
+            value={subscriptionData?.secondaryKey}
             readOnly={true}
             borderless={true}
             label="Secondary Key"
@@ -405,55 +379,6 @@ const SubscriptionDetail: React.FunctionComponent = () => {
             disabled={true}
             onRenderLabel={renderLabel3}
           ></TextField>
-        </div>
-
-        <div id="details">
-          <div className="wrapper">
-            {
-              subscriptionData.HostType !== 'SaaS' &&
-              <div className="column">
-                <DefaultSettings subscriptionID={id} subscriptionData={subscriptionData} />
-              </div>
-            }
-
-            <div className="column">
-              <Text variant={'xLarge'}>User Access Management</Text>
-              <div style={{
-                margin: "15px auto",
-                display: subscriptionData?.Users.length !== 0 ? "none" : "block"
-              }}>
-                <MessageBar
-                  messageBarType={MessageBarType.warning}
-                >No users assigned.</MessageBar>
-              </div>
-              <DetailsList
-                styles={{ root: { display: subscriptionData?.Users.length === 0 ? "none" : "block" } }}
-                columns={columns}
-                selectionMode={SelectionMode.none}
-                items={subscriptionData?.Users}
-              />
-              <div>
-                <CommandButton onClick={openPanel} iconProps={{ iconName: "Add" }}>Add User</CommandButton>
-              </div>
-            </div>
-            <div className="column">
-              <Text variant={'xLarge'}>Adminstrators</Text>
-              <div style={{
-                margin: "15px auto",
-                display: subscriptionData?.Admins.length !== 0 ? "none" : "block"
-              }}>
-                <MessageBar
-                  messageBarType={MessageBarType.severeWarning}
-                >No Administrators assigned.</MessageBar>
-              </div>
-              <DetailsList
-                styles={{ root: { display: subscriptionData?.Admins.length === 0 ? "none" : "block" } }}
-                columns={adminColumns}
-                selectionMode={SelectionMode.none}
-                items={subscriptionData?.Admins}
-              />
-            </div>
-          </div>
         </div>
 
       </div>
