@@ -46,7 +46,7 @@ namespace Luna.API.Controllers.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAllAIMarketplaceOffersAsync()
         {
-            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
+            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false);
             _logger.LogInformation("Get all AI Marketplace offers.");
             return Ok(await _offerService.GetAIMarketplaceOffersAsync());
         }

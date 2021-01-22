@@ -13,10 +13,13 @@ export const shallowCompare = (obj1, obj2) =>
 
 export const getInitialDeployment = (): IDeploymentsModel => {
   return {
-    productName: '',
+    aiServiceName: '',
     selecteddeploymentName:'',
     versionName: '',
-    deploymentName: '',
+    aiServicePlanName: '',
+    aiServicePlanDisplayName: '',
+    selectedPlanType: '',
+    planType:'',
     description: '',
     isSaved: false,
     isModified: false,
@@ -26,32 +29,32 @@ export const getInitialDeployment = (): IDeploymentsModel => {
 
 export const getInitialVersion = (): IDeploymentVersionModel => {
   return {
-    productName: '',
-    deploymentName: '',
+    productType: '',
+    aiServiceName: '',
+    aiServicePlanName: '',
     versionName: '',
-    realTimePredictAPI: '',
-    trainModelId: '',
-    batchInferenceId: '',
-    deployModelId: '',
-    authenticationType: '',
-    authenticationKey: '',
     amlWorkspaceName: '',
+    gitRepoName: '',
+    endpointName: '',
+    gitVersion: '',
+    linkedServiceType: '',
+    isUseDefaultRunConfig: true,
+    isRunProjectOnManagedCompute: true,
+    linkedServiceComputeTarget: '',
+    runConfigFile: '',
+    selectedVersionName: '',
+    deployModelId: '',
     advancedSettings: '',
-    selectedVersionName:'',
-    versionSourceType:'',
-    gitUrl:'',
-    gitPersonalAccessToken  :'',
-    gitVersion:'',
-    projectFileUrl:'',
-    projectFileContent:'',
-    configFile:'luna_config.yml'
   }
 };
 
 export const initialDeploymentList: IDeploymentsModel[] = [{
-  productName: 'a1',
+  aiServiceName: 'a1',
   selecteddeploymentName:'',
-  deploymentName: 'd1',
+  aiServicePlanName: 'd1',
+  aiServicePlanDisplayName: '',
+  selectedPlanType: '',
+  planType:'',
   versionName: '1.0',
   description: '',
   isDeleted: false,
@@ -60,9 +63,12 @@ export const initialDeploymentList: IDeploymentsModel[] = [{
   clientId: uuid()
 },
 {
-  productName: 'b1',
+  aiServiceName: 'b1',
   selecteddeploymentName:'',
-  deploymentName: 'd2',
+  aiServicePlanName: 'd2',
+  aiServicePlanDisplayName: '',
+  selectedPlanType: '',
+  planType:'',
   versionName: '2.0',
   description: '',
   isDeleted: false,
@@ -86,10 +92,13 @@ export const initialDeploymentFormValues: IDeploymentFormValues = {
 const deploymentValidator: ObjectSchema<IDeploymentsModel> = yup.object().shape(
   {
     clientId: yup.string(),
-    productName: yup.string(),
+    aiServiceName: yup.string(),
+    aiServicePlanDisplayName: yup.string(),
+    planType: yup.string(),
+    selectedPlanType: yup.string(),
     selecteddeploymentName:yup.string(),
     versionName: yup.string(),
-    deploymentName: yup.string()
+    aiServicePlanName: yup.string()
       .required("Id is a required field")
       .matches(objectIdNameRegExp,
         {
@@ -104,7 +113,11 @@ export const deletedeploymentValidator: ObjectSchema<IDeploymentsModel> = yup.ob
   {
 
     clientId: yup.string(),
-    productName: yup.string(),
+    aiServiceName: yup.string(),
+    aiServicePlanName: yup.string(),
+    aiServicePlanDisplayName: yup.string(),
+    planType: yup.string(),
+    selectedPlanType: yup.string(),
     selecteddeploymentName:yup.string()
       .test('selecteddeploymentName', 'Deployment name does not match', function (value: string) {        
         const name: string = this.parent.deployment.deploymentName;
@@ -114,7 +127,6 @@ export const deletedeploymentValidator: ObjectSchema<IDeploymentsModel> = yup.ob
         return value.toLowerCase() === name.toLowerCase();
       }).required("Deployment Name is a required field"),
     versionName: yup.string(),
-    deploymentName: yup.string(),
     description: yup.string(),
 
   }
@@ -122,74 +134,42 @@ export const deletedeploymentValidator: ObjectSchema<IDeploymentsModel> = yup.ob
 
 const versionFormValidator: ObjectSchema<IDeploymentVersionModel> = yup.object().shape(
   {
-    deploymentName: yup.mixed().notRequired(),
-    deploymentVersionList: yup.array(),
-
-    versionName: yup.string()
-      .matches(versionNameRegExp,
-        {
-          message: ErrorMessage.versionName,
-          excludeEmptyString: true
-        })
-      .required("versionName is a required field"),
-    productName: yup.string(),
-    trainModelApi: yup.string(),
-    batchInferenceId: yup.string(),
+    productType: yup.string(),
+    aiServiceName: yup.string(),
+    aiServicePlanName: yup.string(),
+    versionName: yup.string(),
+    amlWorkspaceName: yup.string(),
+    gitRepoName: yup.string(),
+    endpointName: yup.string(),
+    gitVersion: yup.string(),
+    linkedServiceType: yup.string(),
+    isUseDefaultRunConfig: yup.boolean(),
+    isRunProjectOnManagedCompute: yup.boolean(),
+    linkedServiceComputeTarget: yup.string(),
+    runConfigFile: yup.string(),
+    selectedVersionName: yup.string(),
     deployModelId: yup.string(),
-    authenticationType: yup.string(),
-    authenticationKey: yup.string(),
-    //amlWorkspaceName: yup.mixed().notRequired(),
-    amlWorkspaceName: yup.mixed()
-    .when('versionSourceType', {is: (val) => { return val === 'git' || val === 'amlPipeline'}, 
-                then: yup.string().required('AMLWorkspace is Required'),
-                otherwise: yup.mixed().notRequired()}),
-    realTimePredictAPI: yup.string().url("It must be an valid url."),
-    trainModelId: yup.string(),
-    advancedSettings: yup.string().nullable(true),
-    selectedVersionName:yup.string(),
-    versionSourceType:yup.string(),
-    gitUrl:yup.string()
-    .when('versionSourceType', {is: (val) => { return val === 'git'}, 
-                then: yup.string().required('Git url is Required').url("It must be an valid url."),
-                otherwise: yup.string().notRequired()}),
-    gitPersonalAccessToken:yup.mixed()
-    .when('versionSourceType', {is: (val) => { return val === 'git'}, 
-                then: yup.string().required('Git personal access token is Required'),
-                otherwise: yup.mixed().notRequired()}),
-    gitVersion:yup.mixed()
-    .when('versionSourceType', {is: (val) => { return val === 'git'}, 
-                then: yup.string().required('Git version is Required'),
-                otherwise: yup.mixed().notRequired()}),
-    projectFileUrl:yup.string(),
-    projectFileContent:yup.string(),
-    configFile:yup.mixed()
-    .when('versionSourceType', {is: (val) => { return val === 'git'}, 
-                then: yup.string().required('Config file name is Required'),
-                otherwise: yup.mixed().notRequired()})
+    advancedSettings: yup.string(),
   }
 );
 
 export const deleteVersionValidator: ObjectSchema<IDeploymentVersionModel> = yup.object().shape(
   {
-    deploymentName: yup.mixed().notRequired(),
-    deploymentVersionList: yup.array(),
+    productType: yup.string(),
+    aiServiceName: yup.string(),
+    aiServicePlanName: yup.string(),
     versionName: yup.string(),
-    productName: yup.string(),
-    trainModelApi: yup.string(),
-    batchInferenceId: yup.string(),
+    amlWorkspaceName: yup.string(),
+    gitRepoName: yup.string(),
+    endpointName: yup.string(),
+    gitVersion: yup.string(),
+    linkedServiceType: yup.string(),
+    isUseDefaultRunConfig: yup.boolean(),
+    isRunProjectOnManagedCompute: yup.boolean(),
+    linkedServiceComputeTarget: yup.string(),
+    runConfigFile: yup.string(),
     deployModelId: yup.string(),
-    authenticationType: yup.string(),
-    authenticationKey: yup.string(),
-    amlWorkspaceName: yup.mixed().notRequired(),
-    realTimePredictAPI: yup.string(),
-    trainModelId: yup.string(),
-    advancedSettings: yup.string().nullable(true),
-    versionSourceType:yup.string(),
-    gitUrl:yup.string(),
-    gitPersonalAccessToken:yup.string(),
-    gitVersion:yup.string(),
-    projectFileUrl:yup.string(),
-    projectFileContent:yup.string(),
+    advancedSettings: yup.string(),
     selectedVersionName:yup.string()
     .test('selectedVersionName', 'Version name does not match', function (value: string) {         
       const name: string = this.parent.versionName;

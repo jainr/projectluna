@@ -16,6 +16,8 @@ using Luna.Services.Utilities.ExpressionEvaluation;
 using Luna.Clients.Azure;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Luna.Data.Constants;
+using Luna.Clients;
+using Luna.Data.DataContracts.Luna.AI;
 
 namespace Luna.Services.Data.Luna.AI
 {
@@ -24,6 +26,7 @@ namespace Luna.Services.Data.Luna.AI
         private readonly ISqlDbContext _context;
         private readonly ILogger<AMLWorkspaceService> _logger;
         private readonly IKeyVaultHelper _keyVaultHelper;
+        private readonly IAMLClient _amlClient;
         private readonly IOptionsMonitor<AzureConfigurationOption> _options;
 
         /// <summary>
@@ -33,10 +36,11 @@ namespace Luna.Services.Data.Luna.AI
         /// <param name="sqlDbContext">The context to be injected.</param>
         /// <param name="logger">The logger.</param>
         /// <param name="keyVaultHelper">The key vault helper.</param>
-        public AMLWorkspaceService(IOptionsMonitor<AzureConfigurationOption> options,
+        public AMLWorkspaceService(IOptionsMonitor<AzureConfigurationOption> options, IAMLClient amlClient,
             ISqlDbContext sqlDbContext, ILogger<AMLWorkspaceService> logger, IKeyVaultHelper keyVaultHelper)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _amlClient = amlClient ?? throw new ArgumentNullException(nameof(options));
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _keyVaultHelper = keyVaultHelper;
@@ -96,6 +100,42 @@ namespace Luna.Services.Data.Luna.AI
                JsonSerializer.Serialize(workspace)));
 
             return workspace;
+        }
+
+        /// <summary>
+        /// Get all models from a workspace
+        /// </summary>
+        /// <param name="workspaceName">The workspace name</param>
+        /// <returns>All models registered in the workspace</returns>
+        public async Task<List<MLModelArtifact>> GetAllModelsAsync(string workspaceName)
+        {
+            var workspace = await GetAsync(workspaceName, returnSecret: true);
+            var models = await _amlClient.GetModels(workspace);
+            return models;
+        }
+
+        /// <summary>
+        /// Get all endpoints from a workspace
+        /// </summary>
+        /// <param name="workspaceName">The workspace name</param>
+        /// <returns>All endpoints published in the workspace</returns>
+        public async Task<List<MLEndpointArtifact>> GetAllEndpointsAsync(string workspaceName)
+        {
+            var workspace = await GetAsync(workspaceName, returnSecret: true);
+            var endpoints = await _amlClient.GetEndpoints(workspace);
+            return endpoints;
+        }
+
+        /// <summary>
+        /// Get all compute clusters from a workspace
+        /// </summary>
+        /// <param name="workspaceName">The workspace name</param>
+        /// <returns>All compute clusters in the workspace</returns>
+        public async Task<List<AMLComputeCluster>> GetAllComputeClustersAsync(string workspaceName)
+        {
+            var workspace = await GetAsync(workspaceName, returnSecret: true);
+            var clusters = await _amlClient.GetComputeClusters(workspace);
+            return clusters;
         }
 
         /// <summary>

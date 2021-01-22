@@ -44,7 +44,9 @@ export const ProductMessages =
     },
     deployment: {
         DeploymentName: '',
-        Description: ''        
+        Description: '',
+        DisplayName: '',
+        PlanType: ''   
     },
     Version: {
         DeploymentName: '',

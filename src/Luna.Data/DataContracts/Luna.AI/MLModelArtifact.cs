@@ -7,7 +7,7 @@ namespace Luna.Data.DataContracts.Luna.AI
     public class MLModelArtifact
     {
         public string Name { get; set; }
-        public int Version { get; set; }
+        public string Version { get; set; }
         public string Framework { get; set; }
         public string FrameworkVersion { get; set; }
     }

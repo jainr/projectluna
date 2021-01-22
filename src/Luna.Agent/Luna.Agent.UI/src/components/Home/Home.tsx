@@ -94,7 +94,8 @@ class Home extends React.Component<{}, BaseSubscription> {
   async componentWillMount() {
 
     const bearerToken = 'Bearer ' + sessionStorage.getItem(`msal.${window.MSAL_CONFIG.appId}.idtoken`);
-    const requestURL = window.BASE_URL + '/subscriptions';
+    const userPrincipalId = sessionStorage.getItem('_userEmail');
+    const requestURL = window.BASE_URL + '/subscriptions?owner='+userPrincipalId;
 
     fetch(requestURL, {
       mode: "cors",

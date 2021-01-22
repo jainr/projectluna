@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Luna.Data.Entities;
 using Luna.Data.DataContracts;
+using Luna.Data.DataContracts.Luna.AI;
 
 namespace Luna.Services.Data
 {
@@ -23,6 +24,27 @@ namespace Luna.Services.Data
         /// <param name="returnSecret">If return AAD secret</param>
         /// <returns>The workspace.</returns>
         Task<AMLWorkspace> GetAsync(string workspaceName, bool returnSecret = false);
+
+        /// <summary>
+        /// Get all models from a workspace
+        /// </summary>
+        /// <param name="workspaceName">The workspace name</param>
+        /// <returns>All models registered in the workspace</returns>
+        Task<List<MLModelArtifact>> GetAllModelsAsync(string workspaceName);
+
+        /// <summary>
+        /// Get all endpoints from a workspace
+        /// </summary>
+        /// <param name="workspaceName">The workspace name</param>
+        /// <returns>All endpoints published in the workspace</returns>
+        Task<List<MLEndpointArtifact>> GetAllEndpointsAsync(string workspaceName);
+
+        /// <summary>
+        /// Get all compute clusters from a workspace
+        /// </summary>
+        /// <param name="workspaceName">The workspace name</param>
+        /// <returns>All compute clusters in the workspace</returns>
+        Task<List<AMLComputeCluster>> GetAllComputeClustersAsync(string workspaceName);
 
         /// <summary>
         /// Creates an workspace.

@@ -381,6 +381,24 @@ const SubscriptionDetail: React.FunctionComponent = () => {
           ></TextField>
         </div>
 
+        <p>
+            <Text variant={'large'}></Text>
+        </p>
+
+        <Stack verticalAlign="space-between" style={{paddingTop:"20px"}}>
+          <StackItem>
+            <Text variant={'large'} block>Resources:</Text>
+          </StackItem>
+          <StackItem>
+            <Link  href="https://aka.ms/lunaai" target="blank">Swagger</Link>
+          </StackItem>
+          <StackItem>
+            <Link  href="https://aka.ms/lunaai" target="blank">Sample Notebook</Link>
+          </StackItem>
+          <StackItem>
+            <Link  href="https://aka.ms/lunaai" target="blank">Documentation</Link>
+          </StackItem>
+        </Stack>
       </div>
 
 

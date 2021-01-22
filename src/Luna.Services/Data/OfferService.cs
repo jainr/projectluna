@@ -48,29 +48,32 @@ namespace Luna.Services.Data
                 if (offer.AIServiceId.HasValue)
                 {
                     var aiService = await _context.AIServices.FindAsync(offer.AIServiceId.Value);
-                    var aimpOffer = new AIMarketplaceOffer()
+                    if (aiService != null)
                     {
-                        OfferName = offer.OfferName,
-                        OfferDisplayName = aiService.DisplayName,
-                        PublisherName = aiService.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY) == null ? "Unknown" : aiService.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY),
-                        LogoImageUrl = aiService.LogoImageUrl,
-                        DocumentationUrl = aiService.DocumentationUrl,
-                        Description = aiService.Description,
-                        SubscribePageUrl = aiService.DocumentationUrl
-                    };
-
-                    // Consolidate display name so we don't need to get AIServicePlan
-                    var plans = await _context.AIServicePlans.Where(p => p.AIServiceId == aiService.Id).ToListAsync();
-                    foreach (var plan in plans)
-                    {
-                        aimpOffer.Plans.Add(new AIMarketplacePlan()
+                        var aimpOffer = new AIMarketplaceOffer()
                         {
-                            PlanName = plan.AIServicePlanName,
-                            PlanDisplayName = plan.AIServicePlanDisplayName,
-                            Description = plan.Description
-                        });
+                            OfferName = offer.OfferName,
+                            OfferDisplayName = aiService.DisplayName,
+                            PublisherName = aiService.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY) == null ? "Unknown" : aiService.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY),
+                            LogoImageUrl = aiService.LogoImageUrl,
+                            DocumentationUrl = aiService.DocumentationUrl,
+                            Description = aiService.Description,
+                            SubscribePageUrl = aiService.DocumentationUrl
+                        };
+
+                        // Consolidate display name so we don't need to get AIServicePlan
+                        var plans = await _context.AIServicePlans.Where(p => p.AIServiceId == aiService.Id).ToListAsync();
+                        foreach (var plan in plans)
+                        {
+                            aimpOffer.Plans.Add(new AIMarketplacePlan()
+                            {
+                                PlanName = plan.AIServicePlanName,
+                                PlanDisplayName = plan.AIServicePlanDisplayName,
+                                Description = plan.Description
+                            });
+                        }
+                        aimpOffers.Add(aimpOffer);
                     }
-                    aimpOffers.Add(aimpOffer);
                 }
             }
 

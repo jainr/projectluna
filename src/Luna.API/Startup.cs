@@ -266,6 +266,9 @@ namespace Luna.API
             services.AddHttpClient<IProvisioningClient, ProvisioningClient>()
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
+            services.AddHttpClient<IAMLClient, AMLClient>()
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
 
             services.AddHttpClient<ICustomMeteringClient, CustomMeteringClient>();
 

@@ -138,7 +138,7 @@ const AIServices = () => {
     title: 'New Subscription is being created',
     closeButtonAriaLabel: 'Close',
     isMultiline: true,
-    subText: `New subscription  ${newSubscription.SubscriptionId} is being created. Go to the Subscription tab to track the status.`,
+    subText: `New subscription ${newSubscription.SubscriptionId} is being created. Go to the Subscriptions tab to track the status.`,
   };
 
   const modalProps: IModalProps = {

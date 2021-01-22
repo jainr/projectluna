@@ -29,15 +29,13 @@ export const HostType: IDropdownOption[] = [
   { key: 'BYOC', text: "Bring Your Own Compute" }]
 */
 export const initialProductValues: IProductModel = {
-  hostType: '',
   owner: userName,
-  productName: '',
-  productType: '',
+  aiServiceName: '',
   logoImageUrl: '',
   documentationUrl: '',
   description: '',
-  saasOfferName: '',
   displayName: '',
+  tags: '',
   isDeleted: false,
   isSaved: false,
   isModified: false,
@@ -45,14 +43,12 @@ export const initialProductValues: IProductModel = {
 };
 
 export const initialProductList: IProductModel[] = [{
-  hostType: 'saas',
+  tags: '',
   owner: 'v-anirc@microsoft.com',
-  productName: '1',
-  productType: 'realtimeprediction',
+  aiServiceName: '1',
   logoImageUrl: 'logo',
   description: 'description',
   documentationUrl: 'documenation',
-  saasOfferName: '',
   createdTime: '',
   displayName: '',
   lastUpdatedTime: '',
@@ -62,14 +58,12 @@ export const initialProductList: IProductModel[] = [{
   clientId: uuid()
 },
 {
-  hostType: 'bringyourowncompute',
+  tags: 'bringyourowncompute',
   owner: 'zbates@affirma.com',
-  productName: '2',
-  productType: 'batchinference',
+  aiServiceName: '2',
   logoImageUrl: 'logo',
   description: 'description',
   documentationUrl: 'documenation',
-  saasOfferName: '',
   createdTime: '',
   displayName: '',
   lastUpdatedTime: '',
@@ -79,14 +73,12 @@ export const initialProductList: IProductModel[] = [{
   clientId: uuid()
 },
 {
-  hostType: 'saas',
+  tags: '',
   owner: 'zbates@affirma.com',
-  productName: '3',
-  productType: 'trainyourownmodel',
+  aiServiceName: '3',
   logoImageUrl: 'logo',
   description: 'description',
   documentationUrl: 'documenation',
-  saasOfferName: '',
   displayName: '',
   createdTime: '',
   lastUpdatedTime: '',
@@ -107,7 +99,8 @@ export const initialInfoFormValues: IProductInfoFormValues = {
 const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
   {
     clientId: yup.string(),
-    productName: yup.string()
+    tags: yup.string(),
+    aiServiceName: yup.string()
       .matches(objectIdNameRegExp,
         {
           message: ErrorMessage.productName,
@@ -115,17 +108,8 @@ const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
         }).required("Id is a required field"),
 
     owner: yup.string().required("Owners is a required field"),
-    productType: yup.string()
-      .required("Product Type is a required field"),
-    hostType: yup.string().required("Host Type is a required field"),
     logoImageUrl: yup.string().url(ErrorMessage.Url),
     description: yup.string().max(120, "The description is too long. Must be no more than 120 characters"),
-    saasOfferName: yup.string()
-    .matches(objectIdNameRegExp,
-      {
-        message: ErrorMessage.saasOffername,
-        excludeEmptyString: true
-      }),
     createdTime: yup.string(),
     documentationUrl: yup.string().url(ErrorMessage.Url),
     displayName: yup.string().max(64, "The display name is too long. Must be no more than 64 characters"),
@@ -141,10 +125,10 @@ export const productInfoValidationSchema: ObjectSchema<IProductInfoFormValues> =
 export const deleteProductValidator: ObjectSchema<IProductModel> = yup.object().shape(
   {
     clientId: yup.string(),
-    productName: yup.string(),
+    aiServiceName: yup.string(),
     selectedProductId: yup.string()
       .test('selectedProductid', 'Product name does not match', function (value: string) {
-        const productName: string = this.parent.productName;
+        const productName: string = this.parent.aiServiceName;
         if (!value)
           return true;
 
@@ -156,10 +140,9 @@ export const deleteProductValidator: ObjectSchema<IProductModel> = yup.object().
         }).required("Product id is a required field"),
 
     owner: yup.string(),
-    hostType: yup.string(),
+    tags: yup.string(),
     logoImageUrl: yup.string(),
     description: yup.string(),
-    productType: yup.string(),
     saasOfferName: yup.string(),
     displayName: yup.string(),
     documentationUrl: yup.string(),

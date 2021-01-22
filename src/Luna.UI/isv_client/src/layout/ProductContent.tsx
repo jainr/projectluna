@@ -151,22 +151,16 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
             </span>
             <span className={"offer-details-separator"}></span>
             <span style={{ fontWeight: 600 }}>
-              ID:
+              Name:
             </span>
             <span style={{ marginLeft: 8 }}>
-              {productModel.productName}
+              {productModel.aiServiceName}
             </span>
             <span style={{ marginLeft: 100, fontWeight: 600 }}>
-              Created From:
+              Display Name:
             </span>
             <span style={{ marginLeft: 8 }}>
-              {productModel.productType == "RTP"?"Model Service Endpoint":"Machine Learning Project"}
-            </span>
-            <span style={{ marginLeft: 100, fontWeight: 600 }}>
-              Host Type:
-            </span>
-            <span style={{ marginLeft: 8 }}>
-              {productModel.hostType == "SaaS"? "SaaS":"Selfhost"}
+              {productModel.displayName}
             </span>
           </Stack.Item>
           <Stack.Item styles={{

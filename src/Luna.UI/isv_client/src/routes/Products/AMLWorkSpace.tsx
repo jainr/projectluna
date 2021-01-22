@@ -11,7 +11,7 @@ import {
 } from 'office-ui-fabric-react';
 import FormLabel from "../../shared/components/FormLabel";
 import { Formik } from "formik";
-import { IAMLWorkSpaceModel } from "../../models";
+import { IAMLWorkSpaceModel, IGitRepoModel } from "../../models";
 import { Loading } from "../../shared/components/Loading";
 import { useGlobalContext } from "../../shared/components/GlobalProvider";
 import { toast } from "react-toastify";
@@ -58,11 +58,13 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   //const { values, handleChange, handleBlur, touched, errors, handleSubmit, submitForm, dirty } = useFormikContext<IAMLWorkSpaceListProps>(); // formikProps
   //const { } = props;
   let [workSpaceList, setWorkSpaceList] = useState<IAMLWorkSpaceModel[]>();
+  let [gitRepoList, setGitRepoList] = useState<IGitRepoModel[]>();
   let [workSpace, setWorkSpace] = useState<IAMLWorkSpaceFormValues>(initialAMLWorkSpaceFormValues);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let [workSpaceDeleteIndex, setworkSpaceDeleteIndex] = useState<number>(0);
   const [loadingWorkSpace, setLoadingWorkSpace] = useState<boolean>(false);
+  const [loadingGitRepo, setLoadingGitRepo] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [workSpaceDialogVisible, setWorkSpaceDialogVisible] = useState<boolean>(false);
   const [isDisplayDeleteButton, setDisplayDeleteButton] = useState<boolean>(true);
@@ -87,6 +89,17 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
       setLoadingWorkSpace(false);
     } else
       toast.error('Failed to load AML Workspaces');
+  }
+  
+  const getGitRepoList = async () => {
+
+    setLoadingGitRepo(true);
+    const results = await ProductService.getGitRepoList();
+    if (results && results.value && results.success) {
+      setGitRepoList(results.value);
+      setLoadingGitRepo(false);
+    } else
+      toast.error('Failed to load Git repos');
   }
 
   const getFormErrorString = (touched, errors, property: string) => {
@@ -139,6 +152,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   useEffect(() => {
 
     getWorkSpaceList();
+    getGitRepoList();
 
     Hub.listen('AMLWorkspaceNewDialog', (data) => {
       OpenNewWorkSpaceDialog();
@@ -172,6 +186,43 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 >
                   <FontIcon iconName="Edit" className="deleteicon" onClick={() => {
                     editWorkSpace(value.workspaceName, idx)
+                  }} />
+                  {/* <FontIcon iconName="Cancel" className="deleteicon" onClick={() => { deleteWorkSpace(value) }} /> */}
+                </Stack>
+              </td>
+            </tr>
+          );
+        })
+      );
+
+    }
+  }
+
+  const GitRepoList = ({ gitRepo }) => {
+    if (!gitRepo || gitRepo.length === 0) {
+      return <tr>
+        <td colSpan={4}><span>No Git repo</span></td>
+      </tr>;
+    } else {
+      return (
+        gitRepo.map((value: IGitRepoModel, idx) => {
+          return (
+            <tr key={idx}>
+              <td>
+                <span>{value.repoName}</span>
+              </td>
+              <td>
+                <span>{value.httpUrl}</span>
+              </td>
+              <td>
+                <Stack
+                  verticalAlign="center"
+                  horizontalAlign={"space-evenly"}
+                  gap={15}
+                  horizontal={true}
+                >
+                  <FontIcon iconName="Edit" className="deleteicon" onClick={() => {
+                    //editWorkSpace(value.repoName, idx)
                   }} />
                   {/* <FontIcon iconName="Cancel" className="deleteicon" onClick={() => { deleteWorkSpace(value) }} /> */}
                 </Stack>
@@ -235,6 +286,49 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
         </table>
       </React.Fragment>
 
+      <React.Fragment>
+        <h3 style={{ textAlign: 'left', fontWeight: 'normal', marginTop: 0, marginBottom: 20, width: '100%' }}>Git Repos</h3>
+        <table className="noborder offer" cellPadding={5} cellSpacing={0}>
+          <thead>
+            <tr>
+              <th style={{ width: 200 }}>
+                <FormLabel title={"Git Repo Name"} />
+              </th>
+              <th style={{ width: 300 }}>
+                <FormLabel title={"HTTP URL"} />
+              </th>
+              <th style={{ width: 100 }}>
+                <FormLabel title={"Operations"} />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {loadingGitRepo ?
+              (
+                <tr>
+                  <td colSpan={4} align={"center"}>
+                    <Stack verticalAlign={"center"} horizontalAlign={"center"} horizontal={true}>
+                      <Loading />
+                    </Stack>
+                  </td>
+                </tr>
+              )
+              :
+              <GitRepoList gitRepo={gitRepoList} />
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan={3} style={{ paddingTop: '1%' }}>
+                <PrimaryButton text={"Register New Git repo"} onClick={() => {
+                  //OpenNewWorkSpaceDialog()
+                }} />
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </React.Fragment>
+
       <Dialog
         hidden={!workSpaceDialogVisible}
         onDismiss={CloseWorkSpaceDialog}
@@ -282,6 +376,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
             setSubmitting(false);
 
             await getWorkSpaceList();
+            await getGitRepoList();
             globalContext.hideProcessing();
             toast.success("Success!");
             setisEdit(true);
@@ -437,6 +532,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 }
 
                 await getWorkSpaceList();
+                await getGitRepoList();
                 globalContext.hideProcessing();
                 toast.success("AML Workspace Deleted Successfully!");
 

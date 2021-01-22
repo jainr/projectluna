@@ -15,5 +15,17 @@ namespace Luna.Clients
         /// </summary>
         /// <returns></returns>
         Task<List<MLModelArtifact>> GetModels(AMLWorkspace workspace);
+
+        /// <summary>
+        /// Get all endpoints from an AML workspace
+        /// </summary>
+        /// <returns></returns>
+        Task<List<MLEndpointArtifact>> GetEndpoints(AMLWorkspace workspace);
+
+        /// <summary>
+        /// Get all compute cluster from an AML workspace
+        /// </summary>
+        /// <returns></returns>
+        Task<List<AMLComputeCluster>> GetComputeClusters(AMLWorkspace workspace);
     }
 }

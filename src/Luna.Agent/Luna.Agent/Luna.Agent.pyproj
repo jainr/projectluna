@@ -18,15 +18,8 @@
     <Name>Luna.Agent</Name>
     <RootNamespace>Luna.Agent</RootNamespace>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
-    <Environment>AAD_TOKEN_ISSUER=https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0
-AAD_VALID_AUDIENCES=1158aaa3-b79f-42b4-8c07-10b7da5fb0fb
-AGENT_API_ENDPOINT=https://lunaaitest-api.azurewebsites.net
-AGENT_ID=64125945-4487-4cc7-84f5-77d242300e60
-AGENT_KEY=f1e434cc3594443eb75ea4ee09a1b7ef
-AGENT_MODE=SAAS
-APPINSIGHTS_INSTRUMENTATIONKEY=ef9411de-d359-4011-a0f2-08f6756a0fb1
-KEY_VAULT_NAME=lunaaitest-keyvault
-ODBC_CONNECTION_STRING=mssql+pyodbc://lunauserlunaaitest:sNpdqgU5%PS94xLy#WYuCw3Fd@lunaaitest-sqlserver.database.windows.net:1433/lunaaitest-sqldb?driver=ODBC+Driver+17+for+SQL+Server</Environment>
+    <Environment>
+    </Environment>
     <WebBrowserPort>23456</WebBrowserPort>
     <PythonRunWebServerCommandEnvironment>
     </PythonRunWebServerCommandEnvironment>

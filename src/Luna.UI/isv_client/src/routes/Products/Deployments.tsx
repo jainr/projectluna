@@ -113,9 +113,29 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isVersionEdit, setIsVersionEdit] = useState<boolean>(true);
 
-  const { productName } = useParams();
+  const { aiServiceName } = useParams();
   //const history = useHistory();
   const globalContext = useGlobalContext();
+  const [planTypeDropDownOptions, setplanTypeDropDownOptions] = useState<IDropdownOption[]>([]);
+
+  const getPlanTypeOptions = async() => {
+    let planTypeOptions: IDropdownOption[] = [];
+      planTypeOptions.push(
+       { key: 'model', text: 'ML models' },
+       { key: 'endpoint', text: 'Real-time endpoints' },
+       { key: 'pipeline', text: 'AML pipeline endpoints' },
+       { key: 'mlproject', text: 'ML projects (mlflow)' },
+     );
+     setplanTypeDropDownOptions(planTypeOptions);
+  };
+  
+  const selectOnChange = (fieldKey: string, setFieldValue, event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) => {
+    if (option) {
+      let key = (option.key as string);
+      setFieldValue(fieldKey, key, true);
+    }
+  };
+
   //Below code is for making design proper in Armtemplate page.
   let body = (document.getElementsByClassName('App')[0] as HTMLElement);
 
@@ -124,6 +144,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
     //     await submitForm();
     // });
     getDeploymentsList();
+    getPlanTypeOptions();
     return () => {
       body.style.height = '100%';
     }
@@ -134,7 +155,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
 
     setLoadingDeployment(true);
     //setloadVersionData(true);
-    const results = await ProductService.getDeploymentListByProductName(productName as string);
+    const results = await ProductService.getDeploymentListByProductName(aiServiceName as string);
     if (results && results.value && results.success) {
       setDeploymentList(results.value);
       /*if (results.value.length > 4)
@@ -161,8 +182,8 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
       deploymentResponse,
       deploymentVersionsResponse
     ] = await Promise.all([
-      ProductService.getDeploymentByProductName(productName as string, Id),
-      ProductService.getDeploymentVersionListByDeploymentName(productName as string, Id)
+      ProductService.getDeploymentByProductName(aiServiceName as string, Id),
+      ProductService.getDeploymentVersionListByDeploymentName(aiServiceName as string, Id)
     ]);
     globalContext.hideProcessing();
 
@@ -197,7 +218,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
 
   const getDeploymentVersionsList = async (deploymentName: string) => {
     globalContext.showProcessing();
-    let deploymentVersionsResponse = await ProductService.getDeploymentVersionListByDeploymentName(productName as string, deploymentName);
+    let deploymentVersionsResponse = await ProductService.getDeploymentVersionListByDeploymentName(aiServiceName as string, deploymentName);
     globalContext.hideProcessing();
 
     if (deploymentVersionsResponse.success) {
@@ -250,7 +271,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
 
   const OpenNewDeploymentDialog = () => {
     let newDeployment = getInitialDeployment();
-    newDeployment.productName = productName as string;
+    newDeployment.aiServiceName = aiServiceName as string;
     setDeployment({ deployment: newDeployment });
     setDeploymentVersionList([]);
     setDisplayDeleteDeploymentButton(false);
@@ -291,10 +312,13 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
           return (
             <tr key={idx}>
               <td>
-                <span style={{ width: 200 }}>{value.deploymentName}</span>
+                <span style={{ width: 150 }}>{value.aiServicePlanName}</span>
               </td>
               <td>
-                <span style={{ width: 200 }}>{value.description}</span>
+                <span style={{ width: 150 }}>{value.aiServicePlanDisplayName}</span>
+              </td>
+              <td>
+                <span style={{ width: 300 }}>{value.description}</span>
               </td>
               <td>
                 <Stack
@@ -309,7 +333,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                   }}
                 >
                   <FontIcon iconName="Edit" className="deleteicon" onClick={() => {
-                    editDeployment(value.deploymentName)
+                    editDeployment(value.aiServicePlanName)
                   }} />
                 </Stack>
               </td>
@@ -349,6 +373,9 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                   <tr>
                     <th style={{ width: 334 }}>
                       <FormLabel title={"Plan Name"} />
+                    </th>
+                    <th style={{ width: 334 }}>
+                      <FormLabel title={"Display Name"} />
                     </th>
                     <th style={{ width: 334 }}>
                       <FormLabel title={"Description"} />
@@ -421,9 +448,11 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
           validateOnBlur={true}
           onSubmit={async (values, { setSubmitting, setErrors }) => {
 
+            console.log("lala");
             setFormError(null);
             setSubmitting(true);
             globalContext.showProcessing();
+
 
             var createDeploymentResult = await ProductService.createOrUpdateDeployment(values.deployment);
             if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'deployment', createDeploymentResult)) {
@@ -450,7 +479,10 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                       <FormLabel title={"Plan Name"} toolTip={ProductMessages.deployment.DeploymentName} />
                     </th>
                     <th>
-                      <FormLabel title={"Description"} toolTip={ProductMessages.deployment.Description} />
+                      <FormLabel title={"Display Name"} toolTip={ProductMessages.deployment.DisplayName} />
+                    </th>
+                    <th>
+                      <FormLabel title={"Plan Type"} toolTip={ProductMessages.deployment.PlanType} />
                     </th>
                     <th></th>
                   </tr>
@@ -459,23 +491,35 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                   <tr>
                     <td>
                       <TextField
-                        name={'deployment.deploymentName'}
-                        value={values.deployment.deploymentName}
+                        name={'deployment.aiServicePlanName'}
+                        value={values.deployment.aiServicePlanName}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        errorMessage={getFormErrorString(touched, errors, 'deploymentName')}
-                        placeholder={'Id'}
+                        errorMessage={getFormErrorString(touched, errors, 'aiServicePlanName')}
+                        placeholder={'Name'}
                         className="txtFormField" maxLength={50} disabled={isEdit} />
                     </td>
                     <td>
                       <TextField
-                        name={'deployment.description'}
-                        value={values.deployment.description}
+                        name={'deployment.aiServicePlanDisplayName'}
+                        value={values.deployment.aiServicePlanDisplayName}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        errorMessage={getFormErrorString(touched, errors, 'description')}
-                        placeholder={'Description'}
-                        className="txtFormField" maxLength={1024} />
+                        errorMessage={getFormErrorString(touched, errors, 'aiServicePlanDisplayName')}
+                        placeholder={'Display Name'}
+                        className="txtFormField" maxLength={256} />
+                    </td>
+                    <td>
+                    <Dropdown
+                        style={{ width: 250 }}
+                        options={planTypeDropDownOptions}
+                        id={`deployment.planType`} onBlur={handleBlur}
+                        onChange={(event, option, index) => {
+                          selectOnChange(`deployment.planType`, setFieldValue, event, option, index)
+                        }}
+                        errorMessage={getFormErrorString(touched, errors, 'planType')}
+                        defaultSelectedKey={values.deployment.planType}
+                      />
                     </td>
                     <td>
                       <Stack gap={15}>
@@ -489,9 +533,9 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
               <VersionList
                 setIsVersionEdit={setIsVersionEdit}
                 openVersionDialog={OpenVersionDialog}
-                productType={productType}
-                productName={productName as string}
-                selectedDeploymentName={values.deployment.deploymentName}
+                productType={values.deployment.planType}
+                productName={aiServiceName as string}
+                selectedDeploymentName={values.deployment.aiServicePlanName}
                 deploymentVersionList={deploymentVersionList}
                 setDeploymentVersionList={setDeploymentVersionList}
                 setSelectedVersion={setSelectedVersion}
@@ -549,12 +593,10 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
             validateOnBlur={true}
             onSubmit={async (values, { setSubmitting, setErrors }) => {
 
-              console.log("Version Form");
-
               setFormError(null);
               setSubmitting(true);
               globalContext.showProcessing();
-
+/*
               switch (values.version.authenticationType) {
                 case 'None':
                   values.version.amlWorkspaceName = '';
@@ -567,74 +609,45 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                   values.version.authenticationKey = '';
                   break;
               }
-
-              switch (productType) {
-                case 'RTP':
-                  if (!values.version.realTimePredictAPI || values.version.realTimePredictAPI.length === 0) {
-                    toast.error('Real Time Predict API is required');
+*/
+              switch (values.version.productType) {
+                // TODO: implement models
+                case 'model':
+                  if (values.version.linkedServiceType == "") {
+                    toast.error('Models are required');
                     globalContext.hideProcessing();
                     return;
                   }
                   break;
-                case 'BI':
-                  if (values.version.versionSourceType == "") {
-                    toast.error('Source is required');
+                case 'endpoint':
+                  if (values.version.endpointName == "") {
+                    toast.error('Endpoint name is required');
                     globalContext.hideProcessing();
                     return;
                   }
-                  if (values.version.versionSourceType == 'amlPipeline' && (!values.version.batchInferenceId || values.version.batchInferenceId.length === 0)) {
-                    toast.error('Batch Inference API is required');
+                  if (values.version.linkedServiceType == "") {
+                    toast.error('LinkedServiceType is required');
+                    globalContext.hideProcessing();
+                    return;
+                  }
+                  if (values.version.linkedServiceType == "aml" && values.version.amlWorkspaceName == "") {
+                    toast.error('AML workspace name is required');
                     globalContext.hideProcessing();
                     return;
                   }
                   break;
-                case 'TYOM':
-                  if (values.version.versionSourceType == "") {
-                    toast.error('Source is required');
+                case 'mlproject':
+                  if (values.version.gitRepoName == "") {
+                    toast.error('Git repo name is required');
                     globalContext.hideProcessing();
                     return;
                   }
-
-                  if (values.version.versionSourceType == 'amlPipeline') {
-                    if (!values.version.trainModelId || values.version.trainModelId.length === 0) {
-                      toast.error('Training API is required');
-                      globalContext.hideProcessing();
-                      return;
-                    }
-                    if (!((values.version.deployModelId && values.version.deployModelId.length > 0)
-                      || (values.version.batchInferenceId && values.version.batchInferenceId.length > 0))) {
-                      toast.error('Deploy Model API or Batch Inference API is required');
-                      globalContext.hideProcessing();
-                      return;
-                    }
+                  if (values.version.gitVersion == "") {
+                    toast.error('Git version is required');
+                    globalContext.hideProcessing();
+                    return;
                   }
-                  else if (values.version.versionSourceType == 'git') {
-                    if (!values.version.gitUrl || values.version.gitUrl == ""){
-                      toast.error("Git https url is required.");
-                      globalContext.hideProcessing();
-                      return;
-                    }
-                    if (!values.version.gitPersonalAccessToken || values.version.gitPersonalAccessToken == ""){
-                      toast.error("Git personal access token is required.");
-                      globalContext.hideProcessing();
-                      return;
-                    }
-                    if (!values.version.gitVersion || values.version.gitVersion == ""){
-                      toast.error("Git version is required.");
-                      globalContext.hideProcessing();
-                      return;
-                    }
-                    if (!values.version.configFile || values.version.configFile == ""){
-                      toast.error("Config file name is required.");
-                      globalContext.hideProcessing();
-                      return;
-                    }
-                    if (!values.version.amlWorkspaceName || values.version.amlWorkspaceName == ""){
-                      toast.error("AML workspace name is required.");
-                      globalContext.hideProcessing();
-                      return;
-                    }
-                  }
+                  // TODO: finish this
                   break;
                 default:
                   toast.error('Invalid product type detected');
@@ -645,11 +658,8 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
               var deploymentVersionResult = await ProductService.createOrUpdateDeploymentVersion(values.version);
               console.log(formError);
               if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'version', deploymentVersionResult)) {
-                console.log(formError);
-                console.log("lalal");
-                setFormError("lalala");
-                console.log(formError);
-                toast.error(formError);
+
+                setFormError(formError);
                 globalContext.hideProcessing();
                 return;
               }
@@ -657,14 +667,14 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
               setSubmitting(false);
               globalContext.hideProcessing();
               toast.success("Success!");
-              await getDeploymentVersionsList(selectedVersion.version.deploymentName);
+              await getDeploymentVersionsList(selectedVersion.version.aiServicePlanName);
               CloseVersionDialog();
             }}
           >
             <VersionForm selectedVersion={selectedVersion}
               isNewVersion={!isVersionEdit}
               refreshVersionList={() => {
-                getDeploymentVersionsList(selectedVersion.version.deploymentName);
+                getDeploymentVersionsList(selectedVersion.version.aiServicePlanName);
               }}
               hideVersionDialog={CloseVersionDialog}
               productType={productType}
@@ -695,7 +705,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                 globalContext.showProcessing();
 
                 // determine if there are any versions for this deployment, if there are, prevent the deletion
-                var deploymentVersionsResponse = await ProductService.getDeploymentVersionListByDeploymentName(productName as string, selecteddeployment.deploymentName);
+                var deploymentVersionsResponse = await ProductService.getDeploymentVersionListByDeploymentName(aiServiceName as string, selecteddeployment.aiServicePlanName);
 
                 if (deploymentVersionsResponse.success) {
                   if (deploymentVersionsResponse.value && deploymentVersionsResponse.value.length > 0) {
@@ -705,7 +715,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                   }
                 }
 
-                var deleteResult = await ProductService.deleteDeployment(selecteddeployment.productName, selecteddeployment.deploymentName);
+                var deleteResult = await ProductService.deleteDeployment(selecteddeployment.aiServiceName, selecteddeployment.aiServicePlanName);
 
                 if (handleSubmissionErrorsForForm((item) => {
                 }, (item) => {
@@ -795,6 +805,10 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
   const [formError, setFormError] = useState<string | null>(null);
   const [authenticationTypes, setAuthenticationTypes] = useState<IChoiceGroupOption[]>([]);
   const [amlWorkspaceDropdownOptions, setAMLWorkspaceDropdownOptions] = useState<IDropdownOption[]>([]);
+  const [gitRepoDropdownOptions, setGitRepoDropdownOptions] = useState<IDropdownOption[]>([]);
+  const [mlmodelDropdownOptions, setmlmodelDropdownOptions] = useState<IDropdownOption[]>([]);
+  const [mlendpointDropdownOptions, setmlendpointDropdownOptions] = useState<IDropdownOption[]>([]);
+  const [amlcomputeclusterDropdownOptions, setamlcomputeclusterDropdownOptions] = useState<IDropdownOption[]>([]);
 
   const [sourceDropdownOptions, setSourceDropdownOptions] = useState<IDropdownOption[]>([]);
   const [publishedpipelineDropdownOptions, setPublishedpipelineDropdownOptions] = useState<IDropdownOption[]>([]);
@@ -815,36 +829,6 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
   const globalContext = useGlobalContext();
   let fileReader;
 
-  const getSourceDropdownOptions = async () => {
-    // let workspaceOptions: IDropdownOption[] = [];
-    // workspaceOptions.push(
-    //   { key: '', text: 'Select' },
-    //   { key: 'aml_pipelines', text: 'AML PipeLines' },
-    //   { key: 'git', text: 'GIT repo' },
-    //   { key: 'upload', text: 'Upload Project' },
-    // );
-    const results = await ProductService.getSourceModelList();
-    if (results && results.value && results.success) {
-      let workspaceOptions: IDropdownOption[] = [];
-
-      workspaceOptions.push(
-        { key: '', text: 'select' }
-      );
-
-      results.value.map((value, index) => {
-        workspaceOptions.push(
-          { key: value.id, text: value.displayName },
-        )
-        return workspaceOptions;
-      });
-      setSourceDropdownOptions(workspaceOptions);
-    }
-    else {
-      toast.error('Failed to load the Source options');
-
-    }
-  }
-
   const getAMLWorkspaceDropdownOptions = async () => {
     // load the aml workspace dropdown results
     const results = await ProductService.getAmlWorkSpaceList();
@@ -861,6 +845,75 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
       setAMLWorkspaceDropdownOptions(workspaceOptions);
     } else
       toast.error('Failed to load the AML Workspace options');
+  }
+
+  const getGitRepoDropdownOptions = async () => {
+    // load the aml workspace dropdown results
+    const results = await ProductService.getGitRepoList();
+    if (results && results.value && results.success) {
+      let gitRepoOptions: IDropdownOption[] = [];
+
+      gitRepoOptions.push({ key: '', text: 'select' });
+      results.value.map((value, index) => {
+        gitRepoOptions.push(
+          { key: value.repoName, text: value.repoName },
+        )
+        return gitRepoOptions;
+      });
+      setGitRepoDropdownOptions(gitRepoOptions);
+    } else
+      toast.error('Failed to load the Github repo options');
+  }
+
+  const getMLModelsDropdownOptions = async (workspaceName: string) => {
+
+    const results = await ProductService.getModelsFromAmlWorkspace(workspaceName);
+    if (results && results.value && results.success) {
+      let modelOptions: IDropdownOption[] = [];
+      modelOptions.push({ key: '', text: 'select' });
+      results.value.map((value, index) => {
+        modelOptions.push(
+          { key: value.name, text: value.name},
+        )
+        return modelOptions;
+      });
+      setmlmodelDropdownOptions(modelOptions);
+    } else
+      toast.error('Failed to load the model options');
+  }
+
+  const getMLEndpointsDropdownOptions = async (workspaceName: string) => {
+
+    const results = await ProductService.getEndpointsFromAmlWorkspace(workspaceName);
+    if (results && results.value && results.success) {
+      let endpointOptions: IDropdownOption[] = [];
+      endpointOptions.push({ key: '', text: 'select' });
+      results.value.map((value, index) => {
+        endpointOptions.push(
+          { key: value.name, text: value.name},
+        )
+        return endpointOptions;
+      });
+      setmlendpointDropdownOptions(endpointOptions);
+    } else
+      toast.error('Failed to load the endpoint options');
+  }
+
+  const getAMLComputeClustersDropdownOptions = async (workspaceName: string) => {
+
+    const results = await ProductService.getComputeClustersFromAmlWorkspace(workspaceName);
+    if (results && results.value && results.success) {
+      let clusterOptions: IDropdownOption[] = [];
+      clusterOptions.push({ key: '', text: 'select' });
+      results.value.map((value, index) => {
+        clusterOptions.push(
+          { key: value.name, text: value.name},
+        )
+        return clusterOptions;
+      });
+      setamlcomputeclusterDropdownOptions(clusterOptions);
+    } else
+      toast.error('Failed to load the compute cluster options');
   }
 
   const getPublishedPipeLineDropdownOptions = async (workspaceName: string) => {
@@ -883,7 +936,7 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
 
   useEffect(() => {
 
-
+    console.log(productType)
     console.log(values.version);
 
     let authTypes: IChoiceGroupOption[] = [];
@@ -901,27 +954,18 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
     setAuthenticationTypes([...authTypes]);
 
     getAMLWorkspaceDropdownOptions();
-    getSourceDropdownOptions();
+    getGitRepoDropdownOptions();
 
     if (values.version && values.version.amlWorkspaceName) {
-      getPublishedPipeLineDropdownOptions(values.version.amlWorkspaceName as string);
-      if (values.version.versionSourceType === 'amlPipeline') {
-        setIsAmlPipeline(true);
-        setIsGitRepo(false);
-        setIsUpload(false);
+      if (values.version.productType === 'mlproject')
+      {
+        getAMLComputeClustersDropdownOptions(values.version.amlWorkspaceName);
       }
-      else if (values.version.versionSourceType === 'git') {
-        setIsGitRepo(true);
-        setIsAmlPipeline(false);
-        setIsUpload(false);
-      }
-      else if (values.version.versionSourceType === 'upload') {
-        setIsAmlPipeline(false);
-        setIsGitRepo(false);
-        setIsUpload(true);
+      if (values.version.productType === 'endpoint')
+      {
+        getMLEndpointsDropdownOptions(values.version.amlWorkspaceName);
       }
     }
-
 
     Hub.listen('AMLWorkspaceCreated', (data) => {
       console.log('captured workspace created in version form');
@@ -997,19 +1041,21 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
     }
   };
 
-  const amlWorkspaceselectOnChange = (fieldKey: string, setFieldValue, event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) => {
+  const amlWorkspaceselectOnChange = (fieldKey: string, setFieldValue, event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number, productType?:string) => {
     if (option) {
       let key = (option.key as string);
       setFieldValue(fieldKey, key, true);
 
-      if (key == "") {
-        setFieldValue("version.batchInferenceId", "", true);
-        setFieldValue("version.trainModelId", "", true);
-        setFieldValue("version.deployModelId", "", true);
-        setIsDisbalePipeLine(true);
-      }
-      else {
-        getPublishedPipeLineDropdownOptions(option.key as string);
+      if (key != "") {
+        // getPublishedPipeLineDropdownOptions(option.key as string);
+        if (!productType || productType === 'endpoint')
+        {
+          getMLEndpointsDropdownOptions(option.key as string);
+        }
+        if (!productType || productType === 'mlproject')
+        {
+          getAMLComputeClustersDropdownOptions(option.key as string);
+        }
       }
     }
   };
@@ -1045,12 +1091,12 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
       <form style={{ width: '100%' }} autoComplete={"off"} onSubmit={handleSubmit}>
         <DisplayErrors errors={errors} />
         <React.Fragment>
-          <input type="hidden" name="version.deploymentName" value={values.version.deploymentName} />
+          <input type="hidden" name="version.deploymentName" value={values.version.aiServicePlanName} />
           <Stack className={"form_row"}>
             <FormLabel title={"Plan Name:"} toolTip={ProductMessages.Version.DeploymentName} />
             <TextField
               name={'version.deploymentName'}
-              value={values.version.deploymentName}
+              value={values.version.aiServicePlanName}
               disabled={true}
               className="txtFormField" />
           </Stack>
@@ -1067,46 +1113,18 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
               className="txtFormField" maxLength={50} />
           </Stack>
           {
-            productType === 'RTP' ?
+            values.version.productType === 'endpoint' ?
               <React.Fragment>
                 <Stack className={"form_row"}>
-                  <FormLabel title={"Model service endpoint Url:"} toolTip={ProductMessages.Version.RealtimePredictAPI} />
-                  <TextField
-                    name={'version.realTimePredictAPI'}
-                    value={values.version.realTimePredictAPI}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    errorMessage={getVersionFormErrorString(touched, errors, 'realTimePredictAPI')}
-                    placeholder={'Model service endpoint Url'}
-                    className="txtFormField" />
-                </Stack>
-
-                <input type="hidden" name="version.deployModelId" value={values.version.deployModelId} />
-
-                <Stack className={"form_row"}>
-                  <FormLabel title={"Authentication:"} toolTip={ProductMessages.Version.Authentication} />
-                  <ChoiceGroup
-                    styles={{
-                      flexContainer: { display: "flex", justifyContent: 'space-between', width: 300 }
-                    }}
-                    onChange={(event, option) => {
-                      authenticationOnChange('version.authenticationType', setFieldValue, event, option)
-                    }}
-                    className="defaultChoiceGroup" name="version.authenticationType"
-                    selectedKey={values.version.authenticationType}
-                    options={authenticationTypes}
-                  />
-                </Stack>
-                {(values.version.authenticationType === 'Token' ?
-                  <React.Fragment>
-                    <FormLabel title={"AML Workspace:"} toolTip={ProductMessages.Version.AMLWorkspace} />
+                  
+                <FormLabel title={"AML Workspace:"} toolTip={ProductMessages.Version.AMLWorkspace} />
                     <Stack className={"form_row"} horizontal={true} gap={15}>
                       <Dropdown
-                        style={{ width: 150 }}
+                        style={{ width: 250 }}
                         options={amlWorkspaceDropdownOptions}
                         id={`version.amlWorkspaceName`} onBlur={handleBlur}
                         onChange={(event, option, index) => {
-                          selectOnChange(`version.amlWorkspaceName`, setFieldValue, event, option, index)
+                          amlWorkspaceselectOnChange(`version.amlWorkspaceName`, setFieldValue, event, option, index, values.version.productType)
                         }}
                         errorMessage={getVersionFormErrorString(touched, errors, 'amlWorkspaceName')}
                         defaultSelectedKey={values.version.amlWorkspaceName}
@@ -1125,22 +1143,23 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
                         }}>Create New
                 </DefaultButton>
                     </Stack>
-                  </React.Fragment>
-                  : (values.version.authenticationType === 'Key' ?
-                    <Stack className={"form_row"}>
-                      <FormLabel title={"Key:"} toolTip={ProductMessages.Version.Key} />
-                      <TextField
-                        name={'version.authenticationKey'}
-                        value={values.version.authenticationKey}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        type={'password'}
-                        errorMessage={getVersionFormErrorString(touched, errors, 'authenticationKey')}
-                        placeholder={'Authentication Key'}
-                        className="txtFormField" />
+                  <FormLabel title={"Endpoint name:"} toolTip={ProductMessages.Version.RealtimePredictAPI} />
+                  <Stack className={"form_row"} horizontal={true} gap={15}>
+                      <Dropdown
+                        style={{ width: 250 }}
+                        options={mlendpointDropdownOptions}
+                        id={`version.endpointName`} onBlur={handleBlur}
+                        onChange={(event, option, index) => {
+                          selectOnChange(`version.endpointName`, setFieldValue, event, option, index)
+                        }}
+                        errorMessage={getVersionFormErrorString(touched, errors, 'endpointName')}
+                        defaultSelectedKey={values.version.endpointName}
+                      />
                     </Stack>
-                    : null)
-                )}
+                </Stack>
+
+                <input type="hidden" name="version.deployModelId" value={values.version.deployModelId} />
+
                 <Stack className={"form_row"}>
                   <FormLabel title={"Advanced Settings:"} toolTip={ProductMessages.Version.AdvancedSettings} />
                   <TextField
@@ -1153,273 +1172,61 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
                     className="txtFormField" />
                 </Stack>
               </React.Fragment>
-              :
+              : values.version.productType === 'mlproject'?
               <React.Fragment>
 
-                <Stack className={"form_row source"}>
-                  <FormLabel title={"Create from:"} toolTip={ProductMessages.Version.Source} />
+                <Stack className={"form_row"}>
+                  <FormLabel title={"Git repo name:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+
                   <Dropdown
-                    style={{ width: 155 }}
-                    options={sourceDropdownOptions}
-                    id={`version.versionSourceType`} onBlur={handleBlur}
+                    style={{ width: 250 }}
+                    options={gitRepoDropdownOptions}
+                    id={`version.gitRepoName`} onBlur={handleBlur}
                     onChange={(event, option, index) => {
-                      selectOnChange(`version.versionSourceType`, setFieldValue, event, option, index)
+                      selectOnChange(`version.gitRepoName`, setFieldValue, event, option, index)
                     }}
-                    errorMessage={getVersionFormErrorString(touched, errors, 'versionSourceType')}
-                    defaultSelectedKey={values.version.versionSourceType}
+                    errorMessage={getVersionFormErrorString(touched, errors, 'gitRepoName')}
+                    defaultSelectedKey={values.version.gitRepoName}
                   />
                 </Stack>
-                {
-                  isGitRepo ?
-                    <React.Fragment>
-                      
-                      <table>
-                        <tbody>
-                          <tr>
-                            <td>
-                              <Stack className={"form_row"}>
-                                <FormLabel title={"Git https Url:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
-                                <TextField
-                                  name={'version.gitUrl'}
-                                  value={values.version.gitUrl}
-                                  onChange={handleChange}
-                                  onBlur={handleBlur}
-                                  errorMessage={getVersionFormErrorString(touched, errors, 'gitUrl')}
-                                  placeholder={'Git https Url'}
-                                  className="txtFormField" />
-                              </Stack>
-                            </td>
-                            <td>
-                              <Stack className={"form_row"}>
-                                <FormLabel title={"Git commit hash:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
-                                <TextField
-                                  name={'version.gitVersion'}
-                                  value={values.version.gitVersion}
-                                  onChange={handleChange}
-                                  onBlur={handleBlur}
-                                  errorMessage={getVersionFormErrorString(touched, errors, 'gitVersion')}
-                                  placeholder={'VersGit commit hashion'}
-                                  className="txtFormField" />
-                              </Stack>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <Stack className={"form_row"}>
-                                <FormLabel title={"Personal access tokens:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
-                                <TextField
-                                  type={'password'}
-                                  name={'version.gitPersonalAccessToken'}
-                                  value={values.version.gitPersonalAccessToken}
-                                  onChange={handleChange}
-                                  onBlur={handleBlur}
-                                  errorMessage={getVersionFormErrorString(touched, errors, 'gitPersonalAccessToken')}
-                                  placeholder={'Personal access tokens'}
-                                  className="txtFormField" />
-                              </Stack>
-                            </td>
-                            <td>
-
-                              <Stack className={"form_row"}>
-                                <FormLabel title={"Luna config file:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
-                                <TextField
-                                  name={'version.configFile'}
-                                  value={values.version.configFile}
-                                  onChange={handleChange}
-                                  onBlur={handleBlur}
-                                  errorMessage={getVersionFormErrorString(touched, errors, 'configFile')}
-                                  placeholder={'luna_config.yml'}
-                                  className="txtFormField" />
-                              </Stack>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-
-                      <Stack className={"form_row"} horizontal={true} gap={15}>
-                            
-                            <FormLabel title={"Targeted AML Workspace:"} toolTip={ProductMessages.Version.AMLWorkspace} />
-                                  <Dropdown
-                                    style={{ width: 150 }}
-                                    options={amlWorkspaceDropdownOptions}
-                                    id={`version.amlWorkspaceName`} onBlur={handleBlur}
-                                    onChange={(event, option, index) => {
-                                      amlWorkspaceselectOnChange(`version.amlWorkspaceName`, setFieldValue, event, option, index)
-                                    }}
-                                    errorMessage={getVersionFormErrorString(touched, errors, 'amlWorkspaceName')}
-                                    defaultSelectedKey={values.version.amlWorkspaceName}
-                                  />
-                                  <DefaultButton type="button" id="btnCreateNewAMLWorkspace" className="addbutton"
-                                    onClick={() => {
-      
-                                      Hub.dispatch(
-                                        'AMLWorkspaceNewDialog',
-                                        {
-                                          event: 'NewDialog',
-                                          data: true,
-                                          message: ''
-                                        });
-      
-                                    }}>Create New
-                                  </DefaultButton>
-                          </Stack>
-
-
-                    </React.Fragment>
-                    : null
-                }
-                {
-                  isAmlPipeline ?
-                    <React.Fragment>
-                      {(values.version.authenticationType === 'Token' ?
-                        <React.Fragment>
-                          <FormLabel title={"Targeted AML Workspace:"} toolTip={ProductMessages.Version.AMLWorkspace} />
-                          <Stack className={"form_row"} horizontal={true} gap={15}>
-                            <Dropdown
-                              style={{ width: 150 }}
-                              options={amlWorkspaceDropdownOptions}
-                              id={`version.amlWorkspaceName`} onBlur={handleBlur}
-                              onChange={(event, option, index) => {
-                                amlWorkspaceselectOnChange(`version.amlWorkspaceName`, setFieldValue, event, option, index)
-                              }}
-                              errorMessage={getVersionFormErrorString(touched, errors, 'amlWorkspaceName')}
-                              defaultSelectedKey={values.version.amlWorkspaceName}
-                            />
-                            <DefaultButton type="button" id="btnCreateNewAMLWorkspace" className="addbutton"
-                              onClick={() => {
-
-                                Hub.dispatch(
-                                  'AMLWorkspaceNewDialog',
-                                  {
-                                    event: 'NewDialog',
-                                    data: true,
-                                    message: ''
-                                  });
-
-                              }}>Create New
-                </DefaultButton>
-                          </Stack>
-                        </React.Fragment>
-                        : (values.version.authenticationType === 'Key' ?
-                          <Stack className={"form_row"}>
-                            <FormLabel title={"Key:"} toolTip={ProductMessages.Version.Key} />
-                            <TextField
-                              name={'version.authenticationKey'}
-                              value={values.version.authenticationKey}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                              type={'password'}
-                              errorMessage={getVersionFormErrorString(touched, errors, 'authenticationKey')}
-                              placeholder={'Authentication Key'}
-                              className="txtFormField" />
-                          </Stack>
-                          : null)
-                      )}
-                      <React.Fragment>
-                        {productType === 'RTP' ?
-                          <Stack className={"form_row"}>
-                            <FormLabel title={"Real-time Predict API:"} toolTip={ProductMessages.Version.RealtimePredictAPI} />
-                            <TextField
-                              name={'version.realTimePredictAPI'}
-                              value={values.version.realTimePredictAPI}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                              errorMessage={getVersionFormErrorString(touched, errors, 'realTimePredictAPI')}
-                              placeholder={'Real-time Predict API'}
-                              className="txtFormField" />
-                          </Stack> : <input type="hidden" name="version.realTimePredictAPI" value={values.version.realTimePredictAPI} />}
-                        {productType === 'TYOM' ?
-                          isAmlPipeline ?
-                            <Stack className={"form_row"}>
-                              <FormLabel title={"Training pipeline:"} toolTip={ProductMessages.Version.TrainingAPI} />
-                              <Dropdown
-                                style={{ width: 350 }}
-                                options={publishedpipelineDropdownOptions}
-                                id={`version.trainModelId`} onBlur={handleBlur}
-                                onChange={(event, option, index) => {
-                                  selectOnChange(`version.trainModelId`, setFieldValue, event, option, index)
-                                }}
-                                errorMessage={getVersionFormErrorString(touched, errors, 'trainModelId')}
-                                defaultSelectedKey={values.version.trainModelId} disabled={isDisbalePipeLine}
-                              />
-                            </Stack>
-                            : null
-                          : <input type="hidden" name="version.trainModelId" value={values.version.trainModelId} />}
-                        {productType === 'BI' || productType === 'TYOM' ?
-                          isAmlPipeline ?
-                            <Stack className={"form_row"}>
-                              <FormLabel title={"(Async) Batch Inference pipeline:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
-                              <Dropdown
-                                style={{ width: 350 }}
-                                options={publishedpipelineDropdownOptions}
-                                id={`version.batchInferenceId`} onBlur={handleBlur}
-                                onChange={(event, option, index) => {
-                                  selectOnChange(`version.batchInferenceId`, setFieldValue, event, option, index)
-                                }}
-                                errorMessage={getVersionFormErrorString(touched, errors, 'batchInferenceId')}
-                                defaultSelectedKey={values.version.batchInferenceId} disabled={isDisbalePipeLine}
-                              />
-                            </Stack>
-                            : null
-                          : <input type="hidden" name="version.batchInferenceId" value={values.version.batchInferenceId} />}
-                        {productType === 'TYOM' ?
-
-                          isAmlPipeline ?
-                            <Stack className={"form_row"}>
-                              <FormLabel title={"Deployment pipeline:"} toolTip={ProductMessages.Version.DeployEndpointAPI} />
-                              <Dropdown
-                                style={{ width: 350 }}
-                                options={publishedpipelineDropdownOptions}
-                                id={`version.deployModelId`} onBlur={handleBlur}
-                                onChange={(event, option, index) => {
-                                  selectOnChange(`version.deployModelId`, setFieldValue, event, option, index)
-                                }}
-                                errorMessage={getVersionFormErrorString(touched, errors, 'deployModelId')}
-                                defaultSelectedKey={values.version.deployModelId} disabled={isDisbalePipeLine}
-                              />
-                            </Stack>
-                            : null
-                          : <input type="hidden" name="version.deployModelId" value={values.version.deployModelId} />}
-                        {productType === 'RTP' ?
-                          <Stack className={"form_row"}>
-                            <FormLabel title={"Authentication:"} toolTip={ProductMessages.Version.Authentication} />
-                            <ChoiceGroup
-                              styles={{
-                                flexContainer: { display: "flex", justifyContent: 'space-between', width: 300 }
-                              }}
-                              onChange={(event, option) => {
-                                authenticationOnChange('version.authenticationType', setFieldValue, event, option)
-                              }}
-                              className="defaultChoiceGroup" name="version.authenticationType"
-                              selectedKey={values.version.authenticationType}
-                              options={authenticationTypes}
-                            />
-                          </Stack> : <input type="hidden" name="version.authenticationType" value={values.version.authenticationType} />}
-                      </React.Fragment>
-                    </React.Fragment>
-                    : null
-
-                }
-                {
-                  isUpload
-                    ?
-                    <Stack className={"form_row source"}>
-                      <FormLabel title={"Project File:"} toolTip={ProductMessages.Version.ProjectFile} />
-
-                      <label className="versionProjectupload">
-                        <span className="filetittle" title={values.version.projectFileUrl}>{values.version.projectFileUrl}</span>
-                        <span className="versionProjectuploadbrowsebutton">Browse</span>
-                        <input type="file" onChange={(event) => {
-                          uploadfile(event, 'values.version.projectFileUrl', setFieldValue)
-                        }} onBlur={handleBlur}
-                          accept="application/JSON" style={{ width: 0 }} title="Select Template File"
-                          name={'values.version.projectFileUrl'}
-                          id={'values.version.projectFileUrl'}
-                        />
-                      </label>
-                    </Stack>
-                    : null
-                }
+                
+                <Stack className={"form_row"}>
+                  <FormLabel title={"Git branch or commit hash:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+                    <TextField
+                      name={'version.gitVersion'}
+                      value={values.version.gitVersion}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      errorMessage={getVersionFormErrorString(touched, errors, 'gitVersion')}
+                      placeholder={'VersGit commit hashion'}
+                      className="txtFormField" />
+                </Stack>
+                <Stack className={"form_row source"}>
+                  <FormLabel title={"AML Workspace:"} toolTip={ProductMessages.Version.Source} />
+                  <Dropdown
+                    style={{ width: 250 }}
+                    options={amlWorkspaceDropdownOptions}
+                    id={`version.amlWorkspaceName`} onBlur={handleBlur}
+                    onChange={(event, option, index) => {
+                      amlWorkspaceselectOnChange(`version.amlWorkspaceName`, setFieldValue, event, option, index, values.version.productType)
+                    }}
+                    errorMessage={getVersionFormErrorString(touched, errors, 'amlWorkspaceName')}
+                    defaultSelectedKey={values.version.amlWorkspaceName}
+                  />
+                </Stack>
+                <Stack className={"form_row"}>
+                  <FormLabel title={"Compute Cluster Name:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+                  <Dropdown
+                        style={{ width: 250 }}
+                        options={amlcomputeclusterDropdownOptions}
+                        id={`version.linkedServiceComputeTarget`} onBlur={handleBlur}
+                        onChange={(event, option, index) => {
+                          selectOnChange(`version.linkedServiceComputeTarget`, setFieldValue, event, option, index)
+                        }}
+                        errorMessage={getVersionFormErrorString(touched, errors, 'linkedServiceComputeTarget')}
+                        defaultSelectedKey={values.version.linkedServiceComputeTarget}
+                      />
+                </Stack>
                 <Stack className={"form_row"}>
                   <FormLabel title={"Advanced Settings:"} toolTip={ProductMessages.Version.AdvancedSettings} />
                   <TextField
@@ -1432,6 +1239,7 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
                     className="txtFormField" />
                 </Stack>
               </React.Fragment>
+              : null
           }
         </React.Fragment>
 
@@ -1476,7 +1284,7 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
               onSubmit={async (values, { setSubmitting, setErrors }) => {
 
                 globalContext.showProcessing();
-                var deploymentDeleteVersionResult = await ProductService.deleteDeploymentVersion(selectedversion.productName, selectedversion.deploymentName, selectedversion.versionName);
+                var deploymentDeleteVersionResult = await ProductService.deleteDeploymentVersion(selectedversion.aiServiceName, selectedversion.aiServicePlanName, selectedversion.versionName);
 
                 if (handleSubmissionErrorsForForm((item) => {
                 }, (item) => {
@@ -1546,10 +1354,11 @@ export const VersionList: React.FunctionComponent<IDeploymentVersionListProps> =
 
   const OpenNewVersionDialog = () => {
     let v = getInitialVersion();
-    v.deploymentName = selectedDeploymentName;
-    v.productName = productName;
+    v.aiServicePlanName = selectedDeploymentName;
+    v.aiServiceName = productName;
+    v.productType = productType;
     setIsVersionEdit(false);
-    v.authenticationType = "Token";
+    v.linkedServiceType = "AML";
     //TODO: confirm what the default authenticationtypes should be for the other product types
     /*if (productType == "RTP") {
       v.authenticationType = "Token";
@@ -1566,6 +1375,7 @@ export const VersionList: React.FunctionComponent<IDeploymentVersionListProps> =
   const editVersionItem = (values, index) => {
     setIsVersionEdit(true);
     setSelectedVersion({ version: values });
+    values.productType = productType;
     openVersionDialog();
   }
 
@@ -1605,7 +1415,7 @@ export const VersionList: React.FunctionComponent<IDeploymentVersionListProps> =
                       <span style={{ width: 200 }}>{value.versionName}</span>
                     </td>
                     <td>
-                      <span style={{ width: 200 }}>{value.versionSourceType?value.versionSourceType:"Service Endpoint"}</span>
+                      <span style={{ width: 200 }}>{value.gitRepoName}</span>
                     </td>
                     <td>
                       <span style={{ width: 200 }}>{value.amlWorkspaceName}</span>
