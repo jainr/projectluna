@@ -15,5 +15,6 @@ export enum WebRoute {
   SubscriptionDetail = '/SubscriptionDetail/:offerName/:subscriptionId',
   Products = '/Products',
   ModifyProductInfo = '/ModifyProduct/:productName/Info',
-  ProductDetail= '/ModifyProduct/:aiServiceName/ProductDetail'
+  ProductDetail= '/ModifyProduct/:aiServiceName/ProductDetail',
+  Settings = '/Settings'
 }

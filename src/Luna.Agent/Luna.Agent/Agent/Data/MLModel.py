@@ -14,7 +14,7 @@ class MLModel(Base):
 
     ModelAlternativeName = Column(String)
 
-    ModelVersion = Column(Integer)
+    ModelVersion = Column(String)
 
     @staticmethod
     def ListAll(apiVersionId):

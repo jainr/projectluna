@@ -57,7 +57,7 @@ class AzureMLUtils(object):
         self._workspace = ws
 
     def downloadModel(self, mlModel):
-        if mlModel.ModelVersion == 0:
+        if mlModel.ModelVersion == '0' or mlModel.ModelVersion == 'latest':
             mlModel.ModelVersion = None
         model = Model(self._workspace, name=mlModel.ModelName, version = mlModel.ModelVersion)
 

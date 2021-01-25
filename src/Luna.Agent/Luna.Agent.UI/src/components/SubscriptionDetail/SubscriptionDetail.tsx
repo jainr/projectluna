@@ -37,6 +37,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
   const [isCopySuccess, setSuccess] = React.useState<boolean>(false);
   const [isCopySuccess2, setSuccess2] = React.useState<boolean>(false);
   const [isCopySuccess3, setSuccess3] = React.useState<boolean>(false);
+  const [isCopySuccessSampleCode, setSuccessSampleCode] = React.useState<boolean>(false);
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [newUser, setNewUser] = React.useState("");
@@ -168,6 +169,60 @@ const SubscriptionDetail: React.FunctionComponent = () => {
         </Stack>
         <Stack horizontal verticalAlign="baseline" horizontalAlign="space-between">
           <Text variant={'mediumPlus'}>Secondary Key</Text>
+
+          <CommandButton onClick={copyClick} iconProps={{ iconName: 'Copy' }}>Copy</CommandButton>
+        </Stack>
+      </Stack>
+    )
+  }
+
+  const sampleCode = "import os \n\
+import requests \n\
+\n\
+subscription_key = \"****************\" \n\
+endpoint = \"<endpoint_url>\" \n\
+api_name = <api_name>\n\
+api_version = <api_version> \n\
+url = endpoint + \"/apiv2/<aiservice_name>/{}/predict?api-version={}\".format(api_name, api_version) \n\
+input = {\n\
+  'data': {\n\
+        'start_date': <start_date>,\n\
+        'end_date': <end_date>\n\
+  }\n\
+}\n\
+response = requests.post(url, headers={\"api-key\": subscription_key}, json=input) \n\
+if response.status_code == 200: \n\
+    print(response.json())";
+  
+  const renderLabelSampleCode = (): JSX.Element => {
+    const copyClick = () => {
+      const urlValue = sampleCode.replace("****************", subscriptionData?.primaryKey)
+        .replace("<endpoint_url>", subscriptionData?.baseUrl)
+        .replace("<aiservice_name>", subscriptionData?.offerName);
+      const selBox = document.createElement('textarea');
+      selBox.style.position = 'fixed';
+      selBox.style.left = '0';
+      selBox.style.top = '0';
+      selBox.style.opacity = '0';
+      selBox.value = urlValue || "";
+      document.body.appendChild(selBox);
+      selBox.focus();
+      selBox.select();
+      document.execCommand('copy');
+      document.body.removeChild(selBox);
+      setSuccessSampleCode(true);
+
+      setTimeout(() => {
+        setSuccessSampleCode(false);
+      }, 3000);
+    }
+    return (
+      <Stack tokens={{ childrenGap: 10 }}>
+        <Stack style={{ visibility: isCopySuccessSampleCode ? "visible" : 'hidden' }}>
+          <MessageBar messageBarType={MessageBarType.success}>Sample Code Copied!</MessageBar>
+        </Stack>
+        <Stack horizontal verticalAlign="baseline" horizontalAlign="space-between">
+          <Text variant={'mediumPlus'}>Sample Code</Text>
 
           <CommandButton onClick={copyClick} iconProps={{ iconName: 'Copy' }}>Copy</CommandButton>
         </Stack>
@@ -381,13 +436,36 @@ const SubscriptionDetail: React.FunctionComponent = () => {
           ></TextField>
         </div>
 
+
+        
+        <Stack verticalAlign="space-between" style={{paddingTop:"10px"}}>
+          <StackItem>
+          <TextField
+            value={subscriptionData?.baseUrl?sampleCode
+              .replace("<endpoint_url>", subscriptionData?.baseUrl)
+              .replace("<aiservice_name>", subscriptionData?.offerName):"loading..."}
+            readOnly={true}
+            multiline={true}
+            rows={(sampleCode.match(new RegExp("\n", "g")) || []).length + 1 > 10?
+              10:
+              (sampleCode.match(new RegExp("\n", "g")) || []).length + 1}
+            borderless={true}
+            label="Sample Code"
+            disabled={true}
+            onRenderLabel={renderLabelSampleCode}
+          >
+            
+          </TextField>
+          </StackItem>
+        </Stack>
+        
         <p>
             <Text variant={'large'}></Text>
         </p>
 
         <Stack verticalAlign="space-between" style={{paddingTop:"20px"}}>
           <StackItem>
-            <Text variant={'large'} block>Resources:</Text>
+            <Text variant={'large'} block>Other Resources:</Text>
           </StackItem>
           <StackItem>
             <Link  href="https://aka.ms/lunaai" target="blank">Swagger</Link>

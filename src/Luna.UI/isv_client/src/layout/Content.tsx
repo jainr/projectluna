@@ -15,6 +15,7 @@ const Content: React.FunctionComponent = (props) => {
 
   let offersTabActive = (location.pathname.toLowerCase().startsWith('/offers') 
   || location.pathname.toLowerCase().startsWith('/modifyoffer'));
+  let settingsActive = (location.pathname.toLowerCase().startsWith('/settings'));
   let productsTabActive = (location.pathname.toLowerCase().startsWith('/products'));
   let subscriptionTabActive = (location.pathname.toLowerCase().startsWith('/subscriptions'));
   let selectedMenuItemKey = '';
@@ -27,6 +28,9 @@ const Content: React.FunctionComponent = (props) => {
   }
   if(subscriptionTabActive){
     selectedMenuItemKey= 'Subscriptions';
+  }
+  if(settingsActive){
+    selectedMenuItemKey = 'Settings';
   }
 
   let navLinks: INavLink[] = [];
@@ -53,6 +57,13 @@ const Content: React.FunctionComponent = (props) => {
       onClick: (ev, item) => { history.push(WebRoute.Subscriptions) },
       name: 'Subscriptions',
       key: 'Subscriptions',
+    });
+    
+    navLinks.push({
+      url:'',
+      onClick: (ev, item) => { history.push(WebRoute.Settings) },
+      name: 'Settings',
+      key: 'Settings',
     });
   }
 

@@ -66,3 +66,7 @@ export const ProductDetail = loadable(() => import('./Products/ProductDetail'), 
 export const NoVersion = loadable(() => import('./NoVersion/NoVersion'), {
   LoadingComponent: Loading
 });
+
+export const Settings = loadable(() => import('./Settings/Settings'), {
+  LoadingComponent: Loading
+});

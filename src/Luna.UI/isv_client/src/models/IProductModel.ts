@@ -39,6 +39,9 @@ export interface IDeploymentVersionModel {
   amlWorkspaceName:string;
   gitRepoName: string;
   endpointName: string;
+  modelName: string;
+  modelVersion: string;
+  modelDisplayName: string;
   gitVersion: string;
   linkedServiceType: string;
   isUseDefaultRunConfig: boolean;

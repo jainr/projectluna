@@ -36,9 +36,9 @@ namespace Luna.Data.Entities
 
         public string ModelName { get; set; }
 
-        public string ModelAlternativeName { get; set; }
+        public string ModelDisplayName { get; set; }
 
-        public long ModelVersion { get; set; }
+        public string ModelVersion { get; set; }
 
     }
 }

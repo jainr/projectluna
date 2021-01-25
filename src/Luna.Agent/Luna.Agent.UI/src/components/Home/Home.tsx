@@ -149,7 +149,7 @@ class Home extends React.Component<{}, BaseSubscription> {
     return (
       <div className="Home">
         <div style={PanelStyles}>
-          <Text variant={'xLarge'}>Subscriptions</Text>
+          <Text variant={'xLarge'}>My Machine Learning Service Subscriptions</Text>
           <p style={{ display: this.state.subscriptions.length <= 1 ? "block" : "none" }}>
             <Text variant={'medium'}>Loading subscriptions...</Text>
           </p>

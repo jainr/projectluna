@@ -16,6 +16,7 @@ import './../AIServices/AIServices.css';
 import { getTypeParameterOwner } from 'typescript';
 import { PromptState } from 'msal/lib-commonjs/utils/Constants';
 import { withRouter } from "react-router-dom";
+import { useHistory, useLocation } from 'react-router';
 
 function generateUUID() { // Public Domain/MIT
   var d = new Date().getTime();//Timestamp
@@ -36,6 +37,7 @@ function generateUUID() { // Public Domain/MIT
 const theme = getTheme();
 
 const AIServices = () => {
+  const history = useHistory();
   const [offerData, setOfferData] = React.useState<any[]>();
   const [initOffferData, setInitOfferData] = React.useState<any[]>();
   const [isOpen, { setTrue: openPanel, setFalse: dismissPanel }] = useBoolean(false);
@@ -111,13 +113,12 @@ const AIServices = () => {
                   setIsNewSubSuccessful(false);
                 }, 7000);
                 dismissPanel();
+                setHideNewSubDialog(false);
             } else {
                 window.alert(`Error creating new subscription. - ${response.status}`);
             }
             return response.json();
         }).finally(() => setIsDataLoading(true));
-
-        setHideNewSubDialog(false);
   }
   
   const onRenderFooterContent = React.useCallback(
@@ -125,7 +126,7 @@ const AIServices = () => {
         <div>
             <PrimaryButton
                 onClick={CreateSubscription} styles={buttonStyles}>
-                Save
+                Submit
       </PrimaryButton>
             <DefaultButton onClick={dismissPanel}>Cancel</DefaultButton>
         </div>
@@ -138,7 +139,7 @@ const AIServices = () => {
     title: 'New Subscription is being created',
     closeButtonAriaLabel: 'Close',
     isMultiline: true,
-    subText: `New subscription ${newSubscription.SubscriptionId} is being created. Go to the Subscriptions tab to track the status.`,
+    subText: `New subscription ${newSubscription.SubscriptionId} is being created.`,
   };
 
   const modalProps: IModalProps = {
@@ -149,12 +150,28 @@ const AIServices = () => {
     allowTouchBodyScroll: true
   }
 
+  const setSubscriptionsPageActive = () => {
+    for (const key in document.getElementsByClassName('nav-item')) {
+      if (Object.prototype.hasOwnProperty.call(document.getElementsByClassName('nav-item'), key)) {
+        const liElement = document.getElementsByClassName('nav-item')[key] as HTMLLIElement;
+        if (key === "1")
+        {
+          liElement.classList.add('active');
+        }
+        else
+        {
+          liElement.classList.remove('active');
+        }
+      }
+    }
+  }
+
   return (
     <div className="AIServices">
       <div style={PanelStyles}>
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
           <StackItem>
-            <Text block variant={'xLargePlus'}>Machine Learning Services</Text>
+            <Text block variant={'xLargePlus'}>Machine Learning Gallery</Text>
           </StackItem>
           <StackItem>
             <TextField
@@ -183,14 +200,15 @@ const AIServices = () => {
         modalProps={modalProps}
       >
         <DialogFooter>
+          <DefaultButton onClick={function(event){setSubscriptionsPageActive(); history.push('../#'); }} text="Go to my subscriptions" />
           <DefaultButton onClick={() => setHideNewSubDialog(true)} text="Close" />
         </DialogFooter>
       </Dialog>
 
-        <Panel
+        <Panel  
                 isOpen={isOpen}
                 onDismiss={dismissPanel}
-                headerText="Create New Subscription"
+                headerText="Subscribe new Service"
                 closeButtonAriaLabel="Close"
                 onRenderFooterContent={onRenderFooterContent}
                 // Stretch panel content to fill the available height so the footer is positioned
@@ -212,7 +230,7 @@ const AIServices = () => {
                         value={newSubscription.OfferDisplayName}
                         readOnly={true}
                         disabled={true}
-                        label="Offer Name"
+                        label="Machine Learning Service Name"
                     ></TextField>
                     <TextField
                         required
@@ -233,25 +251,6 @@ const AIServices = () => {
                             sessionStorage.setItem('newSub', JSON.stringify(sub));
                         })}
                     ></TextField>
-                    
-                    <Dropdown
-                      label="Plan"
-                      placeholder="Select a plan"
-                      options={planOptions}
-                      onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
-                        let sub = newSubscription;
-                        sub = {
-                          OfferName: sub.OfferName, 
-                          OfferDisplayName: sub.OfferDisplayName,
-                          PlanName: option?.key!+'',
-                          Name: sub.Name,
-                          SubscriptionId: sub.SubscriptionId,
-                          Owner: sub.Owner
-                        };
-                        setNewSubscription(sub);
-                        sessionStorage.setItem('newSub', JSON.stringify(sub));
-                      }}
-                    />
                     <Separator />
                 </Stack>
             </Panel>
@@ -330,11 +329,11 @@ const AIServices = () => {
                           //planOptions.push({"key": (plan as unknown as IPlan).PlanName, "text": (plan as unknown as IPlan).PlanDisplayName})
                           planOptions.push({"key": offer.Plans[plan].PlanName, "text": offer.Plans[plan].PlanDisplayName})
                         }
-                        setPlanOptions(planOptions);
+                        // setPlanOptions(planOptions);
                         setNewSubscription({
                         OfferName: offer.OfferName+'',
                         OfferDisplayName: offer.OfferDisplayName,
-                        PlanName: '',
+                        PlanName: 'default',
                         Name: '',
                         SubscriptionId: generateUUID(),
                         Owner: sessionStorage.getItem('_userEmail')+'',

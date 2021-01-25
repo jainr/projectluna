@@ -52,8 +52,6 @@ const ProductDetail: React.FunctionComponent = () => {
       {!loading ?
         <React.Fragment>
           <ProductDeployments productType={"SaaS"} />
-
-          <AMLWorkSpace />
         </React.Fragment> : null
       }
 

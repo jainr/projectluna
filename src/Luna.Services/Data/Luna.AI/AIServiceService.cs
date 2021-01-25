@@ -19,6 +19,7 @@ namespace Luna.Services.Data.Luna.AI
         private readonly ISqlDbContext _context;
         private readonly ILogger<AIServiceService> _logger;
         private readonly IOfferService _offerService;
+        private readonly IPlanService _planService;
         private readonly IWebhookService _webhookService;
         private readonly LunaClient _lunaClient;
 
@@ -27,11 +28,13 @@ namespace Luna.Services.Data.Luna.AI
         /// </summary>
         /// <param name="sqlDbContext">The context to be injected.</param>
         /// <param name="logger">The logger.</param>
-        public AIServiceService(ISqlDbContext sqlDbContext, ILogger<AIServiceService> logger, IOfferService offerService, IWebhookService webhookService, LunaClient lunaClient)
+        public AIServiceService(ISqlDbContext sqlDbContext, ILogger<AIServiceService> logger, IOfferService offerService, 
+            IWebhookService webhookService, IPlanService planService, LunaClient lunaClient)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _offerService = offerService ?? throw new ArgumentNullException(nameof(offerService));
+            _planService = planService ?? throw new ArgumentNullException(nameof(planService));
             _webhookService = webhookService ?? throw new ArgumentNullException(nameof(webhookService));
             _lunaClient = lunaClient ?? throw new ArgumentNullException(nameof(lunaClient));
         }
@@ -144,6 +147,13 @@ namespace Luna.Services.Data.Luna.AI
                 offer.OfferVersion = "v1";
                 offer.AIServiceId = aiService.Id;
                 await _offerService.CreateAsync(offer);
+                await _context._SaveChangesAsync();
+
+                Plan plan = new Plan();
+                plan.OfferId = offer.Id;
+                plan.PlanName = "default";
+                plan.PriceModel = "flatRate";
+                await _planService.CreateAsync(aiService.SaaSOfferName, plan);
                 await _context._SaveChangesAsync();
 
                 transaction.Commit();

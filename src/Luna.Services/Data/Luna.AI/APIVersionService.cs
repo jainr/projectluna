@@ -115,6 +115,13 @@ namespace Luna.Services.Data.Luna.AI
             {
                 var models = await _context.MLModels.Where(v => v.APIVersionId == apiVersion.Id).ToListAsync();
 
+                if (models.Count == 1)
+                {
+                    apiVersion.ModelName = models[0].ModelName;
+                    apiVersion.ModelVersion = models[0].ModelVersion;
+                    apiVersion.ModelDisplayName = models[0].ModelDisplayName;
+                }
+
                 foreach (MLModel model in models)
                 {
                     apiVersion.MLModels.Add(model);
@@ -243,6 +250,16 @@ namespace Luna.Services.Data.Luna.AI
                 version.EndpointAuthSecretName = secretName;
             }
 
+            if (version.MLModels.Count == 0 && !string.IsNullOrEmpty(version.ModelName))
+            {
+                version.MLModels.Add(new MLModel()
+                {
+                    ModelName = version.ModelName,
+                    ModelVersion = version.ModelVersion,
+                    ModelDisplayName = version.ModelDisplayName
+                });
+            }
+
             using (var transaction = await _context.BeginTransactionAsync())
             {
                 // Add apiVersion to db
@@ -325,13 +342,13 @@ namespace Luna.Services.Data.Luna.AI
                         UserErrorCode.InvalidParameter);
                 }
 
-                if (version.MLModels.Count == 0)
+                if (string.IsNullOrEmpty(version.ModelName) && version.MLModels.Count == 0)
                 {
                     throw new LunaBadRequestUserException("At least one model required to publish.",
                         UserErrorCode.InvalidParameter);
                 }
 
-                if (version.MLModels.GroupBy(a => a.ModelName).Where(a => a.Count() > 1).Count() > 0)
+                if (version.MLModels.Count >= 0 && version.MLModels.GroupBy(a => a.ModelName).Where(a => a.Count() > 1).Count() > 0)
                 {
                     throw new LunaBadRequestUserException("Model names in the same API version must be unique.",
                         UserErrorCode.InvalidParameter);
@@ -617,10 +634,10 @@ namespace Luna.Services.Data.Luna.AI
                     if (modelDb != null)
                     {
                         if (modelDb.ModelVersion != model.ModelVersion || 
-                            !modelDb.ModelAlternativeName.Equals(model.ModelAlternativeName, StringComparison.InvariantCultureIgnoreCase))
+                            !modelDb.ModelDisplayName.Equals(model.ModelDisplayName, StringComparison.InvariantCultureIgnoreCase))
                         {
                             modelDb.ModelVersion = model.ModelVersion;
-                            modelDb.ModelAlternativeName = model.ModelAlternativeName;
+                            modelDb.ModelDisplayName = model.ModelDisplayName;
                             _context.MLModels.Update(modelDb);
                         }
                     }

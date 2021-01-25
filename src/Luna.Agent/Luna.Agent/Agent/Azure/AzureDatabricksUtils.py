@@ -71,7 +71,7 @@ class AzureDatabricksUtils(object):
         
         body = {
             "name": mlModel.ModelName,
-            "version": str(mlModel.ModelVersion)
+            "version": mlModel.ModelVersion
             }
 
         return self.send_get_request(url, body)
@@ -225,7 +225,7 @@ class AzureDatabricksUtils(object):
         # TODO: see if we can use python library
         body = {
             "name": mlModel.ModelName,
-            "version": str(mlModel.ModelVersion)
+            "version": mlModel.ModelVersion
             }
 
         response = self.send_get_request(url, body)

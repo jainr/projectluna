@@ -282,9 +282,7 @@ namespace Luna.Services.Provisoning
                         _logger.LogInformation($"Subscribing AI service.");
                         AIService service = await _aiServiceService.GetByOfferIdAsync(subscription.OfferId);
                         Plan plan = await FindPlanById(subscription.PlanId);
-                        AIServicePlan servicePlan = await _aiServicePlanService.GetAsync(service.AIServiceName, plan.PlanName);
                         subscription.AIServiceId = service.Id;
-                        subscription.AIServicePlanId = servicePlan.Id;
 
                         Gateway gateway = null;
                         if (subscription.GatewayId.HasValue)
@@ -314,7 +312,7 @@ namespace Luna.Services.Provisoning
                         subscription.SecondaryKey = Guid.NewGuid().ToString("N");
                         await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.PrimaryKeySecretName, subscription.PrimaryKey));
                         await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName, subscription.SecondaryKey));
-                        _logger.LogInformation($"Subscribed the AI service {service.AIServiceName} with plan {servicePlan.AIServicePlanName}.");
+                        _logger.LogInformation($"Subscribed the AI service {service.AIServiceName}.");
                     }
                     else if (subscription.ProvisioningType.Equals(nameof(ProvisioningType.Update)))
                     {

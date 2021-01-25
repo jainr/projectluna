@@ -10,6 +10,7 @@ import GlobalErrorController from './GlobalErrorController';
 import ReviewOfferContent from './ReviewOfferContent';
 import SubscriptionDetailContent from "./SubscriptionDetailContent";
 import GlobalProcessingController from './GlobalProcessingController';
+import Settings from '../routes/Settings/Settings';
 
 export interface LayoutHelperMenuItem {
   title: string;
@@ -35,9 +36,9 @@ const Layout: React.FunctionComponent = (props) => {
   let subscriptionDetailActive = (location.pathname.toLowerCase().startsWith('/subscriptiondetail'));
   let listViewActive = (location.pathname.toLowerCase().startsWith('/subscriptions')
     || location.pathname.toLowerCase().startsWith('/offers')
-    || location.pathname.toLowerCase().startsWith('/products'));
+    || location.pathname.toLowerCase().startsWith('/products')
+    || location.pathname.toLowerCase().startsWith('/settings'));
   let modifyProductActive = (location.pathname.toLowerCase().startsWith('/modifyproduct'));
-
   if (modifyOfferActive || reviewOfferActive || listViewActive || subscriptionDetailActive || modifyProductActive || noVersionActive)
     genericContentWrapper = false;
 
@@ -102,6 +103,8 @@ const Layout: React.FunctionComponent = (props) => {
             {children}
           </Content>
         )}
+               
+
         {/* This must be the last content wrapper */}
         {(reviewOfferActive || genericContentWrapper) && (
           <ReviewOfferContent offerName={offerName}>

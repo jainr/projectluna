@@ -42,6 +42,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web.Resource;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Polly;
@@ -141,6 +142,7 @@ namespace Luna.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            IdentityModelEventSource.ShowPII = true;
             services.AddControllers().AddJsonOptions(options => {
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
@@ -171,20 +173,21 @@ namespace Luna.API
                 // The web API accepts as audiences both the Client ID (options.Audience) and api://{ClientID}.
                 options.TokenValidationParameters.ValidAudiences = new[]
                 {
-     options.Audience,
-     $"api://{options.Audience}",
-     this.configuration["AzureAD:ClientId"],
-     $"api://{this.configuration["AzureAD:ClientId"]}",
-     "9348a48a-9f97-4e9e-bce2-40d239840733",
-     "52ed21f2-32e1-4df0-86be-00f5795e7137",
-     "32194131-5cf5-4acd-b59c-d7671f882b70"
-    };
+                    options.Audience,
+                    $"api://{options.Audience}",
+                    this.configuration["AzureAD:ClientId"],
+                    $"api://{this.configuration["AzureAD:ClientId"]}"
+                };
                 options.ClaimsIssuer = @"https://login.microsoftonline.com/{tenantid}/v2";
 
                 // Instead of using the default validation (validating against a single tenant,
                 // as we do in line-of-business apps),
                 // we inject our own multitenant validation logic (which even accepts both v1 and v2 tokens).
                 options.TokenValidationParameters.IssuerValidator = AadIssuerValidator.GetIssuerValidator(options.Authority).Validate;
+                //options.TokenValidationParameters.ValidIssuers = new string[] {
+                //    @"https://login.microsoftonline.com/{tenantid}/v2",
+                //      @"https://sts.windows.net/{tenantid}"
+                //};
             });
 
             services.Configure<CookieAuthenticationOptions>(

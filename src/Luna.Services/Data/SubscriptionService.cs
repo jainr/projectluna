@@ -103,6 +103,10 @@ namespace Luna.Services.Data
             {
                 sub.PlanName = (await _context.Plans.FindAsync(sub.PlanId)).PlanName;
                 sub.OfferName = (await _context.Offers.FindAsync(sub.OfferId)).OfferName;
+                if (sub.Status.Equals(nameof(FulfillmentState.PendingFulfillmentStart)))
+                {
+                    sub.Status = "Pending";
+                }
                 if (!string.IsNullOrEmpty(sub.PrimaryKeySecretName))
                 {
                     sub.PrimaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, sub.PrimaryKeySecretName);
@@ -164,6 +168,11 @@ namespace Luna.Services.Data
 
             subscription.OfferName = (await _context.Offers.FindAsync(subscription.OfferId)).OfferName;
             subscription.PlanName = (await _context.Plans.FindAsync(subscription.PlanId)).PlanName;
+
+            if (subscription.Status.Equals(nameof(FulfillmentState.PendingFulfillmentStart)))
+            {
+                subscription.Status = "Pending";
+            }
 
             if (!string.IsNullOrEmpty(subscription.PrimaryKeySecretName))
             {

@@ -655,8 +655,8 @@ CREATE TABLE [dbo].[MLModels](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[APIVersionId] [bigint] NOT NULL,
 	[ModelName] [nvarchar](128) NULL,
-	[ModelAlternativeName] [nvarchar](128) NULL,
-	[ModelVersion] [bigint] NULL,
+	[ModelDisplayName] [nvarchar](128) NULL,
+	[ModelVersion] [nvarchar](16) NULL,
 	PRIMARY KEY (Id),
 	CONSTRAINT FK_APIVersionId_MLModels FOREIGN KEY (APIVersionId) REFERENCES APIVersions(Id)
 )

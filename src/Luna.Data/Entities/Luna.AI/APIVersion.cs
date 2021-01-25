@@ -60,7 +60,7 @@ namespace Luna.Data.Entities
 
         public bool IsLinkedToAML()
         {
-            return !string.IsNullOrEmpty(this.LinkedServiceType) && 
+            return !string.IsNullOrEmpty(this.LinkedServiceType) &&
                 this.LinkedServiceType.Equals(LinkedServiceTypes.AML.ToString(), StringComparison.InvariantCultureIgnoreCase) &&
                 !string.IsNullOrEmpty(this.AMLWorkspaceName);
         }
@@ -148,6 +148,15 @@ namespace Luna.Data.Entities
 
         // Fields for ml project deployment
         public string GitVersion { get; set; }
+
+        [NotMapped]
+        public string ModelName { get; set; }
+
+        [NotMapped]
+        public string ModelVersion { get; set; }
+
+        [NotMapped]
+        public string ModelDisplayName { get; set; }
 
         [NotMapped]
         public List<MLModel> MLModels { get; set; }

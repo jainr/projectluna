@@ -78,7 +78,8 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
         await this.userAgentApplication.loginRedirect(
           {
             scopes: window.MSAL_CONFIG.scopes,
-            prompt: "select_account"
+            prompt: "select_account",
+            forceRefresh: true
           });
         // After login, get the user's profile
         await this.getUserProfile();
@@ -106,7 +107,9 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
           scopes: scopes
         });
 
-        console.info(`Token created: ${silentResult.accessToken}`);
+        //sessionStorage.setItem(`msal.${window.MSAL_CONFIG.appId}.idtoken`, silentResult.accessToken);
+        console.info('updated the session storage.')
+
         return silentResult.accessToken;
       } 
       catch (err) {
@@ -136,7 +139,7 @@ export default function withAuthProvider<T extends React.Component<AuthComponent
         var silentResult = await this.userAgentApplication.acquireTokenSilent({
           scopes: scopes
         });
-        console.info(`Token updated: ${silentResult.accessToken}`);
+        console.info('updated the session storage.')
         return silentResult.accessToken;
       } catch (err) {
         // If a silent request fails, it may be because the user needs

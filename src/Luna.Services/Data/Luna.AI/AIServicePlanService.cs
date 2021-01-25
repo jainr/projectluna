@@ -150,22 +150,6 @@ namespace Luna.Services.Data.Luna.AI
 
             using (var transaction = await _context.BeginTransactionAsync())
             {
-                // Create SaaS plan if SaaS offer is associated with the aiService
-                var offer = await _context.Offers.SingleOrDefaultAsync(o => o.AIServiceId == aiService.Id && o.Status != "Deleted");
-
-                if (offer != null)
-                {
-                    if ((await _context.Plans.Where(p => p.OfferId == offer.Id && p.PlanName == aiServicePlan.AIServicePlanName).CountAsync()) == 0)
-                    {
-                        Plan plan = new Plan();
-                        plan.OfferId = offer.Id;
-                        plan.PlanName = aiServicePlan.AIServicePlanName;
-                        plan.PriceModel = "flatRate";
-                        await _planService.CreateAsync(aiService.SaaSOfferName, plan);
-                        await _context._SaveChangesAsync();
-                    }
-                }
-
                 // Add aiServicePlan to db
                 _context.AIServicePlans.Add(aiServicePlan);
 
