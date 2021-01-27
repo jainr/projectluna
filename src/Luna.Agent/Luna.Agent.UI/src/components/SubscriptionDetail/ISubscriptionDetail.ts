@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+import { ISubscriptionAPI } from './ISubscriptionAPI';
+
 export interface ISubscriptionDetail {
   baseUrl: string;
   createdTime: string;
@@ -14,4 +16,5 @@ export interface ISubscriptionDetail {
   subscriptionId: string;
   subscriptionName: string;
   owner: string;
+  apis: ISubscriptionAPI[];
 }

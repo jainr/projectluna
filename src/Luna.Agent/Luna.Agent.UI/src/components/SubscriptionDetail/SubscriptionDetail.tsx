@@ -2,11 +2,12 @@
 // Licensed under the MIT License.
 
 import * as React from 'react';
-import { Text, TextField, StackItem, Stack, DefaultButton, CommandButton, Link, Icon, MessageBar, MessageBarType, Panel, PrimaryButton, DetailsList, SelectionMode, IColumn, Dialog, DialogFooter, DialogType, IModalProps, IDialogContentProps, Persona, PersonaSize, PersonaPresence, IconButton } from '@fluentui/react';
+import { Text, TextField, StackItem, Stack, DefaultButton, CommandButton, Link, Icon, MessageBar, MessageBarType, Panel, PrimaryButton, DetailsList, SelectionMode, IColumn, Dialog, DialogFooter, DialogType, IModalProps, IDialogContentProps, Persona, PersonaSize, PersonaPresence, IconButton, IDropdownOption, Dropdown } from '@fluentui/react';
 import { useParams } from 'react-router-dom';
 import { SharedColors } from '@uifabric/fluent-theme';
 import './SubscriptionDetail.css';
 import { ISubscriptionDetail } from './ISubscriptionDetail';
+import { ISubscriptionAPI } from './ISubscriptionAPI';
 import FooterLinks from '../FooterLinks/FooterLinks';
 import { getUserByEmail, getOtherUserPhoto } from '../../GraphService';
 import { IUserLookUp } from '../../interfaces/IUserLookUp';
@@ -31,7 +32,8 @@ const SubscriptionDetail: React.FunctionComponent = () => {
     subscriptionName: "",
     owner: "",
     primaryKeySecretName: "",
-    secondaryKeySecretName: ""
+    secondaryKeySecretName: "",
+    apis: []
   });
 
   const [isCopySuccess, setSuccess] = React.useState<boolean>(false);
@@ -41,6 +43,12 @@ const SubscriptionDetail: React.FunctionComponent = () => {
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [newUser, setNewUser] = React.useState("");
+  const [apiOptions, setApiOptions] = React.useState<IDropdownOption[]>([]);
+  const [apiVersionOptions, setApiVersionOptions] = React.useState<IDropdownOption[]>([]);
+  const [apiVersionOperationOptions, setApiVersionOperationOptions] = React.useState<IDropdownOption[]>([]);
+  const [isApiVersionDisabled, setIsApiVersionDisabled] = React.useState<boolean>(true);
+  const [isApiVersionOperationDisabled, setIsApiVersionOperationDisabled] = React.useState<boolean>(true);
+  const [selectedValues, setSelectedValues] = React.useState<ISelectedItems>();
 
   const [userValidation, setUserValidation] = React.useState<IUserLookUp | undefined>();
   const [noUserFound, setNoUserFound] = React.useState<boolean>();
@@ -65,7 +73,76 @@ const SubscriptionDetail: React.FunctionComponent = () => {
       }
     })
       .then(response => response.json())
-      .then(_data => { setData(_data); });
+      .then(_data => { setData(_data); setSubApiOptions(_data);});
+  }
+
+  const setSubApiOptions = (subscriptionData:ISubscriptionDetail) => {
+    console.log("set api options")
+    console.log(subscriptionData.apis.length)
+    let subApiOptions: IDropdownOption[] = [];
+    for (const key in subscriptionData.apis)
+    {
+      const api = subscriptionData.apis[key]
+      subApiOptions.push({"key": api.name, "text": api.name})
+    }
+    setApiOptions(subApiOptions);
+  }
+
+  const setSubApiVersionOptions = (selectedApi:string) => {
+    
+    if (selectedApi == ""){
+      setIsApiVersionDisabled(true);
+      setIsApiVersionOperationDisabled(true);
+      return;
+    }
+
+    var apiObj = subscriptionData.apis.find(obj => {
+      return obj.name === selectedApi
+    })
+
+    if (apiObj){
+      let subApiVersionOptions: IDropdownOption[] = [];
+  
+      for (const key in apiObj.versions)
+      {
+        const version = apiObj.versions[key]
+        subApiVersionOptions.push({"key": version?.name, "text": version?.name})
+      }
+      setApiVersionOptions(subApiVersionOptions);
+      setIsApiVersionDisabled(false);
+      setIsApiVersionOperationDisabled(true);
+    }
+  }
+
+  const setSubApiVersionOperationOptions = (selectedApi: string, selectedVersion: string) => {
+    
+    if (selectedApi == "" || selectedVersion == ""){
+      setIsApiVersionOperationDisabled(true);
+      return;
+    }
+
+    var apiObj = subscriptionData.apis.find(obj => {
+      return obj.name === selectedApi
+    });
+
+    if (apiObj){
+
+      var versionObj = apiObj.versions.find(obj => {
+        return obj.name === selectedVersion
+      });
+
+      if (versionObj){
+        let subApiVersionOperationOptions: IDropdownOption[] = [];
+    
+        for (const key in versionObj.operations)
+        {
+          const operation = versionObj.operations[key]
+          subApiVersionOperationOptions.push({"key": operation?.name, "text": operation?.name})
+        }
+        setApiVersionOperationOptions(subApiVersionOperationOptions);
+        setIsApiVersionOperationDisabled(false);
+      }
+    }
   }
 
   React.useEffect(() => {
@@ -178,25 +255,21 @@ const SubscriptionDetail: React.FunctionComponent = () => {
 
   const sampleCode = "import os \n\
 import requests \n\
+import pandas as pd \n\
 \n\
 subscription_key = \"****************\" \n\
 endpoint = \"<endpoint_url>\" \n\
-api_name = <api_name>\n\
-api_version = <api_version> \n\
-url = endpoint + \"/apiv2/<aiservice_name>/{}/predict?api-version={}\".format(api_name, api_version) \n\
-input = {\n\
-  'data': {\n\
-        'start_date': <start_date>,\n\
-        'end_date': <end_date>\n\
-  }\n\
-}\n\
-response = requests.post(url, headers={\"api-key\": subscription_key}, json=input) \n\
+df = pd.read_csv(<input_data_file>)\n\
+url = endpoint + \"/apiv2/<aiservice_name>/<api_name>/<operation_name>?api-version=<api_version>\"\n\
+response = requests.post(url, headers={\"api-key\": subscription_key}, json=df.to_dict('split')) \n\
 if response.status_code == 200: \n\
     print(response.json())";
   
+  const [sampleCodeValue, setSampleCodeValue] = React.useState<string>(sampleCode);
+
   const renderLabelSampleCode = (): JSX.Element => {
     const copyClick = () => {
-      const urlValue = sampleCode.replace("****************", subscriptionData?.primaryKey)
+      const urlValue = sampleCodeValue.replace("****************", subscriptionData?.primaryKey)
         .replace("<endpoint_url>", subscriptionData?.baseUrl)
         .replace("<aiservice_name>", subscriptionData?.offerName);
       const selBox = document.createElement('textarea');
@@ -223,7 +296,6 @@ if response.status_code == 200: \n\
         </Stack>
         <Stack horizontal verticalAlign="baseline" horizontalAlign="space-between">
           <Text variant={'mediumPlus'}>Sample Code</Text>
-
           <CommandButton onClick={copyClick} iconProps={{ iconName: 'Copy' }}>Copy</CommandButton>
         </Stack>
       </Stack>
@@ -436,47 +508,119 @@ if response.status_code == 200: \n\
           ></TextField>
         </div>
 
+        <div className="items">
+          
+            <Stack verticalAlign="space-between" style={{paddingTop:"10px"}}>
+            <Stack style={{ visibility: 'hidden' }}>
+              <Text variant={'medium'}>Usage:</Text>
+            </Stack>
+            <StackItem>
+              <Dropdown
+                    label="Available APIs"
+                    placeholder={"Select an API"}
+                    options={apiOptions}
+                    onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                      
+                      setSelectedValues({
+                        api: option?.text!,
+                        version: "",
+                        operation: "",
+                      });
+                      setSubApiVersionOptions(option?.text!);
+                      setSampleCodeValue(sampleCode.replace("<api_name>", option?.text!));
+                    }}
+                  />
+            </StackItem>
+            <StackItem>
+              <Dropdown
+                    label="API Versions"
+                    placeholder={"Select a Version"}
+                    disabled={isApiVersionDisabled}
+                    options={apiVersionOptions}
+                    onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                      
+                      setSelectedValues({
+                        api: selectedValues?.api!,
+                        version: option?.text!,
+                        operation: "",
+                      });
+                      setSubApiVersionOperationOptions(selectedValues?.api!, option?.text!);
+                      setSampleCodeValue(sampleCode.replace("<api_name>", selectedValues?.api!)
+                        .replace("<api_version>", option?.text!));
+                    }}
+                  />
+            </StackItem>
+            <StackItem>
+              <Dropdown
+                    label="Operations"
+                    placeholder={"Select an operation"}
+                    disabled={isApiVersionOperationDisabled}
+                    options={apiVersionOperationOptions}
+                    onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                      
+                      setSelectedValues({
+                        api: selectedValues?.api!,
+                        version: selectedValues?.version!,
+                        operation: option?.text!,
+                      });
+                      setSampleCodeValue(sampleCode.replace("<api_name>", selectedValues?.api!)
+                        .replace("<api_version>", selectedValues?.version!)
+                        .replace("<operation_name>", option?.text!));
+                    }}
+                  />
+            </StackItem>
+          </Stack>
+            <Stack verticalAlign="space-between" style={{paddingTop:"10px"}}>
+              <StackItem>
+              <TextField
+                value={subscriptionData?.baseUrl?sampleCodeValue
+                  .replace("<endpoint_url>", subscriptionData?.baseUrl)
+                  .replace("<aiservice_name>", subscriptionData?.offerName):"loading..."}
+                readOnly={true}
+                multiline={true}
+                rows={(sampleCode.match(new RegExp("\n", "g")) || []).length + 1 > 10?
+                  10:
+                  (sampleCode.match(new RegExp("\n", "g")) || []).length + 1}
+                borderless={true}
+                label="Sample Code"
+                disabled={true}
+                onRenderLabel={renderLabelSampleCode}
+              >
+                
+              </TextField>
+              </StackItem>
+              <StackItem>
+                <Link href="https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/a6c2a7cc-d67e-4a1a-b765-983f08c0423a/resourcegroups/lunaaitest-rg/workspaces/lunaaitest-aml&tid=72f988bf-86f1-41af-91ab-2d7cd011db47&activeFilePath=Users/xiwu/luna_demo/luna_demo.ipynb" 
+                  target='blank'>Open Notebook</Link>
+              </StackItem>
+            </Stack>
+            <Stack verticalAlign="space-between">
+              <Stack style={{ visibility: 'hidden' }}>
+                <Text variant={'medium'}>Usage:</Text>
+              </Stack>
+                <StackItem>
+                  <Text variant={'large'} block>Other Resources:</Text><br/>
+                  <Link  href="https://aka.ms/lunaai" target="blank">Swagger</Link><br/>
+                  <Link  href="https://aka.ms/lunaai" target="blank">Sample Notebook</Link><br/>
+                  <Link  href="https://aka.ms/lunaai" target="blank">Documentation</Link>
+                </StackItem>
+                <StackItem>
+                  <br/>
+                </StackItem>
+                <StackItem>
+                  <br/>
+                </StackItem>
+            </Stack>
+          </div>
+        
+        
 
         
-        <Stack verticalAlign="space-between" style={{paddingTop:"10px"}}>
-          <StackItem>
-          <TextField
-            value={subscriptionData?.baseUrl?sampleCode
-              .replace("<endpoint_url>", subscriptionData?.baseUrl)
-              .replace("<aiservice_name>", subscriptionData?.offerName):"loading..."}
-            readOnly={true}
-            multiline={true}
-            rows={(sampleCode.match(new RegExp("\n", "g")) || []).length + 1 > 10?
-              10:
-              (sampleCode.match(new RegExp("\n", "g")) || []).length + 1}
-            borderless={true}
-            label="Sample Code"
-            disabled={true}
-            onRenderLabel={renderLabelSampleCode}
-          >
-            
-          </TextField>
-          </StackItem>
-        </Stack>
         
         <p>
             <Text variant={'large'}></Text>
         </p>
 
-        <Stack verticalAlign="space-between" style={{paddingTop:"20px"}}>
-          <StackItem>
-            <Text variant={'large'} block>Other Resources:</Text>
-          </StackItem>
-          <StackItem>
-            <Link  href="https://aka.ms/lunaai" target="blank">Swagger</Link>
-          </StackItem>
-          <StackItem>
-            <Link  href="https://aka.ms/lunaai" target="blank">Sample Notebook</Link>
-          </StackItem>
-          <StackItem>
-            <Link  href="https://aka.ms/lunaai" target="blank">Documentation</Link>
-          </StackItem>
-        </Stack>
       </div>
 
 
@@ -564,6 +708,12 @@ if response.status_code == 200: \n\
 
 interface AuthParams {
   id: string;
+}
+
+interface ISelectedItems {
+  api: string;
+  version: string;
+  operation: string;
 }
 
 export default SubscriptionDetail;

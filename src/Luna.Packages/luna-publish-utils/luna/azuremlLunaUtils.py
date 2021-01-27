@@ -106,6 +106,7 @@ class AzureMLLunaUtils(BaseLunaUtils):
     def FindPredecessorRun(self):
         run = Run.get_context(allow_offline=False)
         experiment = run.experiment
+        run.tags.
         
         tags={'userId': self._args.userId,
               'subscriptionId':self._args.subscriptionId,

@@ -739,3 +739,16 @@ SET @agentKeySecretName = $(agentKeySecretName)
 
 INSERT INTO [dbo].[AIAgents] VALUES(@agentId, @agentKeySecretName, 'system', getutcdate(), getutcdate(), 1)
 GO
+
+
+
+CREATE VIEW [dbo].[vw_subscriptions]
+AS
+SELECT dbo.Subscriptions.SubscriptionId, dbo.Subscriptions.Name, dbo.Subscriptions.Status, dbo.Subscriptions.CreatedTime, dbo.Subscriptions.LastUpdatedTime, dbo.Subscriptions.primarykeysecretname, dbo.Subscriptions.secondarykeysecretname, dbo.Subscriptions.AIServicePlanId, dbo.Subscriptions.AIServiceId, dbo.AIServices.AIServiceName, dbo.Subscriptions.BaseUrl, 
+          dbo.Subscriptions.Owner, '' as AIServicePlanname
+FROM
+          dbo.AIServices INNER JOIN
+          dbo.Subscriptions ON dbo.AIServices.Id = dbo.Subscriptions.AIServiceId
+GO
+
+

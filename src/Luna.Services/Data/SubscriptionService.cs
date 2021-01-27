@@ -11,6 +11,7 @@ using Luna.Clients.Exceptions;
 using Luna.Clients.Fulfillment;
 using Luna.Clients.Logging;
 using Luna.Data.DataContracts;
+using Luna.Data.DataContracts.Luna.AI;
 using Luna.Data.Entities;
 using Luna.Data.Enums;
 using Luna.Data.Repository;
@@ -39,6 +40,7 @@ namespace Luna.Services.Data
         private readonly IAIServiceService _productService;
         private readonly IGatewayService _gatewayService;
         private readonly IAIServicePlanService _deploymentService;
+        private readonly IAPIVersionService _apiVersionService;
         private readonly IAPISubscriptionService _apiSubscriptionService;
         private readonly IKeyVaultHelper _keyVaultHelper;
         private readonly ILogger<SubscriptionService> _logger;
@@ -65,6 +67,7 @@ namespace Luna.Services.Data
             IGatewayService gatewayService,
             IAIServicePlanService deploymentService,
             IAPISubscriptionService apiSubscriptionService,
+            IAPIVersionService apiVersionService,
             ILogger<SubscriptionService> logger, IOptionsMonitor<AzureConfigurationOption> options, IKeyVaultHelper keyVaultHelper)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
@@ -81,6 +84,7 @@ namespace Luna.Services.Data
             _apiSubscriptionService = apiSubscriptionService ?? throw new ArgumentNullException(nameof(apiSubscriptionService));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _keyVaultHelper = keyVaultHelper ?? throw new ArgumentNullException(nameof(keyVaultHelper));
+            _apiVersionService = apiVersionService ?? throw new ArgumentNullException(nameof(apiVersionService));
         }
 
         /// <summary>
@@ -181,6 +185,43 @@ namespace Luna.Services.Data
             if (!string.IsNullOrEmpty(subscription.SecondaryKeySecretName))
             {
                 subscription.SecondaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName);
+            }
+
+            var apis = await _deploymentService.GetAllAsync(subscription.OfferName);
+            foreach(var item in apis)
+            {
+                SubscriptionAPI api = new SubscriptionAPI()
+                {
+                    Name = item.AIServicePlanName,
+                    Description = item.Description
+                };
+
+                var versions = await _apiVersionService.GetAllAsync(subscription.OfferName, item.AIServicePlanName);
+                foreach(var version in versions)
+                {
+                    SubscriptionAPIVersion apiVersion = new SubscriptionAPIVersion()
+                    {
+                        Name = version.VersionName,
+                        Description = "",
+                    };
+                    // TODO: get operations and parameters
+                    SubscriptionAPIVersionOperation operation = new SubscriptionAPIVersionOperation()
+                    {
+                        Name = "predict",
+                        Description = "Predict the house price"
+                    };
+
+                    operation.Parameters.Add(new SubscriptionAPIVersionOperationParameter()
+                    {
+                        Name = "data",
+                        Type = "pandas.dataframe"
+                    });
+
+                    apiVersion.Operations.Add(operation);
+
+                    api.Versions.Add(apiVersion);
+                }
+                subscription.Apis.Add(api);
             }
 
             _logger.LogInformation(LoggingUtils.ComposeReturnValueMessage(typeof(Subscription).Name,

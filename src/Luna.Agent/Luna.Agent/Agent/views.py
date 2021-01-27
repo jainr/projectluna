@@ -58,7 +58,7 @@ def getAPIVersion(subscription):
 
     apiVersion = APIVersion.Get(subscription.AIServiceName, subscription.AIServicePlanName, version)
     if not apiVersion:
-        raise LunaUserException(HTTPStatus.NOT_FOUND, 'The specified api version does not exist or you do not have permission to access it.')
+        raise LunaUserException(HTTPStatus.NOT_FOUND, 'The specified API does not exist or you do not have permission to access it.')
 
     return apiVersion;
 
@@ -79,55 +79,55 @@ def convertOnelinePemtoPemData(pem):
 
     return str.encode(result)
 
-def validateAPIKeyAndGetSubscription(subscriptionId, serviceName = None, planName = None):
+def validateAPIKeyAndGetSubscription(serviceName, apiName, subscriptionId='default'):
     
-    pem = request.headers.get('X-ARR-ClientCert')
-    if not pem:
-        pem = "MIIDEjCCAfqgAwIBAgIQd8JlPHPUz41AD9vEd2UhhjANBgkqhkiG9w0BAQsFADASMRAwDgYDVQQDDAdsdW5hLmFpMB4XDTIxMDExNTE2MzAxOVoXDTIyMDExNTE2NTAxOVowEjEQMA4GA1UEAwwHbHVuYS5haTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKXi+qHK6YISiGrGbXgXC4+tm37vR5vIS+L6q5o7VK2vAYrR4axcWak3pPWtgr/MG46bhole0Lz92kZA2H4Pc6krZNFYfhjTkm/KZ4LN8YYPTy25ZCRX51QXl9wvbqoZ5ZwJxr5n44kQ1e+3Ay5MNdO5zKcjFmAUfy1cDhpB37hFh5R1nGL1ePw45SzmPOqJ6tdP3nUz4edJu8eaHt8WDViA5vS1wPh1JuW+oPqr46ufo9VQ6nGQp6SY6O6+E7LrbOaFOf+JbepcbAf7gZ2sprCA6q1bwFJskWofT1pFouDxFNqWLseaRNM+VI4dweBli+PX5bxc1e/G68gfJSolDpkCAwEAAaNkMGIwDgYDVR0PAQH/BAQDAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATASBgNVHREECzAJggdsdW5hLmFpMB0GA1UdDgQWBBTK4a+0Galc8Sy9fkBxMs3oszECnjANBgkqhkiG9w0BAQsFAAOCAQEAWIfmsu5ZCOXkJS9jLXAK7bmZBjGezanjB/WaKCIwfPUOx2YWHMYLFLgS39QF0ZntBh3QCxtgAxySsjWd7UFszLEOsIhkKHQnPro8BZ2hG3aJZNiiU6MlSA6Zd6ddpVsgZOVtG1K5CdeM5vCLF+qKobMdjWy9FmWO8fcUrWT1wkvf2aBoedqbzQCwIE5Q3mTyIa3maPGLxkrs4lRbpVuKKfPVuEzLgtjjt0V+le7VkZKLuJ6mMKmR3HN3dEE9RJzE2yCWjWKTBnYj1slWmJw+G/TNgezlJE6Fl5/wZ2IeGJOrgkfV+haS9hH3rymAflxvc8PlAcDy9J+yVxpwKRDBeQ=="
-    if pem:
-        cert = x509.load_pem_x509_certificate(convertOnelinePemtoPemData(pem), default_backend())
-
-        #validate thumbprint
-        if binascii.hexlify(cert.fingerprint(hashes.SHA1())).upper() != b"46FE14FDE5F55158FCD472E43A80474802D8A5CB":
-            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
-        if cert.issuer.rfc4514_string() != 'CN=luna.ai':
-            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
-        if cert.subject.rfc4514_string() != 'CN=luna.ai':
-            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
-        if datetime.utcnow() > cert.not_valid_after or datetime.utcnow() < cert.not_valid_before:
-            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
-
-        sub = Subscription()
-        sub.AIServiceName = serviceName
-        sub.AIServicePlanName = planName
-        subscriptionId = request.headers.get('Luna-Subscription')
-        if not subscriptionId:
-            raise LunaUserException(HTTPStatus.BAD_REQUEST, 'Subscription id id not available.')
-        sub.SubscriptionId = subscriptionId
-        user = request.headers.get('Luna-User')
-        if not user:
-            raise LunaUserException(HTTPStatus.BAD_REQUEST, 'User id id not available.')
-        sub.Owner = user
-        return sub
-
     subscriptionKey = request.headers.get('api-key')
     if subscriptionKey:
         sub = Subscription.GetByKey(subscriptionKey)
         if not sub:
             raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'The api key is invalid.')
-        if subscriptionId != "default" and subscriptionId.lower() != sub.SubscriptionId.lower():
+        if sub.AIServiceName != serviceName:
+            raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'The service {} does not exist or you do not have permission to access it.'.format(serviceName))
+        if subscriptionId != 'default' and subscriptionId.lower() != sub.SubscriptionId.lower():
             raise LunaUserException(HTTPStatus.UNAUTHORIZED, "The subscription {} doesn't exist or api key is invalid.".format(subscriptionId))
+    else:
+        pem = request.headers.get('X-ARR-ClientCert')
+        if pem:
+            cert = x509.load_pem_x509_certificate(convertOnelinePemtoPemData(pem), default_backend())
+
+            #validate thumbprint
+            if binascii.hexlify(cert.fingerprint(hashes.SHA1())).upper() != b"46FE14FDE5F55158FCD472E43A80474802D8A5CB":
+                raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
+            if cert.issuer.rfc4514_string() != 'CN=luna.ai':
+                raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
+            if cert.subject.rfc4514_string() != 'CN=luna.ai':
+                raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
+            if datetime.utcnow() > cert.not_valid_after or datetime.utcnow() < cert.not_valid_before:
+                raise LunaUserException(HTTPStatus.UNAUTHORIZED, 'Invalid certificate.')
+
+            sub = Subscription()
+            sub.AIServiceName = serviceName
+            sub.AIServicePlanName = apiName
+            subscriptionId = request.headers.get('Luna-Subscription')
+            if not subscriptionId:
+                raise LunaUserException(HTTPStatus.BAD_REQUEST, 'Subscription id id not available.')
+            sub.SubscriptionId = subscriptionId
+            user = request.headers.get('Luna-User')
+            if not user:
+                raise LunaUserException(HTTPStatus.BAD_REQUEST, 'User id id not available.')
+            sub.Owner = user
     #else:
     #    objectId = AuthenticationHelper.ValidateSignitureAndUser(getToken(), subscriptionId)
     #    sub = Subscription.Get(subscriptionId, objectId)
     #    if not sub:
     #        raise LunaUserException(HTTPStatus.NOT_FOUND, 'The subscription {} does not exist.'.format(subscriptionId))
+    
 
+    sub.AIServicePlanName = apiName
     return sub
 
-@app.route('/apiv2/models', methods=['GET'])
-@app.route('/apiv2/<subscriptionId>/models', methods=['GET'])
-def listModels(subscriptionId = 'default'):
+@app.route('/apiv2/<serviceName>/<apiName>/models', methods=['GET'])
+def listModels(serviceName, apiName, subscriptionId = 'default'):
     
     try:
         subscription = validateAPIKeyAndGetSubscription(subscriptionId);
@@ -140,11 +140,10 @@ def listModels(subscriptionId = 'default'):
     except Exception as e:
         return handleExceptions(e)
     
-@app.route('/apiv2/models/<modelName>', methods=['GET'])
-@app.route('/apiv2/<subscriptionId>/models/<modelName>', methods=['GET'])
-def getModel(modelName, subscriptionId = 'default'):
+@app.route('/apiv2/<serviceName>/<apiName>/models/<modelName>', methods=['GET'])
+def getModel(serviceName, apiName, modelName, subscriptionId = 'default'):
     try:
-        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        subscription = validateAPIKeyAndGetSubscription(serviceName, apiName, subscriptionId);
         apiVersion = getAPIVersion(subscription);
         if (apiVersion.PlanType != 'model'):
             raise LunaUserException(HTTPStatus.NOT_FOUND, "No model published in the current AI service plan.");
@@ -171,11 +170,10 @@ def getModel(modelName, subscriptionId = 'default'):
         return handleExceptions(e)
     
 
-@app.route('/apiv2/predict', methods=['POST'])
-@app.route('/apim/<serviceName>/<planName>/predict', methods=['POST'])
-def realtimePredict(subscriptionId = 'default', serviceName = None, planName = None):
+@app.route('/apiv2/<serviceName>/<apiName>/predict', methods=['POST'])
+def realtimePredict(serviceName, apiName, subscriptionId = 'default'):
     try:
-        subscription = validateAPIKeyAndGetSubscription(subscriptionId, serviceName, planName);
+        subscription = validateAPIKeyAndGetSubscription(serviceName, apiName, subscriptionId);
         apiVersion = getAPIVersion(subscription);
         if (apiVersion.PlanType != 'endpoint'):
             raise LunaUserException(HTTPStatus.NOT_FOUND, "No service endpoint published in the current AI service plan.")
@@ -218,11 +216,10 @@ def realtimePredict(subscriptionId = 'default', serviceName = None, planName = N
     except Exception as e:
         return handleExceptions(e)
     
-@app.route('/apiv2/operations/metadata', methods=['GET'])
-@app.route('/apiv2/<subscriptionId>/operations/metadata', methods=['GET'])
-def listPublishedOperations(subscriptionId = 'default'):
+@app.route('/apiv2/<serviceName>/<apiName>/operations/metadata', methods=['GET'])
+def listPublishedOperations(serviceName, apiName, subscriptionId = 'default'):
     try:
-        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        subscription = validateAPIKeyAndGetSubscription(serviceName, apiName, subscriptionId);
         apiVersion = getAPIVersion(subscription);
         if apiVersion.PlanType == 'pipeline':
             if apiVersion.LinkedServiceType != 'AML':
@@ -238,15 +235,12 @@ def listPublishedOperations(subscriptionId = 'default'):
     except Exception as e:
         return handleExceptions(e)
 
-@app.route('/apiv2/<operationName>', methods=['POST'])
-@app.route('/apiv2/<subscriptionId>/<operationName>', methods=['POST'])
-@app.route('/apim/<serviceName>/<planName>/<operationName>', methods=['POST'])
-@app.route('/apiv2/operations/<predecessorOperationId>/<operationName>', methods=['POST'])
-@app.route('/api/<subscriptionId>/operations/<predecessorOperationId>/<operationName>', methods=['POST'])
-def executeOperation(operationName, predecessorOperationId = 'na', subscriptionId = 'default', serviceName = None, planName = None):
+@app.route('/apiv2/<serviceName>/<apiName>/<operationName>', methods=['POST'])
+@app.route('/apiv2/<serviceName>/<apiName>/operations/<predecessorOperationId>/<operationName>', methods=['POST'])
+def executeOperation(serviceName, apiName, operationName, predecessorOperationId = 'na', subscriptionId = 'default'):
     
     try:
-        subscription = validateAPIKeyAndGetSubscription(subscriptionId, serviceName, planName);
+        subscription = validateAPIKeyAndGetSubscription(serviceName, apiName, subscriptionId);
         apiVersion = getAPIVersion(subscription);
         if apiVersion.PlanType == 'pipeline':
             if apiVersion.LinkedServiceType != 'AML':
@@ -288,12 +282,11 @@ def executeOperation(operationName, predecessorOperationId = 'na', subscriptionI
     except Exception as e:
         return handleExceptions(e)
 
-@app.route('/apiv2/operations/<operationId>/status', methods=['GET'])
-@app.route('/apiv2/<subscriptionId>/operations/<operationId>/status', methods=['GET'])
-def getOperationStatus(operationId, subscriptionId = 'default'):
+@app.route('/apiv2/<serviceName>/<apiName>/operations/<operationId>/status', methods=['GET'])
+def getOperationStatus(serviceName, apiName, operationId, subscriptionId = 'default'):
 
     try:
-        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        subscription = validateAPIKeyAndGetSubscription(serviceName, apiName, subscriptionId);
         apiVersion = getAPIVersion(subscription);
         
         if apiVersion.LinkedServiceType == 'AML':
@@ -318,12 +311,11 @@ def getOperationStatus(operationId, subscriptionId = 'default'):
     except Exception as e:
         return handleExceptions(e)
 
-@app.route('/apiv2/operations/<operationName>', methods=['GET'])
-@app.route('/apiv2/<subscriptionId>/operations/<operationName>', methods=['GET'])
-def listOperations(operationName, subscriptionId='default'):
+@app.route('/apiv2/<serviceName>/<apiName>/operations/<operationName>', methods=['GET'])
+def listOperations(serviceName, apiName, operationName, subscriptionId='default'):
     
     try:
-        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        subscription = validateAPIKeyAndGetSubscription(serviceName, apiName, subscriptionId);
         apiVersion = getAPIVersion(subscription);
         
         if apiVersion.LinkedServiceType == 'AML':
@@ -348,11 +340,10 @@ def listOperations(operationName, subscriptionId='default'):
     except Exception as e:
         return handleExceptions(e)
 
-@app.route('/apiv2/operations/<operationId>/output', methods=['GET'])
-@app.route('/apiv2/<subscriptionId>/operations/<operationId>/output', methods=['GET'])
-def getOperationOutput(operationId, subscriptionId = 'default'):
+@app.route('/apiv2/<serviceName>/<apiName>/operations/<operationId>/output', methods=['GET'])
+def getOperationOutput(serviceName, apiName, operationId, subscriptionId = 'default'):
     try:
-        subscription = validateAPIKeyAndGetSubscription(subscriptionId);
+        subscription = validateAPIKeyAndGetSubscription(serviceName, apiName, subscriptionId);
         apiVersion = getAPIVersion(subscription);
         outputType = request.args.get('output-type')
         if not outputType:

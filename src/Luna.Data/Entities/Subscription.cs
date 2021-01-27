@@ -6,6 +6,7 @@ using Luna.Data.Enums;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Luna.Data.DataContracts.Luna.AI;
 
 namespace Luna.Data.Entities
 {
@@ -20,6 +21,7 @@ namespace Luna.Data.Entities
         public Subscription()
         {
             this.IpAddresses = new HashSet<IpAddress>();
+            Apis = new List<SubscriptionAPI>();
         }
 
         /// <summary>
@@ -124,6 +126,9 @@ namespace Luna.Data.Entities
 
         [JsonIgnore]
         public long? GatewayId { get; set; }
+
+        [NotMapped]
+        public List<SubscriptionAPI> Apis { get; set; }
 
         [NotMapped]
         public List<SubscriptionParameter> InputParameters { get; set; }
