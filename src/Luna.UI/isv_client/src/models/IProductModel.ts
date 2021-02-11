@@ -43,6 +43,8 @@ export interface IDeploymentVersionModel {
   modelVersion: string;
   modelDisplayName: string;
   gitVersion: string;
+  dataShareAccountname: string;
+  dataShareName: string;
   linkedServiceType: string;
   isUseDefaultRunConfig: boolean;
   isRunProjectOnManagedCompute: boolean;

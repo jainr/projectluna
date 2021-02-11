@@ -117,6 +117,16 @@ namespace Luna.Services.Data
 
             return gateways;
         }
+        public async Task<List<Gateway>> GetAllPublicAsync()
+        {
+            _logger.LogInformation(LoggingUtils.ComposeGetAllResourcesMessage(typeof(Gateway).Name));
+
+            // Get all products
+            var gateways = await _context.Gateways.Where(x => x.IsPrivate == false).ToListAsync();
+            _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(Gateway).Name, gateways.Count()));
+
+            return gateways;
+        }
 
         public async Task<Gateway> GetAsync(string name)
         {
@@ -135,27 +145,27 @@ namespace Luna.Services.Data
             return gateway;
         }
 
-        public async Task<Gateway> GetLeastUsedPublicGatewayAsync()
+        public async Task<Gateway> GetLeastUsedPlanGatewayAsync(long planId)
         {
             _logger.LogInformation("Get the least used public gateway by counting the active subscriptions per gateway.");
             // EF doesn't support outer/left join so we have to find a workaround
             var activeSubscriptions = _context.Subscriptions.Where(s => s.Status == nameof(FulfillmentState.Subscribed));
-            var publicGateways = _context.Gateways.Where(g => g.IsPrivate == false);
-            var sortedGatewayIdList = publicGateways.
+            var planGateways = _context.PlanGateways.Where(g => g.PlanId == planId);
+            var sortedGatewayIdList = planGateways.
                 Join(activeSubscriptions,
-                gateway => gateway.Id,
+                gateway => gateway.GatewayId,
                 sub => sub.GatewayId,
                 (gateway, sub) => new
                 {
                     sub.SubscriptionId,
-                    gateway.Id
+                    gateway.GatewayId
                 }).
-                GroupBy(v => v.Id).
+                GroupBy(v => v.GatewayId).
                 OrderBy(v => v.Count()).
                 Select(v => v.Key).ToList();
 
             long gatewayId = 0;
-            if (publicGateways.Count() == sortedGatewayIdList.Count)
+            if (planGateways.Count() == sortedGatewayIdList.Count)
             {
                 // All public gateways has been used by at least one subscription, return the least used one
                 gatewayId = sortedGatewayIdList[0];
@@ -163,11 +173,11 @@ namespace Luna.Services.Data
             else
             {
                 // Otherwise, find the first unused public gateway
-                foreach(var gateway in publicGateways)
+                foreach(var gateway in planGateways)
                 {
-                    if (!sortedGatewayIdList.Contains(gateway.Id))
+                    if (!sortedGatewayIdList.Contains(gateway.GatewayId))
                     {
-                        gatewayId = gateway.Id;
+                        gatewayId = gateway.GatewayId;
                         break;
                     }
                 }

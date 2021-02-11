@@ -21,7 +21,7 @@ namespace Luna.Data.Entities
         public Subscription()
         {
             this.IpAddresses = new HashSet<IpAddress>();
-            Apis = new List<SubscriptionAPI>();
+            Applications = new List<SubscriptionApplication>();
         }
 
         /// <summary>
@@ -115,12 +115,6 @@ namespace Luna.Data.Entities
         [JsonIgnore]
         public string SecondaryKeySecretName { get; set; }
 
-        [JsonIgnore]
-        public long? AIServiceId { get; set; }
-
-        [JsonIgnore]
-        public long? AIServicePlanId { get; set; }
-
         [NotMapped]
         public string GatewayName { get; set; }
 
@@ -128,7 +122,7 @@ namespace Luna.Data.Entities
         public long? GatewayId { get; set; }
 
         [NotMapped]
-        public List<SubscriptionAPI> Apis { get; set; }
+        public List<SubscriptionApplication> Applications { get; set; }
 
         [NotMapped]
         public List<SubscriptionParameter> InputParameters { get; set; }

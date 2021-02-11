@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Luna.Data.Entities;
-using Luna.Data.Entities;
-using Luna.Data.Entities.Luna.AI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -32,20 +30,16 @@ namespace Luna.Data.Repository
 
         DbSet<TelemetryDataConnector> TelemetryDataConnectors { get; set; }
 
-        DbSet<AIService> AIServices { get; set; }
-        DbSet<AIServicePlan> AIServicePlans { get; set; }
+        DbSet<LunaApplication> LunaApplications { get; set; }
+        DbSet<LunaAPI> LunaAPIs { get; set; }
         DbSet<APIVersion> APIVersions { get; set; }
         DbSet<AMLWorkspace> AMLWorkspaces { get; set; }
-
-        DbSet<APISubscription> APISubscriptions { get; set; }
 
         DbSet<Gateway> Gateways { get; set; }
 
         DbSet<AgentSubscription> AgentSubscriptions { get; set; }
 
         DbSet<AgentAPIVersion> AgentAPIVersions { get; set; }
-
-        DbSet<Publisher> Publishers { get; set; }
 
         DbSet<AgentOffer> AgentOffers { get; set; }
 
@@ -58,7 +52,8 @@ namespace Luna.Data.Repository
         DbSet<AMLPipelineEndpoint> AMLPipelineEndpoints { get; set; }
         DbSet<MLModel> MLModels { get; set; }
 
-        DbSet<AIServicePlanGateway> AIServicePlanGateways { get; set; }
+        DbSet<PlanGateway> PlanGateways { get; set; }
+        DbSet<PlanApplication> PlanApplications { get; set; }
 
         // Wrappers for DbContext methods that are used
         Task<int> _SaveChangesAsync();

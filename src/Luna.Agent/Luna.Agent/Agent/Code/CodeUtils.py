@@ -4,7 +4,6 @@ import requests
 import zipfile
 import shutil
 
-from Agent.Mgmt.ControlPlane import ControlPlane
 from Agent import app
 from datetime import datetime, timedelta
 

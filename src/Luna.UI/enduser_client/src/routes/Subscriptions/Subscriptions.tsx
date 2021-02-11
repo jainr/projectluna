@@ -142,7 +142,7 @@ const Subscriptions: React.FunctionComponent = () => {
         if (item.status.toLowerCase() === "subscribed") {
           return <span style={{cursor: 'pointer', color: 'rgb(0, 120, 212)'}}
                        onClick={() => {
-                         editdetailsV2(item.subscriptionId)
+                         editdetailsV2(item.subscriptionId, item.name, item.baseUrl, item.primaryKey, item.secondaryKey, item.offerName, item.planName)
                        }}>{item.name}</span>;
         } else {
           return <span>{item.name}</span>;
@@ -329,7 +329,7 @@ const Subscriptions: React.FunctionComponent = () => {
         if (item.status.toLowerCase() === "subscribed") {
           return <span style={{cursor: 'pointer', color: 'rgb(0, 120, 212)'}}
                        onClick={() => {
-                         editdetailsV2(item.subscriptionId)
+                         editdetailsV2(item.subscriptionId, item.name, item.baseUrl, item.primaryKey, item.secondaryKey)
                        }}>{item.name}</span>;
         } else {
           return <span>{item.name}</span>;
@@ -711,25 +711,21 @@ const Subscriptions: React.FunctionComponent = () => {
     return returnvalue;
   }
 
-  const editdetailsV2 = async (subscriptionId: string) => {
-
-    const dataResponse = await SubscriptionsService.getV2(subscriptionId);
-    // // Global errors should have already been handled for get requests by this point
-    if (dataResponse.value && dataResponse.success) {
-      var data = dataResponse.value as ISubscriptionsV2Model;
-      setSubscriptionv2PrimaryKey(convertToAsterisk(data.primaryKey));
-      setSubscriptionv2SecondaryKey(convertToAsterisk(data.secondaryKey));
-      setsubscriptionV2Selected(data);
-      setSubscriptionv2DialogVisible(true);
-    } else {
-      let errorMessages: IError[] = [];
-
-      errorMessages.concat(dataResponse.errors);
-
-      if (errorMessages.length > 0) {
-        toast.error(errorMessages.join(', '));
-      }
-    }
+  const editdetailsV2 = async (subscriptionId: string, subscriptionName: string, baseUrl: string, primaryKey: string, secondaryKey: string, offerName="", planName="") => {
+    setSubscriptionv2PrimaryKey(convertToAsterisk(primaryKey));
+    setSubscriptionv2SecondaryKey(convertToAsterisk(secondaryKey));
+    setsubscriptionV2Selected({
+      subscriptionId: subscriptionId,
+      name: subscriptionName,
+      userId: '',
+      productName: '',
+      deploymentName: '',
+      status: '',
+      baseUrl: baseUrl+'/apiv2/'+offerName+'/',
+      primaryKey: primaryKey,
+      secondaryKey: secondaryKey
+    });
+    setSubscriptionv2DialogVisible(true);
   };
 
   const showKey = (key: string, subscriptionV2Selected: ISubscriptionsV2Model) => {

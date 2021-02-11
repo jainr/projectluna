@@ -21,4 +21,4 @@ There're two key parts of Project Luna:
 
 To start with Luna.ai, please see [the end to end Luna.ai tutorial](./Resources/Documentation/luna.ai/end-to-end-tutorial/README.md).
 
-If you already have an application and just want to publish your application in Azure Marketplace, please see [Luna for Azure Marketplace](./Resources/Documentation/Lunav1/README.md).
+If you already have an application and just want to publish your application in Azure Marketplace, please see [Luna for Azure Marketplace](./Resources/Documentation/lunav1/README.md).

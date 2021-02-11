@@ -6,12 +6,13 @@ class APIVersion(Base):
     
     __tablename__ = 'vw_apiversions'
     Id = Column(Integer, primary_key = True) 
-    AIServicePlanId = Column(Integer)
+    LunaAPIId = Column(Integer)
     VersionName = Column(String)
     AMLWorkspaceId = Column(Integer)
     AzureDatabricksWorkspaceId = Column(Integer)
     AzureSynapseWorkspaceId = Column(Integer)
     GitRepoId = Column(Integer)
+    ModelDisplayName = Column(String)
     ModelName = Column(String)
     ModelVersion = Column(Integer)
     EndpointName = Column(String)
@@ -34,13 +35,13 @@ class APIVersion(Base):
     AdvancedSettings = Column(String)
     CreatedTime = Column(String)
     LastUpdatedTime = Column(String)
-    AIServiceName = Column(String)
-    AIServicePlanName = Column(String)
-    PlanType = Column(String)
+    ApplicationName = Column(String)
+    APIName = Column(String)
+    APIType = Column(String)
 
     @staticmethod
-    def Get(aiServiceName, aiServicePlanName, versionName):
+    def Get(applicationName, apiName, versionName):
         session = Session()
-        version = session.query(APIVersion).filter_by(AIServiceName = aiServiceName, AIServicePlanName = aiServicePlanName, VersionName = versionName).first()
+        version = session.query(APIVersion).filter_by(ApplicationName = applicationName, APIName = apiName, VersionName = versionName).first()
         session.close()
         return version

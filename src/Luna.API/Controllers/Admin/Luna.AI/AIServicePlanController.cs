@@ -23,23 +23,21 @@ namespace Luna.API.Controllers.Admin
     [Route("api")]
     public class AIServicePlanController : ControllerBase
     {
-        private readonly IAIServicePlanService _aIServicePlanService;
+        private readonly ILunaAPIService _aIServicePlanService;
         private readonly ILogger<RestrictedUserController> _logger;
         private readonly IAPIVersionService _apiVersionService;
-        private readonly IGatewayService _gatewayService;
 
         /// <summary>
         /// Constructor that uses dependency injection.
         /// </summary>
         /// <param name="deploymentService">The service to inject.</param>
         /// <param name="logger">The logger.</param>
-        public AIServicePlanController(IAIServicePlanService aiServicePlanService, ILogger<RestrictedUserController> logger, 
-            IAPIVersionService apiVersionService, IGatewayService gatewayService)
+        public AIServicePlanController(ILunaAPIService aiServicePlanService, ILogger<RestrictedUserController> logger, 
+            IAPIVersionService apiVersionService)
         {
             _aIServicePlanService = aiServicePlanService ?? throw new ArgumentNullException(nameof(aiServicePlanService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _apiVersionService = apiVersionService ?? throw new ArgumentNullException(nameof(apiVersionService));
-            _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
         }
 
         /// <summary>
@@ -48,6 +46,7 @@ namespace Luna.API.Controllers.Admin
         /// <param name="aiServiceName">The name of the AI service.</param>
         /// <returns>HTTP 200 OK with aiServicePlan JSON objects in response body.</returns>
         [HttpGet("aiservices/{aiServiceName}/plans")]
+        [HttpGet("applications/{aiServiceName}/apis")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAllAsync(string aiServiceName)
         {
@@ -62,7 +61,8 @@ namespace Luna.API.Controllers.Admin
         /// <param name="aiServiceName">The name of the AI service.</param>
         /// <param name="aiServicePlanName">The name of the plan to get.</param>
         /// <returns>HTTP 200 OK with aiServicePlan JSON object in response body.</returns>
-        [HttpGet("aiservices/{aiServiceName}/plans/{aiServicePlanName}", Name = nameof(GetAsync) + nameof(AIServicePlan))]
+        [HttpGet("aiservices/{aiServiceName}/plans/{aiServicePlanName}", Name = nameof(GetAsync) + nameof(LunaAPI))]
+        [HttpGet("applications/{aiServiceName}/apis/{aiServicePlanName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAsync(string aiServiceName, string aiServicePlanName)
         {
@@ -79,9 +79,10 @@ namespace Luna.API.Controllers.Admin
         /// <param name="aiServicePlan">The updated aiServicePlan object.</param>
         /// <returns>HTTP 204 NO CONTENT.</returns>
         [HttpPut("aiservices/{aiServiceName}/plans/{aiServicePlanName}")]
+        [HttpPut("applications/{aiServiceName}/apis/{aiServicePlanName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult> CreateOrUpdateAsync(string aiServiceName, string aiServicePlanName, [FromBody] AIServicePlan aiServicePlan)
+        public async Task<ActionResult> CreateOrUpdateAsync(string aiServiceName, string aiServicePlanName, [FromBody] LunaAPI aiServicePlan)
         {
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
             if (aiServicePlan == null)
@@ -89,21 +90,10 @@ namespace Luna.API.Controllers.Admin
                 throw new LunaBadRequestUserException(LoggingUtils.ComposePayloadNotProvidedErrorMessage(nameof(aiServicePlan)), UserErrorCode.PayloadNotProvided);
             }
 
-            if (!aiServicePlanName.Equals(aiServicePlan.AIServicePlanName))
+            if (!aiServicePlanName.Equals(aiServicePlan.APIName))
             {
-                throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(AIServicePlan).Name),
+                throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(LunaAPI).Name),
                     UserErrorCode.NameMismatch);
-            }
-
-            if (aiServicePlan.GatewayNames != null)
-            {
-                foreach(var gatewayName in aiServicePlan.GatewayNames)
-                {
-                    if (!await _gatewayService.ExistsAsync(gatewayName))
-                    {
-                        throw new LunaBadRequestUserException($"Gateway {gatewayName} doesn't exist.", UserErrorCode.InvalidParameter);
-                    }
-                }
             }
             if (await _aIServicePlanService.ExistsAsync(aiServiceName, aiServicePlanName))
             {
@@ -115,7 +105,7 @@ namespace Luna.API.Controllers.Admin
             {
                 _logger.LogInformation($"Create aiServicePlan {aiServicePlanName} in aiService {aiServiceName} with payload {JsonSerializer.Serialize(aiServicePlan)}.");
                 await _aIServicePlanService.CreateAsync(aiServiceName, aiServicePlan);
-                return CreatedAtRoute(nameof(GetAsync) + nameof(AIServicePlan), new { aiServiceName = aiServiceName, aiServicePlanName = aiServicePlan.AIServicePlanName }, aiServicePlan);
+                return CreatedAtRoute(nameof(GetAsync) + nameof(LunaAPI), new { aiServiceName = aiServiceName, aiServicePlanName = aiServicePlan.APIName }, aiServicePlan);
             }
         }
 
@@ -126,6 +116,7 @@ namespace Luna.API.Controllers.Admin
         /// <param name="aiServicePlanName">The name of the aiServicePlan to delete.</param>
         /// <returns>HTTP 204 NO CONTENT.</returns>
         [HttpDelete("aiservices/{aiServiceName}/plans/{aiServicePlanName}")]
+        [HttpDelete("applications/{aiServiceName}/apis/{aiServicePlanName}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<ActionResult> DeleteAsync(string aiServiceName, string aiServicePlanName)
         {

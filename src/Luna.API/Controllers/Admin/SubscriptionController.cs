@@ -33,7 +33,6 @@ namespace Luna.API.Controllers.Admin
         private readonly IFulfillmentManager _fulfillmentManager;
         private readonly IProvisioningService _provisioningService;
         private readonly ICustomMeterEventService _customMeterEventService;
-        private readonly IAPISubscriptionService _apiSubscriptionService;
         private readonly IOfferService _offerService;
         private readonly ILogger<SubscriptionController> _logger;
 
@@ -45,15 +44,13 @@ namespace Luna.API.Controllers.Admin
         /// <param name="provisioningService">The provisioning service instance</param>
         /// <param name="logger">The logger.</param>
         public SubscriptionController(ISubscriptionService subscriptionService, IFulfillmentManager fulfillmentManager,
-            IProvisioningService provisioningService, ICustomMeterEventService customMeterEventService, IOfferService offerService,
-            IAPISubscriptionService apiSubscriptionService, ILogger<SubscriptionController> logger)
+            IProvisioningService provisioningService, ICustomMeterEventService customMeterEventService, IOfferService offerService, ILogger<SubscriptionController> logger)
         {
             _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
             _fulfillmentManager = fulfillmentManager ?? throw new ArgumentNullException(nameof(fulfillmentManager));
             _provisioningService = provisioningService ?? throw new ArgumentNullException(nameof(provisioningService));
             _customMeterEventService = customMeterEventService ?? throw new ArgumentNullException(nameof(customMeterEventService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _apiSubscriptionService = apiSubscriptionService ?? throw new ArgumentNullException(nameof(apiSubscriptionService));
             _offerService = offerService ?? throw new ArgumentNullException(nameof(offerService));
         }
 
@@ -253,8 +250,8 @@ namespace Luna.API.Controllers.Admin
             // Do not log token content!
             _logger.LogInformation($"Resolve token for a subscription.");
 
-            //var subscriptionLayout = await _fulfillmentManager.ResolveSubscriptionAsync(token);
-            var subscriptionLayout = await _subscriptionService.GetSubscriptionLayoutFromToken(token, AADAuthHelper.GetUserAccount(this.HttpContext));
+            var subscriptionLayout = await _fulfillmentManager.ResolveSubscriptionAsync(token);
+            //var subscriptionLayout = await _subscriptionService.GetSubscriptionLayoutFromToken(token, AADAuthHelper.GetUserAccount(this.HttpContext));
 
             return Ok(subscriptionLayout);
         }

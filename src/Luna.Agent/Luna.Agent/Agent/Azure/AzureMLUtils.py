@@ -89,8 +89,8 @@ class AzureMLUtils(object):
         experimentName = subscription.SubscriptionId
         exp = Experiment(self._workspace, experimentName)
         tags={'userId': subscription.Owner, 
-              'aiServiceName': subscription.AIServiceName, 
-              'aiServicePlanName': subscription.AIServicePlanName, 
+              'applicationName': subscription.ApplicationName, 
+              'apiName': subscription.APIName, 
               'apiVersion': apiVersion.VersionName,
               'operationName': pipelineEndpoint.PipelineEndpointName,
               'operationId': operationId,
@@ -105,8 +105,8 @@ class AzureMLUtils(object):
         operationId = str('a' + uuid4().hex[1:])
         experimentName = subscription.SubscriptionId
         tags={'userId': subscription.Owner, 
-              'aiServiceName': subscription.AIServiceName, 
-              'aiServicePlanName': subscription.AIServicePlanName, 
+              'applicationName': subscription.ApplicationName, 
+              'apiName': subscription.APIName, 
               'apiVersion': apiVersion.VersionName,
               'operationName': operationName,
               'operationId': operationId,
@@ -144,10 +144,13 @@ class AzureMLUtils(object):
         try:
             run = next(runs)
             details = run.get_details()
+            endTime = None
+            if "endTimeUtc" in details:
+                endTime = details["endTimeUtc"]
             result = {'operationId': operationId,
                       'operationName': run.tags["operationName"],
                       'startTime': details["startTimeUtc"],
-                      'endTime': details["endTimeUtc"],
+                      'endTime': endTime,
                       'status': run.status
                 }
             return result

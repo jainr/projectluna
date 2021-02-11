@@ -9,15 +9,13 @@ import os
 class Subscription(Base):
     """description of class"""
 
-    __tablename__ = 'vw_subscriptions'
+    __tablename__ = 'subscriptions'
 
     Id = 0
 
     SubscriptionId = Column(String, primary_key = True)
 
-    AIServiceId = Column(Integer)
-
-    AIServicePlanId = Column(Integer)
+    PlanId = Column(Integer)
 
     Owner = Column(String)
 
@@ -33,9 +31,9 @@ class Subscription(Base):
 
     SecondaryKeySecretName = Column(String)
 
-    AIServiceName = Column(String)
+    ApplicationName = ""
     
-    AIServicePlanName = Column(String)
+    APIName = ""
     
     AMLWorkspaceName = ""
 

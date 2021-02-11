@@ -127,6 +127,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
        { key: 'model', text: 'Machine Learning Models' },
        { key: 'mlproject', text: 'Machine Learning projects (mlflow)' },
        { key: 'pipeline', text: 'AML Pipeline Endpoints' },
+       { key: 'dataset', text: 'Shared Datasets' },
      );
      setplanTypeDropDownOptions(planTypeOptions);
   };
@@ -688,6 +689,19 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                   }
                   // TODO: finish this
                   break;
+                case 'dataset':
+                  if (values.version.dataShareAccountname == "") {
+                    toast.error('Data share account name is required');
+                    globalContext.hideProcessing();
+                    return;
+                  }
+                  if (values.version.dataShareName == "") {
+                    toast.error('Data share name is required');
+                    globalContext.hideProcessing();
+                    return;
+                  }
+                  // TODO: finish this
+                  break;
                 default:
                   toast.error('Invalid product type detected');
                   globalContext.hideProcessing();
@@ -845,6 +859,8 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
   const [authenticationTypes, setAuthenticationTypes] = useState<IChoiceGroupOption[]>([]);
   const [amlWorkspaceDropdownOptions, setAMLWorkspaceDropdownOptions] = useState<IDropdownOption[]>([]);
   const [gitRepoDropdownOptions, setGitRepoDropdownOptions] = useState<IDropdownOption[]>([]);
+  const [dataShareAccountDropdownOptions, setDataShareAccountDropdownOptions] = useState<IDropdownOption[]>([]);
+  const [dataShareDropdownOptions, setDataShareDropdownOptions] = useState<IDropdownOption[]>([]);
   const [mlmodelDropdownOptions, setmlmodelDropdownOptions] = useState<IDropdownOption[]>([]);
   const [mlendpointDropdownOptions, setmlendpointDropdownOptions] = useState<IDropdownOption[]>([]);
   const [amlcomputeclusterDropdownOptions, setamlcomputeclusterDropdownOptions] = useState<IDropdownOption[]>([]);
@@ -867,6 +883,26 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
   //let [version, setVersion] = useState<IDeploymentVersionModel>(initialVersionValues);
   const globalContext = useGlobalContext();
   let fileReader;
+
+  const getDataShareAccountDropdownOptions = async () => {
+      let options: IDropdownOption[] = [];
+
+      options.push({ key: '', text: 'select' });
+      options.push({ key: 'datashare_test', text: 'datashare_test' });
+      options.push({ key: 'datashare_prod', text: 'datashare_prod' });
+      setDataShareAccountDropdownOptions(options);
+  }
+
+  const getDataShareDropdownOptions = async () => {
+      let options: IDropdownOption[] = [];
+
+      options.push({ key: '', text: 'select' });
+      options.push({ key: 'RetailSales', text: 'RetailSales' });
+      options.push({ key: 'WholesaleSales', text: 'WholesaleSales' });
+      options.push({ key: 'CorpPurchaseSales', text: 'CorpPurchaseSales' });
+      options.push({ key: 'Logistic', text: 'Logistic' });
+      setDataShareDropdownOptions(options);
+  }
 
   const getAMLWorkspaceDropdownOptions = async () => {
     // load the aml workspace dropdown results
@@ -993,6 +1029,7 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
     setAuthenticationTypes([...authTypes]);
 
     getAMLWorkspaceDropdownOptions();
+    getDataShareAccountDropdownOptions();
     getGitRepoDropdownOptions();
 
     if (values.version && values.version.amlWorkspaceName) {
@@ -1104,6 +1141,14 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
           getAMLComputeClustersDropdownOptions(option.key as string);
         }
       }
+    }
+  };
+  
+  const dataShareAccountselectOnChange = (fieldKey: string, setFieldValue, event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number, productType?:string) => {
+    if (option) {
+      let key = (option.key as string);
+      setFieldValue(fieldKey, key, true);
+      getDataShareDropdownOptions();
     }
   };
 
@@ -1375,7 +1420,51 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
                     className="txtFormField" />
                 </Stack>
               </React.Fragment>
-              : null
+              :  values.version.productType === 'dataset'?
+              <React.Fragment>
+
+                <Stack className={"form_row"}>
+                  <FormLabel title={"Data Share Account:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+
+                  <Dropdown
+                    style={{ width: 250 }}
+                    options={dataShareAccountDropdownOptions}
+                    id={`version.dataShareAccountname`} onBlur={handleBlur}
+                    onChange={(event, option, index) => {
+                      dataShareAccountselectOnChange(`version.dataShareAccountname`, setFieldValue, event, option, index, values.version.productType)
+                    }}
+                    errorMessage={getVersionFormErrorString(touched, errors, 'dataShareAccountname')}
+                    defaultSelectedKey={values.version.dataShareAccountname}
+                  />
+                </Stack>
+                
+                <Stack className={"form_row"}>
+                  <FormLabel title={"Data Share:"} toolTip={ProductMessages.Version.BatchInferenceAPI} />
+
+                  <Dropdown
+                    style={{ width: 250 }}
+                    options={dataShareDropdownOptions}
+                    id={`version.dataShareName`} onBlur={handleBlur}
+                    onChange={(event, option, index) => {
+                      selectOnChange(`version.dataShareName`, setFieldValue, event, option, index)
+                    }}
+                    errorMessage={getVersionFormErrorString(touched, errors, 'dataShareName')}
+                    defaultSelectedKey={values.version.dataShareName}
+                  />
+                </Stack>
+                <Stack className={"form_row"}>
+                  <FormLabel title={"Advanced Settings:"} toolTip={ProductMessages.Version.AdvancedSettings} />
+                  <TextField
+                    name={'version.advancedSettings'}
+                    value={(values.version.advancedSettings ? values.version.advancedSettings : '')}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    errorMessage={getVersionFormErrorString(touched, errors, 'advancedSettings')}
+                    placeholder={'key1=value1;key2=value2'}
+                    className="txtFormField" />
+                </Stack>
+              </React.Fragment>
+              :null
           }
         </React.Fragment>
 

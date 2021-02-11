@@ -8,6 +8,7 @@ namespace Luna.Services.Data
     public interface IGatewayService
     {
         Task<List<Gateway>> GetAllAsync();
+        Task<List<Gateway>> GetAllPublicAsync();
 
         Task<Gateway> GetAsync(string name);
 
@@ -19,6 +20,6 @@ namespace Luna.Services.Data
 
         Task<bool> ExistsAsync(string name);
 
-        Task<Gateway> GetLeastUsedPublicGatewayAsync();
+        Task<Gateway> GetLeastUsedPlanGatewayAsync(long planId);
     }
 }

@@ -100,13 +100,5 @@ namespace Luna.Services.Data
         /// <param name="subscriptionId">Subscription id. Get all warnings if not specified</param>
         /// <returns>warnings</returns>
         Task<List<SubscriptionWarning>> GetWarnings(Guid? subscriptionId = null);
-
-        /// <summary>
-        /// Get the subscription layout for landing page from token
-        /// </summary>
-        /// <param name="token">The token</param>
-        /// <param name="userName">The user name</param>
-        /// <returns></returns>
-        Task<SubscriptionLayout> GetSubscriptionLayoutFromToken(string token, string userName);
     }
 }

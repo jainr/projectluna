@@ -17,6 +17,7 @@ namespace Luna.Clients.Controller
     public enum ValidStringFormat
     {
         LOWER_CASE_NUMBER_AND_HYPHEN_50,
+        LOWER_CASE_NUMBER_UNDERSCORE_AND_HYPHEN_50,
     }
 
     public static class ControllerHelper
@@ -25,7 +26,8 @@ namespace Luna.Clients.Controller
 
         private static Dictionary<ValidStringFormat, string> StringFormats = new Dictionary<ValidStringFormat, string> 
         {
-            { ValidStringFormat.LOWER_CASE_NUMBER_AND_HYPHEN_50, "^[a-z][a-z0-9-]{4,49}$" } 
+            { ValidStringFormat.LOWER_CASE_NUMBER_AND_HYPHEN_50, "^[a-z][a-z0-9-]{4,49}$" },
+            { ValidStringFormat.LOWER_CASE_NUMBER_UNDERSCORE_AND_HYPHEN_50, "^[a-z][a-z0-9_-]{4,49}$" }
         };
 
         private static Dictionary<ValidStringFormat, string> StringFormatDescriptions = new Dictionary<ValidStringFormat, string>

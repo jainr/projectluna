@@ -17,6 +17,8 @@ namespace Luna.Data.Entities
             this.CustomMeterDimensions = new HashSet<CustomMeterDimension>();
             this.RestrictedUsers = new HashSet<RestrictedUser>();
             this.Subscriptions = new HashSet<Subscription>();
+            this.ApplicationNames = new List<string>();
+            this.GatewayNames = new List<string>();
         }
 
         /// <summary>
@@ -26,6 +28,8 @@ namespace Luna.Data.Entities
         public void Copy(Plan plan)
         {
             this.PlanName = plan.PlanName;
+            this.PlanDisplayName = plan.PlanDisplayName;
+            this.Description = plan.Description;
             this.DataRetentionInDays = plan.DataRetentionInDays;
             this.SubscribeArmTemplateName = plan.SubscribeArmTemplateName;
             this.UnsubscribeArmTemplateName = plan.UnsubscribeArmTemplateName;
@@ -47,6 +51,8 @@ namespace Luna.Data.Entities
         public long OfferId { get; set; }
 
         public string PlanName { get; set; }
+        public string PlanDisplayName { get; set; }
+        public string Description { get; set; }
 
         public int DataRetentionInDays { get; set; }
         [JsonIgnore]
@@ -102,7 +108,13 @@ namespace Luna.Data.Entities
         public double? AnnualBase { get; set; }
        
         public bool PrivatePlan { get; set; }
-    
+
+        [NotMapped]
+        public List<string> GatewayNames { get; set; }
+
+        [NotMapped]
+        public List<string> ApplicationNames { get; set; }
+
         [JsonIgnore]
         public virtual ArmTemplate SubscribeArmTemplate { get; set; }
         [JsonIgnore]
@@ -128,5 +140,8 @@ namespace Luna.Data.Entities
         public virtual ICollection<RestrictedUser> RestrictedUsers { get; set; }
         [JsonIgnore]
         public virtual ICollection<Subscription> Subscriptions { get; set; }
+
+        [JsonIgnore]
+        public virtual ICollection<PlanGateway> AIServicePlanGateways { get; set; }
     }
 }

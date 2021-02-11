@@ -1,5 +1,4 @@
-﻿using Luna.Data.Entities.Luna.AI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -48,6 +47,6 @@ namespace Luna.Data.Entities
         public bool IsPrivate { get; set; }
 
         [JsonIgnore]
-        public virtual ICollection<AIServicePlanGateway> AIServicePlanGateways { get; set; }
+        public virtual ICollection<PlanGateway> AIServicePlanGateways { get; set; }
     }
 }

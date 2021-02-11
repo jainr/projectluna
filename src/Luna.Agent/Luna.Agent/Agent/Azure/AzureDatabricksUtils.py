@@ -117,8 +117,8 @@ class AzureDatabricksUtils(object):
         
             operationId = str('a' + uuid4().hex[1:])
             tags={'userId': subscription.Owner, 
-              'aiServiceName': subscription.AIServiceName, 
-              'aiServicePlanName': subscription.AIServicePlanName, 
+              'applicationName': subscription.ApplicationName, 
+              'apiName': subscription.APIName, 
               'apiVersion': apiVersion.VersionName,
               'operationName': operationName,
               'operationId': operationId,
@@ -162,6 +162,7 @@ class AzureDatabricksUtils(object):
         os.environ['DATABRICKS_TOKEN'] = self.getAccessToken()
         
         mlflow.set_registry_uri("databricks")
+        mlflow.set_tracking_uri("databricks")
         
         exp_name = self.getExperimentName(subscriptionId)
         exp = mlflow.get_experiment_by_name(exp_name)
@@ -223,6 +224,7 @@ class AzureDatabricksUtils(object):
 
     def downloadModel(self, mlModel):
         # TODO: see if we can use python library
+        url = ADB_REST_URL_FORMAT.format(self._workspace.WorkspaceUrl, "mlflow/model-versions/get-download-uri")
         body = {
             "name": mlModel.ModelName,
             "version": mlModel.ModelVersion

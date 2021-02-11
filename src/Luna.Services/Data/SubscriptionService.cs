@@ -37,11 +37,10 @@ namespace Luna.Services.Data
         private readonly ICustomMeterService _customMeterService;
         private readonly ICustomMeterDimensionService _customMeterDimensionService;
         private readonly IFulfillmentManager _fulfillmentManager;
-        private readonly IAIServiceService _productService;
+        private readonly ILunaApplicationService _productService;
         private readonly IGatewayService _gatewayService;
-        private readonly IAIServicePlanService _deploymentService;
+        private readonly ILunaAPIService _deploymentService;
         private readonly IAPIVersionService _apiVersionService;
-        private readonly IAPISubscriptionService _apiSubscriptionService;
         private readonly IKeyVaultHelper _keyVaultHelper;
         private readonly ILogger<SubscriptionService> _logger;
         private readonly IOptionsMonitor<AzureConfigurationOption> _options;
@@ -63,10 +62,9 @@ namespace Luna.Services.Data
             ICustomMeterDimensionService customMeterDimensionService,
             ICustomMeterService customMeterService,
             IFulfillmentManager fulfillmentManager,
-            IAIServiceService productService,
+            ILunaApplicationService productService,
             IGatewayService gatewayService,
-            IAIServicePlanService deploymentService,
-            IAPISubscriptionService apiSubscriptionService,
+            ILunaAPIService deploymentService,
             IAPIVersionService apiVersionService,
             ILogger<SubscriptionService> logger, IOptionsMonitor<AzureConfigurationOption> options, IKeyVaultHelper keyVaultHelper)
         {
@@ -81,7 +79,6 @@ namespace Luna.Services.Data
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
             _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
             _deploymentService = deploymentService ?? throw new ArgumentNullException(nameof(deploymentService));
-            _apiSubscriptionService = apiSubscriptionService ?? throw new ArgumentNullException(nameof(apiSubscriptionService));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _keyVaultHelper = keyVaultHelper ?? throw new ArgumentNullException(nameof(keyVaultHelper));
             _apiVersionService = apiVersionService ?? throw new ArgumentNullException(nameof(apiVersionService));
@@ -187,42 +184,56 @@ namespace Luna.Services.Data
                 subscription.SecondaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName);
             }
 
-            var apis = await _deploymentService.GetAllAsync(subscription.OfferName);
-            foreach(var item in apis)
+            var planApps = await _context.PlanApplications.Where(x => x.PlanId == subscription.PlanId).ToListAsync();
+
+            foreach (var planApp in planApps)
             {
-                SubscriptionAPI api = new SubscriptionAPI()
+                var application = await _context.LunaApplications.FindAsync(planApp.ApplicationId);
+                SubscriptionApplication subApp = new SubscriptionApplication()
                 {
-                    Name = item.AIServicePlanName,
-                    Description = item.Description
+                    Name = application.ApplicationName,
+                    Description = application.Description
                 };
 
-                var versions = await _apiVersionService.GetAllAsync(subscription.OfferName, item.AIServicePlanName);
-                foreach(var version in versions)
+                var apis = await _deploymentService.GetAllAsync(application.ApplicationName);
+                foreach (var item in apis)
                 {
-                    SubscriptionAPIVersion apiVersion = new SubscriptionAPIVersion()
+                    SubscriptionAPI api = new SubscriptionAPI()
                     {
-                        Name = version.VersionName,
-                        Description = "",
-                    };
-                    // TODO: get operations and parameters
-                    SubscriptionAPIVersionOperation operation = new SubscriptionAPIVersionOperation()
-                    {
-                        Name = "predict",
-                        Description = "Predict the house price"
+                        Name = item.APIName,
+                        Description = item.Description
                     };
 
-                    operation.Parameters.Add(new SubscriptionAPIVersionOperationParameter()
+                    var versions = await _apiVersionService.GetAllAsync(application.ApplicationName, item.APIName);
+                    foreach (var version in versions)
                     {
-                        Name = "data",
-                        Type = "pandas.dataframe"
-                    });
+                        SubscriptionAPIVersion apiVersion = new SubscriptionAPIVersion()
+                        {
+                            Name = version.VersionName,
+                            Description = "",
+                        };
+                        // TODO: get operations and parameters
+                        SubscriptionAPIVersionOperation operation = new SubscriptionAPIVersionOperation()
+                        {
+                            Name = "predict",
+                            Description = "Predict the house price"
+                        };
 
-                    apiVersion.Operations.Add(operation);
+                        operation.Parameters.Add(new SubscriptionAPIVersionOperationParameter()
+                        {
+                            Name = "data",
+                            Type = "pandas.dataframe"
+                        });
 
-                    api.Versions.Add(apiVersion);
+                        apiVersion.Operations.Add(operation);
+
+                        api.Versions.Add(apiVersion);
+                    }
+                    subApp.APIs.Add(api);
                 }
-                subscription.Apis.Add(api);
+                subscription.Applications.Add(subApp);
             }
+
 
             _logger.LogInformation(LoggingUtils.ComposeReturnValueMessage(typeof(Subscription).Name,
                 subscriptionId.ToString(),
@@ -667,113 +678,6 @@ namespace Luna.Services.Data
             return warnings;
         }
 
-        /// <summary>
-        /// Get the subscription layout for landing page from token
-        /// </summary>
-        /// <param name="token">The token</param>
-        /// <param name="userName">The current user name</param>
-        /// <returns></returns>
-        public async Task<SubscriptionLayout> GetSubscriptionLayoutFromToken(string token, string userName)
-        {
-            if (token.Split('.').Length != 3)
-            {
-                if (token.Equals("foo"))
-                {
-                    var offerParameters = await _offerParameterService.GetAllAsync("test1");
-                    return new SubscriptionLayout(Guid.NewGuid(), "mysub", new OfferLayout("test1", "test 1"),
-                        new List<PlanLayout>(new PlanLayout[] { new PlanLayout("test", "Test Plan") }),
-                        new List<string>(new string[] { "SaaS" }),
-                        offerParameters);
-                }
-                else
-                {
-                    //This is a marketplace token
-                    MarketplaceSubscription resolvedSubscription = await _fulfillmentManager.ResolveSubscriptionAsync(token);
-                    Offer offer = await _offerService.GetAsync(resolvedSubscription.OfferId);
-                    Plan plan = await _planService.GetAsync(resolvedSubscription.OfferId, resolvedSubscription.PlanId);
-                    var offerParameters = await _offerParameterService.GetAllAsync(resolvedSubscription.OfferId);
-                    AIService product = await _productService.GetByOfferIdAsync(offer.Id);
-                    List<string> hostTypes = new List<string>();
-                    if (product == null)
-                    {
-                        hostTypes.Add("SaaS");
-                    }
-                    else
-                    {
-                        hostTypes = new List<string>();
-                    }
-
-                    return new SubscriptionLayout(resolvedSubscription.SubscriptionId, resolvedSubscription.SubscriptionName,
-                        new OfferLayout(offer.OfferName, offer.OfferName),
-                        new List<PlanLayout>(new PlanLayout[] { new PlanLayout(plan.PlanName, plan.PlanName) }),
-                        hostTypes,
-                        offerParameters);
-                }
-            }
-            else
-            {
-                var jwt_token = new JwtSecurityToken(token);
-                string agentId = jwt_token.Header["aid"].ToString();
-
-                var aiAgent = await _gatewayService.GetAsync("");
-
-                var handler = new JwtSecurityTokenHandler();
-                var param = new TokenValidationParameters();
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(""));
-                param.IssuerSigningKey = key;
-                param.ValidateAudience = false;
-                param.ValidIssuer = agentId;
-                SecurityToken decodedToken;
-                handler.ValidateToken(token, param, out decodedToken);
-                string prodName = "";
-                string agentUrl = "";
-                foreach (var claim in ((JwtSecurityToken)decodedToken).Claims)
-                {
-                    if (claim.Type.Equals("uid"))
-                    {
-                        if (!AADAuthHelper.VerifyUserFromJwtToken(userName, claim.Value, _logger))
-                        {
-                            throw new LunaBadRequestUserException("The uid in JWT token is invalid.", UserErrorCode.InvalidToken);
-                        }
-                    }
-                    if (claim.Type.Equals("prod"))
-                    {
-                        prodName = claim.Value;
-                    }
-                    if (claim.Type.Equals("url"))
-                    {
-                        agentUrl = claim.Value;
-                    }
-                }
-
-                if (string.IsNullOrEmpty(prodName))
-                {
-                    throw new LunaBadRequestUserException("The prod in JWT token is invalid.", UserErrorCode.InvalidToken);
-                }
-                    
-                if (string.IsNullOrEmpty(agentUrl))
-                {
-                    throw new LunaBadRequestUserException("The url in JWT token is invalid.", UserErrorCode.InvalidToken);
-                }
-
-                AIService product = await _productService.GetAsync(prodName);
-                List<AIServicePlan> deploymentList = await _deploymentService.GetAllAsync(prodName);
-                List<PlanLayout> plans = new List<PlanLayout>();
-                foreach (var dep in deploymentList)
-                {
-                    plans.Add(new PlanLayout(dep.AIServicePlanName, dep.AIServicePlanName));
-                }
-                var hostTypes = new List<string>();
-
-                return new SubscriptionLayout(Guid.NewGuid(), "",
-                    new OfferLayout(product.AIServiceName, product.AIServiceName),
-                    plans,
-                    hostTypes,
-                    agentUrl: agentUrl);
-
-            }
-
-        }
         private List<string> GetHostTypes(string hostTypeTag)
         {
             List<string> hostTypes = new List<string>();

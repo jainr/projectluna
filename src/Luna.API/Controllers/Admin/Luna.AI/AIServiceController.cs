@@ -7,7 +7,6 @@ using Luna.Clients.Exceptions;
 using Luna.Clients.Logging;
 using Luna.Data.DataContracts.Luna.AI;
 using Luna.Data.Entities;
-using Luna.Data.Entities.Luna.AI;
 using Luna.Services.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +26,7 @@ namespace Luna.API.Controllers.Admin
     [Route("api")]
     public class AIServiceController : ControllerBase
     {
-        private readonly IAIServiceService _productService;
+        private readonly ILunaApplicationService _productService;
 
         private readonly ILogger<AIServiceController> _logger;
 
@@ -36,7 +35,7 @@ namespace Luna.API.Controllers.Admin
         /// </summary>
         /// <param name="productService">The service to inject.</param>
         /// <param name="logger">The logger.</param>
-        public AIServiceController(IAIServiceService productService, ILogger<AIServiceController> logger)
+        public AIServiceController(ILunaApplicationService productService, ILogger<AIServiceController> logger)
         {
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -48,6 +47,7 @@ namespace Luna.API.Controllers.Admin
         /// <returns>HTTP 200 OK with product JSON objects in response body.</returns>
         [HttpGet("aiservices")]
         [HttpGet("products")]
+        [HttpGet("applications")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAllAsync()
         {
@@ -63,7 +63,8 @@ namespace Luna.API.Controllers.Admin
         /// <param name="aiServiceName">The name of the product to get.</param>
         /// <returns>HTTP 200 OK with product JSON object in response body.</returns>
         [HttpGet("products/{aiServiceName}")]
-        [HttpGet("aiservices/{aiServiceName}", Name = nameof(GetAsync) + nameof(AIService))]
+        [HttpGet("applications/{aiServiceName}")]
+        [HttpGet("aiservices/{aiServiceName}", Name = nameof(GetAsync) + nameof(LunaApplication))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAsync(string aiServiceName)
         {
@@ -81,9 +82,10 @@ namespace Luna.API.Controllers.Admin
         /// <returns>HTTP 200 OK with updated product JSON objects in response body.</returns>
         [HttpPut("products/{aiServiceName}")]
         [HttpPut("aiservices/{aiServiceName}")]
+        [HttpPut("applications/{aiServiceName}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult> CreateOrUpdateAsync(string aiServiceName, [FromBody] AIService aiService)
+        public async Task<ActionResult> CreateOrUpdateAsync(string aiServiceName, [FromBody] LunaApplication aiService)
         {
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
             if (aiService == null)
@@ -91,13 +93,13 @@ namespace Luna.API.Controllers.Admin
                 throw new LunaBadRequestUserException(LoggingUtils.ComposePayloadNotProvidedErrorMessage(nameof(aiService)), UserErrorCode.PayloadNotProvided);
             }
 
-            if (!aiServiceName.Equals(aiService.AIServiceName))
+            if (!aiServiceName.Equals(aiService.ApplicationName))
             {
-                throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(AIService).Name),
+                throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(LunaApplication).Name),
                     UserErrorCode.NameMismatch);
             }
 
-            if (!ControllerHelper.ValidateStringFormat(aiServiceName, ValidStringFormat.LOWER_CASE_NUMBER_AND_HYPHEN_50))
+            if (!ControllerHelper.ValidateStringFormat(aiServiceName, ValidStringFormat.LOWER_CASE_NUMBER_UNDERSCORE_AND_HYPHEN_50))
             {
                 throw new LunaBadRequestUserException($"The AI Service name is invalid. The naming rule: {ControllerHelper.GetStringFormatDescription(ValidStringFormat.LOWER_CASE_NUMBER_AND_HYPHEN_50)}", 
                     UserErrorCode.InvalidParameter);
@@ -113,7 +115,7 @@ namespace Luna.API.Controllers.Admin
             {
                 _logger.LogInformation($"Create AI Service {aiServiceName} with payload {JsonConvert.SerializeObject(aiService)}");
                 await _productService.CreateAsync(aiService);
-                return CreatedAtRoute(nameof(GetAsync) + nameof(AIService), new { aiServiceName = aiService.AIServiceName }, aiService);
+                return CreatedAtRoute(nameof(GetAsync) + nameof(LunaApplication), new { aiServiceName = aiService.ApplicationName }, aiService);
             }
         }
 
@@ -124,6 +126,7 @@ namespace Luna.API.Controllers.Admin
         /// <returns>HTTP 204 NO CONTENT.</returns>
         [HttpDelete("aiservices/{aiServiceName}")]
         [HttpDelete("products/{aiServiceName}")]
+        [HttpDelete("applications/{aiServiceName}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<ActionResult> DeleteAsync(string aiServiceName)
         {

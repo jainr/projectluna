@@ -10,42 +10,45 @@ namespace Luna.Data.Entities
     /// <summary>
     /// Entity class that maps to the offers table in the database.
     /// </summary>
-    public partial class AIServicePlan
+    public partial class LunaAPI
     {
         /// <summary>
         /// Constructs the EF Core collection navigation properties.
         /// </summary>
-        public AIServicePlan()
+        public LunaAPI()
         {
-            GatewayNames = new List<string>();
         }
 
         /// <summary>
         /// Copies all non-EF Core values.
         /// </summary>
         /// <param name="servicePlan">The object to be copied.</param>
-        public void Copy(AIServicePlan servicePlan)
+        public void Copy(LunaAPI servicePlan)
         {
-            this.AIServicePlanDisplayName = servicePlan.AIServicePlanDisplayName;
+            this.APIDisplayName = servicePlan.APIDisplayName;
             this.Description = servicePlan.Description;
             
         }
 
         public bool IsModelPlanType()
         {
-            return PlanType.Equals(AIServicePlanTypes.Model.ToString(), StringComparison.InvariantCultureIgnoreCase);
+            return APIType.Equals(AIServicePlanTypes.Model.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
         public bool IsEndpointPlanType()
         {
-            return PlanType.Equals(AIServicePlanTypes.Endpoint.ToString(), StringComparison.InvariantCultureIgnoreCase);
+            return APIType.Equals(AIServicePlanTypes.Endpoint.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
         public bool IsPipelinePlanType()
         {
-            return PlanType.Equals(AIServicePlanTypes.Pipeline.ToString(), StringComparison.InvariantCultureIgnoreCase);
+            return APIType.Equals(AIServicePlanTypes.Pipeline.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
         public bool IsMLProjectPlanType()
         {
-            return PlanType.Equals(AIServicePlanTypes.MLProject.ToString(), StringComparison.InvariantCultureIgnoreCase);
+            return APIType.Equals(AIServicePlanTypes.MLProject.ToString(), StringComparison.InvariantCultureIgnoreCase);
+        }
+        public bool IsDatasetPlanType()
+        {
+            return APIType.Equals(AIServicePlanTypes.Dataset.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
 
         [Key]
@@ -53,33 +56,28 @@ namespace Luna.Data.Entities
         public long Id { get; set; }
 
         [JsonIgnore]
-        public long AIServiceId { get; set; }
+        public long ApplicationId { get; set; }
 
         [NotMapped]
-        public string AIServiceName { get; set; }
+        public string ApplicationName { get; set; }
 
-        public string AIServicePlanName { get; set; }
+        public string APIName { get; set; }
 
-        public string AIServicePlanDisplayName { get; set; }
+        public string APIDisplayName { get; set; }
 
         public string Description { get; set; }
 
-        public string PlanType { get; set; }
+        public string APIType { get; set; }
 
         public DateTime CreatedTime { get; set; }
 
         public DateTime LastUpdatedTime { get; set; }
 
-        [NotMapped]
-        public List<string> GatewayNames { get; set; }
-
         [JsonIgnore]
-        public virtual AIService AIService { get; set; }
+        public virtual LunaApplication Application { get; set; }
 
         [JsonIgnore]
         public virtual ICollection<APIVersion> Versions { get; set; }
 
-        [JsonIgnore]
-        public virtual ICollection<AIServicePlanGateway> AIServicePlanGateways { get; set; }
     }
 }

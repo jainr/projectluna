@@ -28,8 +28,8 @@ namespace Luna.Data.Entities
         /// <param name="version">The object to be copied.</param>
         public void Copy(APIVersion version)
         {
-            this.AIServiceName = version.AIServiceName;
-            this.AIServicePlanName = version.AIServicePlanName;
+            this.ApplicationName = version.ApplicationName;
+            this.APIName = version.APIName;
             this.CreatedTime = version.CreatedTime;
             this.GitRepoId = version.GitRepoId;
             this.AMLWorkspaceId = version.AMLWorkspaceId;
@@ -51,6 +51,9 @@ namespace Luna.Data.Entities
             this.LinkedServiceComputeTarget = version.LinkedServiceComputeTarget;
             this.LinkedServiceType = version.LinkedServiceType;
             this.RunConfigFile = version.RunConfigFile;
+            this.DataShareAccountName = version.DataShareAccountName;
+            this.DataShareName = version.DataShareName;
+
         }
 
         public string GetVersionIdFormat()
@@ -81,11 +84,11 @@ namespace Luna.Data.Entities
         [System.Text.Json.Serialization.JsonIgnore]
         public long Id { get; set; }
         [System.Text.Json.Serialization.JsonIgnore]
-        public long AIServicePlanId { get; set; }
+        public long LunaAPIId { get; set; }
         [NotMapped]
-        public string AIServiceName { get; set; }
+        public string ApplicationName { get; set; }
         [NotMapped]
-        public string AIServicePlanName { get; set; }
+        public string APIName { get; set; }
 
         public string VersionName { get; set; }
 
@@ -175,5 +178,7 @@ namespace Luna.Data.Entities
         public bool IsRunProjectOnManagedCompute { get; set; }
 
         public string LinkedServiceComputeTarget { get; set; }
+        public string DataShareAccountName { get; set; }
+        public string DataShareName { get; set; }
     }
 }

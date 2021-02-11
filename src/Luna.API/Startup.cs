@@ -184,10 +184,6 @@ namespace Luna.API
                 // as we do in line-of-business apps),
                 // we inject our own multitenant validation logic (which even accepts both v1 and v2 tokens).
                 options.TokenValidationParameters.IssuerValidator = AadIssuerValidator.GetIssuerValidator(options.Authority).Validate;
-                //options.TokenValidationParameters.ValidIssuers = new string[] {
-                //    @"https://login.microsoftonline.com/{tenantid}/v2",
-                //      @"https://sts.windows.net/{tenantid}"
-                //};
             });
 
             services.Configure<CookieAuthenticationOptions>(
@@ -327,7 +323,6 @@ namespace Luna.API
             services.TryAddScoped<ITelemetryDataConnectorService, TelemetryDataConnectorService>();
             services.TryAddScoped<ISubscriptionCustomMeterUsageService, SubscriptionCustomMeterUsageService>();
             services.TryAddScoped<IGatewayService, GatewayService>();
-            services.TryAddScoped<IPublisherService, PublisherService>();
 
             services.TryAddScoped<ICustomMeterEventService, CustomMeterEventService>();
             // Register luna db client
@@ -335,10 +330,9 @@ namespace Luna.API
             services.TryAddScoped<LunaClient>();
 
             // Register Luna.AI services
-            services.TryAddScoped<IAIServiceService, AIServiceService>();
-            services.TryAddScoped<IAIServicePlanService, AIServicePlanService>();
+            services.TryAddScoped<ILunaApplicationService, LunaApplicationService>();
+            services.TryAddScoped<ILunaAPIService, LunaAPIService>();
             services.TryAddScoped<IAPIVersionService, APIVersionService>();
-            services.TryAddScoped<IAPISubscriptionService, APISubscriptionService>();
             services.TryAddScoped<IAMLWorkspaceService, AMLWorkspaceService>();
             services.TryAddScoped<IAzureSynapseWorkspaceService, AzureSynapseWorkspaceService>();
             services.TryAddScoped<IAzureDatabricksWorkspaceService, AzureDatabricksWorkspaceService>();
@@ -369,7 +363,6 @@ namespace Luna.API
                o.Conventions.Controller<WebhookController>().HasApiVersion(latest);
                o.Conventions.Controller<WebhookParameterController>().HasApiVersion(latest);
                 o.Conventions.Controller<AMLWorkspaceController>().HasApiVersion(latest);
-                o.Conventions.Controller<APISubscriptionController>().HasApiVersion(latest);
                 o.Conventions.Controller<APIVersionController>().HasApiVersion(latest);
                 o.Conventions.Controller<AIServicePlanController>().HasApiVersion(latest);
                 o.Conventions.Controller<AIServiceController>().HasApiVersion(latest);

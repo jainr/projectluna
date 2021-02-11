@@ -5,6 +5,8 @@
         Model,
         Endpoint,
         Pipeline,
-        MLProject
+        MLProject,
+        // For data share demo
+        Dataset
     }
 }

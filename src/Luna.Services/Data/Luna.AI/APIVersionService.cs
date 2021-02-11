@@ -24,8 +24,8 @@ namespace Luna.Services.Data.Luna.AI
     public class APIVersionService : IAPIVersionService
     {
         private readonly ISqlDbContext _context;
-        private readonly IAIServiceService _aiServiceService;
-        private readonly IAIServicePlanService _aiServicePlanService;
+        private readonly ILunaApplicationService _aiServiceService;
+        private readonly ILunaAPIService _aiServicePlanService;
         private readonly IAMLWorkspaceService _amlWorkspaceService;
         private readonly IAzureDatabricksWorkspaceService _adbWorkspaceService;
         private readonly IGitRepoService _gitRepoService;
@@ -43,7 +43,7 @@ namespace Luna.Services.Data.Luna.AI
         /// <param name="aiServiceService">The service to be injected.</param>
         /// <param name="aiServicePlanService">The service to be injected.</param>
         /// <param name="logger">The logger.</param>
-        public APIVersionService(ISqlDbContext sqlDbContext, IAIServiceService aiServiceService, IAIServicePlanService aiServicePlanService, IAMLWorkspaceService amlWorkspaceService,
+        public APIVersionService(ISqlDbContext sqlDbContext, ILunaApplicationService aiServiceService, ILunaAPIService aiServicePlanService, IAMLWorkspaceService amlWorkspaceService,
             IAzureDatabricksWorkspaceService adbWorkspaceService, IGitRepoService gitRepoService, IAzureSynapseWorkspaceService synapseWorkspaceService,
             ILogger<APIVersionService> logger, IKeyVaultHelper keyVaultHelper, IStorageUtility storageUtility, IGitUtility gitUtility, IOptionsMonitor<AzureConfigurationOption> options)
         {
@@ -76,7 +76,7 @@ namespace Luna.Services.Data.Luna.AI
             var aiService = await _aiServiceService.GetAsync(aiServiceName);
             
             // Get all apiVersions with a FK to the aiServicePlan
-            var apiVersions = await _context.APIVersions.Where(v => v.AIServicePlanId == aiServicePlan.Id).ToListAsync();
+            var apiVersions = await _context.APIVersions.Where(v => v.LunaAPIId == aiServicePlan.Id).ToListAsync();
 
             List<APIVersion> result = new List<APIVersion>();
 
@@ -90,10 +90,10 @@ namespace Luna.Services.Data.Luna.AI
             return result;
         }
 
-        private async Task<APIVersion> FillInInformation(APIVersion apiVersion, AIService aiService, AIServicePlan aiServicePlan)
+        private async Task<APIVersion> FillInInformation(APIVersion apiVersion, LunaApplication aiService, LunaAPI aiServicePlan)
         {
-            apiVersion.AIServicePlanName = aiServicePlan.AIServicePlanName;
-            apiVersion.AIServiceName = aiService.AIServiceName;
+            apiVersion.APIName = aiServicePlan.APIName;
+            apiVersion.ApplicationName = aiService.ApplicationName;
 
             if (apiVersion.AzureDatabricksWorkspaceId.HasValue)
             {
@@ -178,12 +178,12 @@ namespace Luna.Services.Data.Luna.AI
 
             // Find the apiVersion that matches the aiServiceName and aiServicePlanName provided
             var apiVersion = await _context.APIVersions
-                .SingleOrDefaultAsync(v => (v.AIServicePlanId == aiServicePlan.Id) && (v.VersionName == versionName));
-            apiVersion.AIServicePlanName = aiServicePlan.AIServicePlanName;
+                .SingleOrDefaultAsync(v => (v.LunaAPIId == aiServicePlan.Id) && (v.VersionName == versionName));
+            apiVersion.APIName = aiServicePlan.APIName;
 
             // Get the aiService associated with the aiServiceName provided
             var aiService = await _aiServiceService.GetAsync(aiServiceName);
-            apiVersion.AIServiceName = aiService.AIServiceName;
+            apiVersion.ApplicationName = aiService.ApplicationName;
 
             var result = await FillInInformation(apiVersion, aiService, aiServicePlan);
 
@@ -230,7 +230,7 @@ namespace Luna.Services.Data.Luna.AI
             var aiServicePlan = await _aiServicePlanService.GetAsync(aiServiceName, aiServicePlanName);
 
             // Set the FK to apiVersion
-            version.AIServicePlanId = aiServicePlan.Id;
+            version.LunaAPIId = aiServicePlan.Id;
 
             // Update the apiVersion created time
             version.CreatedTime = DateTime.UtcNow;
@@ -284,7 +284,7 @@ namespace Luna.Services.Data.Luna.AI
             return version;
         }
 
-        private async Task<APIVersion> ValidateBeforeCreateOrUpdate(AIServicePlan aiServicePlan, APIVersion version, bool isUpdate = false)
+        private async Task<APIVersion> ValidateBeforeCreateOrUpdate(LunaAPI aiServicePlan, APIVersion version, bool isUpdate = false)
         {
             int linkedServiceCount = 0;
 
@@ -529,6 +529,20 @@ namespace Luna.Services.Data.Luna.AI
                     }
                 }
             }
+            else if (aiServicePlan.IsDatasetPlanType())
+            {
+                if (string.IsNullOrEmpty(version.DataShareAccountName))
+                {
+                    throw new LunaBadRequestUserException("The data share account name is required.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                if (string.IsNullOrEmpty(version.DataShareName))
+                {
+                    throw new LunaBadRequestUserException("The data share name is required.",
+                        UserErrorCode.InvalidParameter);
+                }
+            }
             return version;
         }
 
@@ -564,7 +578,7 @@ namespace Luna.Services.Data.Luna.AI
             // Get the apiVersion that matches the aiServiceName, aiServicePlanName and versionName provided
             var versionDb = await GetAsync(aiServiceName, aiServicePlanName, versionName);
 
-            if (versionDb.AIServicePlanId != aiServicePlan.Id)
+            if (versionDb.LunaAPIId != aiServicePlan.Id)
             {
                 throw new LunaNotSupportedUserException("Update the target plan of an existing API version is not supported.");
             }    
@@ -685,8 +699,8 @@ namespace Luna.Services.Data.Luna.AI
 
             // Get the apiVersion that matches the aiServiceName, the aiServicePlanName and the versionName provided
             var version = await GetAsync(aiServiceName, aiServicePlanName, versionName);
-            version.AIServiceName = aiServiceName;
-            version.AIServicePlanName = aiServicePlanName;
+            version.ApplicationName = aiServiceName;
+            version.APIName = aiServicePlanName;
 
             // delete athentication key from keyVault if authentication type is key
             if (!string.IsNullOrEmpty(version.EndpointAuthSecretName))
@@ -738,7 +752,7 @@ namespace Luna.Services.Data.Luna.AI
 
             // Check that only one apiVersion with this versionName exists within the aiServicePlan
             var count = await _context.APIVersions
-                .CountAsync(a => (a.AIServicePlanId.Equals(aiServicePlan.Id)) && (a.VersionName == versionName));
+                .CountAsync(a => (a.LunaAPIId.Equals(aiServicePlan.Id)) && (a.VersionName == versionName));
 
             // More than one instance of an object with the same name exists, this should not happen
             if (count > 1)

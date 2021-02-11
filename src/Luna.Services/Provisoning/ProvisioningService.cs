@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -40,8 +41,8 @@ namespace Luna.Services.Provisoning
         private readonly IArmTemplateParameterService _armTemplateParameterService;
         private readonly IWebhookParameterService _webhookParameterService;
         private readonly ISubscriptionCustomMeterUsageService _subscriptionCustomMeterUsageService;
-        private readonly IAIServiceService _aiServiceService;
-        private readonly IAIServicePlanService _aiServicePlanService;
+        private readonly ILunaApplicationService _aiServiceService;
+        private readonly ILunaAPIService _aiServicePlanService;
         private readonly IGatewayService _gatewayService;
         private readonly IStorageUtility _storageUtility;
         private readonly IKeyVaultHelper _keyVaultHelper;
@@ -54,7 +55,7 @@ namespace Luna.Services.Provisoning
             IFulfillmentClient fulfillmentclient, IIpAddressService ipAddressService,
             ISubscriptionParameterService subscriptionParameterService, IArmTemplateParameterService armTemplateParameterService,
             IWebhookParameterService webhookParameterService, ISubscriptionCustomMeterUsageService subscriptionCustomMeterUsageService,
-            IAIServiceService aIServiceService, IAIServicePlanService aIServicePlanService, IGatewayService gatewayService,
+            ILunaApplicationService aIServiceService, ILunaAPIService aIServicePlanService, IGatewayService gatewayService,
             IKeyVaultHelper keyVaultHelper, IOptionsMonitor<AzureConfigurationOption> options,
             IStorageUtility storageUtility, ILogger<ProvisioningService> logger)
         {
@@ -274,15 +275,13 @@ namespace Luna.Services.Provisoning
             ValidateSubscriptionAndInputState(subscription);
             try
             {
-                Offer offer = await FindOfferById(subscription.OfferId);
-                if (offer != null && offer.AIServiceId.HasValue)
+                if (_context.PlanApplications.Where(x => x.PlanId == subscription.PlanId).Any())
                 {
                     if (subscription.ProvisioningType.Equals(nameof(ProvisioningType.Subscribe)))
                     {
                         _logger.LogInformation($"Subscribing AI service.");
-                        AIService service = await _aiServiceService.GetByOfferIdAsync(subscription.OfferId);
+                        Offer offer = await FindOfferById(subscription.OfferId);
                         Plan plan = await FindPlanById(subscription.PlanId);
-                        subscription.AIServiceId = service.Id;
 
                         Gateway gateway = null;
                         if (subscription.GatewayId.HasValue)
@@ -291,7 +290,7 @@ namespace Luna.Services.Provisoning
                         }
                         else
                         {
-                            gateway = await _gatewayService.GetLeastUsedPublicGatewayAsync();
+                            gateway = await _gatewayService.GetLeastUsedPlanGatewayAsync(plan.Id);
                         }
 
                         if (gateway != null)
@@ -303,8 +302,6 @@ namespace Luna.Services.Provisoning
                         {
                             throw new LunaServerException($"Can not find the gateway for subscription {subscription.SubscriptionId}");
                         }
-                        // TODO: set the correct url when implementing the scale out solution.
-                        subscription.BaseUrl = _options.CurrentValue.Config.ControllerBaseUrl;
 
                         subscription.PrimaryKeySecretName = string.Format(LunaConstants.PRIMARY_KEY_SECRET_NAME_FORMAT, subscription.SubscriptionId.ToString());
                         subscription.SecondaryKeySecretName = string.Format(LunaConstants.SECONDARY_KEY_SECRET_NAME_FORMAT, subscription.SubscriptionId.ToString());
@@ -312,16 +309,10 @@ namespace Luna.Services.Provisoning
                         subscription.SecondaryKey = Guid.NewGuid().ToString("N");
                         await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.PrimaryKeySecretName, subscription.PrimaryKey));
                         await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName, subscription.SecondaryKey));
-                        _logger.LogInformation($"Subscribed the AI service {service.AIServiceName}.");
                     }
                     else if (subscription.ProvisioningType.Equals(nameof(ProvisioningType.Update)))
                     {
-                        _logger.LogInformation("Update AI service subscription");
-                        AIService service = await _aiServiceService.GetByOfferIdAsync(subscription.OfferId);
-                        Plan plan = await FindPlanById(subscription.PlanId);
-                        AIServicePlan servicePlan = await _aiServicePlanService.GetAsync(service.AIServiceName, plan.PlanName);
-                        subscription.AIServicePlanId = servicePlan.Id;
-                        _logger.LogInformation($"Updated the AI service {service.AIServiceName} with plan {servicePlan.AIServicePlanName}.");
+                        // Do nothing for now
                     }
                 }
                 else
@@ -615,7 +606,9 @@ namespace Luna.Services.Provisoning
                     }
 
                     // Don't need to update marketplace operation for delete data
-                    if (!subscription.ProvisioningType.Equals(nameof(ProvisioningType.DeleteData)))
+                    // 02-05-2021: Behavior change in AMP SaaS API, Unsubscribe does not need notification anymore
+                    if (!subscription.ProvisioningType.Equals(nameof(ProvisioningType.DeleteData)) &&
+                        !subscription.ProvisioningType.Equals(nameof(ProvisioningType.Unsubscribe)))
                     {
                         Plan plan = await FindPlanById(subscription.PlanId);
 

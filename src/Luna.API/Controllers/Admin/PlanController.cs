@@ -25,15 +25,19 @@ namespace Luna.API.Controllers.Admin
     {
         private readonly IPlanService _planService;
         private readonly ILogger<RestrictedUserController> _logger;
+        private readonly IGatewayService _gatewayService;
+        private readonly ILunaApplicationService _applicationService;
 
         /// <summary>
         /// Constructor that uses dependency injection.
         /// </summary>
         /// <param name="planService">The service to inject.</param>
         /// <param name="logger">The logger.</param>
-        public PlanController(IPlanService planService, ILogger<RestrictedUserController> logger)
+        public PlanController(IPlanService planService, IGatewayService gatewayService, ILunaApplicationService applicationService, ILogger<RestrictedUserController> logger)
         {
             _planService = planService ?? throw new ArgumentNullException(nameof(planService));
+            _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
+            _applicationService = applicationService ?? throw new ArgumentNullException(nameof(applicationService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -88,6 +92,28 @@ namespace Luna.API.Controllers.Admin
             {
                 throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(Plan).Name),
                     UserErrorCode.NameMismatch);
+            }
+
+            if (plan.GatewayNames != null)
+            {
+                foreach (var gatewayName in plan.GatewayNames)
+                {
+                    if (!await _gatewayService.ExistsAsync(gatewayName))
+                    {
+                        throw new LunaBadRequestUserException($"Gateway {gatewayName} doesn't exist.", UserErrorCode.InvalidParameter);
+                    }
+                }
+            }
+
+            if (plan.ApplicationNames != null)
+            {
+                foreach (var applicationName in plan.ApplicationNames)
+                {
+                    if (!await _applicationService.ExistsAsync(applicationName))
+                    {
+                        throw new LunaBadRequestUserException($"Luna application {applicationName} doesn't exist.", UserErrorCode.InvalidParameter);
+                    }
+                }
             }
 
             if (await _planService.ExistsAsync(offerName, planName))

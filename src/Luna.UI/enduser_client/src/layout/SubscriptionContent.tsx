@@ -60,6 +60,9 @@ const SubscriptionContent: React.FunctionComponent<SubscriptionProps> = (props) 
   inputParameters: [],
   provisioningStatus: '',
   entryPointUrl: '',
+  baseUrl: '',
+  primaryKey: '',
+  secondaryKey: '',
 
   publisherId: '',
   status: '',

@@ -45,6 +45,7 @@ namespace Luna.API.Controllers.Admin
         /// <param name="aiServiceName">The name of the ai service.</param>
         /// <param name="aiServicePlanName">The name of the ai service plan.</param>
         /// <returns>HTTP 200 OK with apiVersions JSON objects in response body.</returns>
+        [HttpGet("applications/{aiServiceName}/apis/{aiServicePlanName}/apiVersions")]
         [HttpGet("aiservices/{aiServiceName}/plans/{aiServicePlanName}/apiVersions")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAllAsync(string aiServiceName, string aiServicePlanName)
@@ -62,6 +63,7 @@ namespace Luna.API.Controllers.Admin
         /// <param name="versionName">The name of apiversion</param>
         /// <returns>HTTP 200 OK with one apiVersion JSON objects in response body.</returns>
         [HttpGet("aiservices/{aiServiceName}/plans/{aiServicePlanName}/apiVersions/{versionName}", Name = nameof(GetAsync) + nameof(APIVersion))]
+        [HttpGet("applications/{aiServiceName}/apis/{aiServicePlanName}/apiVersions/{versionName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAsync(string aiServiceName, string aiServicePlanName, string versionName)
         {
@@ -80,6 +82,7 @@ namespace Luna.API.Controllers.Admin
         /// <returns>HTTP 201 CREATED with URI to created resource in response header.</returns>
         /// <returns>HTTP 200 OK with updated apiVersion JSON objects in response body.</returns>
         [HttpPut("aiservices/{aiServiceName}/plans/{aiServicePlanName}/apiVersions/{versionName}")]
+        [HttpPut("applications/{aiServiceName}/apis/{aiServicePlanName}/apiVersions/{versionName}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> CreateOrUpdateAsync(string aiServiceName, string aiServicePlanName, string versionName, [FromBody] APIVersion apiVersion)
@@ -119,6 +122,7 @@ namespace Luna.API.Controllers.Admin
         /// <param name="versionName">The name of apiversion</param>
         /// <returns>HTTP 204 NO CONTENT</returns>
         [HttpDelete("aiservices/{aiServiceName}/plans/{aiServicePlanName}/apiVersions/{versionName}")]
+        [HttpDelete("applications/{aiServiceName}/apis/{aiServicePlanName}/apiVersions/{versionName}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<ActionResult> DeleteAsync(string aiServiceName, string aiServicePlanName, string versionName)
         {

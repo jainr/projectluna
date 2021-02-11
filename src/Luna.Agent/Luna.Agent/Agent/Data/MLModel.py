@@ -12,7 +12,7 @@ class MLModel(Base):
 
     ModelName = Column(String)
 
-    ModelAlternativeName = Column(String)
+    ModelDisplayName = Column(String)
 
     ModelVersion = Column(String)
 

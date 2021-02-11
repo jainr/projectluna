@@ -21,21 +21,22 @@ EXEC sp_addrolemember N'db_owner', @username
 GO
 
 -- Drop views
-IF EXISTS (select * from sys.views tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'agent_subscriptions' AND sch.name = 'dbo')
+
+IF EXISTS (select * from sys.views v join sys.schemas sch on v.schema_id = sch.schema_id where v.name = 'vw_planapplicationapis' AND sch.name = 'dbo')
 BEGIN
-DROP VIEW [dbo].[agent_subscriptions]
+DROP VIEW [dbo].[vw_planapplicationapis]
 END
 GO
 
-IF EXISTS (select * from sys.views tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'agent_apiversions' AND sch.name = 'dbo')
+IF EXISTS (select * from sys.views v join sys.schemas sch on v.schema_id = sch.schema_id where v.name = 'vw_subscriptions' AND sch.name = 'dbo')
 BEGIN
-DROP VIEW [dbo].[agent_apiversions]
+DROP VIEW [dbo].[vw_subscriptions]
 END
 GO
 
-IF EXISTS (select * from sys.views tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'agent_amlworkspaces' AND sch.name = 'dbo')
+IF EXISTS (select * from sys.views v join sys.schemas sch on v.schema_id = sch.schema_id where v.name = 'vw_apiversions' AND sch.name = 'dbo')
 BEGIN
-DROP VIEW [dbo].[agent_amlworkspaces]
+DROP VIEW [dbo].[vw_apiversions]
 END
 GO
 
@@ -132,6 +133,18 @@ DROP TABLE [dbo].[CustomMeterDimensions]
 END
 GO
 
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'PlanGateways' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[PlanGateways]
+END
+GO
+
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'PlanApplications' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[PlanApplications]
+END
+GO
+
 IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'Plans' AND sch.name = 'dbo')
 BEGIN
 DROP TABLE [dbo].[Plans]
@@ -174,21 +187,33 @@ DROP TABLE [dbo].[APISubscriptions]
 END
 GO
 
-IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'APIVersions' AND sch.name = 'dbo')
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'MLModels' AND sch.name = 'dbo')
 BEGIN
-DROP TABLE [dbo].[APIVersions]
+DROP TABLE [dbo].[MLModels]
 END
 GO
 
-IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'AIServicePlans' AND sch.name = 'dbo')
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'AMLPipelineEndpoints' AND sch.name = 'dbo')
 BEGIN
-DROP TABLE [dbo].[AIServicePlans]
+DROP TABLE [dbo].[AMLPipelineEndpoints]
 END
 GO
 
-IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'AIServices' AND sch.name = 'dbo')
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'AzureSynapseWorkspaces' AND sch.name = 'dbo')
 BEGIN
-DROP TABLE [dbo].[AIServices]
+DROP TABLE [dbo].[AzureSynapseWorkspaces]
+END
+GO
+
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'AzureDatabricksWorkspaces' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[AzureDatabricksWorkspaces]
+END
+GO
+
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'GitRepos' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[GitRepos]
 END
 GO
 
@@ -198,15 +223,33 @@ DROP TABLE [dbo].[AMLWorkspaces]
 END
 GO
 
-IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'AIAgents' AND sch.name = 'dbo')
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'APIVersions' AND sch.name = 'dbo')
 BEGIN
-DROP TABLE [dbo].[AIAgents]
+DROP TABLE [dbo].[APIVersions]
 END
 GO
 
-IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'Publishers' AND sch.name = 'dbo')
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'LunaAPIs' AND sch.name = 'dbo')
 BEGIN
-DROP TABLE [dbo].[Publishers]
+DROP TABLE [dbo].[LunaAPIs]
+END
+GO
+
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'LunaApplications' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[LunaApplications]
+END
+GO
+
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'Gateways' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[Gateways]
+END
+GO
+
+IF EXISTS (select * from sys.tables tb join sys.schemas sch on tb.schema_id = sch.schema_id where tb.name = 'LunaUsers' AND sch.name = 'dbo')
+BEGIN
+DROP TABLE [dbo].[LunaUsers]
 END
 GO
 
@@ -214,19 +257,23 @@ GO
 CREATE TABLE [dbo].[Offers](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[OfferName] [nvarchar](50) NOT NULL,
-	[OfferAlias] [nvarchar](128) NOT NULL,
+	[DisplayName] [nvarchar](128) NOT NULL,
 	[OfferVersion] [nvarchar](50) NOT NULL,
 	[Owners] [nvarchar](512) NOT NULL,
 	[HostSubscription] uniqueidentifier NOT NULL,
 	[Status] [nvarchar](16) NOT NULL,
+	[Description] [nvarchar](max) NOT NULL,
+	[LogoImageUrl] [nvarchar](max) NULL,
+	[DocumentationUrl] [nvarchar](max) NULL,
+	[Tags] [nvarchar](max) NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
 	[DeletedTime] [datetime2](7),
 	[ContainerName] [uniqueidentifier] NOT NULL,
 	[ManualActivation] [bit],
 	[ManualCompleteOperation] [bit],
-	[AIServiceId] [bigint],
 	[IsAzureMarketplaceOffer] [bit],
+	[IsInternalApplication] [bit],
 	PRIMARY KEY (Id)
 ) ON [PRIMARY]
 GO
@@ -264,6 +311,8 @@ CREATE TABLE [dbo].[Plans](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[OfferId] [bigint] NOT NULL,
 	[PlanName] [nvarchar](50) NOT NULL,
+	[PlanDisplayName] [nvarchar](128) NOT NULL,
+	[Description] [nvarchar](max) NOT NULL,
 	[DataRetentionInDays] [int] NOT NULL,
 	[SubscribeArmTemplateId] bigint NULL,
 	[UnsubscribeArmTemplateId] bigint NULL,
@@ -341,11 +390,9 @@ CREATE TABLE [dbo].[Subscriptions](
 	[BaseUrl] [nvarchar](1024) NULL,
 	[PrimaryKeySecretName] [nvarchar](64) NULL,
 	[SecondaryKeySecretName] [nvarchar](64) NULL,
-	[AIServiceId] bigint NULL,
-	[AIServicePlanId] bigint NULL,
 	[GatewayId] bigint NULL,
 	CONSTRAINT FK_offer_id_subscriptions FOREIGN KEY (OfferId) REFERENCES Offers(Id),
-	CONSTRAINT FK_plan_id_subscriptions FOREIGN KEY (PlanId) REFERENCES Plans(Id)
+	CONSTRAINT FK_plan_id_subscriptions FOREIGN KEY (PlanId) REFERENCES Plans(Id),
 	PRIMARY KEY CLUSTERED (
 		[SubscriptionId] ASC
 	)
@@ -569,55 +616,50 @@ CREATE TABLE [dbo].[GitRepos](
 	[RepoName] [nvarchar](50) NOT NULL,
 	[Type] [nvarchar](16) NOT NULL,
 	[HttpUrl] [nvarchar](max) NOT NULL,
-	[CommitHashOrBranch] [nvarchar](256) NOT NULL,
 	[PersonalAccessTokenSecretName] [nvarchar](32) NOT NULL,
 	PRIMARY KEY (Id)
 )
 GO
 
-CREATE TABLE [dbo].[AIServices](
+CREATE TABLE [dbo].[LunaApplications](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[DisplayName] [nvarchar](128) NULL,
-	[AIServiceName] [nvarchar](50) NOT NULL,
+	[ApplicationName] [nvarchar](50) NOT NULL,
 	[Owner] [nvarchar](512) NOT NULL,
 	[Description] [nvarchar](256) NOT NULL,
-	[LogoImageUrl] [nvarchar](max) NULL,
-	[DocumentationUrl] [nvarchar](max) NULL,
-	[Tags] [nvarchar](max) NULL,
-	[SaaSOfferName] [nvarchar](50) NULL,
-	[SaaSOfferId] [bigint] NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
 	PRIMARY KEY (Id)
 )
 GO
 
-CREATE TABLE [dbo].[AIServicePlans](
+CREATE TABLE [dbo].[LunaAPIs](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
-	[AIServiceId] [bigint] NOT NULL,
-	[AIServicePlanName] [nvarchar](50) NOT NULL,
-	[AIServicePlanDisplayName] [nvarchar](128) NOT NULL,
+	[ApplicationId] [bigint] NOT NULL,
+	[APIName] [nvarchar](50) NOT NULL,
+	[APIDisplayName] [nvarchar](128) NOT NULL,
 	[Description] [nvarchar](1024) NOT NULL,
-	[PlanType] [nvarchar](32) NOT NULL,
+	[APIType] [nvarchar](32) NOT NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
 	PRIMARY KEY (Id),
-	CONSTRAINT FK_AIServiceId_AIServicePlans FOREIGN KEY (AIServiceId) REFERENCES AIServices(Id)
+	CONSTRAINT FK_ApplicationId_LunaAPIs FOREIGN KEY (ApplicationId) REFERENCES LunaApplications(Id)
 )
 GO
 
 CREATE TABLE [dbo].[APIVersions](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
-	[AIServicePlanId] [bigint] NOT NULL,
+	[LunaAPIId] [bigint] NOT NULL,
 	[VersionName] [nvarchar](50) NOT NULL,
 	[AMLWorkspaceId] [bigint] NULL,
 	[AzureDatabricksWorkspaceId] [bigint] NULL,
 	[AzureSynapseWorkspaceId] [bigint] NULL,
 	[GitRepoId] [bigint] NULL,
+	[ModelDisplayName] [nvarchar](128) NULL,
 	[ModelName] [nvarchar](128) NULL,
 	[ModelVersion] [int] NULL,
 	[EndpointName] [nvarchar](128) NULL,
-	[EndpointName] [nvarchar](64) NULL,
+	[EndpointVersion] [nvarchar](64) NULL,
 	[IsManualInputEndpoint] [bit] NULL,
 	[EndpointUrl] [nvarchar](max) NULL,
 	[EndpointSwaggerUrl] [nvarchar](max) NULL,
@@ -634,10 +676,12 @@ CREATE TABLE [dbo].[APIVersions](
 	[IsRunProjectOnManagedCompute] [bit] NULL,
 	[LinkedServiceComputeTarget] [nvarchar](256) NULL,
 	[AdvancedSettings] [nvarchar](max) NULL,
+	[DataShareAccountName] [nvarchar](256) NULL,
+	[DataShareName] [nvarchar](256) NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
 	PRIMARY KEY (Id),
-	CONSTRAINT FK_AIServicePlanId_APIVersions FOREIGN KEY (AIServicePlanId) REFERENCES AIServicePlans(Id)
+	CONSTRAINT FK_APIId_APIVersions FOREIGN KEY (LunaAPIId) REFERENCES LunaAPIs(Id)
 )
 GO
 
@@ -662,24 +706,6 @@ CREATE TABLE [dbo].[MLModels](
 )
 GO
 
-CREATE TABLE [dbo].[APISubscriptions](
-	[SubscriptionId] [uniqueidentifier] NOT NULL,
-	[DeploymentId] [bigint] NOT NULL,
-	[Name] [nvarchar](64) NOT NULL,
-	[Owner] [nvarchar](512) NOT NULL,
-	[Status] [nvarchar](32) NULL,
-	[BaseUrl] [nvarchar](max) NULL,
-	[PrimaryKeySecretName] [nvarchar](64) NULL,
-	[SecondaryKeySecretName] [nvarchar](64) NULL,
-	[CreatedTime] [datetime2](7) NOT NULL,
-	[LastUpdatedTime] [datetime2](7) NOT NULL,
-	[AgentId] [uniqueidentifier] NULL,
-	[HostType] [nvarchar](32) NULL,
-	PRIMARY KEY (SubscriptionId),
-	CONSTRAINT FK_DeploymentId_APISubscriptions FOREIGN KEY (DeploymentId) REFERENCES AIServicePlans(Id)
-)
-GO
-
 CREATE TABLE [dbo].[Gateways](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
 	[Name] [nvarchar](50) NOT NULL,
@@ -696,59 +722,55 @@ CREATE TABLE [dbo].[Gateways](
 )
 GO
 
-CREATE TABLE [AIServicePlanGateways](
-	[AIServicePlanId] [bigint] NOT NULL,
+CREATE TABLE [PlanGateways](
+	[PlanId] [bigint] NOT NULL,
 	[GatewayId] [bigint] NOT NULL,
-	PRIMARY KEY (AIServicePlanId, GatewayId),
-	CONSTRAINT FK_AIServicePlanId_AIServicePlanGateways FOREIGN KEY (AIServicePlanId) REFERENCES AIServicePlans(Id),
-	CONSTRAINT FK_GatewayId_AIServicePlanGateways FOREIGN KEY (GatewayId) REFERENCES Gateways(Id)
+	PRIMARY KEY (PlanId, GatewayId),
+	CONSTRAINT FK_PlanId_PlanGateways FOREIGN KEY (PlanId) REFERENCES Plans(Id),
+	CONSTRAINT FK_GatewayId_PlanGateways FOREIGN KEY (GatewayId) REFERENCES Gateways(Id)
 )
 GO
-	
 
-CREATE TABLE [dbo].[Publishers](
+CREATE TABLE [PlanApplications](
+	[PlanId] [bigint] NOT NULL,
+	[ApplicationId] [bigint] NOT NULL,
+	PRIMARY KEY (PlanId, ApplicationId),
+	CONSTRAINT FK_PlanId_PlanApplications FOREIGN KEY (PlanId) REFERENCES Plans(Id),
+	CONSTRAINT FK_ApplicationId_PlanApplications FOREIGN KEY (ApplicationId) REFERENCES LunaApplications(Id)
+)
+GO
+
+CREATE TABLE [dbo].[LunaUsers](
 	[Id] [bigint] IDENTITY(1,1) NOT NULL,
-	[PublisherId] [uniqueidentifier] NOT NULL,
-	[ControlPlaneUrl] [nvarchar](max) NOT NULL,
-	[Name] [nvarchar](256) NOT NULL,
-	[LandingPageUrl] [nvarchar](max) NOT NULL,
-	[PublisherMicrosoftId] [nvarchar](256) NOT NULL,
-	PRIMARY KEY (PublisherId)
+	[UserType] [nvarchar](32) NOT NULL,
+	[UserPrincipalName] [nvarchar](512) NOT NULL,
+	[AADObjectId] uniqueidentifier NOT NULL,
 )
-GO
-
-Declare @publisherId nvarchar(64)
-Declare @controlPlaneUrl nvarchar(512)
-Declare @publisherName nvarchar(256)
-Declare @publisherMicrosoftId nvarchar(512)
-Declare @landingPageUrl nvarchar(256)
-
-SET @publisherId = $(publisherId)
-SET @controlPlaneUrl = $(controlPlaneUrl)
-SET @publisherName = $(publisherName)
-SET @publisherMicrosoftId = $(publisherMicrosoftId)
-SET @landingPageUrl = $(landingPageUrl)
-
-INSERT INTO [dbo].[Publishers] VALUES(@publisherId, @controlPlaneUrl, @publisherName, @landingPageUrl, @publisherMicrosoftId)
-GO
-
-Declare @agentId nvarchar(64)
-Declare @agentKeySecretName nvarchar(64)
-SET @agentId = $(agentId)
-SET @agentKeySecretName = $(agentKeySecretName)
-
-INSERT INTO [dbo].[AIAgents] VALUES(@agentId, @agentKeySecretName, 'system', getutcdate(), getutcdate(), 1)
 GO
 
 
 
 CREATE VIEW [dbo].[vw_subscriptions]
 AS
-SELECT dbo.Subscriptions.SubscriptionId, dbo.Subscriptions.Name, dbo.Subscriptions.Status, dbo.Subscriptions.CreatedTime, dbo.Subscriptions.LastUpdatedTime, dbo.Subscriptions.primarykeysecretname, dbo.Subscriptions.secondarykeysecretname, dbo.Subscriptions.AIServicePlanId, dbo.Subscriptions.AIServiceId, dbo.AIServices.AIServiceName, dbo.Subscriptions.BaseUrl, 
-          dbo.Subscriptions.Owner, '' as AIServicePlanname
+SELECT dbo.Subscriptions.SubscriptionId, dbo.Subscriptions.Name, dbo.Subscriptions.Status, dbo.Subscriptions.CreatedTime, dbo.Subscriptions.LastUpdatedTime, dbo.Subscriptions.primarykeysecretname, dbo.Subscriptions.secondarykeysecretname, dbo.Subscriptions.BaseUrl, 
+          dbo.Subscriptions.Owner
 FROM
-          dbo.AIServices INNER JOIN
-          dbo.Subscriptions ON dbo.AIServices.Id = dbo.Subscriptions.AIServiceId
+          dbo.Subscriptions
 GO
 
+CREATE VIEW [dbo].[vw_apiversions]
+AS
+SELECT dbo.LunaAPIs.APIName, dbo.LunaApplications.ApplicationName, dbo.LunaAPIs.APIType, dbo.APIVersions.*
+FROM   dbo.APIVersions INNER JOIN
+          dbo.LunaAPIs ON dbo.APIVersions.LunaAPIId = dbo.LunaAPIs.Id INNER JOIN
+          dbo.LunaApplications ON dbo.LunaAPIs.ApplicationId = dbo.LunaApplications.Id
+GO
+
+CREATE VIEW [dbo].[vw_planapplicationapis]
+AS
+SELECT dbo.LunaAPIs.APIName, dbo.LunaApplications.ApplicationName, dbo.PlanApplications.PlanId, dbo.LunaAPIs.APIType
+FROM   dbo.PlanApplications INNER JOIN
+          dbo.LunaAPIs ON dbo.PlanApplications.ApplicationId = dbo.LunaAPIs.ApplicationId INNER JOIN
+          dbo.LunaApplications ON dbo.PlanApplications.ApplicationId = dbo.LunaApplications.Id AND dbo.LunaAPIs.ApplicationId = dbo.LunaApplications.Id
+GO
 

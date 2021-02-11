@@ -6,20 +6,23 @@ using System.Text.Json.Serialization;
 
 namespace Luna.Data.Entities
 {
-    public partial class AIServicePlanGateway
+    public partial class PlanGateway
     {
-        public AIServicePlanGateway()
+        public PlanGateway()
         {
 
         }
 
-        public long AIServicePlanId { get; set; }
+        public long PlanId { get; set; }
 
-        public AIServicePlan AIServicePlan { get; set; }
 
         public long GatewayId { get; set; }
 
-        public Gateway Gateway {get;set;}
+        [JsonIgnore]
+        public virtual Plan Plan { get; set; }
+
+        [JsonIgnore]
+        public virtual Gateway Gateway {get;set;}
 
     }
 }
