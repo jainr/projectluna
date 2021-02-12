@@ -105,8 +105,8 @@ const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
     owner: yup.string().required("Owners is a required field"),
     description: yup.string().max(120, "The description is too long. Must be no more than 120 characters"),
     createdTime: yup.string(),
-    saaSOfferName: yup.string(),
-    saaSOfferPlanName: yup.string(),
+    saaSOfferName: yup.string().required("SaaS offer name is required"),
+    saaSOfferPlanName: yup.string().required("SaaS offer plan name is required"),
     displayName: yup.string().max(64, "The display name is too long. Must be no more than 64 characters"),
     lastUpdatedTime: yup.string()
   }

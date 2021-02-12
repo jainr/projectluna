@@ -136,8 +136,12 @@ const OfferContent: React.FunctionComponent<OfferProps> = (props) => {
 
   const [offerModel, setOfferModel] = useState<IOfferModel>({
     owners: '',
-    offerAlias: '',
     hostSubscription: '',
+    description: '',
+    displayName: '',
+    logoImageUrl: '',
+    documentationUrl: '',
+    tags: '',
     status: '',
     offerVersion: '',
     offerName: '',
@@ -217,10 +221,10 @@ const OfferContent: React.FunctionComponent<OfferProps> = (props) => {
               {offerModel.offerName}
             </span>
               <span style={{marginLeft: 100, fontWeight: 600}}>
-              Alias:
+              Display Name:
             </span>
               <span style={{marginLeft: 8}}>
-              {offerModel.offerAlias}
+              {offerModel.displayName}
             </span>
           </Stack.Item>
           <Stack.Item styles={{

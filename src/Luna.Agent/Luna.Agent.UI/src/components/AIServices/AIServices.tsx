@@ -288,19 +288,6 @@ const AIServices = () => {
                   styles={{ root: { minHeight: '200px' }}}
                   tokens={{ childrenGap: 14 }}>
                   {
-                    offer.LogoImageUrl === 'https://lalalal' &&
-                    <Image 
-                      imageFit={ImageFit.contain}
-                      srcSet={`${process.env.PUBLIC_URL}/noimage.png 1x, ${process.env.PUBLIC_URL}/noimage@2x.png 2x`}
-                      src={process.env.PUBLIC_URL + '/noimage.png'}
-                      alt={offer.OfferDisplayName}
-                      maximizeFrame={true}
-                      width={100}
-                      height={100}
-                      loading="lazy"
-                    />
-                  }
-                  {
                     offer.LogoImageUrl === '' &&
                     <Image 
                       imageFit={ImageFit.contain}
@@ -314,7 +301,7 @@ const AIServices = () => {
                     />
                   }
                   {
-                    offer.LogoImageUrl !== 'https://lalalal' && offer.LogoImageUrl !== ''  &&
+                    offer.LogoImageUrl !== ''  &&
                     <Image 
                       imageFit={ImageFit.contain}
                       src={offer.LogoImageUrl}

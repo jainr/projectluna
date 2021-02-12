@@ -106,37 +106,57 @@ namespace Luna.Services.Data.Luna.AI
                 await _context._SaveChangesAsync();
 
                 // Create SaaS offer and plan if required
-                if (aiService.IsCreateSaaSOfferAndDefaultPlan && !string.IsNullOrEmpty(aiService.SaaSOfferName))
+                if (!string.IsNullOrEmpty(aiService.SaaSOfferName) && !string.IsNullOrEmpty(aiService.SaaSOfferPlanName))
                 {
-                    Offer offer = new Offer()
+                    long offerId = -1;
+                    long planId = -1;
+                    if (!await _offerService.ExistsAsync(aiService.SaaSOfferName))
                     {
-                        OfferName = aiService.SaaSOfferName,
-                        DisplayName = aiService.SaaSOfferName,
-                        Owners = aiService.Owner,
-                        HostSubscription = Guid.Empty,
-                        Description = aiService.Description,
-                        OfferVersion = "v1",
-                        IsAzureMarketplaceOffer = false,
-                        IsInternalApplication = true
-                    };
-                    await _offerService.CreateAsync(offer);
-                    await _context._SaveChangesAsync();
+                        Offer offer = new Offer()
+                        {
+                            OfferName = aiService.SaaSOfferName,
+                            DisplayName = aiService.SaaSOfferName,
+                            Owners = aiService.Owner,
+                            HostSubscription = Guid.Empty,
+                            Description = aiService.Description,
+                            OfferVersion = "v1",
+                            IsAzureMarketplaceOffer = false,
+                            IsInternalApplication = true
+                        };
+                        await _offerService.CreateAsync(offer);
+                        await _context._SaveChangesAsync();
+                        offerId = offer.Id;
+                    }
+                    else
+                    {
+                        var offer = await _offerService.GetAsync(aiService.SaaSOfferName);
+                        offerId = offer.Id;
+                    }
 
-                    Plan plan = new Plan()
+                    if (!await _context.Plans.Where(x => x.OfferId == offerId && x.PlanName == aiService.SaaSOfferPlanName).AnyAsync())
                     {
-                        OfferId = offer.Id,
-                        PlanName = string.IsNullOrEmpty(aiService.SaaSOfferPlanName) ? "default" : aiService.SaaSOfferPlanName,
-                        PlanDisplayName = string.IsNullOrEmpty(aiService.SaaSOfferPlanName) ? "default" : aiService.SaaSOfferPlanName,
-                        PriceModel = "flatRate",
-                        Description = aiService.Description,
-                        ApplicationNames = new List<string>(new string[] { aiService.ApplicationName })
-                    };
-                    _context.Plans.Add(plan);
-                    await _context._SaveChangesAsync();
+                        Plan plan = new Plan()
+                        {
+                            OfferId = offerId,
+                            PlanName = aiService.SaaSOfferPlanName,
+                            PlanDisplayName = aiService.SaaSOfferPlanName,
+                            PriceModel = "flatRate",
+                            Description = aiService.Description,
+                            ApplicationNames = new List<string>(new string[] { aiService.ApplicationName })
+                        };
+                        _context.Plans.Add(plan);
+                        await _context._SaveChangesAsync();
+                        planId = plan.Id;
+                    }
+                    else
+                    {
+                        var plan = await _context.Plans.Where(x => x.OfferId == offerId && x.PlanName == aiService.SaaSOfferPlanName).SingleOrDefaultAsync();
+                        planId = plan.Id;
+                    }
 
                     _context.PlanApplications.Add(new PlanApplication()
                     {
-                        PlanId = plan.Id,
+                        PlanId = planId,
                         ApplicationId = aiService.Id
                     });
                     await _context._SaveChangesAsync();
@@ -145,7 +165,7 @@ namespace Luna.Services.Data.Luna.AI
                     {
                         await _context.PlanGateways.AddAsync(new PlanGateway()
                         {
-                            PlanId = plan.Id,
+                            PlanId = planId,
                             GatewayId = gateway.Id
                         });
                     }

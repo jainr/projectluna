@@ -4,6 +4,7 @@
 import { ISubscriptionAPIVersionOperationParameter } from './ISubscriptionAPIVersionOperationParameter';
 
 export interface ISubscriptionAPIVersionOperation {
+  displayName: string;
   name: string;
   description: string;
   parameters: ISubscriptionAPIVersionOperationParameter[];

@@ -17,7 +17,6 @@ namespace Luna.Data.Entities
         /// </summary>
         public LunaApplication()
         {
-            IsCreateSaaSOfferAndDefaultPlan = false;
         }
 
         /// <summary>
@@ -46,9 +45,6 @@ namespace Luna.Data.Entities
         public DateTime CreatedTime { get; set; }
 
         public DateTime LastUpdatedTime { get; set; }
-
-        [NotMapped]
-        public bool IsCreateSaaSOfferAndDefaultPlan { get; set; }
 
         [NotMapped]
         public string SaaSOfferName { get; set; }

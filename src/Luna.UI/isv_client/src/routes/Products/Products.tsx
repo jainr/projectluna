@@ -129,7 +129,7 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
             <tr>
               <td colSpan={2}>
               <Stack className={"form_row"}>
-                      <FormLabel title={"Display Name (64 characters max):"} toolTip={ProductMessages.product.DisplayName} />
+                      <FormLabel title={"Display Name (128 characters max):"} toolTip={ProductMessages.product.DisplayName} />
                       <TextField
                         name={'product.displayName'}
                         value={values.product.displayName}
@@ -144,7 +144,7 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
             <tr>
               <td colSpan={2}>
               <Stack className={"form_row"}>
-                      <FormLabel title={"Description (120 characters max):"} toolTip={ProductMessages.product.Description} />
+                      <FormLabel title={"Description (512 characters max):"} toolTip={ProductMessages.product.Description} />
                       <TextField
                         name={'product.description'}
                         value={values.product.description}
@@ -156,6 +156,37 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
                     </Stack>
               </td>
             </tr>
+            
+            <tr>
+                  <td>
+                    <Stack className={"form_row"}>
+                      <FormLabel title={"SaaS Offer Name:"} toolTip={ProductMessages.product.SaaSOfferName} />
+                      <input type="hidden" name={'product.Idlist'} value={getidlist()} />
+                      <TextField
+                        name={'product.saaSOfferName'}
+                        value={values.product.saaSOfferName}
+                        maxLength={50}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'saaSOfferName', dirty)}
+                        placeholder={'SaaS Offer Name'}
+                        className={textboxClassName} />
+                    </Stack>
+                  </td>
+                  <td>
+                    <Stack className={"form_row"}>
+                      <FormLabel title={"SaaS Offer Plan Name:"} toolTip={ProductMessages.product.SaaSOfferPlanName} />
+                      <TextField
+                        name={'product.saaSOfferPlanName'}
+                        value={values.product.saaSOfferPlanName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'saaSOfferPlanName', dirty)}
+                        placeholder={'Plan Name'}
+                        className={textboxClassName} />
+                    </Stack>
+                  </td>
+                </tr>
           </tbody>
         </table>
       </Stack>
@@ -219,7 +250,7 @@ const Products: React.FunctionComponent = () => {
   const Products = ({ products }) => {
     if (!products || products.length === 0) {
       return <tr>
-        <td colSpan={4}><span>No AI Services</span></td>
+        <td colSpan={4}><span>No Application</span></td>
       </tr>;
     } else {
       return (
@@ -335,7 +366,7 @@ const Products: React.FunctionComponent = () => {
             }
           }}
         >
-          <PrimaryButton text={"New AI Service"} onClick={handleNewProduct} />
+          <PrimaryButton text={"New AI Application"} onClick={handleNewProduct} />
           <PrimaryButton text={"Usage Reports"} style={{ left: '10%', bottom: '50%' }}  onClick={showLunaWebhookUrlv2Dialog} />
         </Stack>
         <table className="noborder offergrid" style={{ marginTop: 20, width: '100%' }} cellPadding={5} cellSpacing={0}>
@@ -377,7 +408,7 @@ const Products: React.FunctionComponent = () => {
 
           },
           type: DialogType.normal,
-          title: 'New AI Service'
+          title: 'New AI Application'
         }}
         modalProps={{
           isBlocking: true,

@@ -31,7 +31,7 @@ namespace Luna.Services.Data
         /// </summary>
         /// <param name="subscription_id">The id of the subscription.</param>
         /// <returns>The subscription.</returns>
-        Task<Subscription> GetAsync(Guid subscription_id);
+        Task<Subscription> GetAsync(Guid subscription_id, bool IsGetDetails = false);
 
         /// <summary>
         /// Creates a subscription within a plan within an offer.

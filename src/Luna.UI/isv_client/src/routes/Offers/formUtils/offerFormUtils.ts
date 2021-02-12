@@ -36,11 +36,15 @@ export const initialOfferParameters: IOfferParameterModel[] = [];
 export const initialOfferValues: IOfferModel = {
 
   owners: '',
-  offerAlias: '',
   hostSubscription: '',
   status: '',
   offerVersion: '',
   offerName: '',
+  description: '',
+  displayName: '',
+  logoImageUrl: '',
+  documentationUrl: '',
+  tags: '',
   isNew: true,
   clientId: uuid()
 };
@@ -87,8 +91,6 @@ const offerValidator: ObjectSchema<IOfferModel> = yup.object().shape(
           excludeEmptyString: true
         })
       .required("Owners is a required field"),
-    offerAlias: yup.string()
-      .required("Alias is a required field"),
     hostSubscription: yup.string()
       .matches(guidRegExp,
         {
@@ -98,6 +100,12 @@ const offerValidator: ObjectSchema<IOfferModel> = yup.object().shape(
       .required("Host Subscription is a required field"),
     offerVersion: yup.string()
       .required("Offer Version is a required field"),
+    description: yup.string(),
+    displayName: yup.string()
+    .required("Offer Display name is a required field"),
+    documentationUrl: yup.string(),
+    logoImageUrl: yup.string(),
+    tags: yup.string(),
     status: yup.string(),
     createdTime: yup.string(),
     lastUpdatedTime: yup.string()
@@ -236,11 +244,15 @@ export const deleteOfferValidator: ObjectSchema<IOfferModel> = yup.object().shap
         }).required("Offer name is a required field"),
 
     owners: yup.string(),
-    offerAlias: yup.string(),
     hostSubscription: yup.string(),
     offerVersion: yup.string(),
     status: yup.string(),
     createdTime: yup.string(),
+    description: yup.string(),
+    displayName: yup.string(),
+    documentationUrl: yup.string(),
+    logoImageUrl: yup.string(),
+    tags: yup.string(),
     lastUpdatedTime: yup.string()
   }
 );

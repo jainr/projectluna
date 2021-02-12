@@ -133,7 +133,7 @@ namespace Luna.API.Controllers.Admin
         public async Task<ActionResult> GetAsync(Guid subscriptionId)
         {
             _logger.LogInformation($"Get subscription {subscriptionId}.");
-            var subscription = await _subscriptionService.GetAsync(subscriptionId);
+            var subscription = await _subscriptionService.GetAsync(subscriptionId, IsGetDetails: true);
 
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false, subscription.Owner);
             return Ok(subscription);

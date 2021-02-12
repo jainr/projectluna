@@ -147,7 +147,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
             }
           }}>
             <span style={{ fontWeight: 'bold', marginRight: 20, fontSize: 18 }}>
-              AI Service Details
+              AI Application Details
             </span>
             <span className={"offer-details-separator"}></span>
             <span style={{ fontWeight: 600 }}>
@@ -233,7 +233,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
       </Stack>
 
       <DialogBox keyindex='DeploymentVersionmodal' dialogVisible={ProductDeleteDialog}
-        title="Delete AI Service" subText="" isDarkOverlay={true} className="" cancelButtonText="Cancel"
+        title="Delete AI Application" subText="" isDarkOverlay={true} className="" cancelButtonText="Cancel"
         submitButtonText="Submit" maxwidth={500}
         cancelonClick={() => {
           CloseProductDeleteDialog();
@@ -258,7 +258,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
 
                 if (deploymentsResponse.success) {
                   if (deploymentsResponse.value && deploymentsResponse.value.length > 0) {
-                    toast.error("You must delete all plans in the AI Service first.");
+                    toast.error("You must delete all APIs in the AI Applications first.");
                     globalContext.hideProcessing();
                     return;
                   }
@@ -273,7 +273,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
                 }
 
                 globalContext.hideProcessing();
-                toast.success("AI Service Deleted Successfully!");
+                toast.success("AI Application Deleted Successfully!");
                 history.push(`/products/`);
               }}
             >
@@ -291,7 +291,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
                         <td colSpan={2}>
                           {
                             <React.Fragment>
-                              <span>Type the AI Service Id: {values.selectedProductId}</span>
+                              <span>Type the AI Application Id: {values.selectedProductId}</span>
                               <br />
                               <TextField
                                 name={'selectedProductId'}
@@ -299,7 +299,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
                                 onChange={handleChange}
                                 onBlur={handleBlur}
                                 errorMessage={getDeleteProductErrorString(touched, errors, 'selectedProductId')}
-                                placeholder={'AI Service Id'}
+                                placeholder={'AI Application Id'}
                                 className="txtFormField" />
                             </React.Fragment>
                           }

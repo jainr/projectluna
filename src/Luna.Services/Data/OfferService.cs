@@ -45,28 +45,31 @@ namespace Luna.Services.Data
             List<AIMarketplaceOffer> aimpOffers = new List<AIMarketplaceOffer>();
             foreach(var offer in offers)
             {
-                var aimpOffer = new AIMarketplaceOffer()
+                if (offer.Status.Equals(OfferStatus.Active.ToString()))
                 {
-                    OfferName = offer.OfferName,
-                    OfferDisplayName = offer.DisplayName,
-                    PublisherName = offer.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY) == null ? "Unknown" : offer.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY),
-                    LogoImageUrl = offer.LogoImageUrl,
-                    DocumentationUrl = offer.DocumentationUrl,
-                    Description = offer.Description,
-                    SubscribePageUrl = offer.DocumentationUrl
-                };
-
-                var plans = await _context.Plans.Where(p => p.OfferId == offer.Id).ToListAsync();
-                foreach (var plan in plans)
-                {
-                    aimpOffer.Plans.Add(new AIMarketplacePlan()
+                    var aimpOffer = new AIMarketplaceOffer()
                     {
-                        PlanName = plan.PlanName,
-                        PlanDisplayName = plan.PlanDisplayName,
-                        Description = plan.Description
-                    });
+                        OfferName = offer.OfferName,
+                        OfferDisplayName = offer.DisplayName,
+                        PublisherName = offer.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY) == null ? "Unknown" : offer.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY),
+                        LogoImageUrl = offer.LogoImageUrl == null ? "" : offer.LogoImageUrl,
+                        DocumentationUrl = offer.DocumentationUrl == null ? "" : offer.DocumentationUrl,
+                        Description = offer.Description,
+                        SubscribePageUrl = offer.DocumentationUrl == null ? "" : offer.DocumentationUrl
+                    };
+
+                    var plans = await _context.Plans.Where(p => p.OfferId == offer.Id).ToListAsync();
+                    foreach (var plan in plans)
+                    {
+                        aimpOffer.Plans.Add(new AIMarketplacePlan()
+                        {
+                            PlanName = plan.PlanName,
+                            PlanDisplayName = plan.PlanDisplayName,
+                            Description = plan.Description
+                        });
+                    }
+                    aimpOffers.Add(aimpOffer);
                 }
-                aimpOffers.Add(aimpOffer);
             }
 
             return aimpOffers;

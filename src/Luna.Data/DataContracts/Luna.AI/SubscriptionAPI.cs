@@ -14,6 +14,8 @@ namespace Luna.Data.DataContracts.Luna.AI
 
         public string Description { get; set; }
 
+        public string Type { get; set; }
+
         public List<SubscriptionAPIVersion> Versions { get; set; }
     }
 }

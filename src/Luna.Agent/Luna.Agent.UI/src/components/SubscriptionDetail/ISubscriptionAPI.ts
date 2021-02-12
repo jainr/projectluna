@@ -6,6 +6,6 @@ import { ISubscriptionAPIVersion } from './ISubscriptionAPIVersion';
 export interface ISubscriptionAPI {
   name: string;
   description: string;
-  //type: string;
+  type: string;
   versions: ISubscriptionAPIVersion[];
 }

@@ -57,6 +57,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
   const [userValidationPhoto, setUserValidationPhoto] = React.useState<string | ArrayBuffer | null>();
 
   const [userToBeDeleted, setUserToBeDeleted] = React.useState('');
+  const [apiType, setApiType] = React.useState('');
   const [hideDeleteDialog, setHideDeleteDialog] = React.useState(true);
 
   const openPanel = () => setIsOpen(true);
@@ -79,14 +80,10 @@ const SubscriptionDetail: React.FunctionComponent = () => {
   }
 
   const setSubApplicationOptions = (subscriptionData:ISubscriptionDetail) => {
-    console.log("set application options")
-    console.log(subscriptionData.applications.length)
     let subAppOptions: IDropdownOption[] = [];
     for (const key in subscriptionData.applications)
     {
       const app = subscriptionData.applications[key]
-      console.log(app.name)
-      console.log("lala")
       subAppOptions.push({"key": app.name, "text": app.name})
     }
     setApplicationOptions(subAppOptions);
@@ -136,6 +133,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
       })
   
       if (apiObj){
+        setApiType(apiObj.type)
         let subApiVersionOptions: IDropdownOption[] = [];
     
         for (const key in apiObj.versions)
@@ -179,7 +177,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
           for (const key in versionObj.operations)
           {
             const operation = versionObj.operations[key]
-            subApiVersionOperationOptions.push({"key": operation?.name, "text": operation?.name})
+            subApiVersionOperationOptions.push({"key": operation?.name, "text": operation?.displayName})
           }
           setApiVersionOperationOptions(subApiVersionOperationOptions);
           setIsApiVersionOperationDisabled(false);
@@ -589,10 +587,13 @@ if response.status_code == 200: \n\
                         operation: "",
                       });
                       setSubApiVersionOptions(selectedValues?.application!, option?.text!);
-                      setSampleCodeValue(sampleCode.replace("<app_name>", option?.text!)
+                      setSampleCodeValue(sampleCode.replace("<app_name>", selectedValues?.application!)
                         .replace("<api_name>", option?.text!));
                     }}
                   />
+                  <p style={{ display: isApiVersionDisabled ? "none" : "block" }}>
+                      <Text variant={'medium'}>API Type: {apiType}</Text>
+                  </p>
             </StackItem>
             <StackItem>
               <Dropdown
@@ -609,7 +610,7 @@ if response.status_code == 200: \n\
                         operation: "",
                       });
                       setSubApiVersionOperationOptions(selectedValues?.application!, selectedValues?.api!, option?.text!);
-                      setSampleCodeValue(sampleCode.replace("<app_name>", option?.text!)
+                      setSampleCodeValue(sampleCode.replace("<app_name>", selectedValues?.application!)
                         .replace("<api_name>", selectedValues?.api!)
                         .replace("<api_version>", option?.text!));
                     }}
@@ -627,12 +628,12 @@ if response.status_code == 200: \n\
                         application: selectedValues?.application!,
                         api: selectedValues?.api!,
                         version: selectedValues?.version!,
-                        operation: option?.text!,
+                        operation: option?.key!+"",
                       });
-                      setSampleCodeValue(sampleCode.replace("<app_name>", option?.text!)
+                      setSampleCodeValue(sampleCode.replace("<app_name>", selectedValues?.application!)
                         .replace("<api_name>", selectedValues?.api!)
                         .replace("<api_version>", selectedValues?.version!)
-                        .replace("<operation_name>", option?.text!));
+                        .replace("<operation_name>", option?.key!+""));
                     }}
                   />
             </StackItem>
@@ -645,7 +646,7 @@ if response.status_code == 200: \n\
                 readOnly={true}
                 multiline={true}
                 rows={(sampleCode.match(new RegExp("\n", "g")) || []).length + 1 > 10?
-                  10:
+                  15:
                   (sampleCode.match(new RegExp("\n", "g")) || []).length + 1}
                 borderless={true}
                 label="Sample Code"

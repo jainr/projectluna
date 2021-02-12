@@ -153,7 +153,7 @@ namespace Luna.Services.Data
         /// </summary>
         /// <param name="subscriptionId">The id of the subscription.</param>
         /// <returns>The subscription.</returns>
-        public async Task<Subscription> GetAsync(Guid subscriptionId)
+        public async Task<Subscription> GetAsync(Guid subscriptionId, bool IsGetDetails = false)
         {
             _logger.LogInformation(LoggingUtils.ComposeGetSingleResourceMessage(typeof(Subscription).Name, subscriptionId.ToString()));
 
@@ -175,66 +175,108 @@ namespace Luna.Services.Data
                 subscription.Status = "Pending";
             }
 
-            if (!string.IsNullOrEmpty(subscription.PrimaryKeySecretName))
+            // Only get keys and usage details when needed
+            if (IsGetDetails)
             {
-                subscription.PrimaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.PrimaryKeySecretName);
-            }
-            if (!string.IsNullOrEmpty(subscription.SecondaryKeySecretName))
-            {
-                subscription.SecondaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName);
-            }
-
-            var planApps = await _context.PlanApplications.Where(x => x.PlanId == subscription.PlanId).ToListAsync();
-
-            foreach (var planApp in planApps)
-            {
-                var application = await _context.LunaApplications.FindAsync(planApp.ApplicationId);
-                SubscriptionApplication subApp = new SubscriptionApplication()
+                if (!string.IsNullOrEmpty(subscription.PrimaryKeySecretName))
                 {
-                    Name = application.ApplicationName,
-                    Description = application.Description
-                };
-
-                var apis = await _deploymentService.GetAllAsync(application.ApplicationName);
-                foreach (var item in apis)
+                    subscription.PrimaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.PrimaryKeySecretName);
+                }
+                if (!string.IsNullOrEmpty(subscription.SecondaryKeySecretName))
                 {
-                    SubscriptionAPI api = new SubscriptionAPI()
+                    subscription.SecondaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName);
+                }
+
+                var planApps = await _context.PlanApplications.Where(x => x.PlanId == subscription.PlanId).ToListAsync();
+
+                foreach (var planApp in planApps)
+                {
+                    var application = await _context.LunaApplications.FindAsync(planApp.ApplicationId);
+                    SubscriptionApplication subApp = new SubscriptionApplication()
                     {
-                        Name = item.APIName,
-                        Description = item.Description
+                        Name = application.ApplicationName,
+                        Description = application.Description
                     };
 
-                    var versions = await _apiVersionService.GetAllAsync(application.ApplicationName, item.APIName);
-                    foreach (var version in versions)
+                    var apis = await _deploymentService.GetAllAsync(application.ApplicationName);
+                    foreach (var item in apis)
                     {
-                        SubscriptionAPIVersion apiVersion = new SubscriptionAPIVersion()
+                        SubscriptionAPI api = new SubscriptionAPI()
                         {
-                            Name = version.VersionName,
-                            Description = "",
-                        };
-                        // TODO: get operations and parameters
-                        SubscriptionAPIVersionOperation operation = new SubscriptionAPIVersionOperation()
-                        {
-                            Name = "predict",
-                            Description = "Predict the house price"
+                            Name = item.APIName,
+                            Description = item.Description
                         };
 
-                        operation.Parameters.Add(new SubscriptionAPIVersionOperationParameter()
+                        if (item.APIType.Equals(AIServicePlanTypes.Endpoint.ToString(), StringComparison.InvariantCultureIgnoreCase) || 
+                            item.APIType.Equals(AIServicePlanTypes.Model.ToString(), StringComparison.InvariantCultureIgnoreCase))
                         {
-                            Name = "data",
-                            Type = "pandas.dataframe"
-                        });
+                            api.Type = UserAPITypes.Sync.ToString();
+                        }
+                        else if (item.APIType.Equals(AIServicePlanTypes.Pipeline.ToString(), StringComparison.InvariantCultureIgnoreCase) || 
+                            item.APIType.Equals(AIServicePlanTypes.MLProject.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            api.Type = UserAPITypes.Async.ToString();
+                        }
+                        else if (item.APIType.Equals(AIServicePlanTypes.Dataset.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            api.Type = UserAPITypes.Data.ToString();
+                        }
+                        else
+                        {
+                            api.Type = UserAPITypes.Unknown.ToString();
+                        }
 
-                        apiVersion.Operations.Add(operation);
+                        var versions = await _apiVersionService.GetAllAsync(application.ApplicationName, item.APIName);
+                        foreach (var version in versions)
+                        {
+                            SubscriptionAPIVersion apiVersion = new SubscriptionAPIVersion()
+                            {
+                                Name = version.VersionName,
+                                Description = "",
+                            };
+                            // TODO: get operations and parameters
+                            if (item.APIType.Equals(AIServicePlanTypes.Endpoint.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                SubscriptionAPIVersionOperation operation = new SubscriptionAPIVersionOperation()
+                                {
+                                    DisplayName = "Predict",
+                                    Name = "predict",
+                                    Description = "call the real time prediction API."
+                                };
 
-                        api.Versions.Add(apiVersion);
+                                operation.Parameters.Add(new SubscriptionAPIVersionOperationParameter()
+                                {
+                                    Name = "data",
+                                    Type = "pandas.dataframe"
+                                });
+
+                                apiVersion.Operations.Add(operation);
+                            }
+                            else if (item.APIType.Equals(AIServicePlanTypes.Model.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                apiVersion.Operations.Add(new SubscriptionAPIVersionOperation()
+                                {
+                                    DisplayName = "List all model",
+                                    Name = "models",
+                                    Description = "List all available models."
+                                });
+
+                                apiVersion.Operations.Add(new SubscriptionAPIVersionOperation()
+                                {
+                                    DisplayName = "Get a model",
+                                    Name = "models/<model-name>",
+                                    Description = "Get and download a published model."
+                                });
+
+                            }
+
+                            api.Versions.Add(apiVersion);
+                        }
+                        subApp.APIs.Add(api);
                     }
-                    subApp.APIs.Add(api);
+                    subscription.Applications.Add(subApp);
                 }
-                subscription.Applications.Add(subApp);
             }
-
-
             _logger.LogInformation(LoggingUtils.ComposeReturnValueMessage(typeof(Subscription).Name,
                 subscriptionId.ToString(),
                 JsonSerializer.Serialize(subscription)));

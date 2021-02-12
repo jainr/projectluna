@@ -39,7 +39,7 @@ const Content: React.FunctionComponent = (props) => {
     navLinks.push({
       url:'',
       onClick: (ev, item) => { history.push(WebRoute.Products) },
-      name: 'AI Services',
+      name: 'AI Applications',
       key:'Products',
     });
   }
