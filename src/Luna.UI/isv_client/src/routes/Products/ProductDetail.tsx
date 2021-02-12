@@ -11,13 +11,13 @@ import ProductService from '../../services/ProductService';
 
 const ProductDetail: React.FunctionComponent = () => {
 
-  const { aiServiceName } = useParams();
+  const { applicationName } = useParams();
   const [description, setDescription] = useState<string>("");
   const [loading, setloading] = useState<boolean>(true);
 
   const getProduct = async () => {
     setloading(true);
-    const results = await ProductService.get(aiServiceName as string);
+    const results = await ProductService.get(applicationName as string);
     if (results && !results.hasErrors && results.value)
       setDescription(results.value.description);
     else {

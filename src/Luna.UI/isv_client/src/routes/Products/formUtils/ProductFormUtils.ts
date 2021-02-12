@@ -30,12 +30,11 @@ export const HostType: IDropdownOption[] = [
 */
 export const initialProductValues: IProductModel = {
   owner: userName,
-  aiServiceName: '',
-  logoImageUrl: '',
-  documentationUrl: '',
+  applicationName: '',
   description: '',
   displayName: '',
-  tags: '',
+  saaSOfferName: '',
+  saaSOfferPlanName: '',
   isDeleted: false,
   isSaved: false,
   isModified: false,
@@ -43,44 +42,41 @@ export const initialProductValues: IProductModel = {
 };
 
 export const initialProductList: IProductModel[] = [{
-  tags: '',
   owner: 'v-anirc@microsoft.com',
-  aiServiceName: '1',
-  logoImageUrl: 'logo',
+  applicationName: '1',
   description: 'description',
-  documentationUrl: 'documenation',
   createdTime: '',
   displayName: '',
   lastUpdatedTime: '',
+  saaSOfferName: '',
+  saaSOfferPlanName: '',
   isDeleted: false,
   isSaved: false,
   isModified: false,
   clientId: uuid()
 },
 {
-  tags: 'bringyourowncompute',
   owner: 'zbates@affirma.com',
-  aiServiceName: '2',
-  logoImageUrl: 'logo',
+  applicationName: '2',
   description: 'description',
-  documentationUrl: 'documenation',
   createdTime: '',
   displayName: '',
   lastUpdatedTime: '',
+  saaSOfferName: '',
+  saaSOfferPlanName: '',
   isDeleted: false,
   isSaved: false,
   isModified: false,
   clientId: uuid()
 },
 {
-  tags: '',
   owner: 'zbates@affirma.com',
-  aiServiceName: '3',
-  logoImageUrl: 'logo',
+  applicationName: '3',
   description: 'description',
-  documentationUrl: 'documenation',
   displayName: '',
   createdTime: '',
+  saaSOfferName: '',
+  saaSOfferPlanName: '',
   lastUpdatedTime: '',
   isDeleted: false,
   isSaved: false,
@@ -99,8 +95,7 @@ export const initialInfoFormValues: IProductInfoFormValues = {
 const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
   {
     clientId: yup.string(),
-    tags: yup.string(),
-    aiServiceName: yup.string()
+    applicationName: yup.string()
       .matches(objectIdNameRegExp,
         {
           message: ErrorMessage.productName,
@@ -108,10 +103,10 @@ const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
         }).required("Id is a required field"),
 
     owner: yup.string().required("Owners is a required field"),
-    logoImageUrl: yup.string().url(ErrorMessage.Url),
     description: yup.string().max(120, "The description is too long. Must be no more than 120 characters"),
     createdTime: yup.string(),
-    documentationUrl: yup.string().url(ErrorMessage.Url),
+    saaSOfferName: yup.string(),
+    saaSOfferPlanName: yup.string(),
     displayName: yup.string().max(64, "The display name is too long. Must be no more than 64 characters"),
     lastUpdatedTime: yup.string()
   }
@@ -125,10 +120,10 @@ export const productInfoValidationSchema: ObjectSchema<IProductInfoFormValues> =
 export const deleteProductValidator: ObjectSchema<IProductModel> = yup.object().shape(
   {
     clientId: yup.string(),
-    aiServiceName: yup.string(),
+    applicationName: yup.string(),
     selectedProductId: yup.string()
       .test('selectedProductid', 'Product name does not match', function (value: string) {
-        const productName: string = this.parent.aiServiceName;
+        const productName: string = this.parent.applicationName;
         if (!value)
           return true;
 
@@ -141,11 +136,10 @@ export const deleteProductValidator: ObjectSchema<IProductModel> = yup.object().
 
     owner: yup.string(),
     tags: yup.string(),
-    logoImageUrl: yup.string(),
     description: yup.string(),
-    saasOfferName: yup.string(),
+    saaSOfferName: yup.string(),
+    saaSOfferPlanName: yup.string(),
     displayName: yup.string(),
-    documentationUrl: yup.string(),
     createdTime: yup.string(),
     lastUpdatedTime: yup.string()
   }

@@ -33,7 +33,7 @@ export default class ProductService extends ServiceBase {
   public static async get(productName: string): Promise<Result<IProductModel>> {
 
     var result = await this.requestJson<IProductModel>({
-      url: `/aiservices/${productName}`,
+      url: `/applications/${productName}`,
       method: "GET"
     });
 
@@ -45,7 +45,7 @@ export default class ProductService extends ServiceBase {
 
   public static async update(model: IProductModel): Promise<Result<IProductModel>> {
     var result = await this.requestJson<IProductModel>({
-      url: `/aiservices/${model.aiServiceName}`,
+      url: `/applications/${model.applicationName}`,
       method: "PUT",
       data: model
     });
@@ -58,7 +58,7 @@ export default class ProductService extends ServiceBase {
 
   public static async delete(productName: string): Promise<Result<any>> {
     var result = await this.requestJson<Result<any>>({
-      url: `/aiservices/${productName}`,
+      url: `/applications/${productName}`,
       method: "DELETE"
     });
     return result;
@@ -66,7 +66,7 @@ export default class ProductService extends ServiceBase {
 
   public static async create(model: IProductModel): Promise<Result<IProductModel>> {
     var result = await this.requestJson<IProductModel>({
-      url: `/aiservices/${model.aiServiceName}`,
+      url: `/applications/${model.applicationName}`,
       method: "PUT",
       data: model
     });
@@ -83,7 +83,7 @@ export default class ProductService extends ServiceBase {
   public static async getDeploymentListByProductName(productName: string): Promise<Result<IDeploymentsModel[]>> {
 
     var result = await this.requestJson<IDeploymentsModel[]>({
-      url: `/aiservices/${productName}/plans`,
+      url: `/applications/${productName}/apis`,
       method: "GET"
     });
 
@@ -96,7 +96,7 @@ export default class ProductService extends ServiceBase {
   public static async getDeploymentByProductName(productName: string,deploymentName:string): Promise<Result<IDeploymentsModel>> {
 
     var result = await this.requestJson<IDeploymentsModel>({
-      url: `/aiservices/${productName}/plans/${deploymentName}`,
+      url: `/applications/${productName}/apis/${deploymentName}`,
       method: "GET"
     });
 
@@ -105,7 +105,7 @@ export default class ProductService extends ServiceBase {
 
   public static async createOrUpdateDeployment(model: IDeploymentsModel): Promise<Result<IDeploymentsModel>> {
     var result = await this.requestJson<IDeploymentsModel>({
-      url: `/aiservices/${model.aiServiceName}/plans/${model.aiServicePlanName}`,
+      url: `/applications/${model.applicationName}/apis/${model.apiName}`,
       method: "PUT",
       data: model
     });
@@ -118,7 +118,7 @@ export default class ProductService extends ServiceBase {
 
   public static async deleteDeployment(productName: string,deploymentName:string): Promise<Result<any>> {
     var result = await this.requestJson<Result<any>>({
-      url: `/aiservices/${productName}/plans/${deploymentName}`,
+      url: `/applications/${productName}/apis/${deploymentName}`,
       method: "DELETE"
     });
     return result;
@@ -129,7 +129,7 @@ export default class ProductService extends ServiceBase {
   public static async getDeploymentVersionListByDeploymentName(productName: string,deploymentName:string): Promise<Result<IDeploymentVersionModel[]>> {
 
     var result = await this.requestJson<IDeploymentVersionModel[]>({
-      url: `/aiservices/${productName}/plans/${deploymentName}/apiversions`,
+      url: `/applications/${productName}/apis/${deploymentName}/apiversions`,
       method: "GET"
     });
 
@@ -139,7 +139,7 @@ export default class ProductService extends ServiceBase {
   public static async getDeploymentVersionById(productName: string,deploymentName:string,versionName:string): Promise<Result<IDeploymentVersionModel>> {
 
     var result = await this.requestJson<IDeploymentVersionModel>({
-      url: `/aiservices/${productName}/plans/${deploymentName}/apiversions/${versionName}`,
+      url: `/applications/${productName}/apis/${deploymentName}/apiversions/${versionName}`,
       method: "GET"
     });
 
@@ -148,7 +148,7 @@ export default class ProductService extends ServiceBase {
 
   public static async createOrUpdateDeploymentVersion(model: IDeploymentVersionModel): Promise<Result<IDeploymentVersionModel>> {
     var result = await this.requestJson<IDeploymentVersionModel>({
-      url: `/aiservices/${model.aiServiceName}/plans/${model.aiServicePlanName}/apiversions/${model.versionName}`,
+      url: `/applications/${model.applicationName}/apis/${model.apiName}/apiversions/${model.versionName}`,
       method: "PUT",
       data: model
     });
@@ -158,7 +158,7 @@ export default class ProductService extends ServiceBase {
 
   public static async deleteDeploymentVersion(productName: string,deploymentName:string,versionName:string): Promise<Result<any>> {
     var result = await this.requestJson<Result<any>>({
-      url: `/aiservices/${productName}/plans/${deploymentName}/apiversions/${versionName}`,
+      url: `/applications/${productName}/apis/${deploymentName}/apiversions/${versionName}`,
       method: "DELETE"
     });
     return result;

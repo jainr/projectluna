@@ -46,7 +46,7 @@ export const ProductMessages =
         DeploymentName: '',
         Description: '',
         DisplayName: '',
-        PlanType: ''   
+        apiType: ''   
     },
     Version: {
         DeploymentName: '',

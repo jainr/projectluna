@@ -13,13 +13,13 @@ export const shallowCompare = (obj1, obj2) =>
 
 export const getInitialDeployment = (): IDeploymentsModel => {
   return {
-    aiServiceName: '',
+    applicationName: '',
     selecteddeploymentName:'',
     versionName: '',
-    aiServicePlanName: '',
-    aiServicePlanDisplayName: '',
+    apiName: '',
+    apiDisplayName: '',
     selectedPlanType: '',
-    planType:'',
+    apiType:'',
     description: '',
     isSaved: false,
     isModified: false,
@@ -30,8 +30,8 @@ export const getInitialDeployment = (): IDeploymentsModel => {
 export const getInitialVersion = (): IDeploymentVersionModel => {
   return {
     productType: '',
-    aiServiceName: '',
-    aiServicePlanName: '',
+    applicationName: '',
+    apiName: '',
     versionName: '',
     amlWorkspaceName: '',
     gitRepoName: '',
@@ -54,12 +54,12 @@ export const getInitialVersion = (): IDeploymentVersionModel => {
 };
 
 export const initialDeploymentList: IDeploymentsModel[] = [{
-  aiServiceName: 'a1',
+  applicationName: 'a1',
   selecteddeploymentName:'',
-  aiServicePlanName: 'd1',
-  aiServicePlanDisplayName: '',
+  apiName: 'd1',
+  apiDisplayName: '',
   selectedPlanType: '',
-  planType:'',
+  apiType:'',
   versionName: '1.0',
   description: '',
   isDeleted: false,
@@ -68,12 +68,12 @@ export const initialDeploymentList: IDeploymentsModel[] = [{
   clientId: uuid()
 },
 {
-  aiServiceName: 'b1',
+  applicationName: 'b1',
   selecteddeploymentName:'',
-  aiServicePlanName: 'd2',
-  aiServicePlanDisplayName: '',
+  apiName: 'd2',
+  apiDisplayName: '',
   selectedPlanType: '',
-  planType:'',
+  apiType:'',
   versionName: '2.0',
   description: '',
   isDeleted: false,
@@ -97,13 +97,13 @@ export const initialDeploymentFormValues: IDeploymentFormValues = {
 const deploymentValidator: ObjectSchema<IDeploymentsModel> = yup.object().shape(
   {
     clientId: yup.string(),
-    aiServiceName: yup.string(),
-    aiServicePlanDisplayName: yup.string(),
-    planType: yup.string(),
+    applicationName: yup.string(),
+    apiDisplayName: yup.string(),
+    apiType: yup.string(),
     selectedPlanType: yup.string(),
     selecteddeploymentName:yup.string(),
     versionName: yup.string(),
-    aiServicePlanName: yup.string()
+    apiName: yup.string()
       .required("Id is a required field")
       .matches(objectIdNameRegExp,
         {
@@ -118,10 +118,10 @@ export const deletedeploymentValidator: ObjectSchema<IDeploymentsModel> = yup.ob
   {
 
     clientId: yup.string(),
-    aiServiceName: yup.string(),
-    aiServicePlanName: yup.string(),
-    aiServicePlanDisplayName: yup.string(),
-    planType: yup.string(),
+    applicationName: yup.string(),
+    apiName: yup.string(),
+    apiDisplayName: yup.string(),
+    apiType: yup.string(),
     selectedPlanType: yup.string(),
     selecteddeploymentName:yup.string()
       .test('selecteddeploymentName', 'Deployment name does not match', function (value: string) {        
@@ -140,8 +140,8 @@ export const deletedeploymentValidator: ObjectSchema<IDeploymentsModel> = yup.ob
 const versionFormValidator: ObjectSchema<IDeploymentVersionModel> = yup.object().shape(
   {
     productType: yup.string(),
-    aiServiceName: yup.string(),
-    aiServicePlanName: yup.string(),
+    applicationName: yup.string(),
+    apiName: yup.string(),
     versionName: yup.string(),
     amlWorkspaceName: yup.string(),
     gitRepoName: yup.string(),
@@ -166,8 +166,8 @@ const versionFormValidator: ObjectSchema<IDeploymentVersionModel> = yup.object()
 export const deleteVersionValidator: ObjectSchema<IDeploymentVersionModel> = yup.object().shape(
   {
     productType: yup.string(),
-    aiServiceName: yup.string(),
-    aiServicePlanName: yup.string(),
+    applicationName: yup.string(),
+    apiName: yup.string(),
     versionName: yup.string(),
     amlWorkspaceName: yup.string(),
     gitRepoName: yup.string(),

@@ -3,12 +3,11 @@ import { IBaseModel } from "./IBaseModel";
 
 export interface IProductModel extends IBaseModel {
   displayName: string;
-  aiServiceName: string;
+  applicationName: string;
   owner: string;
-  logoImageUrl: string;
   description: string;
-  documentationUrl: string;
-  tags: string;
+  saaSOfferName: string;
+  saaSOfferPlanName: string;
   createdTime?: string;
   lastUpdatedTime?: string;
   Idlist?: string;
@@ -22,10 +21,10 @@ export interface ILookupType {
 }
 
 export interface IDeploymentsModel extends IBaseModel {
-  aiServiceName:string;
-  aiServicePlanName: string;
-  aiServicePlanDisplayName:string;
-  planType:string;
+  applicationName:string;
+  apiName: string;
+  apiDisplayName:string;
+  apiType:string;
   selectedPlanType:string;
   description:string;
   versionName: string;  
@@ -33,8 +32,8 @@ export interface IDeploymentsModel extends IBaseModel {
 }
 
 export interface IDeploymentVersionModel {  
-  aiServiceName: string;
-  aiServicePlanName: string;
+  applicationName: string;
+  apiName: string;
   versionName: string;
   amlWorkspaceName:string;
   gitRepoName: string;

@@ -115,7 +115,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isVersionEdit, setIsVersionEdit] = useState<boolean>(true);
 
-  const { aiServiceName } = useParams();
+  const { applicationName } = useParams();
   //const history = useHistory();
   const globalContext = useGlobalContext();
   const [planTypeDropDownOptions, setplanTypeDropDownOptions] = useState<IDropdownOption[]>([]);
@@ -162,7 +162,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
 
     setLoadingDeployment(true);
     //setloadVersionData(true);
-    const results = await ProductService.getDeploymentListByProductName(aiServiceName as string);
+    const results = await ProductService.getDeploymentListByProductName(applicationName as string);
     if (results && results.value && results.value.length <= 0){
       OpenNewDeploymentDialog();
     }
@@ -192,8 +192,8 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
       deploymentResponse,
       deploymentVersionsResponse
     ] = await Promise.all([
-      ProductService.getDeploymentByProductName(aiServiceName as string, Id),
-      ProductService.getDeploymentVersionListByDeploymentName(aiServiceName as string, Id)
+      ProductService.getDeploymentByProductName(applicationName as string, Id),
+      ProductService.getDeploymentVersionListByDeploymentName(applicationName as string, Id)
     ]);
     globalContext.hideProcessing();
 
@@ -228,7 +228,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
 
   const getDeploymentVersionsList = async (deploymentName: string) => {
     globalContext.showProcessing();
-    let deploymentVersionsResponse = await ProductService.getDeploymentVersionListByDeploymentName(aiServiceName as string, deploymentName);
+    let deploymentVersionsResponse = await ProductService.getDeploymentVersionListByDeploymentName(applicationName as string, deploymentName);
     globalContext.hideProcessing();
 
     if (deploymentVersionsResponse.success) {
@@ -282,7 +282,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
   const OpenNewDeploymentDialog = () => {
     console.log("new deployment")
     let newDeployment = getInitialDeployment();
-    newDeployment.aiServiceName = aiServiceName as string;
+    newDeployment.applicationName = applicationName as string;
     setDeployment({ deployment: newDeployment });
     setDeploymentVersionList([]);
     setDisplayDeleteDeploymentButton(false);
@@ -331,13 +331,13 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
           return (
             <tr key={idx}>
               <td>
-                <span style={{ width: 150 }}>{value.aiServicePlanName}</span>
+                <span style={{ width: 150 }}>{value.apiName}</span>
               </td>
               <td>
                 <span style={{ width: 300 }}>{value.description}</span>
               </td>
               <td>
-                <span style={{ width: 300 }}>{planTypeDict[value.planType]}</span>
+                <span style={{ width: 300 }}>{planTypeDict[value.apiType]}</span>
               </td>
               <td>
                 <Stack
@@ -352,7 +352,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                   }}
                 >
                   <FontIcon iconName="Edit" className="deleteicon" onClick={() => {
-                    editDeployment(value.aiServicePlanName)
+                    editDeployment(value.apiName)
                   }} />
                 </Stack>
               </td>
@@ -488,9 +488,9 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
 
             if (!isEdit){
               let v = getInitialVersion();
-              v.aiServicePlanName = values.deployment.aiServicePlanName;
-              v.aiServiceName = values.deployment.aiServiceName;
-              v.productType = values.deployment.planType;
+              v.apiName = values.deployment.apiName;
+              v.applicationName = values.deployment.applicationName;
+              v.productType = values.deployment.apiType;
               setIsVersionEdit(false);
               v.linkedServiceType = "AML";
               //TODO: confirm what the default authenticationtypes should be for the other product types
@@ -521,7 +521,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                       <FormLabel title={"Description"} toolTip={ProductMessages.deployment.Description} />
                     </th>
                     <th>
-                      <FormLabel title={"Type"} toolTip={ProductMessages.deployment.PlanType} />
+                      <FormLabel title={"Type"} toolTip={ProductMessages.deployment.apiType} />
                     </th>
                     <th></th>
                   </tr>
@@ -530,11 +530,11 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                   <tr>
                     <td>
                       <TextField
-                        name={'deployment.aiServicePlanName'}
-                        value={values.deployment.aiServicePlanName}
+                        name={'deployment.apiName'}
+                        value={values.deployment.apiName}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        errorMessage={getFormErrorString(touched, errors, 'aiServicePlanName')}
+                        errorMessage={getFormErrorString(touched, errors, 'apiName')}
                         placeholder={'Name'}
                         className="txtFormField" maxLength={50} disabled={isEdit} />
                     </td>
@@ -552,12 +552,12 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                     <Dropdown
                         style={{ width: 250 }}
                         options={planTypeDropDownOptions}
-                        id={`deployment.planType`} onBlur={handleBlur}
+                        id={`deployment.apiType`} onBlur={handleBlur}
                         onChange={(event, option, index) => {
-                          selectOnChange(`deployment.planType`, setFieldValue, event, option, index)
+                          selectOnChange(`deployment.apiType`, setFieldValue, event, option, index)
                         }}
-                        errorMessage={getFormErrorString(touched, errors, 'planType')}
-                        defaultSelectedKey={values.deployment.planType}
+                        errorMessage={getFormErrorString(touched, errors, 'apiType')}
+                        defaultSelectedKey={values.deployment.apiType}
                         disabled={isEdit}
                       />
                     </td>
@@ -573,9 +573,9 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
               <VersionList
                 setIsVersionEdit={setIsVersionEdit}
                 openVersionDialog={OpenVersionDialog}
-                productType={values.deployment.planType}
-                productName={aiServiceName as string}
-                selectedDeploymentName={values.deployment.aiServicePlanName}
+                productType={values.deployment.apiType}
+                productName={applicationName as string}
+                selectedDeploymentName={values.deployment.apiName}
                 deploymentVersionList={deploymentVersionList}
                 setDeploymentVersionList={setDeploymentVersionList}
                 setSelectedVersion={setSelectedVersion}
@@ -720,14 +720,14 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
               setSubmitting(false);
               globalContext.hideProcessing();
               toast.success("Success!");
-              await getDeploymentVersionsList(selectedVersion.version.aiServicePlanName);
+              await getDeploymentVersionsList(selectedVersion.version.apiName);
               CloseVersionDialog();
             }}
           >
             <VersionForm selectedVersion={selectedVersion}
               isNewVersion={!isVersionEdit}
               refreshVersionList={() => {
-                getDeploymentVersionsList(selectedVersion.version.aiServicePlanName);
+                getDeploymentVersionsList(selectedVersion.version.apiName);
               }}
               hideVersionDialog={CloseVersionDialog}
               productType={productType}
@@ -758,7 +758,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                 globalContext.showProcessing();
 
                 // determine if there are any versions for this deployment, if there are, prevent the deletion
-                var deploymentVersionsResponse = await ProductService.getDeploymentVersionListByDeploymentName(aiServiceName as string, selecteddeployment.aiServicePlanName);
+                var deploymentVersionsResponse = await ProductService.getDeploymentVersionListByDeploymentName(applicationName as string, selecteddeployment.apiName);
 
                 if (deploymentVersionsResponse.success) {
                   if (deploymentVersionsResponse.value && deploymentVersionsResponse.value.length > 0) {
@@ -768,7 +768,7 @@ export const Deployments: React.FunctionComponent<IDeploymentProps> = (props) =>
                   }
                 }
 
-                var deleteResult = await ProductService.deleteDeployment(selecteddeployment.aiServiceName, selecteddeployment.aiServicePlanName);
+                var deleteResult = await ProductService.deleteDeployment(selecteddeployment.applicationName, selecteddeployment.apiName);
 
                 if (handleSubmissionErrorsForForm((item) => {
                 }, (item) => {
@@ -1183,12 +1183,12 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
       <form style={{ width: '100%' }} autoComplete={"off"} onSubmit={handleSubmit}>
         <DisplayErrors errors={errors} />
         <React.Fragment>
-          <input type="hidden" name="version.deploymentName" value={values.version.aiServicePlanName} />
+          <input type="hidden" name="version.deploymentName" value={values.version.apiName} />
           <Stack className={"form_row"}>
             <FormLabel title={"Plan Name:"} toolTip={ProductMessages.Version.DeploymentName} />
             <TextField
               name={'version.deploymentName'}
-              value={values.version.aiServicePlanName}
+              value={values.version.apiName}
               disabled={true}
               className="txtFormField" />
           </Stack>
@@ -1509,7 +1509,7 @@ export const VersionForm: React.FunctionComponent<IDeploymenVersionFormProps> = 
               onSubmit={async (values, { setSubmitting, setErrors }) => {
 
                 globalContext.showProcessing();
-                var deploymentDeleteVersionResult = await ProductService.deleteDeploymentVersion(selectedversion.aiServiceName, selectedversion.aiServicePlanName, selectedversion.versionName);
+                var deploymentDeleteVersionResult = await ProductService.deleteDeploymentVersion(selectedversion.applicationName, selectedversion.apiName, selectedversion.versionName);
 
                 if (handleSubmissionErrorsForForm((item) => {
                 }, (item) => {
@@ -1579,8 +1579,8 @@ export const VersionList: React.FunctionComponent<IDeploymentVersionListProps> =
 
   const OpenNewVersionDialog = () => {
     let v = getInitialVersion();
-    v.aiServicePlanName = selectedDeploymentName;
-    v.aiServiceName = productName;
+    v.apiName = selectedDeploymentName;
+    v.applicationName = productName;
     v.productType = productType;
     setIsVersionEdit(false);
     v.linkedServiceType = "AML";

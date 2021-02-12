@@ -154,7 +154,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
               Name:
             </span>
             <span style={{ marginLeft: 8 }}>
-              {productModel.aiServiceName}
+              {productModel.applicationName}
             </span>
             <span style={{ marginLeft: 100, fontWeight: 600 }}>
               Display Name:

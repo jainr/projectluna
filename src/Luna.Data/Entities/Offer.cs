@@ -59,6 +59,10 @@ namespace Luna.Data.Entities
 
         public bool IsTagKeyExist(string key)
         {
+            if (this.Tags == null)
+            {
+                return false;
+            }
             // case sensitive
             if (this.Tags.StartsWith(key + "=") || this.Tags.Contains(";" + key + "="))
             {

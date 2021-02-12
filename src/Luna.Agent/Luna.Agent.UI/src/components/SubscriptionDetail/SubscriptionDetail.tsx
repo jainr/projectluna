@@ -33,7 +33,7 @@ const SubscriptionDetail: React.FunctionComponent = () => {
     owner: "",
     primaryKeySecretName: "",
     secondaryKeySecretName: "",
-    apis: []
+    applications: []
   });
 
   const [isCopySuccess, setSuccess] = React.useState<boolean>(false);
@@ -43,9 +43,11 @@ const SubscriptionDetail: React.FunctionComponent = () => {
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [newUser, setNewUser] = React.useState("");
+  const [applicationOptions, setApplicationOptions] = React.useState<IDropdownOption[]>([]);
   const [apiOptions, setApiOptions] = React.useState<IDropdownOption[]>([]);
   const [apiVersionOptions, setApiVersionOptions] = React.useState<IDropdownOption[]>([]);
   const [apiVersionOperationOptions, setApiVersionOperationOptions] = React.useState<IDropdownOption[]>([]);
+  const [isApiDisabled, setIsApiDisabled] = React.useState<boolean>(true);
   const [isApiVersionDisabled, setIsApiVersionDisabled] = React.useState<boolean>(true);
   const [isApiVersionOperationDisabled, setIsApiVersionOperationDisabled] = React.useState<boolean>(true);
   const [selectedValues, setSelectedValues] = React.useState<ISelectedItems>();
@@ -73,22 +75,50 @@ const SubscriptionDetail: React.FunctionComponent = () => {
       }
     })
       .then(response => response.json())
-      .then(_data => { setData(_data); setSubApiOptions(_data);});
+      .then(_data => { setData(_data); setSubApplicationOptions(_data);});
   }
 
-  const setSubApiOptions = (subscriptionData:ISubscriptionDetail) => {
-    console.log("set api options")
-    console.log(subscriptionData.apis.length)
-    let subApiOptions: IDropdownOption[] = [];
-    for (const key in subscriptionData.apis)
+  const setSubApplicationOptions = (subscriptionData:ISubscriptionDetail) => {
+    console.log("set application options")
+    console.log(subscriptionData.applications.length)
+    let subAppOptions: IDropdownOption[] = [];
+    for (const key in subscriptionData.applications)
     {
-      const api = subscriptionData.apis[key]
-      subApiOptions.push({"key": api.name, "text": api.name})
+      const app = subscriptionData.applications[key]
+      console.log(app.name)
+      console.log("lala")
+      subAppOptions.push({"key": app.name, "text": app.name})
     }
-    setApiOptions(subApiOptions);
+    setApplicationOptions(subAppOptions);
   }
 
-  const setSubApiVersionOptions = (selectedApi:string) => {
+  const setSubApiOptions = (selectedApp: string) => {
+
+    if (selectedApp == ""){
+      setIsApiDisabled(true);
+      setIsApiVersionDisabled(true);
+      setIsApiVersionOperationDisabled(true);
+      return;
+    }
+
+    let subApiOptions: IDropdownOption[] = [];
+    
+    var appObj = subscriptionData.applications.find(obj => {
+      return obj.name === selectedApp
+    })
+
+    if (appObj){
+      for (const key in appObj.apIs)
+      {
+        const api = appObj.apIs[key]
+        subApiOptions.push({"key": api.name, "text": api.name})
+      }
+      setApiOptions(subApiOptions);
+      setIsApiDisabled(false);
+    }
+  }
+
+  const setSubApiVersionOptions = (selectedApp: string, selectedApi:string) => {
     
     if (selectedApi == ""){
       setIsApiVersionDisabled(true);
@@ -96,51 +126,64 @@ const SubscriptionDetail: React.FunctionComponent = () => {
       return;
     }
 
-    var apiObj = subscriptionData.apis.find(obj => {
-      return obj.name === selectedApi
+    var appObj = subscriptionData.applications.find(obj => {
+      return obj.name === selectedApp
     })
 
-    if (apiObj){
-      let subApiVersionOptions: IDropdownOption[] = [];
+    if (appObj){
+      var apiObj = appObj.apIs.find(obj => {
+        return obj.name === selectedApi
+      })
   
-      for (const key in apiObj.versions)
-      {
-        const version = apiObj.versions[key]
-        subApiVersionOptions.push({"key": version?.name, "text": version?.name})
+      if (apiObj){
+        let subApiVersionOptions: IDropdownOption[] = [];
+    
+        for (const key in apiObj.versions)
+        {
+          const version = apiObj.versions[key]
+          subApiVersionOptions.push({"key": version?.name, "text": version?.name})
+        }
+        setApiVersionOptions(subApiVersionOptions);
+        setIsApiVersionDisabled(false);
+        setIsApiVersionOperationDisabled(true);
       }
-      setApiVersionOptions(subApiVersionOptions);
-      setIsApiVersionDisabled(false);
-      setIsApiVersionOperationDisabled(true);
+
     }
   }
 
-  const setSubApiVersionOperationOptions = (selectedApi: string, selectedVersion: string) => {
+  const setSubApiVersionOperationOptions = (selectedApp: string, selectedApi: string, selectedVersion: string) => {
     
     if (selectedApi == "" || selectedVersion == ""){
       setIsApiVersionOperationDisabled(true);
       return;
     }
 
-    var apiObj = subscriptionData.apis.find(obj => {
-      return obj.name === selectedApi
-    });
+    var appObj = subscriptionData.applications.find(obj => {
+      return obj.name === selectedApp
+    })
 
-    if (apiObj){
-
-      var versionObj = apiObj.versions.find(obj => {
-        return obj.name === selectedVersion
+    if (appObj){
+      var apiObj = appObj.apIs.find(obj => {
+        return obj.name === selectedApi
       });
-
-      if (versionObj){
-        let subApiVersionOperationOptions: IDropdownOption[] = [];
-    
-        for (const key in versionObj.operations)
-        {
-          const operation = versionObj.operations[key]
-          subApiVersionOperationOptions.push({"key": operation?.name, "text": operation?.name})
+  
+      if (apiObj){
+  
+        var versionObj = apiObj.versions.find(obj => {
+          return obj.name === selectedVersion
+        });
+  
+        if (versionObj){
+          let subApiVersionOperationOptions: IDropdownOption[] = [];
+      
+          for (const key in versionObj.operations)
+          {
+            const operation = versionObj.operations[key]
+            subApiVersionOperationOptions.push({"key": operation?.name, "text": operation?.name})
+          }
+          setApiVersionOperationOptions(subApiVersionOperationOptions);
+          setIsApiVersionOperationDisabled(false);
         }
-        setApiVersionOperationOptions(subApiVersionOperationOptions);
-        setIsApiVersionOperationDisabled(false);
       }
     }
   }
@@ -260,7 +303,7 @@ import pandas as pd \n\
 subscription_key = \"****************\" \n\
 endpoint = \"<endpoint_url>\" \n\
 df = pd.read_csv(<input_data_file>)\n\
-url = endpoint + \"/apiv2/<aiservice_name>/<api_name>/<operation_name>?api-version=<api_version>\"\n\
+url = endpoint + \"/apiv2/<app_name>/<api_name>/<operation_name>?api-version=<api_version>\"\n\
 response = requests.post(url, headers={\"api-key\": subscription_key}, json=df.to_dict('split')) \n\
 if response.status_code == 200: \n\
     print(response.json())";
@@ -270,8 +313,7 @@ if response.status_code == 200: \n\
   const renderLabelSampleCode = (): JSX.Element => {
     const copyClick = () => {
       const urlValue = sampleCodeValue.replace("****************", subscriptionData?.primaryKey)
-        .replace("<endpoint_url>", subscriptionData?.baseUrl)
-        .replace("<aiservice_name>", subscriptionData?.offerName);
+        .replace("<endpoint_url>", subscriptionData?.baseUrl);
       const selBox = document.createElement('textarea');
       selBox.style.position = 'fixed';
       selBox.style.left = '0';
@@ -516,18 +558,39 @@ if response.status_code == 200: \n\
             </Stack>
             <StackItem>
               <Dropdown
+                    label="Available Applications"
+                    placeholder={"Select an Application"}
+                    options={applicationOptions}
+                    onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                      
+                      setSelectedValues({
+                        application: option?.text!,
+                        api: "",
+                        version: "",
+                        operation: "",
+                      });
+                      setSubApiOptions(option?.text!);
+                      setSampleCodeValue(sampleCode.replace("<app_name>", option?.text!));
+                    }}
+                  />
+            </StackItem>
+            <StackItem>
+              <Dropdown
                     label="Available APIs"
                     placeholder={"Select an API"}
+                    disabled={isApiDisabled}
                     options={apiOptions}
                     onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
                       
                       setSelectedValues({
+                        application: selectedValues?.application!,
                         api: option?.text!,
                         version: "",
                         operation: "",
                       });
-                      setSubApiVersionOptions(option?.text!);
-                      setSampleCodeValue(sampleCode.replace("<api_name>", option?.text!));
+                      setSubApiVersionOptions(selectedValues?.application!, option?.text!);
+                      setSampleCodeValue(sampleCode.replace("<app_name>", option?.text!)
+                        .replace("<api_name>", option?.text!));
                     }}
                   />
             </StackItem>
@@ -540,12 +603,14 @@ if response.status_code == 200: \n\
                     onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
                       
                       setSelectedValues({
+                        application: selectedValues?.application!,
                         api: selectedValues?.api!,
                         version: option?.text!,
                         operation: "",
                       });
-                      setSubApiVersionOperationOptions(selectedValues?.api!, option?.text!);
-                      setSampleCodeValue(sampleCode.replace("<api_name>", selectedValues?.api!)
+                      setSubApiVersionOperationOptions(selectedValues?.application!, selectedValues?.api!, option?.text!);
+                      setSampleCodeValue(sampleCode.replace("<app_name>", option?.text!)
+                        .replace("<api_name>", selectedValues?.api!)
                         .replace("<api_version>", option?.text!));
                     }}
                   />
@@ -559,11 +624,13 @@ if response.status_code == 200: \n\
                     onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
                       
                       setSelectedValues({
+                        application: selectedValues?.application!,
                         api: selectedValues?.api!,
                         version: selectedValues?.version!,
                         operation: option?.text!,
                       });
-                      setSampleCodeValue(sampleCode.replace("<api_name>", selectedValues?.api!)
+                      setSampleCodeValue(sampleCode.replace("<app_name>", option?.text!)
+                        .replace("<api_name>", selectedValues?.api!)
                         .replace("<api_version>", selectedValues?.version!)
                         .replace("<operation_name>", option?.text!));
                     }}
@@ -574,8 +641,7 @@ if response.status_code == 200: \n\
               <StackItem>
               <TextField
                 value={subscriptionData?.baseUrl?sampleCodeValue
-                  .replace("<endpoint_url>", subscriptionData?.baseUrl)
-                  .replace("<aiservice_name>", subscriptionData?.offerName):"loading..."}
+                  .replace("<endpoint_url>", subscriptionData?.baseUrl):"loading..."}
                 readOnly={true}
                 multiline={true}
                 rows={(sampleCode.match(new RegExp("\n", "g")) || []).length + 1 > 10?
@@ -711,6 +777,7 @@ interface AuthParams {
 }
 
 interface ISelectedItems {
+  application: string;
   api: string;
   version: string;
   operation: string;

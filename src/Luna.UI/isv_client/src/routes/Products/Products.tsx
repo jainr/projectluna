@@ -59,7 +59,7 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
   const getidlist = (): string => {
     let idlist = ''
     props.products.map((values, index) => {
-      idlist += values.aiServiceName + ',';
+      idlist += values.applicationName + ',';
       return idlist;
     })
     values.product.Idlist = idlist.substr(0, idlist.length - 1);
@@ -99,12 +99,12 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
                       <FormLabel title={"Name:"} toolTip={ProductMessages.product.ProductId} />
                       <input type="hidden" name={'product.Idlist'} value={getidlist()} />
                       <TextField
-                        name={'product.aiServiceName'}
-                        value={values.product.aiServiceName}
+                        name={'product.applicationName'}
+                        value={values.product.applicationName}
                         maxLength={50}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        errorMessage={getProductFormErrorString(touched, errors, 'aiserviceName', dirty)}
+                        errorMessage={getProductFormErrorString(touched, errors, 'applicationName', dirty)}
                         placeholder={'name'}
                         className={textboxClassName} />
                     </Stack>
@@ -153,36 +153,6 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
                         errorMessage={getProductFormErrorString(touched, errors, 'description', dirty)}
                         placeholder={'description'}
                         style={ {width: "100%"} } />
-                    </Stack>
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={2}>
-              <Stack className={"form_row"}> 
-                      <FormLabel title={"Logo image Url (90px x 90px):"} toolTip={ProductMessages.product.LogoImageUrl} />
-                      <TextField
-                        name={'product.logoImageUrl'}
-                        style={ {width: "100%"} }
-                        value={values.product.logoImageUrl}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        errorMessage={getProductFormErrorString(touched, errors, 'logoImageUrl', dirty)}
-                        placeholder={'logo image url'} />
-                    </Stack>
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={2}>
-              <Stack className={"form_row"}> 
-                      <FormLabel title={"Documentation Url:"} toolTip={ProductMessages.product.DocumentationUrl} />
-                      <TextField
-                        name={'product.documentationUrl'}
-                        style={ {width: "100%"} }
-                        value={values.product.documentationUrl}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        errorMessage={getProductFormErrorString(touched, errors, 'documentationUrl', dirty)}
-                        placeholder={'documentation url'} />
                     </Stack>
               </td>
             </tr>
@@ -243,7 +213,7 @@ const Products: React.FunctionComponent = () => {
   }
 
   const editItem = (productName: string): void => {
-    history.push(WebRoute.ProductDetail.replace(':aiServiceName', productName));
+    history.push(WebRoute.ProductDetail.replace(':applicationName', productName));
   };
 
   const Products = ({ products }) => {
@@ -257,7 +227,7 @@ const Products: React.FunctionComponent = () => {
           return (
             <tr key={idx}>
               <td>
-                <span style={{ width: 200 }}>{value.aiServiceName}</span>
+                <span style={{ width: 200 }}>{value.applicationName}</span>
               </td>
               <td>
                 <span style={{ width: 200 }}>{value.displayName}</span>
@@ -280,7 +250,7 @@ const Products: React.FunctionComponent = () => {
                     },
                   }}
                 >
-                  <FontIcon iconName="Edit" className="deleteicon" onClick={() => { editItem(value.aiServiceName) }} />
+                  <FontIcon iconName="Edit" className="deleteicon" onClick={() => { editItem(value.applicationName) }} />
                 </Stack>
               </td>
             </tr>
@@ -440,7 +410,7 @@ const Products: React.FunctionComponent = () => {
             globalContext.hideProcessing();
             toast.success("Success!");
             if (CreateProductResult.value != null)
-              history.push(WebRoute.ProductDetail.replace(':aiServiceName', CreateProductResult.value.aiServiceName));
+              history.push(WebRoute.ProductDetail.replace(':applicationName', CreateProductResult.value.applicationName));
           }}
         >
           <ProductForm isNew={true} products={products}/>

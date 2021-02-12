@@ -83,6 +83,7 @@ const AIServices = () => {
 */
     setInitOfferData(dataSet);
     setOfferData(dataSet);
+
   }
 
   const searchFilter = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string | undefined) => {
@@ -251,6 +252,24 @@ const AIServices = () => {
                             sessionStorage.setItem('newSub', JSON.stringify(sub));
                         })}
                     ></TextField>
+                    <Dropdown
+                          label="Plan"
+                          placeholder={"Select a Plan"}
+                          options={planOptions}
+                          onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                            let sub = newSubscription;
+                            sub = {
+                              OfferName: sub.OfferName, 
+                              OfferDisplayName: sub.OfferDisplayName,
+                              PlanName: option?.text!,
+                              Name: sub.Name,
+                              SubscriptionId: sub.SubscriptionId,
+                              Owner: sub.Owner
+                            };
+                            setNewSubscription(sub);
+                            sessionStorage.setItem('newSub', JSON.stringify(sub));
+                          }}
+                        />
                     <Separator />
                 </Stack>
             </Panel>
@@ -329,7 +348,7 @@ const AIServices = () => {
                           //planOptions.push({"key": (plan as unknown as IPlan).PlanName, "text": (plan as unknown as IPlan).PlanDisplayName})
                           planOptions.push({"key": offer.Plans[plan].PlanName, "text": offer.Plans[plan].PlanDisplayName})
                         }
-                        // setPlanOptions(planOptions);
+                        setPlanOptions(planOptions);
                         setNewSubscription({
                         OfferName: offer.OfferName+'',
                         OfferDisplayName: offer.OfferDisplayName,
