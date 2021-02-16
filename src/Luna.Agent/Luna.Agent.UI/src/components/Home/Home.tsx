@@ -150,10 +150,10 @@ class Home extends React.Component<{}, BaseSubscription> {
       <div className="Home">
         <div style={PanelStyles}>
           <Text variant={'xLarge'}>My Machine Learning Service Subscriptions</Text>
-          <p style={{ display: this.state.subscriptions.length <= 1 ? "block" : "none" }}>
+          <p style={{ display: this.state.subscriptions.length < 1 ? "block" : "none" }}>
             <Text variant={'medium'}>Loading subscriptions...</Text>
           </p>
-          <div style={{ display: this.state.subscriptions.length <= 1 ? "none" : "block" }}>
+          <div style={{ display: this.state.subscriptions.length < 1 ? "none" : "block" }}>
             <ShimmeredDetailsList
               columns={this.state.columns || []}
               compact={true}

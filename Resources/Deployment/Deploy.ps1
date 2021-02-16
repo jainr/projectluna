@@ -361,6 +361,8 @@ $isNewApp = $azureadapp.Count -eq 0
 Write-Host "Create AAD application for webapp authentication."
 $replyUrls = New-Object System.Collections.Generic.List[System.String]
 #create AAD application for ISV App
+$replyUrl = "https://" + $userPortalWebAppName + ".azurewebsites.net";
+$replyUrls.Add($replyUrl)
 $replyUrl = "https://" + $isvWebAppName + ".azurewebsites.net";
 $replyUrls.Add($replyUrl)
 $replyUrl = "https://" + $isvWebAppName + ".azurewebsites.net/Offers";
@@ -463,7 +465,7 @@ $endpointUrl = "https://"+ $controllerWebAppName +".azurewebsites.net"
 $endpointUrlVar = "endpointUrl='" + $endpointUrl + "'"
 $gatewayIdVar = "gatewayId='" + $gatewayId + "'"
 
-$accountIdVar = "userName='" + $accountId + "'"
+$accountIdVar = "gatewayOwner='" + $accountId + "'"
 
 $variables = $sqlDatabaseUsernameVar, $sqlDatabasePasswordVar, $endpointUrlVar, $gatewayIdVar, $accountIdVar
 
@@ -547,12 +549,20 @@ Write-Host "Deploy webjob."
 $webjobZipPath = $buildLocation + "/webjob.zip"
 Deploy-WebJob -resourceGroupName $resourceGroupName -webAppName $apiWebAppName -webJobName $apiWebJobName -webJobZipPath $webjobZipPath
 
+Write-Host "Create Linux app plan"
+az account set -s $lunaServiceSubscriptionId
+
+az appservice plan create -n $controllerWebAppServicePlanName -g $controllerWebAppResourceGroupName -l $location --is-linux --sku p1v2
+
+Write-Host "Deploy portal app."
+
 $buildFolder = "tempBuild"
 $zipFileName = "tempBuild.zip"
 
+$userPortalZipPath = $buildLocation + "/portalApp.zip"
+
 Invoke-WebRequest -Uri $userPortalZipPath -OutFile $zipFileName
 Expand-Archive -LiteralPath $zipFileName -DestinationPath $buildFolder
-
 
 Push-Location -Path $buildFolder
 
@@ -570,22 +580,19 @@ var MSAL_CONFIG = {
 
 $config | Out-File "appConfig.js"
 
-az webapp create -n $userPortalWebAppName -p $appServicePlanName -g $resourceGroupName --runtime "node|10.14"
+az webapp create -n $userPortalWebAppName -p $controllerWebAppServicePlanName -g $controllerWebAppResourceGroupName --runtime 'node"|"10.14'
 
-az webapp config set -n $userPortalWebAppName -g $resourceGroupName --startup-file "start.sh"
+az webapp config set -n $userPortalWebAppName -g $controllerWebAppResourceGroupName --startup-file "start.sh"
 
-az webapp up -n $userPortalWebAppName -p $appServicePlanName -g $resourceGroupName
+az webapp up -n $userPortalWebAppName -p $controllerWebAppServicePlanName -g $controllerWebAppResourceGroupName -l $location --only-show-errors
 
 Pop-Location
 
-#Remove-Item $zipFileName -Force -ErrorAction SilentlyContinue
-#Remove-Item $buildFolder -Force -Recurse -ErrorAction SilentlyContinue
+Remove-Item $zipFileName -Force -ErrorAction SilentlyContinue
+Remove-Item $buildFolder -Force -Recurse -ErrorAction SilentlyContinue
 
 
 Write-Host "Deploy controller web app"
-az account set -s $lunaServiceSubscriptionId
-
-az appservice plan create -n $controllerWebAppServicePlanName -g $controllerWebAppResourceGroupName -l $location --is-linux --sku p1v2
 
 Push-Location -Path '..\..\src\luna.Agent\luna.agent'
 

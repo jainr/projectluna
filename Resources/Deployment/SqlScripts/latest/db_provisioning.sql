@@ -778,14 +778,14 @@ GO
 
 Declare @gatewayId uniqueidentifier
 Declare @endpointUrl nvarchar(512)
-Declare @userName nvarchar(512)
+Declare @gatewayOwner nvarchar(512)
 Declare @createdDate datetime2(7)
 
 SET @gatewayId = $(gatewayId)
 SET @endpointUrl = $(endpointUrl)
-SET @userName = $(userName)
+SET @gatewayOwner = $(gatewayOwner)
 SET @createdDate = GETUTCDATE()
 
-INSERT INTO [dbo].[Gateways] VALUES ('default', @gatewayId, 'Default Gateway', @endpointUrl, "This is the default gateway", "default", @userName, @createdDate, @createdDate, 0)
+INSERT INTO [dbo].[Gateways] VALUES ('default', @gatewayId, 'Default Gateway', @endpointUrl, 'This is the default gateway', 'default', @gatewayOwner, @createdDate, @createdDate, 0)
 GO
 
