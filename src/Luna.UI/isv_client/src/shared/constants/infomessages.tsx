@@ -29,6 +29,8 @@ export const Offers =
             "<br/> <br/> <b>Note: </b> This must correspond to the Plan ID specified on the Plan overview tab of the Partner Center.",
         planName: "<b>Plan Name </b> - Create a unique name for each plan in this offer. The plan name is used to differentiate software plans that may be a part of the same offer." +
             "<br/> <br/> <b>Note: </b> This must correspond to the Plan name specified on the Plan overview tab of the Partner Center.",
+        displayName: "<b>Display Name </b> - Display name for the plan which will be shown on in the ML gallery",
+        description: "<b>Description </b> - Description for the plan which will be shown on in the ML gallery",
         restrictedAudience: "<b>Restricted Audience (Tenant IDs)</b> - Assign the audience that will have access to this private plan." +
             "<br/> <br/> <b>Note: </b> This must correspond to the Restricted Audience specified on the Plan overview tab (Plan audience, check “This is a private plan.”) of the partner center."
     }

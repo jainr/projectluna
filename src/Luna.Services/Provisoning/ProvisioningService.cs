@@ -595,8 +595,14 @@ namespace Luna.Services.Provisoning
             try
             {
                 Offer offer = await FindOfferById(subscription.OfferId);
+
                 if (offer.IsAzureMarketplaceOffer)
                 {
+                    if (subscription.ProvisioningType.Equals(nameof(ProvisioningType.Unsubscribe)))
+                    {
+                        var sub = await _fulfillmentClient.GetSubscriptionAsync(subscriptionId, Guid.NewGuid(), Guid.NewGuid());
+                        subscription.TermEndTime = sub.Term.EndDate;
+                    }
                     if (subscription.ProvisioningStatus.Equals(ProvisioningState.NotificationPending.ToString(), StringComparison.InvariantCultureIgnoreCase)
                         && offer.ManualCompleteOperation)
                     {
@@ -683,7 +689,14 @@ namespace Luna.Services.Provisoning
                 if (sub.Status.Equals(nameof(FulfillmentState.Unsubscribed)))
                 {
                     Plan plan = await FindPlanById(sub.PlanId);
-                    if (sub.UnsubscribedTime.Value.AddDays(plan.DataRetentionInDays) > DateTime.UtcNow)
+                    // Only delete data when
+                    // 1. run out of retention AND
+                    // 2. After term end time.
+                    if (sub.UnsubscribedTime.HasValue && sub.UnsubscribedTime.Value.AddDays(plan.DataRetentionInDays) > DateTime.UtcNow)
+                    {
+                        continue;
+                    }
+                    if (sub.TermEndTime.HasValue && sub.TermEndTime > DateTime.UtcNow)
                     {
                         continue;
                     }

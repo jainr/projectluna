@@ -374,6 +374,7 @@ CREATE TABLE [dbo].[Subscriptions](
 	[LastUpdatedTime] [datetime2](7) NULL,
 	[LastSuspendedTime] [datetime2](7) NULL,
 	[UnsubscribedTime] [datetime2](7) NULL,
+	[TermEndTime] [datetime2](7) NULL,
 	[DataDeletedTime] [datetime2](7) NULL,
 	[OperationId] [uniqueidentifier] NULL,
 	[DeploymentName] [nvarchar](128) NULL,

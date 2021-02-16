@@ -9,6 +9,8 @@ export const getInitialPlan = (): IPlanFormValues => {
   return {
     plan: {
       planName: '',
+      planDisplayName: '',
+      description: '',
       dataRetentionInDays: 0,
       subscribeArmTemplateName: '',
       unsubscribeArmTemplateName: '',
@@ -75,6 +77,10 @@ const planValidator: ObjectSchema<IPlanModel> = yup.object().shape(
       }
     }).min(0, "Value must be an int greater or equal to 0")
       .required("DataRetentionInDays is a required field"),
+      planDisplayName: yup.string()
+      .required("display name is a required field"),
+    description: yup.string()
+    .required("description is a required field"),
     subscribeArmTemplateName: yup.string(),
     unsubscribeArmTemplateName: yup.string(),
     suspendArmTemplateName: yup.string(),

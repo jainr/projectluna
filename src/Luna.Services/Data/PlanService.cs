@@ -290,7 +290,7 @@ namespace Luna.Services.Data
                 _context.Plans.Add(plan);
                 await _context._SaveChangesAsync();
 
-                if (plan.GatewayNames.Count == 0)
+                if (plan.GatewayNames == null || plan.GatewayNames.Count == 0)
                 {
                     foreach (var gateway in await _gatewayService.GetAllPublicAsync())
                     {
@@ -316,7 +316,7 @@ namespace Luna.Services.Data
 
                 await _context._SaveChangesAsync();
 
-                if (plan.ApplicationNames.Count > 0)
+                if (plan.ApplicationNames != null && plan.ApplicationNames.Count > 0)
                 {
                     foreach (var applicationName in plan.ApplicationNames)
                     {
