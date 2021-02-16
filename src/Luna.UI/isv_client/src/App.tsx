@@ -28,6 +28,7 @@ const App: React.FC = () => {
         <AuthRoute exact={true} path={WebRoute.Home} component={Routes.Home}/>
         <AuthRoute exact={true} path={WebRoute.Offers} component={Routes.Offers}/>
         <AuthRoute exact={true} path={WebRoute.NoVersion} component={Routes.NoVersion}/>
+        <AuthRoute path={WebRoute.Settings} component={Routes.Settings} />
 
         <AuthRoute path={WebRoute.ModifyOfferIpConfigs} component={Routes.ModifyOfferIpConfigs} />
         <AuthRoute path={WebRoute.ModifyOfferArmTemplates} component={Routes.ModifyOfferArmTemplates} />

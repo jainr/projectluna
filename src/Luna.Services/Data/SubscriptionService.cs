@@ -11,6 +11,7 @@ using Luna.Clients.Exceptions;
 using Luna.Clients.Fulfillment;
 using Luna.Clients.Logging;
 using Luna.Data.DataContracts;
+using Luna.Data.DataContracts.Luna.AI;
 using Luna.Data.Entities;
 using Luna.Data.Enums;
 using Luna.Data.Repository;
@@ -36,11 +37,13 @@ namespace Luna.Services.Data
         private readonly ICustomMeterService _customMeterService;
         private readonly ICustomMeterDimensionService _customMeterDimensionService;
         private readonly IFulfillmentManager _fulfillmentManager;
-        private readonly IProductService _productService;
-        private readonly IAIAgentService _aiAgentService;
-        private readonly IDeploymentService _deploymentService;
-        private readonly IAPISubscriptionService _apiSubscriptionService;
+        private readonly ILunaApplicationService _productService;
+        private readonly IGatewayService _gatewayService;
+        private readonly ILunaAPIService _deploymentService;
+        private readonly IAPIVersionService _apiVersionService;
+        private readonly IKeyVaultHelper _keyVaultHelper;
         private readonly ILogger<SubscriptionService> _logger;
+        private readonly IOptionsMonitor<AzureConfigurationOption> _options;
 
         /// <summary>
         /// Constructor that uses dependency injection.
@@ -59,11 +62,11 @@ namespace Luna.Services.Data
             ICustomMeterDimensionService customMeterDimensionService,
             ICustomMeterService customMeterService,
             IFulfillmentManager fulfillmentManager,
-            IProductService productService,
-            IAIAgentService aiAgentService,
-            IDeploymentService deploymentService,
-            IAPISubscriptionService apiSubscriptionService,
-            ILogger<SubscriptionService> logger)
+            ILunaApplicationService productService,
+            IGatewayService gatewayService,
+            ILunaAPIService deploymentService,
+            IAPIVersionService apiVersionService,
+            ILogger<SubscriptionService> logger, IOptionsMonitor<AzureConfigurationOption> options, IKeyVaultHelper keyVaultHelper)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
             _offerService = offerService ?? throw new ArgumentNullException(nameof(offerService));
@@ -74,9 +77,11 @@ namespace Luna.Services.Data
             _offerParameterService = offerParameterService ?? throw new ArgumentNullException(nameof(offerParameterService));
             _fulfillmentManager = fulfillmentManager ?? throw new ArgumentNullException(nameof(fulfillmentManager));
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
-            _aiAgentService = aiAgentService ?? throw new ArgumentNullException(nameof(aiAgentService));
+            _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
             _deploymentService = deploymentService ?? throw new ArgumentNullException(nameof(deploymentService));
-            _apiSubscriptionService = apiSubscriptionService ?? throw new ArgumentNullException(nameof(apiSubscriptionService));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _keyVaultHelper = keyVaultHelper ?? throw new ArgumentNullException(nameof(keyVaultHelper));
+            _apiVersionService = apiVersionService ?? throw new ArgumentNullException(nameof(apiVersionService));
         }
 
         /// <summary>
@@ -99,15 +104,17 @@ namespace Luna.Services.Data
             {
                 sub.PlanName = (await _context.Plans.FindAsync(sub.PlanId)).PlanName;
                 sub.OfferName = (await _context.Offers.FindAsync(sub.OfferId)).OfferName;
-                try
+                if (sub.Status.Equals(nameof(FulfillmentState.PendingFulfillmentStart)))
                 {
-                    var apiSubscription = await _apiSubscriptionService.GetAsync(sub.SubscriptionId);
-                    sub.PrimaryKey = apiSubscription.PrimaryKey;
-                    sub.SecondaryKey = apiSubscription.SecondaryKey;
-                    sub.BaseUrl = apiSubscription.BaseUrl;
+                    sub.Status = "Pending";
                 }
-                catch (LunaNotFoundUserException)
+                if (!string.IsNullOrEmpty(sub.PrimaryKeySecretName))
                 {
+                    sub.PrimaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, sub.PrimaryKeySecretName);
+                }
+                if (!string.IsNullOrEmpty(sub.SecondaryKeySecretName))
+                {
+                    sub.SecondaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, sub.SecondaryKeySecretName);
                 }
             }
             _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(Subscription).Name, subscriptionList.Count()));
@@ -146,7 +153,7 @@ namespace Luna.Services.Data
         /// </summary>
         /// <param name="subscriptionId">The id of the subscription.</param>
         /// <returns>The subscription.</returns>
-        public async Task<Subscription> GetAsync(Guid subscriptionId)
+        public async Task<Subscription> GetAsync(Guid subscriptionId, bool IsGetDetails = false)
         {
             _logger.LogInformation(LoggingUtils.ComposeGetSingleResourceMessage(typeof(Subscription).Name, subscriptionId.ToString()));
 
@@ -162,15 +169,113 @@ namespace Luna.Services.Data
 
             subscription.OfferName = (await _context.Offers.FindAsync(subscription.OfferId)).OfferName;
             subscription.PlanName = (await _context.Plans.FindAsync(subscription.PlanId)).PlanName;
-            try
+
+            if (subscription.Status.Equals(nameof(FulfillmentState.PendingFulfillmentStart)))
             {
-                var apiSubscription = await _apiSubscriptionService.GetAsync(subscription.SubscriptionId);
-                subscription.PrimaryKey = apiSubscription.PrimaryKey;
-                subscription.SecondaryKey = apiSubscription.SecondaryKey;
-                subscription.BaseUrl = apiSubscription.BaseUrl;
+                subscription.Status = "Pending";
             }
-            catch(LunaNotFoundUserException)
+
+            // Only get keys and usage details when needed
+            if (IsGetDetails)
             {
+                if (!string.IsNullOrEmpty(subscription.PrimaryKeySecretName))
+                {
+                    subscription.PrimaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.PrimaryKeySecretName);
+                }
+                if (!string.IsNullOrEmpty(subscription.SecondaryKeySecretName))
+                {
+                    subscription.SecondaryKey = await _keyVaultHelper.GetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName);
+                }
+
+                var planApps = await _context.PlanApplications.Where(x => x.PlanId == subscription.PlanId).ToListAsync();
+
+                foreach (var planApp in planApps)
+                {
+                    var application = await _context.LunaApplications.FindAsync(planApp.ApplicationId);
+                    SubscriptionApplication subApp = new SubscriptionApplication()
+                    {
+                        Name = application.ApplicationName,
+                        Description = application.Description
+                    };
+
+                    var apis = await _deploymentService.GetAllAsync(application.ApplicationName);
+                    foreach (var item in apis)
+                    {
+                        SubscriptionAPI api = new SubscriptionAPI()
+                        {
+                            Name = item.APIName,
+                            Description = item.Description
+                        };
+
+                        if (item.APIType.Equals(AIServicePlanTypes.Endpoint.ToString(), StringComparison.InvariantCultureIgnoreCase) || 
+                            item.APIType.Equals(AIServicePlanTypes.Model.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            api.Type = UserAPITypes.Sync.ToString();
+                        }
+                        else if (item.APIType.Equals(AIServicePlanTypes.Pipeline.ToString(), StringComparison.InvariantCultureIgnoreCase) || 
+                            item.APIType.Equals(AIServicePlanTypes.MLProject.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            api.Type = UserAPITypes.Async.ToString();
+                        }
+                        else if (item.APIType.Equals(AIServicePlanTypes.Dataset.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            api.Type = UserAPITypes.Data.ToString();
+                        }
+                        else
+                        {
+                            api.Type = UserAPITypes.Unknown.ToString();
+                        }
+
+                        var versions = await _apiVersionService.GetAllAsync(application.ApplicationName, item.APIName);
+                        foreach (var version in versions)
+                        {
+                            SubscriptionAPIVersion apiVersion = new SubscriptionAPIVersion()
+                            {
+                                Name = version.VersionName,
+                                Description = "",
+                            };
+                            // TODO: get operations and parameters
+                            if (item.APIType.Equals(AIServicePlanTypes.Endpoint.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                SubscriptionAPIVersionOperation operation = new SubscriptionAPIVersionOperation()
+                                {
+                                    DisplayName = "Predict",
+                                    Name = "predict",
+                                    Description = "call the real time prediction API."
+                                };
+
+                                operation.Parameters.Add(new SubscriptionAPIVersionOperationParameter()
+                                {
+                                    Name = "data",
+                                    Type = "pandas.dataframe"
+                                });
+
+                                apiVersion.Operations.Add(operation);
+                            }
+                            else if (item.APIType.Equals(AIServicePlanTypes.Model.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                apiVersion.Operations.Add(new SubscriptionAPIVersionOperation()
+                                {
+                                    DisplayName = "List all model",
+                                    Name = "models",
+                                    Description = "List all available models."
+                                });
+
+                                apiVersion.Operations.Add(new SubscriptionAPIVersionOperation()
+                                {
+                                    DisplayName = "Get a model",
+                                    Name = "models/<model-name>",
+                                    Description = "Get and download a published model."
+                                });
+
+                            }
+
+                            api.Versions.Add(apiVersion);
+                        }
+                        subApp.APIs.Add(api);
+                    }
+                    subscription.Applications.Add(subApp);
+                }
             }
             _logger.LogInformation(LoggingUtils.ComposeReturnValueMessage(typeof(Subscription).Name,
                 subscriptionId.ToString(),
@@ -240,12 +345,13 @@ namespace Luna.Services.Data
 
             subscription.ProvisioningType = nameof(ProvisioningType.Subscribe);
 
-            if (subscription.AgentId == null)
-            {
-                var agent = await _aiAgentService.GetSaaSAgentAsync();
-                subscription.AgentId = agent.AgentId;
-            }
             subscription.RetryCount = 0;
+
+            if (!string.IsNullOrEmpty(subscription.GatewayName))
+            {
+                var gateway = await _gatewayService.GetAsync(subscription.GatewayName);
+                subscription.GatewayId = gateway.Id;
+            }
 
             List<CustomMeter> customMeterList = await _customMeterService.GetAllAsync(offer.OfferName);
 
@@ -255,11 +361,14 @@ namespace Luna.Services.Data
                 _context.Subscriptions.Add(subscription);
                 await _context._SaveChangesAsync();
 
-                // Add subscription parameters
-                foreach (var param in subscription.InputParameters)
+                if (subscription.InputParameters != null)
                 {
-                    param.SubscriptionId = subscription.SubscriptionId;
-                    _context.SubscriptionParameters.Add(param);
+                    // Add subscription parameters
+                    foreach (var param in subscription.InputParameters)
+                    {
+                        param.SubscriptionId = subscription.SubscriptionId;
+                        _context.SubscriptionParameters.Add(param);
+                    }
                 }
                 await _context._SaveChangesAsync();
 
@@ -269,22 +378,6 @@ namespace Luna.Services.Data
                 }
 
                 await _context._SaveChangesAsync();
-
-                // Create API subscription if a product is linked or not
-                /*
-                var product = await _productService.GetByOfferNameAsync(offer.Id);
-                if (product != null)
-                {
-                    if (await _apiSubscriptionService.ExistsAsync(subscription.SubscriptionId))
-                    {
-                        await _apiSubscriptionService.UpdateAsync(subscription.SubscriptionId, new APISubscription(subscription));
-                    }
-                    else
-                    {
-                        await _apiSubscriptionService.CreateAsync(new APISubscription(subscription));
-                    }
-                }
-                */
 
                 transaction.Commit();
             }
@@ -627,113 +720,6 @@ namespace Luna.Services.Data
             return warnings;
         }
 
-        /// <summary>
-        /// Get the subscription layout for landing page from token
-        /// </summary>
-        /// <param name="token">The token</param>
-        /// <param name="userName">The current user name</param>
-        /// <returns></returns>
-        public async Task<SubscriptionLayout> GetSubscriptionLayoutFromToken(string token, string userName)
-        {
-            if (token.Split('.').Length != 3)
-            {
-                if (token.Equals("foo"))
-                {
-                    var offerParameters = await _offerParameterService.GetAllAsync("test1");
-                    return new SubscriptionLayout(Guid.NewGuid(), "mysub", new OfferLayout("test1", "test 1"),
-                        new List<PlanLayout>(new PlanLayout[] { new PlanLayout("test", "Test Plan") }),
-                        new List<string>(new string[] { "SaaS" }),
-                        offerParameters);
-                }
-                else
-                {
-                    //This is a marketplace token
-                    MarketplaceSubscription resolvedSubscription = await _fulfillmentManager.ResolveSubscriptionAsync(token);
-                    Offer offer = await _offerService.GetAsync(resolvedSubscription.OfferId);
-                    Plan plan = await _planService.GetAsync(resolvedSubscription.OfferId, resolvedSubscription.PlanId);
-                    var offerParameters = await _offerParameterService.GetAllAsync(resolvedSubscription.OfferId);
-                    Product product = await _productService.GetByOfferNameAsync(offer.Id);
-                    List<string> hostTypes = new List<string>();
-                    if (product == null)
-                    {
-                        hostTypes.Add("SaaS");
-                    }
-                    else
-                    {
-                        hostTypes = GetHostTypes(product.HostType);
-                    }
-
-                    return new SubscriptionLayout(resolvedSubscription.SubscriptionId, resolvedSubscription.SubscriptionName,
-                        new OfferLayout(offer.OfferName, offer.OfferName),
-                        new List<PlanLayout>(new PlanLayout[] { new PlanLayout(plan.PlanName, plan.PlanName) }),
-                        hostTypes,
-                        offerParameters);
-                }
-            }
-            else
-            {
-                var jwt_token = new JwtSecurityToken(token);
-                string agentId = jwt_token.Header["aid"].ToString();
-
-                var aiAgent = await _aiAgentService.GetAsync(new Guid(agentId));
-
-                var handler = new JwtSecurityTokenHandler();
-                var param = new TokenValidationParameters();
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(aiAgent.AgentKey));
-                param.IssuerSigningKey = key;
-                param.ValidateAudience = false;
-                param.ValidIssuer = agentId;
-                SecurityToken decodedToken;
-                handler.ValidateToken(token, param, out decodedToken);
-                string prodName = "";
-                string agentUrl = "";
-                foreach (var claim in ((JwtSecurityToken)decodedToken).Claims)
-                {
-                    if (claim.Type.Equals("uid"))
-                    {
-                        if (!AADAuthHelper.VerifyUserFromJwtToken(userName, claim.Value, _logger))
-                        {
-                            throw new LunaBadRequestUserException("The uid in JWT token is invalid.", UserErrorCode.InvalidToken);
-                        }
-                    }
-                    if (claim.Type.Equals("prod"))
-                    {
-                        prodName = claim.Value;
-                    }
-                    if (claim.Type.Equals("url"))
-                    {
-                        agentUrl = claim.Value;
-                    }
-                }
-
-                if (string.IsNullOrEmpty(prodName))
-                {
-                    throw new LunaBadRequestUserException("The prod in JWT token is invalid.", UserErrorCode.InvalidToken);
-                }
-                    
-                if (string.IsNullOrEmpty(agentUrl))
-                {
-                    throw new LunaBadRequestUserException("The url in JWT token is invalid.", UserErrorCode.InvalidToken);
-                }
-
-                Product product = await _productService.GetAsync(prodName);
-                List<Deployment> deploymentList = await _deploymentService.GetAllAsync(prodName);
-                List<PlanLayout> plans = new List<PlanLayout>();
-                foreach (var dep in deploymentList)
-                {
-                    plans.Add(new PlanLayout(dep.DeploymentName, dep.DeploymentName));
-                }
-                var hostTypes = GetHostTypes(product.HostType);
-
-                return new SubscriptionLayout(Guid.NewGuid(), "",
-                    new OfferLayout(product.ProductName, product.ProductName),
-                    plans,
-                    hostTypes,
-                    agentUrl: agentUrl);
-
-            }
-
-        }
         private List<string> GetHostTypes(string hostTypeTag)
         {
             List<string> hostTypes = new List<string>();

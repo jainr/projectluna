@@ -162,15 +162,6 @@ export const TestForm: React.FunctionComponent<IOfferFormProps> = (props) => {
                     onBlur={handleBlur}
                     placeholder={'Offer ID'}/>
             </Stack>
-            <Stack className={"form_row"}>
-                <FormLabel title={"Alias:"} toolTip={Offers.offer.Alias}/>
-                <TextField
-                    name={'offer.offerAlias'}
-                    value={values.offer.offerAlias}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder={'Alias'}/>
-            </Stack>
         </React.Fragment>
         }
         <Stack className={"form_row"}>
@@ -276,17 +267,6 @@ export const OfferForm: React.FunctionComponent<IOfferFormProps> = (props) => {
                     placeholder={'Offer ID'}
                     className={textboxClassName}/>
             </Stack>
-            <Stack className={"form_row"}>
-                <FormLabel title={"Alias:"} toolTip={Offers.offer.Alias}/>
-                <TextField
-                    name={'offer.offerAlias'}
-                    value={values.offer.offerAlias}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    errorMessage={getOfferFormErrorString(touched, errors, 'offerAlias')}
-                    placeholder={'Alias'}
-                    className={textboxClassName}/>
-            </Stack>
         </React.Fragment>
         }
         <Stack className={"form_row"}>
@@ -312,6 +292,50 @@ export const OfferForm: React.FunctionComponent<IOfferFormProps> = (props) => {
             className={textboxClassName}/>
         </Stack>
         <Stack className={"form_row"}>
+          <FormLabel title={"Display Name:"} toolTip={Offers.offer.DisplayName}/>
+          <TextField
+            name={'offer.displayName'}
+            value={values.offer.displayName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            errorMessage={getOfferFormErrorString(touched, errors, 'displayName')}
+            placeholder={'DisplayName'}
+            className={textboxClassName}/>
+        </Stack>
+        <Stack className={"form_row"}>
+          <FormLabel title={"Description:"} toolTip={Offers.offer.Description}/>
+          <TextField
+            name={'offer.description'}
+            value={values.offer.description}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            errorMessage={getOfferFormErrorString(touched, errors, 'description')}
+            placeholder={'Description'}
+            className={textboxClassName}/>
+        </Stack>
+        <Stack className={"form_row"}>
+          <FormLabel title={"Logo Image Url:"} toolTip={Offers.offer.LogoImageUrl}/>
+          <TextField
+            name={'offer.logoImageUrl'}
+            value={values.offer.logoImageUrl}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            errorMessage={getOfferFormErrorString(touched, errors, 'logoImageUrl')}
+            placeholder={'Logo Image Url'}
+            className={textboxClassName}/>
+        </Stack>
+        <Stack className={"form_row"}>
+          <FormLabel title={"Documentation Url:"} toolTip={Offers.offer.DocumentationUrl}/>
+          <TextField
+            name={'offer.documentationUrl'}
+            value={values.offer.documentationUrl}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            errorMessage={getOfferFormErrorString(touched, errors, 'documentationUrl')}
+            placeholder={'Documentation Url'}
+            className={textboxClassName}/>
+        </Stack>
+        <Stack className={"form_row"}>
           <FormLabel title={"Host Subscription:"} toolTip={Offers.offer.HostSubscription}/>
           <TextField
             name={'offer.hostSubscription'}
@@ -320,6 +344,17 @@ export const OfferForm: React.FunctionComponent<IOfferFormProps> = (props) => {
             onBlur={handleBlur}
             errorMessage={getOfferFormErrorString(touched, errors, 'hostSubscription')}
             placeholder={'Host Subscription'}
+            className={textboxClassName}/>
+        </Stack>
+        <Stack className={"form_row"}>
+          <FormLabel title={"Tags:"} toolTip={Offers.offer.Tags}/>
+          <TextField
+            name={'offer.tags'}
+            value={values.offer.tags}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            errorMessage={getOfferFormErrorString(touched, errors, 'tags')}
+            placeholder={'Tags'}
             className={textboxClassName}/>
         </Stack>
       </Stack>

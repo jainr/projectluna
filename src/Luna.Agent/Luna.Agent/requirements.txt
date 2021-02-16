@@ -1,4 +1,5 @@
 azureml-sdk
+azureml-mlflow
 flask
 requests
 luna-publish-utils==0.7.3
@@ -7,5 +8,8 @@ pyodbc
 azure-keyvault-secrets
 azure.identity==1.2.0
 azure-storage-blob
-pyjwt
+PyJWT<2.0.0
+databricks-cli
 applicationinsights
+mlflow
+pyyaml

@@ -14,19 +14,16 @@ class Home extends React.Component<{}, BaseSubscription> {
     this.state = {
       isLoading: true,
       subscriptions: [{
-        HostType: "",
-        Id: 0,
-        PrimaryKey: "",
-        SecondaryKey: "",
-        ProductType: "",
-        PublisherId: "",
-        Status: "",
-        SubscriptionId: "",
-        UserId: "",
-        CreatedTime: "",
-        DeploymentName: "",
-        BaseUrl: "",
-        SubscriptionName: ""
+        baseUrl: "",
+        createdTime: "",
+        primaryKey: "",
+        secondaryKey: "",
+        offerName: "",
+        planName: "",
+        status: "",
+        subscriptionId: "",
+        subscriptionName: "",
+        owner: ""
       }],
       columns: [
 
@@ -45,26 +42,35 @@ class Home extends React.Component<{}, BaseSubscription> {
           key: "column1",
           minWidth: 100,
           maxWidth: 250,
-          fieldName: "SubscriptionId",
+          fieldName: "subscriptionId",
           isResizable: true,
           isSortedDescending: true,
           onColumnClick: this._onColumnClick
         },
         {
-          name: "Offer Name",
+          name: "Subscription Name",
           key: "column2",
           minWidth: 50,
           maxWidth: 100,
-          fieldName: "DeploymentName",
+          fieldName: "name",
+          isResizable: true,
+          onColumnClick: this._onColumnClick
+        },
+        {
+          name: "Offer Name",
+          key: "column3",
+          minWidth: 50,
+          maxWidth: 100,
+          fieldName: "offerName",
           isResizable: true,
           onColumnClick: this._onColumnClick
         },
         {
           name: "Status",
-          key: "column3",
+          key: "column4",
           minWidth: 40,
           maxWidth: 100,
-          fieldName: "Status",
+          fieldName: "status",
           isResizable: true,
           onColumnClick: this._onColumnClick
         },
@@ -73,7 +79,7 @@ class Home extends React.Component<{}, BaseSubscription> {
           key: "column5",
           minWidth: 30,
           maxWidth: 40,
-          fieldName: "CreatedTime",
+          fieldName: "createdTime",
           isResizable: true,
           onColumnClick: this._onColumnClick
         }
@@ -88,7 +94,8 @@ class Home extends React.Component<{}, BaseSubscription> {
   async componentWillMount() {
 
     const bearerToken = 'Bearer ' + sessionStorage.getItem(`msal.${window.MSAL_CONFIG.appId}.idtoken`);
-    const requestURL = window.BASE_URL + '/subscriptions';
+    const userPrincipalId = sessionStorage.getItem('_userEmail');
+    const requestURL = window.BASE_URL + '/subscriptions?owner='+userPrincipalId;
 
     fetch(requestURL, {
       mode: "cors",
@@ -109,7 +116,7 @@ class Home extends React.Component<{}, BaseSubscription> {
   }
 
   navigateToSubscriptionDetail(event: Subscription) {
-    window.location.href = window.location.origin + "/#/details/" + event.SubscriptionId;
+    window.location.href = window.location.origin + "/#/details/" + event.subscriptionId;
   };
 
   _onColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn): void => {
@@ -142,11 +149,11 @@ class Home extends React.Component<{}, BaseSubscription> {
     return (
       <div className="Home">
         <div style={PanelStyles}>
-          <Text variant={'xLarge'}>From Azure Marketplace</Text>
-          <p style={{ display: this.state.subscriptions.length <= 1 ? "block" : "none" }}>
-            <Text variant={'small'}>No subscriptions found.</Text>
+          <Text variant={'xLarge'}>My Machine Learning Service Subscriptions</Text>
+          <p style={{ display: this.state.subscriptions.length < 1 ? "block" : "none" }}>
+            <Text variant={'medium'}>Loading subscriptions...</Text>
           </p>
-          <div style={{ display: this.state.subscriptions.length <= 1 ? "none" : "block" }}>
+          <div style={{ display: this.state.subscriptions.length < 1 ? "none" : "block" }}>
             <ShimmeredDetailsList
               columns={this.state.columns || []}
               compact={true}
@@ -173,19 +180,16 @@ class Home extends React.Component<{}, BaseSubscription> {
 export default Home;
 
 interface Subscription {
-  BaseUrl: string;
-  CreatedTime: string;
-  Id: number;
-  PrimaryKey: string;
-  SecondaryKey: string;
-  HostType: string;
-  ProductType: string;
-  PublisherId: string;
-  DeploymentName: string;
-  Status: string;
-  SubscriptionId: string;
-  SubscriptionName: string;
-  UserId: string;
+  baseUrl: string;
+  createdTime: string;
+  primaryKey: string;
+  secondaryKey: string;
+  offerName: string;
+  planName: string;
+  status: string;
+  subscriptionId: string;
+  subscriptionName: string;
+  owner: string;
 }
 
 interface BaseSubscription {

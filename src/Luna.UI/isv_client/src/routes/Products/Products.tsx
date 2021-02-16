@@ -32,13 +32,11 @@ export type IProductFormFormProps = {
   isNew: boolean;
   formError?: string | null;
   products: IProductModel[];
-  productTypes: IDropdownOption[];
-  hostTypes: IDropdownOption[];
 }
 
 export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (props) => {
   const { values, handleChange, handleBlur, touched, errors, handleSubmit, submitForm, dirty, setFieldValue } = useFormikContext<IProductInfoFormValues>(); // formikProps
-  const { formError, isNew, productTypes, hostTypes } = props;
+  const { formError, isNew} = props;
 
   const globalContext = useGlobalContext();
 
@@ -61,7 +59,7 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
   const getidlist = (): string => {
     let idlist = ''
     props.products.map((values, index) => {
-      idlist += values.productName + ',';
+      idlist += values.applicationName + ',';
       return idlist;
     })
     values.product.Idlist = idlist.substr(0, idlist.length - 1);
@@ -98,16 +96,16 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
                 <tr>
                   <td>
                     <Stack className={"form_row"}>
-                      <FormLabel title={"Id:"} toolTip={ProductMessages.product.ProductId} />
+                      <FormLabel title={"Name:"} toolTip={ProductMessages.product.ProductId} />
                       <input type="hidden" name={'product.Idlist'} value={getidlist()} />
                       <TextField
-                        name={'product.productName'}
-                        value={values.product.productName}
+                        name={'product.applicationName'}
+                        value={values.product.applicationName}
                         maxLength={50}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        errorMessage={getProductFormErrorString(touched, errors, 'productName', dirty)}
-                        placeholder={'ID'}
+                        errorMessage={getProductFormErrorString(touched, errors, 'applicationName', dirty)}
+                        placeholder={'name'}
                         className={textboxClassName} />
                     </Stack>
                   </td>
@@ -129,39 +127,9 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
         }
 
             <tr>
-              <td>
-                <Stack className={"form_row"}>
-                  <FormLabel title={"Create AI service from:"} toolTip={ProductMessages.product.ProductType} />
-                  <Dropdown
-                    options={productTypes}
-                    id={`product.productType`} onBlur={handleBlur}
-                    onChange={(event, option, index) => {
-                      selectOnChange(`product.productType`, event, option, index)
-                    }}
-                    errorMessage={getProductFormErrorString(touched, errors, 'productType', dirty)}
-                    defaultSelectedKey={values.product.productType}
-                  />
-                </Stack>
-              </td>
-              <td>
-                <Stack className={"form_row"}>
-                  <FormLabel title={"Host Type:"} toolTip={ProductMessages.product.HostType} />
-                  <Dropdown
-                    options={hostTypes}
-                    id={`product.hostType`} onBlur={handleBlur}
-                    onChange={(event, option, index) => {
-                      selectOnChange(`product.hostType`, event, option, index)
-                    }}
-                    errorMessage={getProductFormErrorString(touched, errors, 'hostType', dirty)}
-                    defaultSelectedKey={values.product.productType}
-                  />
-                </Stack>
-              </td>
-            </tr>
-            <tr>
               <td colSpan={2}>
               <Stack className={"form_row"}>
-                      <FormLabel title={"Display Name (64 characters max):"} toolTip={ProductMessages.product.DisplayName} />
+                      <FormLabel title={"Display Name (128 characters max):"} toolTip={ProductMessages.product.DisplayName} />
                       <TextField
                         name={'product.displayName'}
                         value={values.product.displayName}
@@ -176,7 +144,7 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
             <tr>
               <td colSpan={2}>
               <Stack className={"form_row"}>
-                      <FormLabel title={"Description (120 characters max):"} toolTip={ProductMessages.product.Description} />
+                      <FormLabel title={"Description (512 characters max):"} toolTip={ProductMessages.product.Description} />
                       <TextField
                         name={'product.description'}
                         value={values.product.description}
@@ -188,51 +156,37 @@ export const ProductForm: React.FunctionComponent<IProductFormFormProps> = (prop
                     </Stack>
               </td>
             </tr>
+            
             <tr>
-              <td colSpan={2}>
-              <Stack className={"form_row"}> 
-                      <FormLabel title={"Logo image Url (90px x 90px):"} toolTip={ProductMessages.product.LogoImageUrl} />
+                  <td>
+                    <Stack className={"form_row"}>
+                      <FormLabel title={"SaaS Offer Name:"} toolTip={ProductMessages.product.SaaSOfferName} />
+                      <input type="hidden" name={'product.Idlist'} value={getidlist()} />
                       <TextField
-                        name={'product.logoImageUrl'}
-                        style={ {width: "100%"} }
-                        value={values.product.logoImageUrl}
+                        name={'product.saaSOfferName'}
+                        value={values.product.saaSOfferName}
+                        maxLength={50}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        errorMessage={getProductFormErrorString(touched, errors, 'logoImageUrl', dirty)}
-                        placeholder={'logo image url'} />
-                    </Stack>
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={2}>
-              <Stack className={"form_row"}> 
-                      <FormLabel title={"Documentation Url:"} toolTip={ProductMessages.product.DocumentationUrl} />
-                      <TextField
-                        name={'product.documentationUrl'}
-                        style={ {width: "100%"} }
-                        value={values.product.documentationUrl}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        errorMessage={getProductFormErrorString(touched, errors, 'documentationUrl', dirty)}
-                        placeholder={'documentation url'} />
-                    </Stack>
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={2}>
-              <Stack className={"form_row"}>
-                      <FormLabel title={"SaaS offer name (leave empty if you don't want to create SaaS offer):"} toolTip={ProductMessages.product.SaaSOfferName} />
-                      <TextField
-                        name={'product.saasOfferName'}
-                        value={values.product.saasOfferName}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        errorMessage={getProductFormErrorString(touched, errors, 'saasOfferName', dirty)}
-                        placeholder={'SaaS offer Name'}
+                        errorMessage={getProductFormErrorString(touched, errors, 'saaSOfferName', dirty)}
+                        placeholder={'SaaS Offer Name'}
                         className={textboxClassName} />
                     </Stack>
-              </td>
-            </tr>
+                  </td>
+                  <td>
+                    <Stack className={"form_row"}>
+                      <FormLabel title={"SaaS Offer Plan Name:"} toolTip={ProductMessages.product.SaaSOfferPlanName} />
+                      <TextField
+                        name={'product.saaSOfferPlanName'}
+                        value={values.product.saaSOfferPlanName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'saaSOfferPlanName', dirty)}
+                        placeholder={'Plan Name'}
+                        className={textboxClassName} />
+                    </Stack>
+                  </td>
+                </tr>
           </tbody>
         </table>
       </Stack>
@@ -261,18 +215,14 @@ const Products: React.FunctionComponent = () => {
     globalContext.showProcessing();
     setLoadingProducts(true);
     const [
-      productResponse,
-      productTypeResponse,
-      hostTypeResponse
+      productResponse
     ] = await Promise.all([
-      await ProductService.list(),
-      ProductService.getProductTypes(),
-      ProductService.getHostTypes()
+      await ProductService.list()
     ]);
     setLoadingProducts(false);
     globalContext.hideProcessing();
 
-    if (productResponse.success && productTypeResponse.success && hostTypeResponse.success) {
+    if (productResponse.success) {
 
       if (productResponse.value)
         setProducts(productResponse.value);
@@ -282,35 +232,10 @@ const Products: React.FunctionComponent = () => {
       let productTypeOptions: IDropdownOption[] = [];
       productTypeOptions.push({ key: '', text: 'Select...' });
 
-      if (productTypeResponse.value) {
-        productTypeResponse.value.map((value, index) => {
-          productTypeOptions.push(
-            { key: value.id, text: value.displayName },
-          )
-          return productTypeResponse;
-        });
-      }
-      setProductTypeDropdownOptions(productTypeOptions);
-
-      let hostTypeOptions: IDropdownOption[] = [];
-      hostTypeOptions.push({ key: '', text: 'Select...' });
-
-      if (hostTypeResponse.value) {
-        hostTypeResponse.value.map((value, index) => {
-          hostTypeOptions.push(
-            { key: value.id, text: value.displayName },
-          )
-          return hostTypeResponse;
-        });
-      }
-      setHostTypeDropdownOptions(hostTypeOptions);
-
     } else {
       let errorMessages: IError[] = [];
 
       errorMessages.concat(productResponse.errors);
-      errorMessages.concat(productTypeResponse.errors);
-      errorMessages.concat(hostTypeResponse.errors);
 
       if (errorMessages.length > 0) {
         toast.error(errorMessages.join(', '));
@@ -319,13 +244,13 @@ const Products: React.FunctionComponent = () => {
   }
 
   const editItem = (productName: string): void => {
-    history.push(WebRoute.ProductDetail.replace(':productName', productName));
+    history.push(WebRoute.ProductDetail.replace(':applicationName', productName));
   };
 
   const Products = ({ products }) => {
     if (!products || products.length === 0) {
       return <tr>
-        <td colSpan={4}><span>No AI Services</span></td>
+        <td colSpan={4}><span>No Application</span></td>
       </tr>;
     } else {
       return (
@@ -333,13 +258,13 @@ const Products: React.FunctionComponent = () => {
           return (
             <tr key={idx}>
               <td>
-                <span style={{ width: 200 }}>{value.productName}</span>
+                <span style={{ width: 200 }}>{value.applicationName}</span>
               </td>
               <td>
-                <span style={{ width: 200 }}>{value.productType == "RTP"?"Model Service Endpoint":"Machine Learning Project"}</span>
+                <span style={{ width: 200 }}>{value.displayName}</span>
               </td>
               <td>
-                <span style={{ width: 100 }}>{value.hostType == "SaaS"?"SaaS": "Selfhost"}</span>
+                <span style={{ width: 100 }}>{value.owner}</span>
               </td>
               <td>
                 <span style={{ width: 300 }}>{value.description}</span>
@@ -356,7 +281,7 @@ const Products: React.FunctionComponent = () => {
                     },
                   }}
                 >
-                  <FontIcon iconName="Edit" className="deleteicon" onClick={() => { editItem(value.productName) }} />
+                  <FontIcon iconName="Edit" className="deleteicon" onClick={() => { editItem(value.applicationName) }} />
                 </Stack>
               </td>
             </tr>
@@ -441,16 +366,15 @@ const Products: React.FunctionComponent = () => {
             }
           }}
         >
-          <PrimaryButton text={"New AI Service"} onClick={handleNewProduct} />
-
-          <PrimaryButton text={"Copy Luna webhook URL"} style={{ left: '15%', bottom: '50%' }} onClick={showLunaWebhookUrlv2Dialog}/>
+          <PrimaryButton text={"New AI Application"} onClick={handleNewProduct} />
+          <PrimaryButton text={"Usage Reports"} style={{ left: '10%', bottom: '50%' }}  onClick={showLunaWebhookUrlv2Dialog} />
         </Stack>
         <table className="noborder offergrid" style={{ marginTop: 20, width: '100%' }} cellPadding={5} cellSpacing={0}>
           <thead>
             <tr style={{ fontWeight: 'normal' }}>
-              <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"AI Service ID"} /></th>
-              <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Created From"} /></th>
-              <th style={{ width: 100, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Host Type"} /></th>
+              <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Name"} /></th>
+              <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Display Name"} /></th>
+              <th style={{ width: 100, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Owner"} /></th>
               <th style={{ width: 300, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Description"} /></th>
               <th style={{ width: 200, borderBottom: '1px solid #e8e8e8' }}><FormLabel title={"Operations"} /></th>
             </tr>
@@ -484,7 +408,7 @@ const Products: React.FunctionComponent = () => {
 
           },
           type: DialogType.normal,
-          title: 'New AI Service'
+          title: 'New AI Application'
         }}
         modalProps={{
           isBlocking: true,
@@ -517,10 +441,10 @@ const Products: React.FunctionComponent = () => {
             globalContext.hideProcessing();
             toast.success("Success!");
             if (CreateProductResult.value != null)
-              history.push(WebRoute.ProductDetail.replace(':productName', CreateProductResult.value.productName));
+              history.push(WebRoute.ProductDetail.replace(':applicationName', CreateProductResult.value.applicationName));
           }}
         >
-          <ProductForm isNew={true} products={products} hostTypes={hostTypeDropdownOptions} productTypes={productTypeDropdownOptions} />
+          <ProductForm isNew={true} products={products}/>
         </Formik>
         <DialogFooter>
           <AlternateButton
@@ -544,107 +468,25 @@ const Products: React.FunctionComponent = () => {
 
           },
           type: DialogType.close,
-          title: 'Luna webhook URLs',
-          subText:ReactHtmlParser(ProductMessages.LunaWebHookURL.HeaderTitle) 
+          title: 'Usage Reports',
+          subText:''
         }}
         modalProps={{
           isDarkOverlay: true,
           isBlocking: true,
           styles: {
             main: {
-              minWidth: '40% !important',
+              minWidth: '60% !important'
             }
           }
         }}
       >
         <React.Fragment>
           <div id="subscriptionv2">
-            <Stack className={"form_row"}>
-              <FormLabel title={"Subscribe webhook URL:"} />
-              <div style={{ width: '100%' }}>
-                <div style={{ width: '93%', float: 'left' }}>
-                  <TextField
-                    title={ProductMessages.LunaWebHookURL.SubscribewebhookURL}
-                    name={'SubscribewebhookURL'}
-                    value={ProductMessages.LunaWebHookURL.SubscribewebhookURL}
-                    readOnly={true}
-                    className={'subv2ipinput'} />
-                </div>
-                <div style={{ width: '5%', float: 'left', marginLeft: '2%' }}>
-                  <CopyToClipboard text={ProductMessages.LunaWebHookURL.SubscribewebhookURL}>
-                    <FontIcon style={{ lineHeight: '30px', fontSize: 20 }} iconName="Tab"
-                      className='deleteicon subscribewebhookURL subv2ipinputcopy' onClick={() => {
-                        let class1 = document.getElementsByClassName('unSubscribewebhookURL')[0] as HTMLElement;
-                        let class2 = document.getElementsByClassName('suspendwebhookURL')[0] as HTMLElement;
-                        class1.className = class1.className.replace('copied', '');
-                        class2.className = class2.className.replace('copied', '');
+            
+      <iframe width="1140" height="541.25" src="https://msit.powerbi.com/reportEmbed?reportId=1150275e-5d29-4a62-b880-2a88a06deb3c&autoAuth=true&ctid=72f988bf-86f1-41af-91ab-2d7cd011db47&config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly9kZi1tc2l0LXNjdXMtcmVkaXJlY3QuYW5hbHlzaXMud2luZG93cy5uZXQvIn0%3D" frameBorder="0">
 
-                        let copied = document.getElementsByClassName('subscribewebhookURL')[0] as HTMLElement;
-                        copied.className = copied.className + " copied";
-                        toast.success("Copied !");                        
-                      }} />
-                  </CopyToClipboard>
-                </div>
-              </div>
-            </Stack>
-         
-            <Stack className={"form_row"}>
-              <FormLabel title={"UnSubscribe webhook URL:"} />
-              <div style={{ width: '100%' }}>
-                <div style={{ width: '93%', float: 'left' }}>
-                  <TextField
-                    title={ProductMessages.LunaWebHookURL.UnSubscribewebhookURL}
-                    name={'UnSubscribewebhookURL'}
-                    value={ProductMessages.LunaWebHookURL.UnSubscribewebhookURL}
-                    readOnly={true}
-                    className={'subv2ipinput'} />
-                </div>
-                <div style={{ width: '5%', float: 'left', marginLeft: '2%' }}>
-                  <CopyToClipboard text={ProductMessages.LunaWebHookURL.UnSubscribewebhookURL}>
-                    <FontIcon style={{ lineHeight: '30px', fontSize: 20 }} iconName="Tab"
-                      className='deleteicon unSubscribewebhookURL subv2ipinputcopy' onClick={() => {
-                        let class1 = document.getElementsByClassName('subscribewebhookURL')[0] as HTMLElement;
-                        let class2 = document.getElementsByClassName('suspendwebhookURL')[0] as HTMLElement;
-                        class1.className = class1.className.replace('copied', '');
-                        class2.className = class2.className.replace('copied', '');
-
-                        let copied = document.getElementsByClassName('unSubscribewebhookURL')[0] as HTMLElement;
-                        copied.className = copied.className + " copied";
-                        toast.success("Copied !");                        
-                      }} />
-                  </CopyToClipboard>
-                </div>
-              </div>
-            </Stack>
-            <Stack className={"form_row"}>
-              <FormLabel title={"Suspend webhook URL:"} />
-              <div style={{ width: '100%' }}>
-                <div style={{ width: '93%', float: 'left' }}>
-                  <TextField
-                    title={ProductMessages.LunaWebHookURL.SuspendwebhookURL}
-                    name={'SuspendwebhookURL'}
-                    value={ProductMessages.LunaWebHookURL.SuspendwebhookURL}
-                    readOnly={true}
-                    className={'subv2ipinput'} />
-                </div>
-                <div style={{ width: '5%', float: 'left', marginLeft: '2%' }}>
-                  <CopyToClipboard text={ProductMessages.LunaWebHookURL.SuspendwebhookURL}>
-                    <FontIcon style={{ lineHeight: '30px', fontSize: 20 }} iconName="Tab"
-                      className='deleteicon suspendwebhookURL subv2ipinputcopy' onClick={() => {
-                        let class1 = document.getElementsByClassName('subscribewebhookURL')[0] as HTMLElement;
-                        let class2 = document.getElementsByClassName('unSubscribewebhookURL')[0] as HTMLElement;
-                        class1.className = class1.className.replace('copied', '');
-                        class2.className = class2.className.replace('copied', '');
-
-                        let copied = document.getElementsByClassName('suspendwebhookURL')[0] as HTMLElement;
-                        copied.className = copied.className + " copied";
-                        toast.success("Copied !");                        
-                      }} />
-                  </CopyToClipboard>
-                </div>
-              </div>
-            </Stack>
-
+</iframe>
           </div>
         </React.Fragment>
       </Dialog>

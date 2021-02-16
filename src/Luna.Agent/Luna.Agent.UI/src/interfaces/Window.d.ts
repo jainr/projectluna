@@ -16,6 +16,7 @@ interface Window {
 }
 
 interface IMSALConfig {
+    tenantId: string;
     appId: string;
     redirectUri: string;
     scopes: string[];

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Luna.Data.Entities;
 using Luna.Data.DataContracts;
+using Luna.Data.DataContracts.Luna.AI;
 
 namespace Luna.Services.Data
 {
@@ -10,6 +11,13 @@ namespace Luna.Services.Data
     /// </summary>
     public interface IOfferService
     {
+
+        /// <summary>
+        /// Get all AI marketplace offers
+        /// </summary>
+        /// <returns></returns>
+        Task<List<AIMarketplaceOffer>> GetAIMarketplaceOffersAsync();
+
         /// <summary>
         /// Gets all offers.
         /// </summary>

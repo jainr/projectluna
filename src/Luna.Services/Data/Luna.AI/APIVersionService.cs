@@ -16,15 +16,20 @@ using System.Threading.Tasks;
 using Luna.Clients.Azure.Storage;
 using Luna.Clients.GitUtils;
 using Luna.Clients.Azure;
+using Luna.Data.Enums;
+using Luna.Data.Constants;
 
 namespace Luna.Services.Data.Luna.AI
 {
     public class APIVersionService : IAPIVersionService
     {
         private readonly ISqlDbContext _context;
-        private readonly IProductService _productService;
-        private readonly IDeploymentService _deploymentService;
+        private readonly ILunaApplicationService _aiServiceService;
+        private readonly ILunaAPIService _aiServicePlanService;
         private readonly IAMLWorkspaceService _amlWorkspaceService;
+        private readonly IAzureDatabricksWorkspaceService _adbWorkspaceService;
+        private readonly IGitRepoService _gitRepoService;
+        private readonly IAzureSynapseWorkspaceService _synapseWorkspaceService;
         private readonly ILogger<APIVersionService> _logger;
         private readonly IKeyVaultHelper _keyVaultHelper;
         private readonly IStorageUtility _storageUtillity;
@@ -35,162 +40,168 @@ namespace Luna.Services.Data.Luna.AI
         /// Constructor that uses dependency injection.
         /// </summary>
         /// <param name="sqlDbContext">The context to be injected.</param>
-        /// <param name="productService">The service to be injected.</param>
-        /// <param name="deploymentService">The service to be injected.</param>
+        /// <param name="aiServiceService">The service to be injected.</param>
+        /// <param name="aiServicePlanService">The service to be injected.</param>
         /// <param name="logger">The logger.</param>
-        public APIVersionService(ISqlDbContext sqlDbContext, IProductService productService, IDeploymentService deploymentService, IAMLWorkspaceService amlWorkspaceService,
+        public APIVersionService(ISqlDbContext sqlDbContext, ILunaApplicationService aiServiceService, ILunaAPIService aiServicePlanService, IAMLWorkspaceService amlWorkspaceService,
+            IAzureDatabricksWorkspaceService adbWorkspaceService, IGitRepoService gitRepoService, IAzureSynapseWorkspaceService synapseWorkspaceService,
             ILogger<APIVersionService> logger, IKeyVaultHelper keyVaultHelper, IStorageUtility storageUtility, IGitUtility gitUtility, IOptionsMonitor<AzureConfigurationOption> options)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
-            _productService = productService ?? throw new ArgumentNullException(nameof(productService));
-            _deploymentService = deploymentService ?? throw new ArgumentNullException(nameof(deploymentService));
+            _aiServiceService = aiServiceService ?? throw new ArgumentNullException(nameof(aiServiceService));
+            _aiServicePlanService = aiServicePlanService ?? throw new ArgumentNullException(nameof(aiServicePlanService));
             _amlWorkspaceService = amlWorkspaceService ?? throw new ArgumentNullException(nameof(amlWorkspaceService));
+            _adbWorkspaceService = adbWorkspaceService ?? throw new ArgumentNullException(nameof(adbWorkspaceService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _storageUtillity = storageUtility ?? throw new ArgumentNullException(nameof(storageUtility));
             _gitUtility = gitUtility ?? throw new ArgumentNullException(nameof(gitUtility));
             _keyVaultHelper = keyVaultHelper ?? throw new ArgumentNullException(nameof(keyVaultHelper));
             _options = options ?? throw new ArgumentNullException(nameof(options));
-        }
-
-        private string GetUrl(AMLWorkspace workspace, string pipelineId)
-        {
-            return $"https://{workspace.Region}.api.azureml.ms/pipelines/v1.0" + workspace.ResourceId + $"/PipelineRuns/PipelineSubmit/{pipelineId}";
-        }
-
-        private APIVersion UpdateUrl(APIVersion version, AMLWorkspace workspace)
-        {
-            version.BatchInferenceAPI = string.IsNullOrEmpty(version.BatchInferenceId) ? "" : GetUrl(workspace, version.BatchInferenceId);
-            version.TrainModelAPI = string.IsNullOrEmpty(version.TrainModelId) ? "" : GetUrl(workspace, version.TrainModelId);
-            version.DeployModelAPI = string.IsNullOrEmpty(version.DeployModelId) ? "" : GetUrl(workspace, version.DeployModelId);
-
-            version.BatchInferenceId = null;
-            version.TrainModelId = null;
-            version.DeployModelId = null;
-
-            return version;
-        }
-        private string GetPipelineIdFromUrl(string pipelineId)
-        {
-            return pipelineId.Substring(pipelineId.LastIndexOf('/') + 1);
-        }
-
-        private void SetPipelineIds(APIVersion version)
-        {
-            version.TrainModelId = string.IsNullOrEmpty(version.TrainModelAPI) ? null : GetPipelineIdFromUrl(version.TrainModelAPI);
-            version.BatchInferenceId = string.IsNullOrEmpty(version.BatchInferenceAPI) ? null : GetPipelineIdFromUrl(version.BatchInferenceAPI);
-            version.DeployModelId = string.IsNullOrEmpty(version.DeployModelAPI) ? null : GetPipelineIdFromUrl(version.DeployModelAPI);
+            _gitRepoService = gitRepoService ?? throw new ArgumentNullException(nameof(gitRepoService));
+            _synapseWorkspaceService = synapseWorkspaceService ?? throw new ArgumentNullException(nameof(synapseWorkspaceService));
         }
 
         /// <summary>
-        /// Gets all apiVersions within a product and a deployment.
+        /// Gets all apiVersions within a aiService and a aiServicePlan.
         /// </summary>
-        /// <param name="productName">The name of the product.</param>
-        /// <param name="deploymentName">The name of the deployment.</param>
+        /// <param name="aiServiceName">The name of the aiService.</param>
+        /// <param name="aiServicePlanName">The name of the aiServicePlan.</param>
         /// <returns>A list of apiVersions.</returns>
-        public async Task<List<APIVersion>> GetAllAsync(string productName, string deploymentName)
+        public async Task<List<APIVersion>> GetAllAsync(string aiServiceName, string aiServicePlanName)
         {
             _logger.LogInformation(LoggingUtils.ComposeGetAllResourcesMessage(typeof(APIVersion).Name));
 
-            // Get the offer associated with the productName and deploymentName provided
-            var deployment = await _deploymentService.GetAsync(productName, deploymentName);
-            var product = await _productService.GetAsync(productName);
+            // Get the offer associated with the aiServiceName and aiServicePlanName provided
+            var aiServicePlan = await _aiServicePlanService.GetAsync(aiServiceName, aiServicePlanName);
+            var aiService = await _aiServiceService.GetAsync(aiServiceName);
+            
+            // Get all apiVersions with a FK to the aiServicePlan
+            var apiVersions = await _context.APIVersions.Where(v => v.LunaAPIId == aiServicePlan.Id).ToListAsync();
 
-            // Get all apiVersions with a FK to the deployment
-            var apiVersions = await _context.APIVersions.Where(v => v.DeploymentId == deployment.Id).ToListAsync();
+            List<APIVersion> result = new List<APIVersion>();
 
             foreach (var apiVersion in apiVersions)
             {
-                apiVersion.DeploymentName = deployment.DeploymentName;
-                apiVersion.ProductName = product.ProductName;
-
-                //check if there is amlworkspace
-                if (apiVersion.AMLWorkspaceId != 0)
-                {
-                    // Get the amlWorkspace associated with the Id provided
-                    var amlWorkspace = await _context.AMLWorkspaces.FindAsync(apiVersion.AMLWorkspaceId);
-                    apiVersion.AMLWorkspaceName = amlWorkspace.WorkspaceName;
-                    SetPipelineIds(apiVersion);
-                }
-
-                if (!string.IsNullOrEmpty(apiVersion.AuthenticationKeySecretName))
-                {
-                    apiVersion.AuthenticationKey = "notchanged";
-                }
-
-                if (!string.IsNullOrEmpty(apiVersion.GitPersonalAccessTokenSecretName))
-                {
-                    apiVersion.GitPersonalAccessToken = "notchanged";
-                }    
+                result.Add(await FillInInformation(apiVersion, aiService, aiServicePlan));
             }
 
-            _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(APIVersion).Name, apiVersions.Count()));
+            _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(APIVersion).Name, result.Count()));
 
-            return apiVersions;
+            return result;
+        }
+
+        private async Task<APIVersion> FillInInformation(APIVersion apiVersion, LunaApplication aiService, LunaAPI aiServicePlan)
+        {
+            apiVersion.APIName = aiServicePlan.APIName;
+            apiVersion.ApplicationName = aiService.ApplicationName;
+
+            if (apiVersion.AzureDatabricksWorkspaceId.HasValue)
+            {
+                var adbWorkspace = await _context.AzureDatabricksWorkspaces.FindAsync(apiVersion.AzureDatabricksWorkspaceId);
+                apiVersion.AzureDatabricksWorkspaceName = adbWorkspace.WorkspaceName;
+            }
+            else if (apiVersion.AMLWorkspaceId.HasValue)
+            {
+                var amlWorkspace = await _context.AMLWorkspaces.FindAsync(apiVersion.AMLWorkspaceId);
+                apiVersion.AMLWorkspaceName = amlWorkspace.WorkspaceName;
+            }
+            else if (apiVersion.AzureSynapseWorkspaceId.HasValue)
+            {
+                var synapseWorkspace = await _context.AzureSynapseWorkspaces.FindAsync(apiVersion.AzureSynapseWorkspaceId);
+                apiVersion.AzureSynapseWorkspaceName = synapseWorkspace.WorkspaceName;
+            }
+
+            if (aiServicePlan.IsModelPlanType())
+            {
+                var models = await _context.MLModels.Where(v => v.APIVersionId == apiVersion.Id).ToListAsync();
+
+                if (models.Count == 1)
+                {
+                    apiVersion.ModelName = models[0].ModelName;
+                    apiVersion.ModelVersion = models[0].ModelVersion;
+                    apiVersion.ModelDisplayName = models[0].ModelDisplayName;
+                }
+
+                foreach (MLModel model in models)
+                {
+                    apiVersion.MLModels.Add(model);
+                }
+            }
+            else if (aiServicePlan.IsEndpointPlanType())
+            {
+                if (apiVersion.IsManualInputEndpoint)
+                {
+                    apiVersion.EndpointAuthSecret = LunaConstants.SECRET_NOT_CHANGED_VALUE;
+                }
+            }
+            else if (aiServicePlan.IsPipelinePlanType())
+            {
+
+                var pipelineEndpoints = await _context.AMLPipelineEndpoints.Where(v => v.APIVersionId == apiVersion.Id).ToListAsync();
+
+                foreach (AMLPipelineEndpoint pipeline in pipelineEndpoints)
+                {
+                    apiVersion.AMLPipelineEndpoints.Add(pipeline);
+                }
+            }
+            else if (aiServicePlan.IsMLProjectPlanType())
+            {
+                if (apiVersion.GitRepoId != null)
+                {
+                    var gitRepo = await _context.GitRepos.FindAsync(apiVersion.GitRepoId);
+                    apiVersion.GitRepoName = gitRepo.RepoName;
+                }
+            }
+
+            return apiVersion;
         }
 
         /// <summary>
-        /// Gets an apiVersion within a product and a deployment.
+        /// Gets an apiVersion within a aiService and a aiServicePlan.
         /// </summary>
-        /// <param name="productName">The name of the product.</param>
-        /// <param name="deploymentName">The name of the deployment to get.</param>
+        /// <param name="aiServiceName">The name of the aiService.</param>
+        /// <param name="aiServicePlanName">The name of the aiServicePlan to get.</param>
         /// <param name="versionName">The name of the apiVersion to get.</param>
         /// <returns>The apiVersion.</returns>
-        public async Task<APIVersion> GetAsync(string productName, string deploymentName, string versionName)
+        public async Task<APIVersion> GetAsync(string aiServiceName, string aiServicePlanName, string versionName)
         {
-            // Check that an apiVersion with the provided versionName exists within the given product and deployment
-            if (!(await ExistsAsync(productName, deploymentName, versionName)))
+            // Check that an apiVersion with the provided versionName exists within the given aiService and aiServicePlan
+            if (!(await ExistsAsync(aiServiceName, aiServicePlanName, versionName)))
             {
                 throw new LunaNotFoundUserException(LoggingUtils.ComposeNotFoundErrorMessage(typeof(APIVersion).Name,
                         versionName));
             }
             _logger.LogInformation(LoggingUtils.ComposeGetSingleResourceMessage(typeof(APIVersion).Name, versionName));
 
-            // Get the deployment associated with the productName and deploymentName provided
-            var deployment = await _deploymentService.GetAsync(productName, deploymentName);
+            // Get the aiServicePlan associated with the aiServiceName and aiServicePlanName provided
+            var aiServicePlan = await _aiServicePlanService.GetAsync(aiServiceName, aiServicePlanName);
 
-            // Find the apiVersion that matches the productName and deploymentName provided
+            // Find the apiVersion that matches the aiServiceName and aiServicePlanName provided
             var apiVersion = await _context.APIVersions
-                .SingleOrDefaultAsync(v => (v.DeploymentId == deployment.Id) && (v.VersionName == versionName));
-            apiVersion.DeploymentName = deployment.DeploymentName;
+                .SingleOrDefaultAsync(v => (v.LunaAPIId == aiServicePlan.Id) && (v.VersionName == versionName));
+            apiVersion.APIName = aiServicePlan.APIName;
 
-            // Get the product associated with the productName provided
-            var product = await _productService.GetAsync(productName);
-            apiVersion.ProductName = product.ProductName;
+            // Get the aiService associated with the aiServiceName provided
+            var aiService = await _aiServiceService.GetAsync(aiServiceName);
+            apiVersion.ApplicationName = aiService.ApplicationName;
 
-            //check if there is amlworkspace
-            if (apiVersion.AMLWorkspaceId != 0)
-            {
-                // Get the amlWorkspace associated with the Id provided
-                var amlWorkspace = await _context.AMLWorkspaces.FindAsync(apiVersion.AMLWorkspaceId);
-                apiVersion.AMLWorkspaceName = amlWorkspace.WorkspaceName;
-                SetPipelineIds(apiVersion);
-            }
-
-            if (!string.IsNullOrEmpty(apiVersion.AuthenticationKeySecretName))
-            {
-                apiVersion.AuthenticationKey = "notchanged";
-            }
-
-            if (apiVersion.VersionSourceType.Equals("git"))
-            {
-                apiVersion.GitPersonalAccessToken = "notchanged";
-            }
+            var result = await FillInInformation(apiVersion, aiService, aiServicePlan);
 
             _logger.LogInformation(LoggingUtils.ComposeReturnValueMessage(typeof(APIVersion).Name,
                 versionName,
-                JsonSerializer.Serialize(apiVersion)));
+                JsonSerializer.Serialize(result)));
 
-            return apiVersion;
+            return result;
         }
 
         /// <summary>
-        /// Creates an apiVersion within a product and a deployment.
+        /// Creates an apiVersion within a aiService and a aiServicePlan.
         /// </summary>
-        /// <param name="productName">The name of the product.</param>
-        /// <param name="deploymentName">The name of the deployment.</param>
+        /// <param name="aiServiceName">The name of the aiService.</param>
+        /// <param name="aiServicePlanName">The name of the aiServicePlan.</param>
         /// <param name="version">The apiVersion to create.</param>
         /// <returns>The created apiVersion.</returns>
-        public async Task<APIVersion> CreateAsync(string productName, string deploymentName, APIVersion version)
+        public async Task<APIVersion> CreateAsync(string aiServiceName, string aiServicePlanName, APIVersion version)
         {
             if (version is null)
             {
@@ -198,8 +209,8 @@ namespace Luna.Services.Data.Luna.AI
                     UserErrorCode.PayloadNotProvided);
             }
 
-            // Check that the product and the deployment does not already have an apiVersion with the same versionName
-            if (await ExistsAsync(productName, deploymentName, version.VersionName))
+            // Check that the aiService and the aiServicePlan does not already have an apiVersion with the same versionName
+            if (await ExistsAsync(aiServiceName, aiServicePlanName, version.VersionName))
             {
                 throw new LunaConflictUserException(LoggingUtils.ComposeAlreadyExistsErrorMessage(typeof(APIVersion).Name,
                     version.VersionName));
@@ -209,18 +220,17 @@ namespace Luna.Services.Data.Luna.AI
             {
                 throw new LunaConflictUserException($"Parameter {version.VersionName} is reserved. Please use a different name.");
             }
-            _logger.LogInformation(LoggingUtils.ComposeCreateResourceMessage(typeof(APIVersion).Name, version.VersionName, payload: JsonSerializer.Serialize(version)));
+            _logger.LogInformation(LoggingUtils.ComposeCreateResourceMessage(typeof(APIVersion).Name, version.VersionName,
+                payload: JsonSerializer.Serialize(version)));
 
-            // Get the product associated with the productName provided
-            var product = await _productService.GetAsync(productName);
+            // Get the aiService associated with the aiServiceName provided
+            var aiService = await _aiServiceService.GetAsync(aiServiceName);
 
-            // Get the deployment associated with the productName and the deploymentName provided
-            var deployment = await _deploymentService.GetAsync(productName, deploymentName);
-            
+            // Get the aiServicePlan associated with the aiServiceName and the aiServicePlanName provided
+            var aiServicePlan = await _aiServicePlanService.GetAsync(aiServiceName, aiServicePlanName);
+
             // Set the FK to apiVersion
-            version.ProductName = product.ProductName;
-            version.DeploymentName = deployment.DeploymentName;
-            version.DeploymentId = deployment.Id;            
+            version.LunaAPIId = aiServicePlan.Id;
 
             // Update the apiVersion created time
             version.CreatedTime = DateTime.UtcNow;
@@ -228,65 +238,323 @@ namespace Luna.Services.Data.Luna.AI
             // Update the apiVersion last updated time
             version.LastUpdatedTime = version.CreatedTime;
 
-            //check if amlworkspace is required
-            if (!string.IsNullOrEmpty(version.AMLWorkspaceName))
+            version = await ValidateBeforeCreateOrUpdate(aiServicePlan, version);
+
+            // Save secret in key vault
+
+            if (!string.IsNullOrEmpty(version.EndpointAuthSecret))
             {
-                // Get the amlWorkspace associated with the AMLWorkspaceName provided
-                var amlWorkspace = await _amlWorkspaceService.GetWithSecretsAsync(version.AMLWorkspaceName);
-
-                version.AMLWorkspaceName = amlWorkspace.WorkspaceName;
-                version.AMLWorkspaceId = amlWorkspace.Id;
-
-                // Update the apiVersion API
-                version = UpdateUrl(version, amlWorkspace);
+                string secretName = string.Format(LunaConstants.ENDPOINT_AUTH_SECRET_NAME_FORMAT, Context.GetRandomString(12));
+                await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName,
+                    secretName, version.EndpointAuthSecret));
+                version.EndpointAuthSecretName = secretName;
             }
-            
-            // add athentication key to keyVault if authentication type is key
-            if (version.AuthenticationType.Equals("Key", StringComparison.InvariantCultureIgnoreCase))
+
+            if (version.MLModels.Count == 0 && !string.IsNullOrEmpty(version.ModelName))
             {
-                if (version.AuthenticationKey == null)
+                version.MLModels.Add(new MLModel()
                 {
-                    throw new LunaBadRequestUserException("Authentication key is needed with the key authentication type", UserErrorCode.AuthKeyNotProvided);
-                }
-                string secretName = $"authkey-{Context.GetRandomString(12)}";
-                await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, secretName, version.AuthenticationKey));
-                version.AuthenticationKeySecretName = secretName;
+                    ModelName = version.ModelName,
+                    ModelVersion = version.ModelVersion,
+                    ModelDisplayName = version.ModelDisplayName
+                });
             }
 
-            if (!string.IsNullOrEmpty(version.GitPersonalAccessToken))
+            using (var transaction = await _context.BeginTransactionAsync())
             {
-                string secretName = $"gitpat-{Context.GetRandomString(12)}";
-                version.GitPersonalAccessTokenSecretName = secretName;
-            }
-
-            if (version.VersionSourceType.Equals("git"))
-            {
-                if (!await _storageUtillity.ContainerExistsAsync("mlprojects"))
+                // Add apiVersion to db
+                _context.APIVersions.Add(version);
+                await _context._SaveChangesAsync();
+                foreach (var pipeline in version.AMLPipelineEndpoints)
                 {
-                    await _storageUtillity.CreateContainerAsync("mlprojects");
+                    pipeline.APIVersionId = version.Id;
+                    _context.AMLPipelineEndpoints.Add(pipeline);
                 }
-                string fileName = string.Format(@"{0}/{1}/{2}.zip", version.ProductName, version.DeploymentName, version.VersionName);
 
-                version.ProjectFileUrl = await _gitUtility.DownloadProjectAsZipToAzureStorageAsync(version.GitUrl, version.GitVersion, version.GitPersonalAccessToken, "mlprojects", fileName);
+                foreach (var model in version.MLModels)
+                {
+                    model.APIVersionId = version.Id;
+                    _context.MLModels.Add(model);
+                }
+                await _context._SaveChangesAsync();
+                transaction.Commit();
             }
-
-            // Add apiVersion to db
-            _context.APIVersions.Add(version);
-            await _context._SaveChangesAsync();
             _logger.LogInformation(LoggingUtils.ComposeResourceCreatedMessage(typeof(APIVersion).Name, version.VersionName));
 
             return version;
         }
 
+        private async Task<APIVersion> ValidateBeforeCreateOrUpdate(LunaAPI aiServicePlan, APIVersion version, bool isUpdate = false)
+        {
+            int linkedServiceCount = 0;
+
+            if (version.IsLinkedToADB())
+            {
+                if (string.IsNullOrEmpty(version.AzureDatabricksWorkspaceName))
+                {
+                    throw new LunaBadRequestUserException("The Azure Databricks workspace name is required.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                var azureDatabricksWorkspace = await _adbWorkspaceService.GetAsync(version.AzureDatabricksWorkspaceName);
+                version.AzureDatabricksWorkspaceId = azureDatabricksWorkspace.Id;
+                linkedServiceCount++;
+            }
+
+            if (version.IsLinkedToAML())
+            {
+                if (string.IsNullOrEmpty(version.AMLWorkspaceName))
+                {
+                    throw new LunaBadRequestUserException("The Azure Machine Learning workspace name is required.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                var amlWorkspace = await _amlWorkspaceService.GetAsync(version.AMLWorkspaceName);
+                version.AMLWorkspaceId = amlWorkspace.Id;
+                linkedServiceCount++;
+            }
+
+            if (version.IsLinkedToSynapse())
+            {
+                if (string.IsNullOrEmpty(version.AzureSynapseWorkspaceName))
+                {
+                    throw new LunaBadRequestUserException("The Azure Synapse workspace name is required.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                var synapseWorkspace = await _synapseWorkspaceService.GetAsync(version.AzureSynapseWorkspaceName);
+                version.AzureSynapseWorkspaceId = synapseWorkspace.Id;
+                linkedServiceCount++;
+            }
+
+            // At most one linked service can be selected
+            if (linkedServiceCount > 1)
+            {
+                throw new LunaBadRequestUserException("Multiple linked service provided. At most one linked service supported.",
+                    UserErrorCode.InvalidParameter);
+            }
+
+            if (aiServicePlan.IsModelPlanType())
+            {
+                if (!version.IsLinkedToAML() && !version.IsLinkedToADB())
+                {
+                    throw new LunaBadRequestUserException("Azure Machine Learning service or Azure Databricks (mlflow) is required to publish a model.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                if (string.IsNullOrEmpty(version.ModelName) && version.MLModels.Count == 0)
+                {
+                    throw new LunaBadRequestUserException("At least one model required to publish.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                if (version.MLModels.Count >= 0 && version.MLModels.GroupBy(a => a.ModelName).Where(a => a.Count() > 1).Count() > 0)
+                {
+                    throw new LunaBadRequestUserException("Model names in the same API version must be unique.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                // TODO: check if models exist
+            }
+            else if (aiServicePlan.IsEndpointPlanType())
+            {
+                if (version.IsManualInputEndpoint)
+                {
+                    if (string.IsNullOrEmpty(version.EndpointUrl))
+                    {
+                        throw new LunaBadRequestUserException("Endpoint URL is required when publishing an endpoint manually.",
+                            UserErrorCode.InvalidParameter);
+                    }
+
+                    if (!version.EndpointUrl.StartsWith("https://"))
+                    {
+                        throw new LunaBadRequestUserException("Endpoint URL is not a valid https URL.",
+                            UserErrorCode.InvalidParameter);
+                    }
+
+                    if (!string.IsNullOrEmpty(version.EndpointUrl) && !version.EndpointSwaggerUrl.StartsWith("https://"))
+                    {
+                        throw new LunaBadRequestUserException("Swagger URL is not a valid https URL.",
+                            UserErrorCode.InvalidParameter);
+                    }
+
+                    if (string.IsNullOrEmpty(version.EndpointAuthType))
+                    {
+                        throw new LunaBadRequestUserException("Authentication type is required when publishing an endpoint manually.",
+                            UserErrorCode.InvalidParameter);
+                    }
+
+                    if (version.EndpointAuthType.Equals(EndpointAuthTypes.API_KEY.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (string.IsNullOrEmpty(version.EndpointAuthKey))
+                        {
+                            throw new LunaBadRequestUserException("The authentication key name is not specified.",
+                                UserErrorCode.InvalidParameter);
+                        }
+
+                        if (string.IsNullOrEmpty(version.EndpointAuthSecret))
+                        {
+                            throw new LunaBadRequestUserException("The authentication secret value is not specified.",
+                                UserErrorCode.InvalidParameter);
+                        }
+
+                        if (string.IsNullOrEmpty(version.EndpointAuthAddTo))
+                        {
+                            throw new LunaBadRequestUserException("The add to target of API keys is not specified.",
+                                UserErrorCode.InvalidParameter);
+                        }
+
+                        EndpointAuthAddToTargets target;
+                        if (!Enum.TryParse(version.EndpointAuthAddTo, out target))
+                        {
+                            throw new LunaBadRequestUserException("The add to target value of API keys is is invalid.",
+                                UserErrorCode.InvalidParameter);
+                        }
+                    }
+                    else if (version.EndpointAuthType.Equals(EndpointAuthTypes.SERVICE_PRINCIPAL.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (version.EndpointAuthTenantId == null)
+                        {
+                            throw new LunaBadRequestUserException("The service principal tenant id is not specified or not a valid Guid.",
+                                UserErrorCode.InvalidParameter);
+                        }
+
+                        if (version.EndpointAuthClientId == null)
+                        {
+                            throw new LunaBadRequestUserException("The service principal client id is not specified or not a valid Guid.",
+                                UserErrorCode.InvalidParameter);
+                        }
+
+                        if (string.IsNullOrEmpty(version.EndpointAuthSecret))
+                        {
+                            throw new LunaBadRequestUserException("The service principal client secret is not specified.",
+                                UserErrorCode.InvalidParameter);
+                        }
+                    }
+                    else
+                    {
+                        throw new LunaBadRequestUserException("The endpoint authentication type is invalid.",
+                            UserErrorCode.InvalidParameter);
+                    }
+
+                }
+                else
+                {
+                    if (!version.IsLinkedToAML() && !version.IsLinkedToADB())
+                    {
+                        throw new LunaBadRequestUserException("Azure machine learning service or Azure Databricks workspace is required.",
+                            UserErrorCode.InvalidParameter);
+                    }
+                    if (string.IsNullOrEmpty(version.EndpointName))
+                    {
+                        throw new LunaBadRequestUserException("Endpoint name is required.",
+                            UserErrorCode.InvalidParameter);
+                    }
+                    if (version.IsLinkedToADB() && string.IsNullOrEmpty(version.EndpointVersion))
+                    {
+                        throw new LunaBadRequestUserException("Endpoint version is required when publishing from Azure Databricks.",
+                            UserErrorCode.InvalidParameter);
+
+                    }
+                    // TODO: check if endpoint exists
+                    // TODO: cache endpoint info for perf improvement
+                }
+            }
+            else if (aiServicePlan.IsPipelinePlanType())
+            {
+                if (!version.IsLinkedToAML())
+                {
+                    throw new LunaBadRequestUserException("Azure Machine Learning service is required to publish pipelines.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                foreach (var pipeline in version.AMLPipelineEndpoints)
+                {
+                    // TODO: check if pipeline exists
+                }
+
+                // TODO (Low Pri): cache pipeline endpoint info for perf improvement
+            }
+            else if (aiServicePlan.IsMLProjectPlanType())
+            {
+                if (string.IsNullOrEmpty(version.GitRepoName))
+                {
+                    throw new LunaBadRequestUserException("The Git repo is required when publishing mlflow projects.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                var repo = await _gitRepoService.GetAsync(version.GitRepoName);
+
+                version.GitRepoId = repo.Id;
+
+                if (string.IsNullOrEmpty(version.GitVersion))
+                {
+                    throw new LunaBadRequestUserException("Git commit hash or branch name is required when publishing mlflow projects.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                if (!version.IsUseDefaultRunConfig && string.IsNullOrEmpty(version.RunConfigFile))
+                {
+                    throw new LunaBadRequestUserException("The run config file is required when publishing mlflow projects.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                if (version.IsRunProjectOnManagedCompute)
+                {
+                    if (version.IsLinkedToAML())
+                    {
+                        if (string.IsNullOrEmpty(version.LinkedServiceComputeTarget))
+                        {
+                            throw new LunaBadRequestUserException("The compute target is required when running mlflow projects in AML.",
+                                UserErrorCode.InvalidParameter);
+                        }
+                        // TODO: check if compute exist
+                    }
+                    else if (version.IsLinkedToADB())
+                    {
+                        // Do nothing for now
+                    }
+                    else if (version.IsLinkedToSynapse())
+                    {
+                        if (string.IsNullOrEmpty(version.LinkedServiceComputeTarget))
+                        {
+                            throw new LunaBadRequestUserException("The compute target is required when running mlflow projects in Azure Synapse.",
+                                UserErrorCode.InvalidParameter);
+                        }
+                    }
+                    else
+                    {
+                        throw new LunaBadRequestUserException("Azure Machine Learning service or Azure Databricks is required to run mlflow projects.",
+                            UserErrorCode.InvalidParameter);
+                    }
+                }
+            }
+            else if (aiServicePlan.IsDatasetPlanType())
+            {
+                if (string.IsNullOrEmpty(version.DataShareAccountName))
+                {
+                    throw new LunaBadRequestUserException("The data share account name is required.",
+                        UserErrorCode.InvalidParameter);
+                }
+
+                if (string.IsNullOrEmpty(version.DataShareName))
+                {
+                    throw new LunaBadRequestUserException("The data share name is required.",
+                        UserErrorCode.InvalidParameter);
+                }
+            }
+            return version;
+        }
+
         /// <summary>
-        /// Updates an apiVersion within a product and a deployment.
+        /// Updates an apiVersion within a aiService and a aiServicePlan.
         /// </summary>
-        /// <param name="productName">The name of the product.</param>
-        /// <param name="deploymentName">The name of the deployment to update.</param>
+        /// <param name="aiServiceName">The name of the aiService.</param>
+        /// <param name="aiServicePlanName">The name of the aiServicePlan to update.</param>
         /// <param name="versionName">The name of the apiVersion to update.</param>
         /// <param name="version">The updated apiVersion.</param>
         /// <returns>The updated apiVersion.</returns>
-        public async Task<APIVersion> UpdateAsync(string productName, string deploymentName, string versionName, APIVersion version)
+        public async Task<APIVersion> UpdateAsync(string aiServiceName, string aiServicePlanName, string versionName, APIVersion version)
         {
             if (version is null)
             {
@@ -296,132 +564,195 @@ namespace Luna.Services.Data.Luna.AI
 
             // Check if (the versionName has been updated) && 
             //          (an APIVersion with the same new versionName does not already exist)
-            if ((versionName != version.VersionName) && (await ExistsAsync(productName, deploymentName, version.VersionName)))
+            if ((versionName != version.VersionName) && (await ExistsAsync(aiServiceName, aiServicePlanName, version.VersionName)))
             {
                 throw new LunaBadRequestUserException(LoggingUtils.ComposeNameMismatchErrorMessage(typeof(APIVersion).Name),
                     UserErrorCode.NameMismatch);
             }
 
             _logger.LogInformation(LoggingUtils.ComposeUpdateResourceMessage(typeof(APIVersion).Name, versionName, payload: JsonSerializer.Serialize(version)));
-            
-            // Get the apiVersion that matches the productName, deploymentName and versionName provided
-            var versionDb = await GetAsync(productName, deploymentName, versionName);
 
-            if (!versionDb.VersionSourceType.Equals(version.VersionSourceType, StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new LunaBadRequestUserException("Cannot change the version source type of an existing API version.", UserErrorCode.InvalidParameter);
-            }
-            //check if amlworkspace is required
-            if (!string.IsNullOrEmpty(version.AMLWorkspaceName))
-            {
-                // Get the amlWorkspace associated with the AMLWorkspaceName provided
-                var amlWorkspace = await _amlWorkspaceService.GetWithSecretsAsync(version.AMLWorkspaceName);
+            // Get the aiServicePlan associated with the aiServiceName and the aiServicePlanName provided
+            var aiServicePlan = await _aiServicePlanService.GetAsync(aiServiceName, aiServicePlanName);
 
-                // Update the apiVersion API
-                version = UpdateUrl(version, amlWorkspace);
-            }
+            // Get the apiVersion that matches the aiServiceName, aiServicePlanName and versionName provided
+            var versionDb = await GetAsync(aiServiceName, aiServicePlanName, versionName);
 
-            // update athentication key to keyVault if authentication type is key
-            if (version.AuthenticationType.Equals("Key", StringComparison.InvariantCultureIgnoreCase) 
-                && version.AuthenticationKey != null 
-                && !version.AuthenticationKey.Equals("notchanged", StringComparison.InvariantCultureIgnoreCase))
+            if (versionDb.LunaAPIId != aiServicePlan.Id)
             {
-                string secretName = string.IsNullOrEmpty(versionDb.AuthenticationKeySecretName) ? $"authkey-{Context.GetRandomString(12)}" : versionDb.AuthenticationKeySecretName;
-                
-                await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, secretName, version.AuthenticationKey));
-                versionDb.AuthenticationKeySecretName = secretName;
-            }
+                throw new LunaNotSupportedUserException("Update the target plan of an existing API version is not supported.");
+            }    
 
-            if (!string.IsNullOrEmpty(version.GitPersonalAccessToken))
-            {
-                string secretName = $"gitpat-{Context.GetRandomString(12)}";
-                version.GitPersonalAccessTokenSecretName = secretName;
-            }
+            version = await ValidateBeforeCreateOrUpdate(aiServicePlan, version, isUpdate: true);
 
-            if (version.VersionSourceType.Equals("git"))
+            // If secret is updated
+            if (!string.IsNullOrEmpty(version.EndpointAuthSecret) && !version.EndpointAuthSecret.Equals(LunaConstants.SECRET_NOT_CHANGED_VALUE))
             {
-                if (!await _storageUtillity.ContainerExistsAsync("mlprojects"))
+                if (string.IsNullOrEmpty(versionDb.EndpointAuthSecretName))
                 {
-                    await _storageUtillity.CreateContainerAsync("mlprojects");
+                    versionDb.EndpointAuthSecretName = string.Format(LunaConstants.ENDPOINT_AUTH_SECRET_NAME_FORMAT, Context.GetRandomString(12));
                 }
-                string fileName = string.Format(@"{0}/{1}/{2}.zip", version.ProductName, version.DeploymentName, version.VersionName);
-
-                version.ProjectFileUrl = await _gitUtility.DownloadProjectAsZipToAzureStorageAsync(version.GitUrl, version.GitVersion, version.GitPersonalAccessToken, "mlprojects", fileName);
+                await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName,
+                    versionDb.EndpointAuthSecretName, version.EndpointAuthSecret));
             }
-
 
             // Copy over the changes
             versionDb.Copy(version);
             versionDb.LastUpdatedTime = DateTime.UtcNow;
 
+            using (var transaction = await _context.BeginTransactionAsync())
+            {
+                // Update the AML pipeline list
+                // TODO: Consider to improve this using MERGE
+                foreach (var pipeline in version.AMLPipelineEndpoints)
+                {
+                    pipeline.APIVersionId = versionDb.Id;
+                    var pipelineDb = await _context.AMLPipelineEndpoints.
+                        Where(v => v.APIVersionId == versionDb.Id && v.PipelineEndpointName == pipeline.PipelineEndpointName).
+                        SingleOrDefaultAsync();
+
+                    if (pipelineDb != null)
+                    {
+                        if (pipelineDb.PipelineEndpointId != pipeline.PipelineEndpointId)
+                        {
+                            pipelineDb.PipelineEndpointId = pipeline.PipelineEndpointId;
+                            _context.AMLPipelineEndpoints.Update(pipelineDb);
+                        }
+                    }
+                    else
+                    {
+                        _context.AMLPipelineEndpoints.Add(pipeline);
+                    }
+                }
+                await _context._SaveChangesAsync();
+
+                var pipelines = await _context.AMLPipelineEndpoints.Where(v => v.APIVersionId == versionDb.Id).ToListAsync();
+                foreach (var pipeline in pipelines)
+                {
+                    if (!version.AMLPipelineEndpoints.Exists(v => v.PipelineEndpointName == pipeline.PipelineEndpointName))
+                    {
+                        _context.AMLPipelineEndpoints.Remove(pipeline);
+                    }
+                }
+                await _context._SaveChangesAsync();
+
+                // Update the ML model list
+                // TODO: Consider to improve this using MERGE
+                foreach (var model in version.MLModels)
+                {
+                    model.APIVersionId = versionDb.Id;
+                    var modelDb = await _context.MLModels.
+                        Where(v => v.APIVersionId == versionDb.Id && v.ModelName == model.ModelName).
+                        SingleOrDefaultAsync();
+
+                    if (modelDb != null)
+                    {
+                        if (modelDb.ModelVersion != model.ModelVersion || 
+                            !modelDb.ModelDisplayName.Equals(model.ModelDisplayName, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            modelDb.ModelVersion = model.ModelVersion;
+                            modelDb.ModelDisplayName = model.ModelDisplayName;
+                            _context.MLModels.Update(modelDb);
+                        }
+                    }
+                    else
+                    {
+                        _context.MLModels.Add(model);
+                    }
+                }
+                await _context._SaveChangesAsync();
+
+                var models = await _context.MLModels.Where(v => v.APIVersionId == versionDb.Id).ToListAsync();
+                foreach (var model in models)
+                {
+                    if (!version.MLModels.Exists(v => v.ModelName == model.ModelName))
+                    {
+                        _context.MLModels.Remove(model);
+                    }
+                }
+                await _context._SaveChangesAsync();
+
+                _context.APIVersions.Update(versionDb);
+                await _context._SaveChangesAsync();
+                transaction.Commit();
+            }
+
             // Update version values and save changes in db
-            _context.APIVersions.Update(versionDb);
-            await _context._SaveChangesAsync();
             _logger.LogInformation(LoggingUtils.ComposeResourceUpdatedMessage(typeof(APIVersion).Name, versionName));
 
-            return versionDb;
+            return version;
         }
 
         /// <summary>
-        /// Deletes an apiVersion within a product and a deployment.
+        /// Deletes an apiVersion within a aiService and a aiServicePlan.
         /// </summary>
-        /// <param name="productName">The name of the product.</param>
-        /// <param name="deploymentName">The name of the deployment.</param>
+        /// <param name="aiServiceName">The name of the aiService.</param>
+        /// <param name="aiServicePlanName">The name of the aiServicePlan.</param>
         /// <param name="versionName">The name of the apiVersion to delete.</param>
         /// <returns>The deleted apiVersion.</returns>
-        public async Task<APIVersion> DeleteAsync(string productName, string deploymentName, string versionName)
+        public async Task<APIVersion> DeleteAsync(string aiServiceName, string aiServicePlanName, string versionName)
         {
             _logger.LogInformation(LoggingUtils.ComposeDeleteResourceMessage(typeof(APIVersion).Name, versionName));
 
-            // Get the product that matches the productName provided
-            var product = await _productService.GetAsync(productName);
+            // Get the aiService that matches the aiServiceName provided
+            var aiService = await _aiServiceService.GetAsync(aiServiceName);
 
-            // Get the apiVersion that matches the productName, the deploymentName and the versionName provided
-            var version = await GetAsync(productName, deploymentName, versionName);
-            version.ProductName = productName;
-            version.DeploymentName = deploymentName;
+            // Get the apiVersion that matches the aiServiceName, the aiServicePlanName and the versionName provided
+            var version = await GetAsync(aiServiceName, aiServicePlanName, versionName);
+            version.ApplicationName = aiServiceName;
+            version.APIName = aiServicePlanName;
 
             // delete athentication key from keyVault if authentication type is key
-            if (version.AuthenticationType.Equals("Key", StringComparison.InvariantCultureIgnoreCase))
+            if (!string.IsNullOrEmpty(version.EndpointAuthSecretName))
             {
-                if (version.AuthenticationKey != null)
+                string secretName = version.EndpointAuthSecretName;
+                try
                 {
-                    string secretName = version.AuthenticationKeySecretName;
-                    try
-                    {
-                        await (_keyVaultHelper.DeleteSecretAsync(_options.CurrentValue.Config.VaultName, secretName));
-                    }
-                    catch 
-                    { 
-                    }
+                    await (_keyVaultHelper.DeleteSecretAsync(_options.CurrentValue.Config.VaultName, secretName));
+                }
+                catch
+                {
                 }
             }
 
-            // Remove the apiVersion from the db
-            _context.APIVersions.Remove(version);
-            await _context._SaveChangesAsync();
+            using (var transaction = await _context.BeginTransactionAsync())
+            {
+                // Remove all pipelines linked to the current API version
+                var pipelines = await _context.AMLPipelineEndpoints.Where(v => v.APIVersionId == version.Id).ToListAsync();
+                _context.AMLPipelineEndpoints.RemoveRange(pipelines);
+                await _context._SaveChangesAsync();
+
+                var models = await _context.MLModels.Where(v => v.APIVersionId == version.Id).ToListAsync();
+                _context.MLModels.RemoveRange(models);
+                await _context._SaveChangesAsync();
+
+                // Remove the apiVersion from the db
+                _context.APIVersions.Remove(version);
+                await _context._SaveChangesAsync();
+                transaction.Commit();
+            }
             _logger.LogInformation(LoggingUtils.ComposeResourceDeletedMessage(typeof(APIVersion).Name, versionName));
 
             return version;
         }
 
         /// <summary>
-        /// Checks if an apiVersion exists within a product and a deployment.
+        /// Checks if an apiVersion exists within a aiService and a aiServicePlan.
         /// </summary>
-        /// <param name="productName">The name of the product.</param>
-        /// <param name="deploymentName">The name of the deployment to check exists.</param>
+        /// <param name="aiServiceName">The name of the aiService.</param>
+        /// <param name="aiServicePlanName">The name of the aiServicePlan to check exists.</param>
         /// <param name="versionName">The name of the apiVersion to check exists.</param>
         /// <returns>True if exists, false otherwise.</returns>
-        public async Task<bool> ExistsAsync(string productName, string deploymentName, string versionName)
+        public async Task<bool> ExistsAsync(string aiServiceName, string aiServicePlanName, string versionName)
         {
             _logger.LogInformation(LoggingUtils.ComposeCheckResourceExistsMessage(typeof(APIVersion).Name, versionName));
 
-            //Get the deployment associated with the productName and the deploymentName provided
-            var deployment = await _deploymentService.GetAsync(productName, deploymentName);
+            //Get the aiServicePlan associated with the aiServiceName and the aiServicePlanName provided
+            var aiServicePlan = await _aiServicePlanService.GetAsync(aiServiceName, aiServicePlanName);
 
-            // Check that only one apiVersion with this versionName exists within the deployment
+            // Check that only one apiVersion with this versionName exists within the aiServicePlan
             var count = await _context.APIVersions
-                .CountAsync(a => (a.DeploymentId.Equals(deployment.Id)) && (a.VersionName == versionName));
+                .CountAsync(a => (a.LunaAPIId.Equals(aiServicePlan.Id)) && (a.VersionName == versionName));
 
             // More than one instance of an object with the same name exists, this should not happen
             if (count > 1)

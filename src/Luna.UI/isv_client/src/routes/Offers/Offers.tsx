@@ -319,7 +319,7 @@ const Offers: React.FunctionComponent = () => {
           styles: {
 
             main: {
-              minWidth: 440
+              minWidth: 540
             }
           }
         }}

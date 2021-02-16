@@ -50,7 +50,7 @@ namespace Luna.API.Controllers.Admin
         {
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
             _logger.LogInformation($"Get workspace {workspaceName}");
-            var workspace = await _workspaceService.GetWithSecretsAsync(workspaceName);
+            var workspace = await _workspaceService.GetAsync(workspaceName, returnSecret: true);
             return Ok(await ControllerHelper.GetAllPipelines(workspace));
         }
 
@@ -65,6 +65,45 @@ namespace Luna.API.Controllers.Admin
             AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
             _logger.LogInformation("Get all workspaces.");
             return Ok(await _workspaceService.GetAllAsync());
+        }
+
+        /// <summary>
+        /// Get deployed models from a workspace.
+        /// </summary>
+        /// <param name="workspaceName">The name of the workspace to get.</param>
+        /// <returns>HTTP 200 OK with workspace JSON object in response body.</returns>
+        [HttpGet("amlworkspaces/{workspaceName}/models")]
+        public async Task<ActionResult> GetAllModelsAsync(string workspaceName)
+        {
+            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
+            _logger.LogInformation("Get all models registered in the workspace.");
+            return Ok(await _workspaceService.GetAllModelsAsync(workspaceName));
+        }
+
+        /// <summary>
+        /// Get deployed endpoints from a workspace.
+        /// </summary>
+        /// <param name="workspaceName">The name of the workspace to get.</param>
+        /// <returns>HTTP 200 OK with workspace JSON object in response body.</returns>
+        [HttpGet("amlworkspaces/{workspaceName}/endpoints")]
+        public async Task<ActionResult> GetAllEndpointsAsync(string workspaceName)
+        {
+            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
+            _logger.LogInformation("Get all endpoints deployed in the workspace.");
+            return Ok(await _workspaceService.GetAllEndpointsAsync(workspaceName));
+        }
+
+        /// <summary>
+        /// Get compute clusters from a workspace.
+        /// </summary>
+        /// <param name="workspaceName">The name of the workspace to get.</param>
+        /// <returns>HTTP 200 OK with workspace JSON object in response body.</returns>
+        [HttpGet("amlworkspaces/{workspaceName}/computeclusters")]
+        public async Task<ActionResult> GetAllComputeClustersAsync(string workspaceName)
+        {
+            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, true);
+            _logger.LogInformation("Get all compute clusters deployed in the workspace.");
+            return Ok(await _workspaceService.GetAllComputeClustersAsync(workspaceName));
         }
 
         /// <summary>

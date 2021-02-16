@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Luna.Data.Entities;
-using Luna.Data.Entities;
-using Luna.Data.Entities.Luna.AI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -32,22 +30,30 @@ namespace Luna.Data.Repository
 
         DbSet<TelemetryDataConnector> TelemetryDataConnectors { get; set; }
 
-        DbSet<Product> Products { get; set; }
-        DbSet<Deployment> Deployments { get; set; }
+        DbSet<LunaApplication> LunaApplications { get; set; }
+        DbSet<LunaAPI> LunaAPIs { get; set; }
         DbSet<APIVersion> APIVersions { get; set; }
         DbSet<AMLWorkspace> AMLWorkspaces { get; set; }
 
-        DbSet<APISubscription> APISubscriptions { get; set; }
-
-        DbSet<AIAgent> AIAgents { get; set; }
+        DbSet<Gateway> Gateways { get; set; }
 
         DbSet<AgentSubscription> AgentSubscriptions { get; set; }
 
         DbSet<AgentAPIVersion> AgentAPIVersions { get; set; }
 
-        DbSet<Publisher> Publishers { get; set; }
-
         DbSet<AgentOffer> AgentOffers { get; set; }
+
+        DbSet<AzureSynapseWorkspace> AzureSynapseWorkspaces { get; set; }
+
+        DbSet<AzureDatabricksWorkspace> AzureDatabricksWorkspaces { get; set; }
+
+        DbSet<GitRepo> GitRepos { get; set; }
+
+        DbSet<AMLPipelineEndpoint> AMLPipelineEndpoints { get; set; }
+        DbSet<MLModel> MLModels { get; set; }
+
+        DbSet<PlanGateway> PlanGateways { get; set; }
+        DbSet<PlanApplication> PlanApplications { get; set; }
 
         // Wrappers for DbContext methods that are used
         Task<int> _SaveChangesAsync();

@@ -42,6 +42,19 @@ namespace Luna.API.Controllers.Admin
         /// Gets all offers.
         /// </summary>
         /// <returns>HTTP 200 OK with offer JSON objects in response body.</returns>
+        [HttpGet("aimarketplaceoffers")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetAllAIMarketplaceOffersAsync()
+        {
+            AADAuthHelper.VerifyUserAccess(this.HttpContext, _logger, false);
+            _logger.LogInformation("Get all AI Marketplace offers.");
+            return Ok(await _offerService.GetAIMarketplaceOffersAsync());
+        }
+
+        /// <summary>
+        /// Gets all offers.
+        /// </summary>
+        /// <returns>HTTP 200 OK with offer JSON objects in response body.</returns>
         [HttpGet("offers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetAllAsync()

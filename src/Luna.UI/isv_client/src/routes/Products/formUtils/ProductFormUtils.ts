@@ -29,15 +29,12 @@ export const HostType: IDropdownOption[] = [
   { key: 'BYOC', text: "Bring Your Own Compute" }]
 */
 export const initialProductValues: IProductModel = {
-  hostType: '',
   owner: userName,
-  productName: '',
-  productType: '',
-  logoImageUrl: '',
-  documentationUrl: '',
+  applicationName: '',
   description: '',
-  saasOfferName: '',
   displayName: '',
+  saaSOfferName: '',
+  saaSOfferPlanName: '',
   isDeleted: false,
   isSaved: false,
   isModified: false,
@@ -45,50 +42,41 @@ export const initialProductValues: IProductModel = {
 };
 
 export const initialProductList: IProductModel[] = [{
-  hostType: 'saas',
   owner: 'v-anirc@microsoft.com',
-  productName: '1',
-  productType: 'realtimeprediction',
-  logoImageUrl: 'logo',
+  applicationName: '1',
   description: 'description',
-  documentationUrl: 'documenation',
-  saasOfferName: '',
   createdTime: '',
   displayName: '',
   lastUpdatedTime: '',
+  saaSOfferName: '',
+  saaSOfferPlanName: '',
   isDeleted: false,
   isSaved: false,
   isModified: false,
   clientId: uuid()
 },
 {
-  hostType: 'bringyourowncompute',
   owner: 'zbates@affirma.com',
-  productName: '2',
-  productType: 'batchinference',
-  logoImageUrl: 'logo',
+  applicationName: '2',
   description: 'description',
-  documentationUrl: 'documenation',
-  saasOfferName: '',
   createdTime: '',
   displayName: '',
   lastUpdatedTime: '',
+  saaSOfferName: '',
+  saaSOfferPlanName: '',
   isDeleted: false,
   isSaved: false,
   isModified: false,
   clientId: uuid()
 },
 {
-  hostType: 'saas',
   owner: 'zbates@affirma.com',
-  productName: '3',
-  productType: 'trainyourownmodel',
-  logoImageUrl: 'logo',
+  applicationName: '3',
   description: 'description',
-  documentationUrl: 'documenation',
-  saasOfferName: '',
   displayName: '',
   createdTime: '',
+  saaSOfferName: '',
+  saaSOfferPlanName: '',
   lastUpdatedTime: '',
   isDeleted: false,
   isSaved: false,
@@ -107,7 +95,7 @@ export const initialInfoFormValues: IProductInfoFormValues = {
 const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
   {
     clientId: yup.string(),
-    productName: yup.string()
+    applicationName: yup.string()
       .matches(objectIdNameRegExp,
         {
           message: ErrorMessage.productName,
@@ -115,19 +103,10 @@ const productValidator: ObjectSchema<IProductModel> = yup.object().shape(
         }).required("Id is a required field"),
 
     owner: yup.string().required("Owners is a required field"),
-    productType: yup.string()
-      .required("Product Type is a required field"),
-    hostType: yup.string().required("Host Type is a required field"),
-    logoImageUrl: yup.string().url(ErrorMessage.Url),
     description: yup.string().max(120, "The description is too long. Must be no more than 120 characters"),
-    saasOfferName: yup.string()
-    .matches(objectIdNameRegExp,
-      {
-        message: ErrorMessage.saasOffername,
-        excludeEmptyString: true
-      }),
     createdTime: yup.string(),
-    documentationUrl: yup.string().url(ErrorMessage.Url),
+    saaSOfferName: yup.string().required("SaaS offer name is required"),
+    saaSOfferPlanName: yup.string().required("SaaS offer plan name is required"),
     displayName: yup.string().max(64, "The display name is too long. Must be no more than 64 characters"),
     lastUpdatedTime: yup.string()
   }
@@ -141,10 +120,10 @@ export const productInfoValidationSchema: ObjectSchema<IProductInfoFormValues> =
 export const deleteProductValidator: ObjectSchema<IProductModel> = yup.object().shape(
   {
     clientId: yup.string(),
-    productName: yup.string(),
+    applicationName: yup.string(),
     selectedProductId: yup.string()
       .test('selectedProductid', 'Product name does not match', function (value: string) {
-        const productName: string = this.parent.productName;
+        const productName: string = this.parent.applicationName;
         if (!value)
           return true;
 
@@ -156,13 +135,11 @@ export const deleteProductValidator: ObjectSchema<IProductModel> = yup.object().
         }).required("Product id is a required field"),
 
     owner: yup.string(),
-    hostType: yup.string(),
-    logoImageUrl: yup.string(),
+    tags: yup.string(),
     description: yup.string(),
-    productType: yup.string(),
-    saasOfferName: yup.string(),
+    saaSOfferName: yup.string(),
+    saaSOfferPlanName: yup.string(),
     displayName: yup.string(),
-    documentationUrl: yup.string(),
     createdTime: yup.string(),
     lastUpdatedTime: yup.string()
   }

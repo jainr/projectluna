@@ -5,7 +5,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Luna.Clients.Exceptions;
 using Luna.Clients.Logging;
+using Luna.Data.Constants;
 using Luna.Data.DataContracts;
+using Luna.Data.DataContracts.Luna.AI;
 using Luna.Data.Entities;
 using Luna.Data.Enums;
 using Luna.Data.Repository;
@@ -31,6 +33,46 @@ namespace Luna.Services.Data
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        /// <summary>
+        /// Get all AI marketplace offers
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<AIMarketplaceOffer>> GetAIMarketplaceOffersAsync()
+        {
+            var offers = await GetAllAsync();
+            List<AIMarketplaceOffer> aimpOffers = new List<AIMarketplaceOffer>();
+            foreach(var offer in offers)
+            {
+                if (offer.Status.Equals(OfferStatus.Active.ToString()))
+                {
+                    var aimpOffer = new AIMarketplaceOffer()
+                    {
+                        OfferName = offer.OfferName,
+                        OfferDisplayName = offer.DisplayName,
+                        PublisherName = offer.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY) == null ? "Unknown" : offer.GetTagByKey(LunaConstants.PUBLISHER_TAG_KEY),
+                        LogoImageUrl = offer.LogoImageUrl == null ? "" : offer.LogoImageUrl,
+                        DocumentationUrl = offer.DocumentationUrl == null ? "" : offer.DocumentationUrl,
+                        Description = offer.Description,
+                        SubscribePageUrl = offer.DocumentationUrl == null ? "" : offer.DocumentationUrl
+                    };
+
+                    var plans = await _context.Plans.Where(p => p.OfferId == offer.Id).ToListAsync();
+                    foreach (var plan in plans)
+                    {
+                        aimpOffer.Plans.Add(new AIMarketplacePlan()
+                        {
+                            PlanName = plan.PlanName,
+                            PlanDisplayName = plan.PlanDisplayName,
+                            Description = plan.Description
+                        });
+                    }
+                    aimpOffers.Add(aimpOffer);
+                }
+            }
+
+            return aimpOffers;
         }
 
         /// <summary>
@@ -235,6 +277,8 @@ namespace Luna.Services.Data
 
             // Update the offer status
             offer.Status = nameof(OfferStatus.Active);
+
+            offer.IsAzureMarketplaceOffer = true;
 
             // Update the offer last updated time 
             offer.LastUpdatedTime = DateTime.UtcNow;

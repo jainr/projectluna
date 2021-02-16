@@ -2,7 +2,11 @@ import {IBaseModel} from "./IBaseModel";
 
 export interface IOfferModel extends IBaseModel {
   offerName: string;
-  offerAlias: string;
+  displayName: string;
+  description: string;
+  logoImageUrl: string;
+  documentationUrl: string;
+  tags: string;
   offerVersion: string;
   owners: string;
   hostSubscription: string;

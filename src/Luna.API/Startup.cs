@@ -5,7 +5,6 @@ using System.Reflection;
 using Luna.API.Controllers.Admin;
 using Luna.Clients;
 using Luna.Clients.Azure;
-using Luna.Clients.Azure.APIM;
 using Luna.Clients.Azure.Auth;
 using Luna.Clients.Azure.Storage;
 using Luna.Clients.CustomMetering;
@@ -43,6 +42,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web.Resource;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Polly;
@@ -142,6 +142,7 @@ namespace Luna.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            IdentityModelEventSource.ShowPII = true;
             services.AddControllers().AddJsonOptions(options => {
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
@@ -172,13 +173,11 @@ namespace Luna.API
                 // The web API accepts as audiences both the Client ID (options.Audience) and api://{ClientID}.
                 options.TokenValidationParameters.ValidAudiences = new[]
                 {
-     options.Audience,
-     $"api://{options.Audience}",
-     this.configuration["AzureAD:ClientId"],
-     $"api://{this.configuration["AzureAD:ClientId"]}",
-     "9348a48a-9f97-4e9e-bce2-40d239840733",
-     "52ed21f2-32e1-4df0-86be-00f5795e7137"
-    };
+                    options.Audience,
+                    $"api://{options.Audience}",
+                    this.configuration["AzureAD:ClientId"],
+                    $"api://{this.configuration["AzureAD:ClientId"]}"
+                };
                 options.ClaimsIssuer = @"https://login.microsoftonline.com/{tenantid}/v2";
 
                 // Instead of using the default validation (validating against a single tenant,
@@ -266,6 +265,9 @@ namespace Luna.API
             services.AddHttpClient<IProvisioningClient, ProvisioningClient>()
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
+            services.AddHttpClient<IAMLClient, AMLClient>()
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
 
             services.AddHttpClient<ICustomMeteringClient, CustomMeteringClient>();
 
@@ -279,28 +281,12 @@ namespace Luna.API
             // Register the db context interface
             services.TryAddScoped<ISqlDbContext, SqlDbContext>();
 
-            services.AddOptions<APIMConfigurationOption>().Configure(
-                options =>
-                {
-                    this.configuration.Bind("SecuredCredentials:APIM", options);
-                });
-
-
             services.AddOptions<AzureConfigurationOption>().Configure(
                 options =>
                 {
                     this.configuration.Bind("SecuredCredentials:Azure", options);
                 });
 
-            services.AddHttpClient<IProductAPIM, ProductAPIM>();
-            services.AddHttpClient<IAPIVersionSetAPIM, APIVersionSetAPIM>();
-            services.AddHttpClient<IAPIVersionAPIM, APIVersionAPIM>();
-            services.AddHttpClient<IProductAPIVersionAPIM, ProductAPIVersionAPIM>();
-            services.AddHttpClient<IOperationAPIM, OperationAPIM>();
-            services.AddHttpClient<IPolicyAPIM, PolicyAPIM>();
-            services.AddHttpClient<IAPISubscriptionAPIM, APISubscriptionAPIM>();
-            services.AddHttpClient<IUserAPIM, UserAPIM>();
-            services.AddHttpClient<IClientCertAPIM, ClientCertAPIM>();
             services.AddHttpClient<IGitUtility, GitUtility>();
 
             services.AddOptions<StorageAccountConfigurationOption>().Configure(
@@ -336,8 +322,7 @@ namespace Luna.API
             services.TryAddScoped<IArmTemplateArmTemplateParameterService, ArmTemplateArmTemplateParameterService>();
             services.TryAddScoped<ITelemetryDataConnectorService, TelemetryDataConnectorService>();
             services.TryAddScoped<ISubscriptionCustomMeterUsageService, SubscriptionCustomMeterUsageService>();
-            services.TryAddScoped<IAIAgentService, AIAgentService>();
-            services.TryAddScoped<IPublisherService, PublisherService>();
+            services.TryAddScoped<IGatewayService, GatewayService>();
 
             services.TryAddScoped<ICustomMeterEventService, CustomMeterEventService>();
             // Register luna db client
@@ -345,11 +330,13 @@ namespace Luna.API
             services.TryAddScoped<LunaClient>();
 
             // Register Luna.AI services
-            services.TryAddScoped<IProductService, ProductService>();
-            services.TryAddScoped<IDeploymentService, DeploymentService>();
+            services.TryAddScoped<ILunaApplicationService, LunaApplicationService>();
+            services.TryAddScoped<ILunaAPIService, LunaAPIService>();
             services.TryAddScoped<IAPIVersionService, APIVersionService>();
-            services.TryAddScoped<IAPISubscriptionService, APISubscriptionService>();
             services.TryAddScoped<IAMLWorkspaceService, AMLWorkspaceService>();
+            services.TryAddScoped<IAzureSynapseWorkspaceService, AzureSynapseWorkspaceService>();
+            services.TryAddScoped<IAzureDatabricksWorkspaceService, AzureDatabricksWorkspaceService>();
+            services.TryAddScoped<IGitRepoService, GitRepoService>();
 
             services.AddCors();
 
@@ -376,11 +363,13 @@ namespace Luna.API
                o.Conventions.Controller<WebhookController>().HasApiVersion(latest);
                o.Conventions.Controller<WebhookParameterController>().HasApiVersion(latest);
                 o.Conventions.Controller<AMLWorkspaceController>().HasApiVersion(latest);
-                o.Conventions.Controller<APISubscriptionController>().HasApiVersion(latest);
                 o.Conventions.Controller<APIVersionController>().HasApiVersion(latest);
-                o.Conventions.Controller<DeploymentController>().HasApiVersion(latest);
-                o.Conventions.Controller<ProductController>().HasApiVersion(latest);
-                o.Conventions.Controller<AIAgentController>().HasApiVersion(latest);
+                o.Conventions.Controller<AIServicePlanController>().HasApiVersion(latest);
+                o.Conventions.Controller<AIServiceController>().HasApiVersion(latest);
+                o.Conventions.Controller<GatewayController>().HasApiVersion(latest);
+                o.Conventions.Controller<AzureDatabricksWorkspaceController>().HasApiVersion(latest);
+                o.Conventions.Controller<AzureSynapseWorkspaceController>().HasApiVersion(latest);
+                o.Conventions.Controller<GitRepoController>().HasApiVersion(latest);
             });
 
             // Register the Swagger generator, defining 1 or more Swagger documents

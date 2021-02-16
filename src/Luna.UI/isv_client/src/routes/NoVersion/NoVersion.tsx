@@ -15,7 +15,9 @@ const NoVersion: React.FunctionComponent = () => {
         }
       }}
     >
-      <h1>Luna v1 and v2 have both been disabled on this site.<br/>The site must be configured to enable one or both versions.</h1>
+      <iframe width="1140" height="541.25" src="https://msit.powerbi.com/reportEmbed?reportId=1150275e-5d29-4a62-b880-2a88a06deb3c&autoAuth=true&ctid=72f988bf-86f1-41af-91ab-2d7cd011db47&config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly9kZi1tc2l0LXNjdXMtcmVkaXJlY3QuYW5hbHlzaXMud2luZG93cy5uZXQvIn0%3D" frameBorder="0">
+
+      </iframe>
     </Stack>
   );
 };

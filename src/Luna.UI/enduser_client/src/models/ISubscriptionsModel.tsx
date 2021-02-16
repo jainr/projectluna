@@ -24,6 +24,9 @@ export interface ISubscriptionsModel {
   inputParameters: IParamModel[],
   provisioningStatus: string,
   entryPointUrl: string,
+  primaryKey: string,
+  baseUrl: string,
+  secondaryKey: string,
 
   publisherId: string,
   status: string,

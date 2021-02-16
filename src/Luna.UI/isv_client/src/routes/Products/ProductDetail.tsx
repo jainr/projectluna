@@ -11,15 +11,15 @@ import ProductService from '../../services/ProductService';
 
 const ProductDetail: React.FunctionComponent = () => {
 
-  const { productName } = useParams();
-  const [productType, setProductType] = useState<string>("");
+  const { applicationName } = useParams();
+  const [description, setDescription] = useState<string>("");
   const [loading, setloading] = useState<boolean>(true);
 
   const getProduct = async () => {
     setloading(true);
-    const results = await ProductService.get(productName as string);
+    const results = await ProductService.get(applicationName as string);
     if (results && !results.hasErrors && results.value)
-      setProductType(results.value.productType);
+      setDescription(results.value.description);
     else {
       if (results.hasErrors) {
         // TODO: display errors
@@ -51,9 +51,7 @@ const ProductDetail: React.FunctionComponent = () => {
     >
       {!loading ?
         <React.Fragment>
-          <ProductDeployments productType={productType} />
-
-          <AMLWorkSpace />
+          <ProductDeployments productType={"SaaS"} />
         </React.Fragment> : null
       }
 

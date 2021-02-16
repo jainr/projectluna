@@ -175,7 +175,7 @@ export const DefaultSettings: React.FunctionComponent<IDetailsProps> = (props) =
                 />
                 <Dropdown
                   label="Compute Cluster"
-                  placeholder={props.subscriptionData.AMLWorkspaceComputeClusterName}
+                  placeholder={"props.subscriptionData.AMLWorkspaceComputeClusterName"}
                   options={computeClustersOptions}
                   onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
                     setSelectedValues({
@@ -188,7 +188,7 @@ export const DefaultSettings: React.FunctionComponent<IDetailsProps> = (props) =
                 />
                 <Dropdown
                   label="Deploy Target Type"
-                  placeholder={props.subscriptionData.AMLWorkspaceDeploymentTargetType}
+                  placeholder={"props.subscriptionData.AMLWorkspaceDeploymentTargetType"}
                   options={deploymentTargetTypesOptions}
                   onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
                     setSelectedValues({
@@ -202,7 +202,7 @@ export const DefaultSettings: React.FunctionComponent<IDetailsProps> = (props) =
                 />
                 <Dropdown
                   label="Deployment Cluster"
-                  placeholder={props.subscriptionData.AMLWorkspaceDeploymentClusterName}
+                  placeholder={"props.subscriptionData.AMLWorkspaceDeploymentClusterName"}
                   disabled={!isDeploymentClusterDisabled}
                   options={deploymentClusterOptions}
                   onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {

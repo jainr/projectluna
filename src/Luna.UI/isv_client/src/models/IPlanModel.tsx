@@ -2,6 +2,8 @@ import {IBaseModel} from "./IBaseModel";
 
 export interface IPlanModel extends IBaseModel {
   planName: string,
+  planDisplayName: string,
+  description: string,
   dataRetentionInDays: number,
   subscribeArmTemplateName: string | null,
   unsubscribeArmTemplateName: string | null,

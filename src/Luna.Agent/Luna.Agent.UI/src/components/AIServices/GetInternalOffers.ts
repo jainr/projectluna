@@ -8,7 +8,7 @@ export async function GetInternalOffers() {
     const bearerToken = 'Bearer ' + sessionStorage.getItem(`msal.${window.MSAL_CONFIG.appId}.idtoken`);
     const userPrincipalId = sessionStorage.getItem('_userEmail');
 
-    return await fetch(`${window.BASE_URL}/internalOffers?userId=${userPrincipalId}`, {
+    return await fetch(`${window.BASE_URL}/AIMarketplaceOffers?userId=${userPrincipalId}`, {
         mode: "cors",
         method: "GET",
         headers: {

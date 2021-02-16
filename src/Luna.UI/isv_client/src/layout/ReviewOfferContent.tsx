@@ -33,8 +33,12 @@ const ReviewOfferContent: React.FunctionComponent<OfferProps> = (props) => {
 
   const [offerModel, setOfferModel] = useState<IOfferModel>({
     owners: '',
-    offerAlias: '',
     hostSubscription: '',
+    description: '',
+    displayName: '',
+    logoImageUrl: '',
+    documentationUrl: '',
+    tags: '',
     status: '',
     offerVersion: '',
     offerName: '',
@@ -110,10 +114,10 @@ const ReviewOfferContent: React.FunctionComponent<OfferProps> = (props) => {
               {offerModel.offerName}
             </span>
               <span style={{marginLeft: 100, fontWeight: 600}}>
-              Alias:
+              DisplayName:
             </span>
               <span style={{marginLeft: 8}}>
-              {offerModel.offerAlias}
+              {offerModel.displayName}
             </span>
           </Stack.Item>
           <Stack.Item styles={{

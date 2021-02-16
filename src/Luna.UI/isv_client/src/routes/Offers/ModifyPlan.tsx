@@ -368,19 +368,45 @@ const ModifyPlan: React.FunctionComponent<IPlanFormProps> = (props) => {
                   className={textboxClassName} disabled={values.plan.isNew === false} />
               </td>
               <td>
-                <FormLabel title={"Data Retention(days) :"} toolTip={"Data Retention(days)"} />
+                <FormLabel title={"Display Name:"} toolTip={Offers.plans.displayName} />
                 <TextField
-                  name={'plan.dataRetentionInDays'}
-                  type="number"
-                  value={values.plan.dataRetentionInDays.toString()}
+                  name={'plan.planDisplayName'}
+                  value={values.plan.planDisplayName}
                   onChange={handleChange}
                   onBlur={handleBlur}
+                  maxLength={128}
                   style={{ marginLeft: 11 }}
-                  errorMessage={getPlansFormErrorString(touched, errors, 'dataRetentionInDays')}
-                  placeholder={'Data Retention(days)'}
-                  className={textboxClassName} />
+                  errorMessage={getPlansFormErrorString(touched, errors, 'planDisplayName')}
+                  placeholder={'Display name'}
+                  className={textboxClassName}/>
               </td>
 
+            </tr>
+            
+            <tr>
+              <td>
+
+              </td>
+              <td>
+                <br></br>
+              </td>
+            </tr>
+            
+            <tr>
+              <td colSpan={2}>
+                <FormLabel title={"Description:"} toolTip={Offers.plans.description} />
+                <TextField
+                  name={'plan.description'}
+                  value={values.plan.description}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  maxLength={1024}
+                  width={800}
+                  style={{ marginLeft: 11 }}
+                  errorMessage={getPlansFormErrorString(touched, errors, 'description')}
+                  placeholder={'Description'}
+                  className={textboxClassName}/>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -492,6 +518,22 @@ const ModifyPlan: React.FunctionComponent<IPlanFormProps> = (props) => {
                   defaultSelectedKey={values.plan.deleteDataWebhookName}
                 />
               </td>
+            </tr>
+            <tr>
+            <td>
+                <FormLabel title={"Data Retention(days) :"} toolTip={"Data Retention(days)"} />
+                <TextField
+                  name={'plan.dataRetentionInDays'}
+                  type="number"
+                  value={values.plan.dataRetentionInDays.toString()}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  style={{ marginLeft: 11 }}
+                  errorMessage={getPlansFormErrorString(touched, errors, 'dataRetentionInDays')}
+                  placeholder={'Data Retention(days)'}
+                  className={textboxClassName} />
+              </td>
+              <td></td>
             </tr>
           </tbody>
         </table>

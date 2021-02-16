@@ -1,6 +1,6 @@
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Luna.Data.Entities;
-using Luna.Data.Entities.Luna.AI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -36,18 +36,27 @@ namespace Luna.Data.Repository
         public DbSet<WebhookWebhookParameter> WebhookWebhookParameters { get; set; }
         public DbSet<SubscriptionCustomMeterUsage> SubscriptionCustomMeterUsages { get; set; }
         public DbSet<TelemetryDataConnector> TelemetryDataConnectors { get; set; }
-        public DbSet<Product> Products { get; set; }
-        public DbSet<Deployment> Deployments { get; set; }
+        public DbSet<LunaApplication> LunaApplications { get; set; }
+        public DbSet<LunaAPI> LunaAPIs { get; set; }
         public DbSet<APIVersion> APIVersions { get; set; }
         public DbSet<AMLWorkspace> AMLWorkspaces { get; set; }
-        public DbSet<APISubscription> APISubscriptions { get; set; }
-        public DbSet<AIAgent> AIAgents { get; set; }
+        public DbSet<Gateway> Gateways { get; set; }
 
         public DbSet<AgentSubscription> AgentSubscriptions { get; set; }
         public DbSet<AgentAPIVersion> AgentAPIVersions { get; set; }
 
-        public DbSet<Publisher> Publishers { get; set; }
         public DbSet<AgentOffer> AgentOffers { get; set; }
+
+        public DbSet<AzureSynapseWorkspace> AzureSynapseWorkspaces { get; set; }
+
+        public DbSet<AzureDatabricksWorkspace> AzureDatabricksWorkspaces { get; set; }
+
+        public DbSet<GitRepo> GitRepos { get; set; }
+
+        public DbSet<AMLPipelineEndpoint> AMLPipelineEndpoints { get; set; }
+        public DbSet<MLModel> MLModels { get; set; }
+        public DbSet<PlanGateway> PlanGateways { get; set; }
+        public DbSet<PlanApplication> PlanApplications { get; set; }
 
         // Wrappers for DbContext methods that are used
         public async Task<int> _SaveChangesAsync()
@@ -81,6 +90,12 @@ namespace Luna.Data.Repository
 
             modelBuilder.Entity<WebhookWebhookParameter>()
                     .HasKey(x => new { x.WebhookId, x.WebhookParameterId });
+
+            modelBuilder.Entity<PlanGateway>()
+                .HasKey(x => new { x.PlanId, x.GatewayId });
+
+            modelBuilder.Entity<PlanApplication>()
+                .HasKey(x => new { x.PlanId, x.ApplicationId });
 
             modelBuilder.Entity<Plan>(plan =>
             {

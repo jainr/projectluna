@@ -8,6 +8,14 @@ namespace Luna.Services.Provisoning
 {
     public interface IProvisioningService
     {
+
+        /// <summary>
+        /// Subscribe AI service if specified
+        /// </summary>
+        /// <param name="subscriptionId">The subscription Id</param>
+        /// <returns></returns>
+        Task<Subscription> SubscribeAIServiceAsync(Guid subscriptionId);
+
         /// <summary>
         /// Check resource group deploymenet status
         /// </summary>

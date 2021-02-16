@@ -21,6 +21,7 @@ namespace Luna.Services.Data
         private readonly IOfferService _offerService;
         private readonly IArmTemplateService _armTemplateService;
         private readonly IWebhookService _webhookService;
+        private readonly IGatewayService _gatewayService;
         private readonly ILogger<PlanService> _logger;
 
         /// <summary>
@@ -30,12 +31,14 @@ namespace Luna.Services.Data
         /// <param name="offerService">A service to inject.</param>
         /// <param name="armTemplateService">A service to inject.</param>
         /// <param name="logger">The logger.</param>
-        public PlanService(ISqlDbContext sqlDbContext, IOfferService offerService, IArmTemplateService armTemplateService, IWebhookService webhookService, ILogger<PlanService> logger)
+        public PlanService(ISqlDbContext sqlDbContext, IOfferService offerService, IGatewayService gatewayService,
+            IArmTemplateService armTemplateService, IWebhookService webhookService, ILogger<PlanService> logger)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
             _offerService = offerService ?? throw new ArgumentNullException(nameof(offerService));
             _armTemplateService = armTemplateService ?? throw new ArgumentNullException(nameof(armTemplateService));
             _webhookService = webhookService ?? throw new ArgumentNullException(nameof(webhookService));
+            _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -59,6 +62,26 @@ namespace Luna.Services.Data
             foreach (Plan plan in plans)
             {
                 result.Add(await SetArmTemplateAndWebhookNames(plan));
+
+                var values = await _context.PlanGateways.
+                    Where(v => v.PlanId == plan.Id).
+                    Select(x => x.GatewayId).
+                    ToListAsync();
+
+                foreach (var value in values)
+                {
+                    plan.GatewayNames.Add((await _context.Gateways.FindAsync(value)).Name);
+                }
+
+                values = await _context.PlanApplications.
+                    Where(v => v.PlanId == plan.Id).
+                    Select(x => x.ApplicationId).
+                    ToListAsync();
+
+                foreach (var value in values)
+                {
+                    plan.ApplicationNames.Add((await _context.LunaApplications.FindAsync(value)).ApplicationName);
+                }
             }
             _logger.LogInformation(LoggingUtils.ComposeReturnCountMessage(typeof(Plan).Name, plans.Count()));
 
@@ -160,6 +183,27 @@ namespace Luna.Services.Data
                 .SingleOrDefaultAsync(p => (p.OfferId == offer.Id) && (p.PlanName == planUniqueName));
 
             plan = await SetArmTemplateAndWebhookNames(plan);
+
+            // TODO: use entity framework
+            var values = await _context.PlanGateways.
+                Where(v => v.PlanId == plan.Id).
+                Select(x => x.GatewayId).
+                ToListAsync();
+            foreach (var value in values)
+            {
+                plan.GatewayNames.Add((await _context.Gateways.FindAsync(value)).Name);
+            }
+
+            values = await _context.PlanApplications.
+                Where(v => v.PlanId == plan.Id).
+                Select(x => x.ApplicationId).
+                ToListAsync();
+
+            foreach (var value in values)
+            {
+                plan.ApplicationNames.Add((await _context.LunaApplications.FindAsync(value)).ApplicationName);
+            }
+
             _logger.LogInformation(LoggingUtils.ComposeReturnValueMessage(typeof(Plan).Name,
                planUniqueName,
                JsonSerializer.Serialize(plan),
@@ -240,9 +284,55 @@ namespace Luna.Services.Data
 
             plan = await SetArmTemplateAndWebhookIds(offerName, plan);
 
-            // Add plan to db
-            _context.Plans.Add(plan);
-            await _context._SaveChangesAsync();
+            using(var transaction = await _context.BeginTransactionAsync())
+            {
+                // Add plan to db
+                _context.Plans.Add(plan);
+                await _context._SaveChangesAsync();
+
+                if (plan.GatewayNames == null || plan.GatewayNames.Count == 0)
+                {
+                    foreach (var gateway in await _gatewayService.GetAllPublicAsync())
+                    {
+                        await _context.PlanGateways.AddAsync(new PlanGateway()
+                        {
+                            PlanId = plan.Id,
+                            GatewayId = gateway.Id
+                        });
+                    }
+                }
+                else
+                {
+                    foreach (var gatewayName in plan.GatewayNames)
+                    {
+                        var gateway = await _gatewayService.GetAsync(gatewayName);
+                        await _context.PlanGateways.AddAsync(new PlanGateway()
+                        {
+                            PlanId = plan.Id,
+                            GatewayId = gateway.Id
+                        });
+                    }
+                }
+
+                await _context._SaveChangesAsync();
+
+                if (plan.ApplicationNames != null && plan.ApplicationNames.Count > 0)
+                {
+                    foreach (var applicationName in plan.ApplicationNames)
+                    {
+                        var application = await _context.LunaApplications.SingleOrDefaultAsync(o => (o.ApplicationName == applicationName));
+                        await _context.PlanApplications.AddAsync(new PlanApplication()
+                        {
+                            PlanId = plan.Id,
+                            ApplicationId = application.Id
+                        });
+                    }
+                }
+
+                await _context._SaveChangesAsync();
+
+                transaction.Commit();
+            }
             _logger.LogInformation(LoggingUtils.ComposeResourceCreatedMessage(typeof(Plan).Name, plan.PlanName, offerName: offerName));
 
             return plan;
@@ -278,8 +368,77 @@ namespace Luna.Services.Data
 
             dbPlan = await SetArmTemplateAndWebhookIds(offerName, dbPlan);
 
-            _context.Plans.Update(dbPlan);
-            await _context._SaveChangesAsync();
+            using (var transaction = await _context.BeginTransactionAsync())
+            {
+                if (plan.GatewayNames.Count > 0)
+                {
+                    List<long> gatewayIds = new List<long>();
+                    foreach (var gatewayName in plan.GatewayNames)
+                    {
+                        var gateway = await _gatewayService.GetAsync(gatewayName);
+                        gatewayIds.Add(gateway.Id);
+                    }
+
+                    foreach (var id in gatewayIds)
+                    {
+                        if (await _context.PlanGateways.CountAsync(v => v.PlanId == dbPlan.Id && v.GatewayId == id) == 0)
+                        {
+                            await _context.PlanGateways.AddAsync(new PlanGateway()
+                            {
+                                PlanId = dbPlan.Id,
+                                GatewayId = id
+                            });
+                        }
+                    }
+                    await _context._SaveChangesAsync();
+                    foreach (var value in _context.PlanGateways.Where(v => v.PlanId == dbPlan.Id))
+                    {
+                        if (!gatewayIds.Contains(value.GatewayId))
+                        {
+                            _context.PlanGateways.Remove(value);
+                        }
+                    }
+                    await _context._SaveChangesAsync();
+                }
+
+                if (plan.ApplicationNames.Count > 0)
+                {
+                    List<long> applicationIds = new List<long>();
+                    foreach (var applicationName in plan.ApplicationNames)
+                    {
+                        var application = await _context.LunaApplications.SingleOrDefaultAsync(o => (o.ApplicationName == applicationName));
+                        applicationIds.Add(application.Id);
+                    }
+
+                    foreach (var id in applicationIds)
+                    {
+                        if (await _context.PlanApplications.CountAsync(v => v.PlanId == dbPlan.Id && v.ApplicationId == id) == 0)
+                        {
+                            await _context.PlanApplications.AddAsync(new PlanApplication()
+                            {
+                                PlanId = dbPlan.Id,
+                                ApplicationId = id
+                            });
+                        }
+                    }
+                    await _context._SaveChangesAsync();
+
+                    foreach (var value in _context.PlanApplications.Where(v => v.PlanId == dbPlan.Id))
+                    {
+                        if (!applicationIds.Contains(value.ApplicationId))
+                        {
+                            _context.PlanApplications.Remove(value);
+                        }
+                    }
+                    await _context._SaveChangesAsync();
+                }
+
+                _context.Plans.Update(dbPlan);
+                await _context._SaveChangesAsync();
+                transaction.Commit();
+
+            }
+
             _logger.LogInformation(LoggingUtils.ComposeResourceUpdatedMessage(typeof(Plan).Name, planUniqueName, offerName: offerName));
 
             return dbPlan;

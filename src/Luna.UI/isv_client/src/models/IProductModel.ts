@@ -1,15 +1,13 @@
+import { string } from "yup";
 import { IBaseModel } from "./IBaseModel";
 
 export interface IProductModel extends IBaseModel {
-  productName: string;
-  productType: string;
-  hostType: string;
-  owner: string;
-  logoImageUrl: string;
-  description: string;
-  saasOfferName: string;
-  documentationUrl: string;
   displayName: string;
+  applicationName: string;
+  owner: string;
+  description: string;
+  saaSOfferName: string;
+  saaSOfferPlanName: string;
   createdTime?: string;
   lastUpdatedTime?: string;
   Idlist?: string;
@@ -23,33 +21,38 @@ export interface ILookupType {
 }
 
 export interface IDeploymentsModel extends IBaseModel {
-  productName:string;
-  deploymentName: string;
+  applicationName:string;
+  apiName: string;
+  apiDisplayName:string;
+  apiType:string;
+  selectedPlanType:string;
   description:string;
   versionName: string;  
   selecteddeploymentName: string;  
 }
 
 export interface IDeploymentVersionModel {  
-  productName:string;
-  deploymentName:string;
+  applicationName: string;
+  apiName: string;
   versionName: string;
-  realTimePredictAPI: string;
-  trainModelId:string;
-  batchInferenceId:string;
-  deployModelId:string;
-  authenticationType:string;
-  authenticationKey:string;
   amlWorkspaceName:string;
-  advancedSettings:string | null;
+  gitRepoName: string;
+  endpointName: string;
+  modelName: string;
+  modelVersion: string;
+  modelDisplayName: string;
+  gitVersion: string;
+  dataShareAccountname: string;
+  dataShareName: string;
+  linkedServiceType: string;
+  isUseDefaultRunConfig: boolean;
+  isRunProjectOnManagedCompute: boolean;
+  linkedServiceComputeTarget: string;
+  runConfigFile: string;
   selectedVersionName:string;
-  versionSourceType:string;
-  gitUrl:string;
-  gitPersonalAccessToken:string;
-  gitVersion:string;
-  projectFileUrl:string;
-  projectFileContent:string;
-  configFile:string;
+  deployModelId: string;
+  advancedSettings: string;
+  productType: string;
 }
 
 export interface IAMLWorkSpaceModel extends IBaseModel{  
@@ -60,6 +63,26 @@ export interface IAMLWorkSpaceModel extends IBaseModel{
   aadApplicationId:string;
   aadApplicationSecrets:string;
   selectedWorkspaceName:string;
+}
+
+export interface IMLModelArtifactModel extends IBaseModel{
+  name:string;
+  version: string;
+}
+
+export interface IMLEndpointArtifactModel extends IBaseModel{
+  name: string;
+}
+
+export interface IAMLComputeClusterModel extends IBaseModel{
+  name: string;
+}
+
+export interface IGitRepoModel extends IBaseModel{
+  type: string;
+  repoName: string;
+  httpUrl: string;
+  personalAccessToken: string;
 }
 
 export interface ISourceModel {  

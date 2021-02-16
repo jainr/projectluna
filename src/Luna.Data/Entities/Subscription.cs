@@ -6,6 +6,7 @@ using Luna.Data.Enums;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Luna.Data.DataContracts.Luna.AI;
 
 namespace Luna.Data.Entities
 {
@@ -20,6 +21,7 @@ namespace Luna.Data.Entities
         public Subscription()
         {
             this.IpAddresses = new HashSet<IpAddress>();
+            Applications = new List<SubscriptionApplication>();
         }
 
         /// <summary>
@@ -63,6 +65,8 @@ namespace Luna.Data.Entities
         public DateTime? LastSuspendedTime { get; set; }
         public DateTime? UnsubscribedTime { get; set; }
         public DateTime? DataDeletedTime { get; set; }
+
+        public DateTime? TermEndTime { get; set; }
         public Guid? OperationId { get; set; }
         
         public string DeploymentName { get; set; }
@@ -99,15 +103,28 @@ namespace Luna.Data.Entities
         [NotMapped]
         public string Token { get; set; }
 
+        public string BaseUrl { get; set; }
+
         [NotMapped]
         public string PrimaryKey { get; set; }
+
+        [JsonIgnore]
+        public string PrimaryKeySecretName { get; set; }
 
         [NotMapped]
         public string SecondaryKey { get; set; }
 
-        [NotMapped]
-        public string BaseUrl { get; set; }
+        [JsonIgnore]
+        public string SecondaryKeySecretName { get; set; }
 
+        [NotMapped]
+        public string GatewayName { get; set; }
+
+        [JsonIgnore]
+        public long? GatewayId { get; set; }
+
+        [NotMapped]
+        public List<SubscriptionApplication> Applications { get; set; }
 
         [NotMapped]
         public List<SubscriptionParameter> InputParameters { get; set; }

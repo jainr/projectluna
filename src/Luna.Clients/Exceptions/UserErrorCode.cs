@@ -12,6 +12,7 @@
         InvalidParameter,
         Unauthorized,
         AuthKeyNotProvided,
-        InvalidToken
+        InvalidToken,
+        NotSupported
     }
 }

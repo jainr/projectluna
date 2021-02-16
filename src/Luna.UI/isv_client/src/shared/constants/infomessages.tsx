@@ -8,6 +8,11 @@ export const Offers =
             + "<br/> <br/> <b>Note:</b> This name will not be used in the marketplace and is different than the <b>Offer Name</b> <span style='color:red;'>specified in the Partner Center</span> and other values that will be shown to the customers.",
         Version: "<b>Version:</b> The version number of your offer. Customers will see this info on the offer's details page."
             + "<br/> <br/> <b>Note:</b> This must correspond to App version specified on the Properties tab of the Partner Center. ",
+        Description: "<b>Version:</b> The description of your offer. Customers will see this info on the offer's details page.",
+        LogoImageUrl: "<b>Logo Image Url:</b> The logo of your offer. A default logo will be used if not specified.",
+        DocumentationUrl: "<b>Documentation Url:</b> The documentation link of your offer. ",
+        Tags: "<b>Tags:</b> The tags can be values or key-value pairs, seperated by semicolons. ",
+        DisplayName: "<b>Display Name:</b> The display name of the offer. Customers will see this info on the offers's details page",
         Owners: "<b>Owners:</b> Specify emails of offer owners. "
             + "<br/> <br/> <b>Note:</b> This must correspond to Preview Audience specified on the Preview tab of the Partner Center.",
         HostSubscription: "<b>HostSubscription:</b>Specify tenant ID of host subscription. "
@@ -24,6 +29,8 @@ export const Offers =
             "<br/> <br/> <b>Note: </b> This must correspond to the Plan ID specified on the Plan overview tab of the Partner Center.",
         planName: "<b>Plan Name </b> - Create a unique name for each plan in this offer. The plan name is used to differentiate software plans that may be a part of the same offer." +
             "<br/> <br/> <b>Note: </b> This must correspond to the Plan name specified on the Plan overview tab of the Partner Center.",
+        displayName: "<b>Display Name </b> - Display name for the plan which will be shown on in the ML gallery",
+        description: "<b>Description </b> - Description for the plan which will be shown on in the ML gallery",
         restrictedAudience: "<b>Restricted Audience (Tenant IDs)</b> - Assign the audience that will have access to this private plan." +
             "<br/> <br/> <b>Note: </b> This must correspond to the Restricted Audience specified on the Plan overview tab (Plan audience, check “This is a private plan.”) of the partner center."
     }
@@ -38,13 +45,16 @@ export const ProductMessages =
         Owner: '',
         LogoImageUrl: '',
         Description: '',
-        SaaSOfferName: '',
+        SaaSOfferName: "<b>SaaS Offer Name</b>Name of the SaaS offer. If the SaaS offer does not exist, a new offer will be created. Leave empty if you don't need a SaaS Offer.",
+        SaaSOfferPlanName: "<b>SaaS Offer Plan Name</b>. The name of SaaS offer plan. A new plan will be created if the plan does not exist. Otherwise, the application will be added to the existing plan.",
         DocumentationUrl: '',
         DisplayName: ''
     },
     deployment: {
         DeploymentName: '',
-        Description: ''        
+        Description: '',
+        DisplayName: '',
+        apiType: ''   
     },
     Version: {
         DeploymentName: '',

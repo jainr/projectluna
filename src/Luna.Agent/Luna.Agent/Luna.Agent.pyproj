@@ -18,9 +18,21 @@
     <Name>Luna.Agent</Name>
     <RootNamespace>Luna.Agent</RootNamespace>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
-    <Environment>
-    </Environment>
+    <Environment>AAD_TOKEN_ISSUER=https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0
+AAD_VALID_AUDIENCES=1158aaa3-b79f-42b4-8c07-10b7da5fb0fb
+AGENT_API_ENDPOINT=https://lunaaitest-api.azurewebsites.net
+AGENT_ID=64125945-4487-4cc7-84f5-77d242300e60
+AGENT_KEY=f1e434cc3594443eb75ea4ee09a1b7ef
+AGENT_MODE=SAAS
+APPINSIGHTS_INSTRUMENTATIONKEY=ef9411de-d359-4011-a0f2-08f6756a0fb1
+KEY_VAULT_NAME=lunaaitest-keyvault
+ODBC_CONNECTION_STRING=mssql+pyodbc://lunauserlunaaitest:sNpdqgU5%PS94xLy#WYuCw3Fd@lunaaitest-sqlserver.database.windows.net:1433/lunaaitest-sqldb?driver=ODBC+Driver+17+for+SQL+Server
+API_FRONTEND_CERT_THUMBPRINT=46FE14FDE5F55158FCD472E43A80474802D8A5CB
+API_FRONTEND_CERT_ISSUER="CN=luna.ai"
+API_FRONTEND_CERT_SUBJECT="CN=luna.ai"</Environment>
     <WebBrowserPort>23456</WebBrowserPort>
+    <PythonRunWebServerCommandEnvironment>
+    </PythonRunWebServerCommandEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,18 +45,31 @@
   <ItemGroup>
     <Compile Include="Agent\Auth\AuthHelper.py" />
     <Compile Include="Agent\Auth\test.py" />
-    <Compile Include="Agent\AzureML\AzureMLUtils.py">
+    <Compile Include="Agent\Azure\GitUtils.py" />
+    <Compile Include="Agent\Azure\AzureDatabricksUtils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Agent\AzureML\__init__.py">
+    <Compile Include="Agent\Azure\AzureMLUtils.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Agent\Code\CodeUtils.py">
+    <Compile Include="Agent\Azure\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Agent\Code\__init__.py">
+    <Compile Include="Agent\Constants\Constants.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Agent\Constants\Enums.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Agent\Constants\ErrorMessages.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Agent\Data\AzureDatabricksWorkspace.py" />
+    <Compile Include="Agent\Data\AMLPipelineEndpoint.py" />
+    <Compile Include="Agent\Data\GitRepo.py" />
+    <Compile Include="Agent\Data\MLModel.py" />
+    <Compile Include="Agent\Data\PlanApplicationAPI.py" />
+    <Compile Include="Agent\Data\Subscription.py" />
     <Compile Include="Agent\Data\Offer.py" />
     <Compile Include="Agent\Data\KeyVaultHelper.py">
       <SubType>Code</SubType>
@@ -57,9 +82,6 @@
     <Compile Include="Agent\Data\AMLWorkspace.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Agent\Data\APISubscription.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Agent\Data\APIVersion.py">
       <SubType>Code</SubType>
     </Compile>
@@ -69,19 +91,7 @@
     <Compile Include="Agent\Exception\LunaExceptions.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Agent\Mgmt\AgentManager.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Agent\Mgmt\ControlPlane.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Agent\Mgmt\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="config.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="main.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="runserver.py" />
@@ -91,29 +101,27 @@
   <ItemGroup>
     <Folder Include="Agent\" />
     <Folder Include="Agent\Auth\" />
-    <Folder Include="Agent\Code\" />
-    <Folder Include="Agent\AzureML\" />
+    <Folder Include="Agent\Azure\" />
     <Folder Include="Agent\ML\" />
-    <Folder Include="Agent\Mgmt\" />
     <Folder Include="Agent\Data\" />
     <Folder Include="Agent\Exception\" />
+    <Folder Include="Agent\Constants\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="xiwutest5f386e67.pubxml" />
-    <None Include="lunaagent.pubxml" />
     <Content Include=".dockerignore">
       <SubType>Content</SubType>
       <DependentUpon>Dockerfile</DependentUpon>
     </Content>
     <None Include="Dockerfile" />
     <None Include="aigent-saas - Web Deploy.pubxml" />
-    <Content Include="mypy.ini" />
+    <Content Include="startup.sh" />
     <Content Include="web.config" />
     <None Include="aigent - Web Deploy.pubxml" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="env\">
+    <Interpreter Include="..\env\">
       <Id>env</Id>
       <Version>3.7</Version>
       <Description>env (Python 3.7 (64-bit))</Description>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -7,12 +8,14 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Web;
 using Luna.Clients.Azure;
+using Luna.Clients.Azure.Auth;
 using Luna.Clients.Azure.Storage;
 using Luna.Clients.Exceptions;
 using Luna.Clients.Fulfillment;
 using Luna.Clients.Logging;
 using Luna.Clients.Models.Fulfillment;
 using Luna.Clients.Provisioning;
+using Luna.Data.Constants;
 using Luna.Data.DataContracts;
 using Luna.Data.Entities;
 using Luna.Data.Enums;
@@ -22,6 +25,7 @@ using Luna.Services.Marketplace;
 using Luna.Services.Utilities.ExpressionEvaluation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 
 namespace Luna.Services.Provisoning
@@ -37,7 +41,12 @@ namespace Luna.Services.Provisoning
         private readonly IArmTemplateParameterService _armTemplateParameterService;
         private readonly IWebhookParameterService _webhookParameterService;
         private readonly ISubscriptionCustomMeterUsageService _subscriptionCustomMeterUsageService;
+        private readonly ILunaApplicationService _aiServiceService;
+        private readonly ILunaAPIService _aiServicePlanService;
+        private readonly IGatewayService _gatewayService;
         private readonly IStorageUtility _storageUtility;
+        private readonly IKeyVaultHelper _keyVaultHelper;
+        private readonly IOptionsMonitor<AzureConfigurationOption> _options;
         private readonly int _maxRetry;
         private readonly ILogger<ProvisioningService> _logger;
 
@@ -46,6 +55,8 @@ namespace Luna.Services.Provisoning
             IFulfillmentClient fulfillmentclient, IIpAddressService ipAddressService,
             ISubscriptionParameterService subscriptionParameterService, IArmTemplateParameterService armTemplateParameterService,
             IWebhookParameterService webhookParameterService, ISubscriptionCustomMeterUsageService subscriptionCustomMeterUsageService,
+            ILunaApplicationService aIServiceService, ILunaAPIService aIServicePlanService, IGatewayService gatewayService,
+            IKeyVaultHelper keyVaultHelper, IOptionsMonitor<AzureConfigurationOption> options,
             IStorageUtility storageUtility, ILogger<ProvisioningService> logger)
         {
             _context = sqlDbContext ?? throw new ArgumentNullException(nameof(sqlDbContext));
@@ -56,6 +67,11 @@ namespace Luna.Services.Provisoning
             _armTemplateParameterService = armTemplateParameterService ?? throw new ArgumentNullException(nameof(armTemplateParameterService));
             _webhookParameterService = webhookParameterService ?? throw new ArgumentNullException(nameof(webhookParameterService));
             _subscriptionCustomMeterUsageService = subscriptionCustomMeterUsageService ?? throw new ArgumentNullException(nameof(subscriptionCustomMeterUsageService));
+            _aiServiceService = aIServiceService ?? throw new ArgumentNullException(nameof(aIServiceService));
+            _aiServicePlanService = aIServicePlanService ?? throw new ArgumentNullException(nameof(aIServicePlanService));
+            _gatewayService = gatewayService ?? throw new ArgumentNullException(nameof(gatewayService));
+            _keyVaultHelper = keyVaultHelper ?? throw new ArgumentNullException(nameof(keyVaultHelper));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _storageUtility = storageUtility ?? throw new ArgumentNullException(nameof(storageUtility));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -84,43 +100,50 @@ namespace Luna.Services.Provisoning
 
             try 
             {
-
                 Offer offer = await FindOfferById(subscription.OfferId);
-                if (subscription.ProvisioningStatus.Equals(ProvisioningState.NotificationPending.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                    && offer.ManualActivation)
+
+                if (offer.IsAzureMarketplaceOffer)
                 {
-                    _logger.LogInformation($"ManualActivation of offer {offer.OfferName} is set to true. Will not activate the subscription.");
+                    if (subscription.ProvisioningStatus.Equals(ProvisioningState.NotificationPending.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                        && offer.ManualActivation)
+                    {
+                        _logger.LogInformation($"ManualActivation of offer {offer.OfferName} is set to true. Will not activate the subscription.");
 
-                    return await TransitToNextState(subscription, ProvisioningState.ManualActivationPending);
-                }
+                        return await TransitToNextState(subscription, ProvisioningState.ManualActivationPending);
+                    }
 
-                Plan plan = await FindPlanById(subscription.PlanId);
-                ActivatedSubscriptionResult activatedResult = new ActivatedSubscriptionResult
-                {
-                    PlanId = plan.PlanName,
-                    Quantity = subscription.Quantity.ToString()
-                };
+                    Plan plan = await FindPlanById(subscription.PlanId);
+                    ActivatedSubscriptionResult activatedResult = new ActivatedSubscriptionResult
+                    {
+                        PlanId = plan.PlanName,
+                        Quantity = subscription.Quantity.ToString()
+                    };
 
-                _logger.LogInformation(
-                    LoggingUtils.ComposeHttpClientLogMessage(
-                        _fulfillmentClient.GetType().Name,
-                        nameof(_fulfillmentClient.ActivateSubscriptionAsync),
-                        subscriptionId));
+                    _logger.LogInformation(
+                        LoggingUtils.ComposeHttpClientLogMessage(
+                            _fulfillmentClient.GetType().Name,
+                            nameof(_fulfillmentClient.ActivateSubscriptionAsync),
+                            subscriptionId));
 
-                var result = await _fulfillmentClient.ActivateSubscriptionAsync(
-                    subscriptionId,
-                    activatedResult,
-                    Guid.NewGuid(),
-                    Guid.NewGuid(),
-                    default);
-
-                _logger.LogInformation(
-                    LoggingUtils.ComposeSubscriptionActionMessage(
-                        "Activated",
+                    var result = await _fulfillmentClient.ActivateSubscriptionAsync(
                         subscriptionId,
-                        activatedResult.PlanId,
-                        activatedResult.Quantity,
-                        activatedBy));
+                        activatedResult,
+                        Guid.NewGuid(),
+                        Guid.NewGuid(),
+                        default);
+
+                    _logger.LogInformation(
+                        LoggingUtils.ComposeSubscriptionActionMessage(
+                            "Activated",
+                            subscriptionId,
+                            activatedResult.PlanId,
+                            activatedResult.Quantity,
+                            activatedBy));
+                }
+                else
+                {
+                    _logger.LogInformation($"Offer {offer.OfferName} is not an Azure Marketplace offer. Skip the activation.");
+                }
 
                 await _subscriptionCustomMeterUsageService.EnableSubscriptionCustomMeterUsageBySubscriptionId(subscriptionId);
 
@@ -240,11 +263,77 @@ namespace Luna.Services.Provisoning
         }
 
         /// <summary>
+        /// Subscribe AI service if specified
+        /// </summary>
+        /// <param name="subscriptionId">The subscription Id</param>
+        /// <returns>The subscription</returns>
+        [InputStates(ProvisioningState.ProvisioningPending)]
+        [OutputStates(ProvisioningState.DeployResourceGroupPending, ProvisioningState.AIServiceFailed)]
+        public async Task<Subscription> SubscribeAIServiceAsync(Guid subscriptionId)
+        {
+            Subscription subscription = await _context.Subscriptions.FindAsync(subscriptionId);
+            ValidateSubscriptionAndInputState(subscription);
+            try
+            {
+                if (_context.PlanApplications.Where(x => x.PlanId == subscription.PlanId).Any())
+                {
+                    if (subscription.ProvisioningType.Equals(nameof(ProvisioningType.Subscribe)))
+                    {
+                        _logger.LogInformation($"Subscribing AI service.");
+                        Offer offer = await FindOfferById(subscription.OfferId);
+                        Plan plan = await FindPlanById(subscription.PlanId);
+
+                        Gateway gateway = null;
+                        if (subscription.GatewayId.HasValue)
+                        {
+                            gateway = await _context.Gateways.FindAsync(subscription.GatewayId);
+                        }
+                        else
+                        {
+                            gateway = await _gatewayService.GetLeastUsedPlanGatewayAsync(plan.Id);
+                        }
+
+                        if (gateway != null)
+                        {
+                            subscription.GatewayId = gateway.Id;
+                            subscription.BaseUrl = gateway.EndpointUrl;
+                        }
+                        else
+                        {
+                            throw new LunaServerException($"Can not find the gateway for subscription {subscription.SubscriptionId}");
+                        }
+
+                        subscription.PrimaryKeySecretName = string.Format(LunaConstants.PRIMARY_KEY_SECRET_NAME_FORMAT, subscription.SubscriptionId.ToString());
+                        subscription.SecondaryKeySecretName = string.Format(LunaConstants.SECONDARY_KEY_SECRET_NAME_FORMAT, subscription.SubscriptionId.ToString());
+                        subscription.PrimaryKey = Guid.NewGuid().ToString("N");
+                        subscription.SecondaryKey = Guid.NewGuid().ToString("N");
+                        await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.PrimaryKeySecretName, subscription.PrimaryKey));
+                        await (_keyVaultHelper.SetSecretAsync(_options.CurrentValue.Config.VaultName, subscription.SecondaryKeySecretName, subscription.SecondaryKey));
+                    }
+                    else if (subscription.ProvisioningType.Equals(nameof(ProvisioningType.Update)))
+                    {
+                        // Do nothing for now
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation($"Skipped AI service subscription since there's no linked AI service.");
+                }
+
+                return await TransitToNextState(subscription, ProvisioningState.DeployResourceGroupPending);
+            }
+            catch (Exception e)
+            {
+                return await HandleExceptions(subscription, e);
+            }
+        }
+
+        /// <summary>
         /// Create resource group for a subscription
         /// </summary>
         /// <param name="subscriptionId">The subscription id</param>
         /// <returns>The subscription</returns>
-        [InputStates(ProvisioningState.ProvisioningPending)]
+        [InputStates(ProvisioningState.DeployResourceGroupPending)]
         [OutputStates(ProvisioningState.DeployResourceGroupRunning, ProvisioningState.WebhookPending, ProvisioningState.DeployResourceGroupFailed)]
         public async Task<Subscription> CreateResourceGroupAsync(Guid subscriptionId)
         {
@@ -507,39 +596,53 @@ namespace Luna.Services.Provisoning
             {
                 Offer offer = await FindOfferById(subscription.OfferId);
 
-                if (subscription.ProvisioningStatus.Equals(ProvisioningState.NotificationPending.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                    && offer.ManualCompleteOperation)
+                if (offer.IsAzureMarketplaceOffer)
                 {
-                    _logger.LogInformation($"ManualCompleteOperation of offer {offer.OfferName} is set to true. Will not complete the operation automatically.");
-
-                    return await TransitToNextState(subscription, ProvisioningState.ManualCompleteOperationPending);
-                }
-
-                // Don't need to update marketplace operation for delete data
-                if (!subscription.ProvisioningType.Equals(nameof(ProvisioningType.DeleteData)))
-                {
-                    Plan plan = await FindPlanById(subscription.PlanId);
-
-                    OperationUpdate update = new OperationUpdate
+                    if (subscription.ProvisioningType.Equals(nameof(ProvisioningType.Unsubscribe)))
                     {
-                        PlanId = plan.PlanName,
-                        Quantity = subscription.Quantity,
-                        Status = OperationUpdateStatusEnum.Success
-                    };
+                        var sub = await _fulfillmentClient.GetSubscriptionAsync(subscriptionId, Guid.NewGuid(), Guid.NewGuid());
+                        subscription.TermEndTime = sub.Term.EndDate;
+                    }
+                    if (subscription.ProvisioningStatus.Equals(ProvisioningState.NotificationPending.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                        && offer.ManualCompleteOperation)
+                    {
+                        _logger.LogInformation($"ManualCompleteOperation of offer {offer.OfferName} is set to true. Will not complete the operation automatically.");
 
-                    _logger.LogInformation(
-                        LoggingUtils.ComposeHttpClientLogMessage(
-                            _fulfillmentClient.GetType().Name,
-                            nameof(_fulfillmentClient.UpdateSubscriptionOperationAsync),
-                            subscriptionId));
+                        return await TransitToNextState(subscription, ProvisioningState.ManualCompleteOperationPending);
+                    }
 
-                    var result = await _fulfillmentClient.UpdateSubscriptionOperationAsync(
-                        subscriptionId,
-                        subscription.OperationId ?? Guid.Empty,
-                        update,
-                        Guid.NewGuid(),
-                        Guid.NewGuid(),
-                        default);
+                    // Don't need to update marketplace operation for delete data
+                    // 02-05-2021: Behavior change in AMP SaaS API, Unsubscribe does not need notification anymore
+                    if (!subscription.ProvisioningType.Equals(nameof(ProvisioningType.DeleteData)) &&
+                        !subscription.ProvisioningType.Equals(nameof(ProvisioningType.Unsubscribe)))
+                    {
+                        Plan plan = await FindPlanById(subscription.PlanId);
+
+                        OperationUpdate update = new OperationUpdate
+                        {
+                            PlanId = plan.PlanName,
+                            Quantity = subscription.Quantity,
+                            Status = OperationUpdateStatusEnum.Success
+                        };
+
+                        _logger.LogInformation(
+                            LoggingUtils.ComposeHttpClientLogMessage(
+                                _fulfillmentClient.GetType().Name,
+                                nameof(_fulfillmentClient.UpdateSubscriptionOperationAsync),
+                                subscriptionId));
+
+                        var result = await _fulfillmentClient.UpdateSubscriptionOperationAsync(
+                            subscriptionId,
+                            subscription.OperationId ?? Guid.Empty,
+                            update,
+                            Guid.NewGuid(),
+                            Guid.NewGuid(),
+                            default);
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation($"Offer {offer.OfferName} is not an Azure Marketplace offer. Skip the activation.");
                 }
 
                 switch (subscription.ProvisioningType)
@@ -562,6 +665,7 @@ namespace Luna.Services.Provisoning
                     default:
                         throw new ArgumentException($"Provisioning type {subscription.ProvisioningType} is not supported.");
                 }
+
                 subscription.ActivatedBy = activatedBy;
                 return await TransitToNextState(subscription, ProvisioningState.Succeeded);
             }
@@ -585,7 +689,14 @@ namespace Luna.Services.Provisoning
                 if (sub.Status.Equals(nameof(FulfillmentState.Unsubscribed)))
                 {
                     Plan plan = await FindPlanById(sub.PlanId);
-                    if (sub.UnsubscribedTime.Value.AddDays(plan.DataRetentionInDays) > DateTime.UtcNow)
+                    // Only delete data when
+                    // 1. run out of retention AND
+                    // 2. After term end time.
+                    if (sub.UnsubscribedTime.HasValue && sub.UnsubscribedTime.Value.AddDays(plan.DataRetentionInDays) > DateTime.UtcNow)
+                    {
+                        continue;
+                    }
+                    if (sub.TermEndTime.HasValue && sub.TermEndTime > DateTime.UtcNow)
                     {
                         continue;
                     }
@@ -760,6 +871,9 @@ namespace Luna.Services.Provisoning
                         errorState = ProvisioningState.ArmTemplateFailed;
                         break;
                     case nameof(ProvisioningState.ProvisioningPending):
+                        errorState = ProvisioningState.AIServiceFailed;
+                        break;
+                    case nameof(ProvisioningState.DeployResourceGroupPending):
                     case nameof(ProvisioningState.DeployResourceGroupRunning):
                         errorState = ProvisioningState.DeployResourceGroupFailed;
                         break;

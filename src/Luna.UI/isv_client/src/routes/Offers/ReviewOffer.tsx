@@ -71,11 +71,15 @@ const ReviewOffer: React.FunctionComponent = () => {
 
     var offer: IOfferModel = {
       owners: '',
-      offerAlias: '',
       hostSubscription: '',
       status: '',
       offerVersion: '',
       offerName: '',
+      description: '',
+      displayName: '',
+      logoImageUrl: '',
+      documentationUrl: '',
+      tags: '',
       isNew: true,
       clientId: uuid()
     };
@@ -135,11 +139,15 @@ const ReviewOffer: React.FunctionComponent = () => {
     {
       info: {
         owners: '',
-        offerAlias: '',
         hostSubscription: '',
         status: '',
         offerVersion: '',
         offerName: '',
+        description: '',
+        displayName: '',
+        logoImageUrl: '',
+        documentationUrl: '',
+        tags: '',
         isNew: true,
         clientId: ""
       },
@@ -279,6 +287,22 @@ export const ReviewPage: React.FunctionComponent<IOfferParametersFormProps> = (p
         <Stack className={"form_row"} horizontal={true} gap={20}>
           <FormLabel title={"Owners:"} />
           <span>{values.info.owners}</span>
+        </Stack>
+        <Stack className={"form_row"} horizontal={true} gap={20}>
+          <FormLabel title={"Description:"} />
+          <span>{values.info.description}</span>
+        </Stack>
+        <Stack className={"form_row"} horizontal={true} gap={20}>
+          <FormLabel title={"Logo Image Url:"} />
+          <span>{values.info.logoImageUrl}</span>
+        </Stack>
+        <Stack className={"form_row"} horizontal={true} gap={20}>
+          <FormLabel title={"Documentation Url:"} />
+          <span>{values.info.documentationUrl}</span>
+        </Stack>
+        <Stack className={"form_row"} horizontal={true} gap={20}>
+          <FormLabel title={"Tags:"} />
+          <span>{values.info.tags}</span>
         </Stack>
         <Stack className={"form_row"} horizontal={true} gap={20}>
           <FormLabel title={"Host Subscription:"} />

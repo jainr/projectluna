@@ -1,8 +1,11 @@
-var BASE_URL = "https://lunaaiagent1-api.azurewebsites.net/api/management";
+var BASE_URL = "https://localhost:44334/api"
+//var BASE_URL = "https://lunaaitest-apiapp.azurewebsites.net/api";
 var HEADER_HEX_COLOR = "#3376CD";
-var SITE_TITLE = "Luna AI Agent";
+var SITE_TITLE = "Luna Machine Learning Gallery";
 var MSAL_CONFIG = {
-  appId: "32194131-5cf5-4acd-b59c-d7671f882b70",
+  tenantId: "72f988bf-86f1-41af-91ab-2d7cd011db47",
+  appId: "1158aaa3-b79f-42b4-8c07-10b7da5fb0fb",
+  //redirectUri: "https://lunaaitest-portal.azurewebsites.net/",
   redirectUri: "http://localhost:3000/",
   scopes: [
     "user.read",
