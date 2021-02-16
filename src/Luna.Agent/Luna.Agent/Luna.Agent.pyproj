@@ -55,12 +55,6 @@ API_FRONTEND_CERT_SUBJECT="CN=luna.ai"</Environment>
     <Compile Include="Agent\Azure\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Agent\Code\CodeUtils.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Agent\Code\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Agent\Constants\Constants.py">
       <SubType>Code</SubType>
     </Compile>
@@ -107,7 +101,6 @@ API_FRONTEND_CERT_SUBJECT="CN=luna.ai"</Environment>
   <ItemGroup>
     <Folder Include="Agent\" />
     <Folder Include="Agent\Auth\" />
-    <Folder Include="Agent\Code\" />
     <Folder Include="Agent\Azure\" />
     <Folder Include="Agent\ML\" />
     <Folder Include="Agent\Data\" />

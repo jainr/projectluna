@@ -261,7 +261,7 @@ const AIServices = () => {
                             sub = {
                               OfferName: sub.OfferName, 
                               OfferDisplayName: sub.OfferDisplayName,
-                              PlanName: option?.text!,
+                              PlanName: option?.key!+"",
                               Name: sub.Name,
                               SubscriptionId: sub.SubscriptionId,
                               Owner: sub.Owner
@@ -332,7 +332,6 @@ const AIServices = () => {
                         
                         let planOptions: IDropdownOption[] = [];
                         for (const plan in offer.Plans) {
-                          //planOptions.push({"key": (plan as unknown as IPlan).PlanName, "text": (plan as unknown as IPlan).PlanDisplayName})
                           planOptions.push({"key": offer.Plans[plan].PlanName, "text": offer.Plans[plan].PlanDisplayName})
                         }
                         setPlanOptions(planOptions);

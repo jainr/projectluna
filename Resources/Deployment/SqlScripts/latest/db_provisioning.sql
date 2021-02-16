@@ -775,3 +775,17 @@ FROM   dbo.PlanApplications INNER JOIN
           dbo.LunaApplications ON dbo.PlanApplications.ApplicationId = dbo.LunaApplications.Id AND dbo.LunaAPIs.ApplicationId = dbo.LunaApplications.Id
 GO
 
+
+Declare @gatewayId uniqueidentifier
+Declare @endpointUrl nvarchar(512)
+Declare @userName nvarchar(512)
+Declare @createdDate datetime2(7)
+
+SET @gatewayId = $(gatewayId)
+SET @endpointUrl = $(endpointUrl)
+SET @userName = $(userName)
+SET @createdDate = GETUTCDATE()
+
+INSERT INTO [dbo].[Gateways] VALUES ('default', @gatewayId, 'Default Gateway', @endpointUrl, "This is the default gateway", "default", @userName, @createdDate, @createdDate, 0)
+GO
+

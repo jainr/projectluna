@@ -36,6 +36,8 @@
     [string]$controllerWebAppServicePlanName = "default",
 
     [string]$controllerWebAppName = "default",
+
+    [string]$userPortalWebAppName = "default",
     
     [string]$apiWebAppName = "default",
 
@@ -266,6 +268,7 @@ $apiWebJobName = GetNameForAzureResources -defaultName $apiWebJobName -resourceT
 $apiWebAppInsightsName = GetNameForAzureResources -defaultName $apiWebAppInsightsName -resourceTypeSuffix "-apiappinsights" -uniqueName $uniqueName
 $apimName = GetNameForAzureResources -defaultName $apimName -resourceTypeSuffix "-apim" -uniqueName $uniqueName
 $amlWorkspaceName = GetNameForAzureResources -defaultName $amlWorkspaceName -resourceTypeSuffix "-aml" -uniqueName $uniqueName
+$userPortalWebAppName = GetNameForAzureResources -defaultName $userPortalWebAppName -resourceTypeSuffix "-portal" -uniqueName $uniqueName
 
 $controllerWebAppServicePlanName = GetNameForAzureResources -defaultName $controllerWebAppServicePlanName -resourceTypeSuffix "-crlsvrplan" -uniqueName $uniqueName
 
@@ -277,9 +280,7 @@ $azureMarketplaceAADApplicationName = GetNameForAzureResources -defaultName $azu
 $azureResourceManagerAADApplicationName = GetNameForAzureResources -defaultName $azureResourceManagerAADApplicationName -resourceTypeSuffix "-azureresourcemanager-aad" -uniqueName $uniqueName
 $webAppAADApplicationName = GetNameForAzureResources -defaultName $webAppAADApplicationName -resourceTypeSuffix "-apiapp-aad" -uniqueName $uniqueName
 
-$agentId = (New-Guid).ToString()
-$agentKey = (New-Guid).ToString("N")
-$publisherId = (New-Guid).ToString()
+$gatewayId = (New-Guid).ToString()
 
 add-type -AssemblyName System.Web
 
@@ -450,26 +451,21 @@ $firewallRuleName = "deploymentClient"+(Get-Date).ToString("yyyyMMdd-hhmmss")
 
 New-AzSqlServerFirewallRule -ResourceGroupName $resourceGroupName -ServerName $sqlServerName -FirewallRuleName $firewallRuleName -StartIpAddress $firewallStartIpAddress -EndIpAddress $firewallEndIpAddress
 
-Write-Host "Execute SQL script to create database user and objects."
+Write-Host "Execute SQL script to create database user and default gateway entry."
 $sqlDatabaseUserName = "lunauser" + $uniqueName
 $sqlDatabaseUsernameVar = "username='" + $sqlDatabaseUserName + "'"
 
 $sqlDatabasePassword = GetPassword
 $sqlDatabasePasswordVar = "password='" + $sqlDatabasePassword + "'"
 $publisherIdVar = "publisherId='" + $publisherId + "'"
-$controlPlaneUrl = "https://"+ $apiWebAppName +".azurewebsites.net"
-$controlPlaneUrlVar = "controlPlaneUrl='" + $controlPlaneUrl + "'"
-$agentIdVar = "agentId='" + $agentId + "'"
-$agentkeySecretNameVar = "agentKeySecretName='saas-agent-key'"
-$publisherNameVar = "publisherName='"+$companyName+"'"
-$publisherMicrosoftIdVar = "publisherMicrosoftId='"+$publisherMicrosoftid+"'"
-$LandingPageUrlVar = "landingPageUrl='https://" + $enduserWebAppName + ".azurewebsites.net/LandingPage'"
 
+$endpointUrl = "https://"+ $controllerWebAppName +".azurewebsites.net"
+$endpointUrlVar = "endpointUrl='" + $endpointUrl + "'"
+$gatewayIdVar = "gatewayId='" + $gatewayId + "'"
 
-$secretvalue = ConvertTo-SecureString $agentKey -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'saas-agent-key' -SecretValue $secretvalue
+$accountIdVar = "userName='" + $accountId + "'"
 
-$variables = $sqlDatabaseUsernameVar, $sqlDatabasePasswordVar, $publisherIdVar, $controlPlaneUrlVar, $agentIdVar, $agentkeySecretNameVar, $publisherNameVar, $publisherMicrosoftIdVar, $LandingPageUrlVar
+$variables = $sqlDatabaseUsernameVar, $sqlDatabasePasswordVar, $endpointUrlVar, $gatewayIdVar, $accountIdVar
 
 Write-Host $variables
 
@@ -551,6 +547,41 @@ Write-Host "Deploy webjob."
 $webjobZipPath = $buildLocation + "/webjob.zip"
 Deploy-WebJob -resourceGroupName $resourceGroupName -webAppName $apiWebAppName -webJobName $apiWebJobName -webJobZipPath $webjobZipPath
 
+$buildFolder = "tempBuild"
+$zipFileName = "tempBuild.zip"
+
+Invoke-WebRequest -Uri $userPortalZipPath -OutFile $zipFileName
+Expand-Archive -LiteralPath $zipFileName -DestinationPath $buildFolder
+
+
+Push-Location -Path $buildFolder
+
+$config = 'var BASE_URL = "https://'+$apiWebAppName+'.azurewebsites.net/api";
+var HEADER_HEX_COLOR = "'+$headerBackgroundColor+'";
+var SITE_TITLE = "'+$companyName+'";
+var MSAL_CONFIG = {
+  appId: "'+$webAppAADApplicationId+'",
+  redirectUri: "https://'+$userPortalWebAppName+'.azurewebsites.net/",
+  scopes: [
+    "user.read",
+    "User.ReadBasic.All"
+  ]
+};'
+
+$config | Out-File "appConfig.js"
+
+az webapp create -n $userPortalWebAppName -p $appServicePlanName -g $resourceGroupName --runtime "node|10.14"
+
+az webapp config set -n $userPortalWebAppName -g $resourceGroupName --startup-file "start.sh"
+
+az webapp up -n $userPortalWebAppName -p $appServicePlanName -g $resourceGroupName
+
+Pop-Location
+
+#Remove-Item $zipFileName -Force -ErrorAction SilentlyContinue
+#Remove-Item $buildFolder -Force -Recurse -ErrorAction SilentlyContinue
+
+
 Write-Host "Deploy controller web app"
 az account set -s $lunaServiceSubscriptionId
 
@@ -571,10 +602,6 @@ $setting = 'AGENT_MODE=SAAS'
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
 $setting = 'ODBC_CONNECTION_STRING="'+$odbcConnectionString+'"'
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
-$setting = 'AGENT_ID='+$agentId
-az webapp config appsettings set -n $controllerWebAppName --settings $setting
-$setting = 'AGENT_KEY='+$agentKey
-az webapp config appsettings set -n $controllerWebAppName --settings $setting
 $setting = 'AGENT_API_ENDPOINT=' + "https://"+ $controllerWebAppName +".azurewebsites.net"
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
 $setting = 'AAD_VALID_AUDIENCES=' + $webAppAADApplicationId
@@ -585,11 +612,15 @@ az webapp config appsettings set -n $controllerWebAppName --settings $setting
 $setting = 'APPINSIGHTS_INSTRUMENTATIONKEY='+$appInsightsApp.InstrumentationKey
 az webapp config appsettings set -n $controllerWebAppName --settings $setting
 
+Pop-Location
+
 Write-Host "Update CORS"
 
 $corsUrl = "https://" + $isvWebAppName + ".azurewebsites.net"
 az webapp cors add -g $resourceGroupName -n $apiWebAppName --allowed-origins $corsUrl
 $corsUrl = "https://" + $enduserWebAppName + ".azurewebsites.net"
+az webapp cors add -g $resourceGroupName -n $apiWebAppName --allowed-origins $corsUrl
+$corsUrl = "https://" + $userPortalWebAppName + ".azurewebsites.net"
 az webapp cors add -g $resourceGroupName -n $apiWebAppName --allowed-origins $corsUrl
 
 az webapp cors add -g $controllerWebAppResourceGroupName -n $controllerWebAppName --allowed-origins "*"
