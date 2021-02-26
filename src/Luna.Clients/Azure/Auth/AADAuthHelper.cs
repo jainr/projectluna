@@ -120,7 +120,19 @@ namespace Luna.Clients.Azure.Auth
             string userAccount = context.User.Identity.Name;
             if (userAccount == null)
             {
-                return context.User.FindFirst("preferred_username").Value;
+                var preferredName = context.User.FindFirst("preferred_username");
+                if (preferredName != null)
+                {
+                    return preferredName.Value;
+                }
+                else
+                {
+                    var objectId = context.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
+                    if (objectId != null)
+                    {
+                        return objectId.Value;
+                    }
+                }
             }
 
             return userAccount;
