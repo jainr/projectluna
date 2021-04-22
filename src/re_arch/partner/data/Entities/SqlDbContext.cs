@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.RBAC.Data.Entities
+namespace Luna.Partner.Data.Entities
 {
     /// <summary>
     /// The SQL database context for Entity framework
@@ -16,8 +16,7 @@ namespace Luna.RBAC.Data.Entities
             : base(options)
         { }
 
-        public DbSet<RoleAssignment> RoleAssignments { get; set; }
-        public DbSet<Ownership> Ownerships { get; set; }
+        public DbSet<PartnerServiceInternal> PartnerServices { get; set; }
 
         /// <summary>
         /// Save changes to database
@@ -47,7 +46,7 @@ namespace Luna.RBAC.Data.Entities
         /// <param name="modelBuilder"></param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasDefaultSchema("rbac");
+            modelBuilder.HasDefaultSchema("partner");
         }
     }
 }

@@ -5,95 +5,36 @@ using System.Collections.Generic;
 namespace Luna.RBAC.Data.DataContracts
 {
     /// <summary>
-    /// The cached scopes. 
-    /// Provides functions to add, remove and query scopes for a certain RBAC rule
+    /// The class defines RBAC ownership
     /// </summary>
-    public class RBACCachedScopes
+    public class RBACCachedOwnership
     {
-        public const string WILDCARD_CHAR = "*";
-        public RBACCachedScopes()
+        public RBACCachedOwnership(string uid, string resourceId)
         {
-            _exactScopes = new HashSet<string>();
-            _wildcardScopes = new HashSet<string>();
+            this.Uid = uid;
+            this.ResourceId = resourceId;
         }
 
-        private HashSet<string> _exactScopes;
+        public string Uid { get; set; }
+        public string ResourceId { get; set; }
 
-        private HashSet<string> _wildcardScopes;
-
-        /// <summary>
-        /// Add a new scope
-        /// </summary>
-        /// <param name="scope">The scope to add</param>
-        /// <returns>True if the scope is added. False if the scope already exists.</returns>
-        public bool Add(string scope)
+        public override bool Equals(Object obj)
         {
-            scope = scope.ToLower();
-            if (scope.EndsWith(WILDCARD_CHAR))
+            //Check for null and compare run-time types.
+            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
             {
-                // Remove the trailing wildcard character
-                return _wildcardScopes.Add(scope.Substring(0, scope.Length - 1));
+                return false;
             }
             else
             {
-                return _exactScopes.Add(scope);
+                RBACCachedOwnership ownership = (RBACCachedOwnership)obj;
+                return ownership.Uid.Equals(this.Uid) && ownership.ResourceId.Equals(this.ResourceId);
             }
         }
-
-        /// <summary>
-        /// Remove a scope
-        /// </summary>
-        /// <param name="scope">The scope to remove</param>
-        /// <returns>True if the scope is removed. False if the scope doesn't exist</returns>
-        public bool Remove(string scope)
+        public override int GetHashCode()
         {
-            scope = scope.ToLower();
-            if (scope.EndsWith(WILDCARD_CHAR))
-            {
-                return _wildcardScopes.Remove(scope.Substring(0, scope.Length - 1));
-            }
-            else
-            {
-                return _exactScopes.Remove(scope);
-            }
+            return (this.Uid.GetHashCode() + this.ResourceId.GetHashCode()) / 2;
         }
-
-        /// <summary>
-        /// Check if the input scope is covered by defined scopes
-        /// </summary>
-        /// <param name="scope">The input scope</param>
-        /// <returns>True if it is covered. False otherwise.</returns>
-        public bool Contains(string scope)
-        {
-            scope = scope.ToLower();
-            if (_exactScopes.Contains(scope))
-            {
-                return true;
-            }
-
-            foreach (var wildcardScope in _wildcardScopes)
-            {
-                if (scope.StartsWith(wildcardScope))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// The cached RBAC actions
-    /// </summary>
-    public class RBACCachedActions
-    {
-        public RBACCachedActions()
-        {
-            this.CachedActions = new Dictionary<string, RBACCachedScopes>();
-        }
-
-        public Dictionary<string, RBACCachedScopes> CachedActions { get; set; }
     }
 
     /// <summary>
@@ -104,103 +45,16 @@ namespace Luna.RBAC.Data.DataContracts
 
         public RBACCache()
         {
-            CachedUsers = new Dictionary<string, RBACCachedActions>();
+            SystemAdmins = new HashSet<string>();
+            Publishers = new HashSet<string>();
+            Ownership = new HashSet<RBACCachedOwnership>();
         }
 
-        // A dictionary with uid as keys
-        public Dictionary<string, RBACCachedActions> CachedUsers { get; set; }
+        public HashSet<string> SystemAdmins { get; set; }
 
-        /// <summary>
-        /// Check if certain RBAC rule exist
-        /// It could be covered by exact scope or wildcard scope
-        /// </summary>
-        /// <param name="uid">The user id</param>
-        /// <param name="scope">The scope</param>
-        /// <param name="action">The action</param>
-        /// <returns>True if the rule exists, False otherwise.</returns>
-        public bool HasRBACRule(string uid, string scope, string action)
-        {
-            if (CachedUsers.ContainsKey(uid))
-            {
-                var actions = CachedUsers[uid].CachedActions;
-                if (actions.ContainsKey(action))
-                {
-                    return actions[action].Contains(scope);
-                }
-            }
+        public HashSet<string> Publishers { get; set; }
 
-            // Find no match
-            return false;
-        }
+        public HashSet<RBACCachedOwnership> Ownership { get; set; }
 
-        /// <summary>
-        /// Add a new RBAC rule
-        /// </summary>
-        /// <param name="uid">The user id</param>
-        /// <param name="scope">The scope</param>
-        /// <param name="action">The action</param>
-        /// <returns>True if a new rule is added, false if the rule already exist</returns>
-        public bool AddRBACRule(string uid, string scope, string action)
-        {
-            if (CachedUsers.ContainsKey(uid))
-            {
-                var actions = CachedUsers[uid].CachedActions;
-                if (actions.ContainsKey(action))
-                {
-                    var scopes = actions[action];
-                    if (scopes.Contains(scope))
-                    {
-                        // The RBAC rule already exist, return false
-                        return false;
-                    }
-                    else
-                    {
-                        return scopes.Add(scope);
-                    }
-                }
-                else
-                {
-                    var cachedScopes = new RBACCachedScopes();
-                    cachedScopes.Add(scope);
-                    actions.Add(action, cachedScopes);
-                    return true;
-                }
-            }
-            else
-            {
-                var cachedScopes = new RBACCachedScopes();
-                cachedScopes.Add(scope);
-
-                var cachedAction = new RBACCachedActions();
-                cachedAction.CachedActions.Add(action, cachedScopes);
-                CachedUsers.Add(uid, cachedAction);
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Remove an RBAC rule
-        /// </summary>
-        /// <param name="uid">The user id</param>
-        /// <param name="scope">The scope</param>
-        /// <param name="action">The action</param>
-        /// <returns>True if the rule is removed, False if the rule doesn't exist</returns>
-        public bool RemoveRBACRule(string uid, string scope, string action)
-        {
-            if (CachedUsers.ContainsKey(uid))
-            {
-                var actions = CachedUsers[uid].CachedActions;
-                if (actions.ContainsKey(action))
-                {
-                    var scopes = actions[action];
-                    if (scopes.Contains(scope))
-                    {
-                        return scopes.Remove(scope);
-                    }
-                }
-            }
-
-            return false;
-        }
     }
 }

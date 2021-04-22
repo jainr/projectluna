@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\data\data.csproj" />
+    <ProjectReference Include="..\data\rbac_data.csproj" />
   </ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.RBAC.Data.Entities
+namespace Luna.Partner.Data.Entities
 {
     /// <summary>
     /// ISqlDbContext interface for EntityFramework
@@ -13,8 +13,7 @@ namespace Luna.RBAC.Data.Entities
     public interface ISqlDbContext
     {
 
-        DbSet<RoleAssignment> RoleAssignments { get; set; }
-        DbSet<Ownership> Ownerships { get; set; }
+        DbSet<PartnerServiceInternal> PartnerServices { get; set; }
 
         /// <summary>
         /// Save the changes to database

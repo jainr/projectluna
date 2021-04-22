@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Luna.Partner.Clients</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\data\partner_data.csproj" />
+    <ProjectReference Include="..\public\partner_public_client.csproj" />
+  </ItemGroup>
+
+</Project>
