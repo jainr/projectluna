@@ -1,0 +1,931 @@
+{
+	"info": {
+		"_postman_id": "2c708c59-93fa-4db6-a300-8ad9fea9f413",
+		"name": "local gateway test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Device authorization request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"device_code\", jsonData.device_code);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{aad_client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "api://{{aad_client_id}}/user_impersonation",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{tenant_id}}/oauth2/v2.0/devicecode",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{tenant_id}}",
+						"oauth2",
+						"v2.0",
+						"devicecode"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get access token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setGlobalVariable(\"access_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:device_code",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{aad_client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "device_code",
+							"value": "{{device_code}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{tenant_id}}/oauth2/v2.0/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{tenant_id}}",
+						"oauth2",
+						"v2.0",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get event store connection",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"uniqueName\":\"amlworkspace\",\r\n    \"displayName\":\"My workspace\",\r\n    \"type\": \"AML\",\r\n    \"description\": \"this is my workspace\",\r\n    \"configuration\":\r\n    {\r\n        \"$type\": \"Luna.Partner.PublicClient.DataContract.PartnerServices.AzureMLWorkspaceConfiguration, Luna.Partner.Public.Client\",\r\n        \"resourceId\": \"/lalala\",\r\n        \"tenantId\": \"\",\r\n        \"clientId\": \"\",\r\n        \"clientSecret\": \"\"\r\n    },\r\n    \"tags\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/eventstores/applicationevents",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"eventstores",
+						"applicationevents"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create partner service",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"displayName\":\"My workspace\",\r\n    \"type\": \"AML\",\r\n    \"description\": \"this is my workspace\",\r\n    \"region\": \"westus2\",\r\n    \"resourceId\": \"/subscriptions/a6c2a7cc-d67e-4a1a-b765-983f08c0423a/resourceGroups/xiwutest/providers/Microsoft.MachineLearningServices/workspaces/xiwutest\",\r\n    \"tenantId\": \"{{tenant_id}}\",\r\n    \"clientId\": \"{{aml_spn_client_id}}\",\r\n    \"clientSecret\": \"{{aml_spn_client_secret}}\",\r\n    \"tags\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/partnerServices/azureml/amlworkspace",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"partnerServices",
+						"azureml",
+						"amlworkspace"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update partner service",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"displayName\":\"My workspace\",\r\n    \"type\": \"AML\",\r\n    \"description\": \"this is my workspace updated again!\",\r\n    \"region\": \"westus2\",\r\n    \"resourceId\": \"/subscriptions/a6c2a7cc-d67e-4a1a-b765-983f08c0423a/resourceGroups/xiwutest/providers/Microsoft.MachineLearningServices/workspaces/xiwutest\",\r\n    \"tenantId\": \"{{tenant_id}}\",\r\n    \"clientId\": \"{{aml_spn_client_id}}\",\r\n    \"clientSecret\": \"{{aml_spn_client_secret}}\",\r\n    \"tags\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/partnerServices/azureml/amlworkspace",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"partnerServices",
+						"azureml",
+						"amlworkspace"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get partner service",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gateway_url}}/manage/partnerServices/azureml/amlworkspace",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"partnerServices",
+						"azureml",
+						"amlworkspace"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete partner service",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{gateway_url}}/manage/partnerServices/azureml/amlworkspace",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"partnerServices",
+						"azureml",
+						"amlworkspace"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List partner services",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"uniqueName\":\"amlworkspace\",\r\n    \"displayName\":\"My workspace\",\r\n    \"type\": \"AML\",\r\n    \"description\": \"this is my workspace\",\r\n    \"configuration\":\r\n    {\r\n        \"$type\": \"Luna.Partner.PublicClient.DataContract.PartnerServices.AzureMLWorkspaceConfiguration, Luna.Partner.Public.Client\",\r\n        \"resourceId\": \"/lalala\",\r\n        \"tenantId\": \"\",\r\n        \"clientId\": \"\",\r\n        \"clientSecret\": \"\"\r\n    },\r\n    \"tags\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/partnerServices/azureml",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"partnerServices",
+						"azureml"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create a Luna application",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "X-MS-CLIENT-PRINCIPAL-ID",
+						"value": "790f1877-bd91-41fa-b4a2-9d69743ee0c4",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"displayName\":\"My application 1\",\r\n    \"description\": \"this is my workspace\",\r\n    \"documentationUrl\": \"this is my url\",\r\n    \"logoImageUrl\": \"this is my url\",\r\n    \"tags\":[\r\n    {\r\n        \"key\": \"myKey\",\r\n        \"value\": \"myValue\"\r\n    }\r\n\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Luna application",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"displayName\":\"My application\",\r\n    \"description\": \"this is my application oops oops\",\r\n    \"documentationUrl\": \"this is my url\",\r\n    \"logoImageUrl\": \"this is my url\",\r\n    \"tags\":[\r\n    {\r\n        \"key\": \"mykey\",\r\n        \"value\": \"myvalue\"\r\n    }\r\n\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Publish a Luna application",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1/publish",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1",
+						"publish"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Luna application",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Luna application",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-MS-CLIENT-PRINCIPAL-ID",
+						"value": "790f1877-bd91-41fa-b4a2-9d69743ee0c4",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Luna application master key",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setGlobalVariable(\"api_key\", jsonData.primaryMasterKey);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1/masterkeys",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1",
+						"masterkeys"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Regenerate master key",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setGlobalVariable(\"api_key\", jsonData.primaryMasterKey);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1/regeneratemasterkeys?key-name=primaryKey",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1",
+						"regeneratemasterkeys"
+					],
+					"query": [
+						{
+							"key": "key-name",
+							"value": "primaryKey"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Luna application",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create a Luna API",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"displayName\":\"My api\",\r\n    \"description\": \"this is my api\",\r\n    \"type\": \"Realtime\",\r\n    \"advancedSettings\": \"this is my settings\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1/apis/myapi",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1",
+						"apis",
+						"myapi"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update a Luna API",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"displayName\":\"My api\",\r\n    \"description\": \"this is my api updated!\",\r\n    \"advancedSettings\": \"this is my settings\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1/apis/myapi",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1",
+						"apis",
+						"myapi"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a Luna API",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1/apis/myapi",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1",
+						"apis",
+						"myapi"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create a Luna API Version",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"AzureMLWorkspaceName\":\"amlworkspace\",\r\n    \"description\": \"my version lalala\",\r\n    \"type\": \"AzureML\",\r\n    \"endpoints\": [\r\n        {\r\n            \"endpointName\": \"housing-price-prod\",\r\n            \"operationName\": \"predict\"\r\n        }\r\n    ],\r\n    \"advancedSettings\": \"this is my settings\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1/apis/myapi/versions/v1",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1",
+						"apis",
+						"myapi",
+						"versions",
+						"v1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update a Luna API version",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"AzureMLWorkspaceName\":\"amlworkspace\",\r\n    \"description\": \"my version lalala\",\r\n    \"type\": \"AzureML\",\r\n    \"endpoints\": [\r\n        {\r\n            \"endpointName\": \"housing-price-prod\",\r\n            \"operationName\": \"predict\"\r\n        },\r\n        {\r\n            \"endpointName\": \"myendpoint2\",\r\n            \"operationName\": \"predict2\"\r\n        }\r\n    ],\r\n    \"advancedSettings\": \"this is my settings\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1/apis/myapi/versions/v1",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1",
+						"apis",
+						"myapi",
+						"versions",
+						"v1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a Luna API version",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{gateway_url}}/manage/applications/senariotest1/apis/myapi/versions/v1",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"applications",
+						"senariotest1",
+						"apis",
+						"myapi",
+						"versions",
+						"v1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Call realtime endpoint",
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "{{api_key}}",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "Luna-Application-Master-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"data\":[\r\n        [\r\n            1,2,3,4,5,6,7,8,9,0,1,2,3\r\n        ]\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{routing_url}}/senariotest1/myapi/predict?api-version=v1",
+					"host": [
+						"{{routing_url}}"
+					],
+					"path": [
+						"senariotest1",
+						"myapi",
+						"predict"
+					],
+					"query": [
+						{
+							"key": "api-version",
+							"value": "v1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add admin",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"uid\": \"test-admin\",\r\n    \"userName\": \"Test Admin\",\r\n    \"role\": \"SystemAdmin\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/rbac/roleassignments/Add",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"rbac",
+						"roleassignments",
+						"Add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove admin",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"uid\": \"test-admin\",\r\n    \"role\": \"SystemAdmin\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/rbac/roleassignments/remove",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"rbac",
+						"roleassignments",
+						"remove"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove yourself from admin",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"uid\": \"790f1877-bd91-41fa-b4a2-9d69743ee0c4\",\r\n    \"userName\": \"Xiaochen Wu\",\r\n    \"role\": \"SystemAdmin\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/rbac/roleassignments/remove",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"rbac",
+						"roleassignments",
+						"remove"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Publisher",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"uid\": \"test-publisher\",\r\n    \"userName\": \"Affirma Test Publisher\",\r\n    \"role\": \"Publisher\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/rbac/roleassignments/Add",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"rbac",
+						"roleassignments",
+						"Add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove publisher",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"uid\": \"test-publisher\",\r\n    \"role\": \"Publisher\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{gateway_url}}/manage/rbac/roleassignments/remove",
+					"host": [
+						"{{gateway_url}}"
+					],
+					"path": [
+						"manage",
+						"rbac",
+						"roleassignments",
+						"remove"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "gateway_url",
+			"value": "https://lunaaidep1-gateway.azurewebsites.net/api"
+		},
+		{
+			"key": "routing_url",
+			"value": "https://lunaai-routing.azurewebsites.net/api"
+		},
+		{
+			"key": "tenant_id",
+			"value": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		},
+		{
+			"key": "aad_client_id",
+			"value": "8909bdfe-55e1-40fd-b295-58d3608297fd"
+		},
+		{
+			"key": "aml_spn_client_id",
+			"value": "f0d50d2d-7ff0-40e3-82cc-8c44b176c088"
+		},
+		{
+			"key": "aml_spn_client_secret",
+			"value": "<secret>"
+		}
+	]
+}

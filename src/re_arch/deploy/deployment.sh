@@ -151,6 +151,22 @@ then
 
 fi
 
+# Initialize SQL database
+az sql server firewall-rule create \
+  -g $resourceGroupName \
+  -s $sqlServerName \
+  -n "all temp" \
+  --start-ip-address 0.0.0.0 \
+  --end-ip-address 255.255.255.255
+
+sqlcmd -S "tcp:${sqlServerName}.database.windows.net,1433" -U $sqlUser -P $sqlPassword -d $sqlDbName -i "lunadb.sql" -v adminUserName=$adminUserName -v adminUserId=$adminUserId
+
+az sql server firewall-rule delete \
+  -g $resourceGroupName \
+  -s $sqlServerName \
+  -n "all temp" \
+ 
+# set key vault permission for Partner, Publish and Routing services
 keyVaultScope="/subscriptions/${subscriptionId}/resourcegroups/${resourceGroupName}/providers/Microsoft.KeyVault/vaults/${keyVaultName}"
 
 az functionapp identity assign -g $resourceGroupName -n $publishFxAppName
@@ -200,6 +216,7 @@ az webapp deployment source config-zip \
     -t 360 \
     --src routingfx.zip
 
+# Set service configuration
 storageConnectionString=$(az storage account show-connection-string -g $resourceGroupName -n $storageName | ./jq -r '.connectionString')
 
 sqlConnectionSring="Server=tcp:${sqlServerName}.database.windows.net,1433;Initial Catalog=${sqlDbName};Persist Security Info=False;User ID=${sqlUser};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
@@ -247,31 +264,24 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
              "KEY_VAULT_NAME=${keyVaultName}" \
              "STORAGE_ACCOUNT_CONNECTION_STRING=${storageConnectionString}" 
 		   
-		   
-tokenIssuerUrl="https://sts.windows.net/${aadTenantId}/v2.0"
+# Setup AAD authentication for gateway service
+tokenIssuerUrl="https://login.microsoftonline.com/${aadTenantId}"
+audience="api://${aadClientId}"
 az webapp auth update  \
   -g $resourceGroupName \
   -n $gatewayFxAppName \
   --enabled true \
   --action LoginWithAzureActiveDirectory \
-  --aad-allowed-token-audiences $aadClientId \
+  --aad-allowed-token-audiences $aadClientId $audience \
   --aad-client-id $aadClientId \
   --aad-client-secret $aadSecret \
   --aad-token-issuer-url $tokenIssuerUrl
 
-
-az sql server firewall-rule create \
-  -g $resourceGroupName \
-  -s $sqlServerName \
-  -n "all temp" \
-  --start-ip-address 0.0.0.0 \
-  --end-ip-address 255.255.255.255
-
-sqlcmd -S "tcp:${sqlServerName}.database.windows.net,1433" -U $sqlUser -P $sqlPassword -d $sqlDbName -i "lunadb.sql" -v adminUserName=$adminUserName -v adminUserId=$adminUserId
-
-az sql server firewall-rule delete \
-  -g $resourceGroupName \
-  -s $sqlServerName \
-  -n "all temp" \
+  
+echo "Information for testing using Postman collection (variable values):"
+echo "gateway_url: https://${gatewayFxAppName}.azurewebsites.net/api"
+echo "routing_url: https://${routingFxAppName}.azurewebsites.net/api"
+echo "tenant_id: ${aadTenantId}"
+echo "aad_client_id: ${aadClientId}"
   
 read -p "Press enter to continue"
