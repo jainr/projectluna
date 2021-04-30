@@ -9,6 +9,12 @@ namespace Luna.Partner.PublicClient.DataContract.PartnerServices
     /// </summary>
     public class AzureMLWorkspaceConfiguration : AzurePartnerServiceConfiguration
     {
-        
+        public AzureMLWorkspaceConfiguration() :
+            base(PartnerServiceType.AML)
+        {
+
+        }
+
+        public string Region { get; set; }
     }
 }

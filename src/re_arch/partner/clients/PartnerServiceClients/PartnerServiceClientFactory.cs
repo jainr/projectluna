@@ -1,4 +1,5 @@
 ﻿using Luna.Partner.PublicClient.DataContract;
+using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,22 +21,23 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         /// <summary>
         /// Get or create a partner service client
         /// </summary>
-        /// <param name="service">The partner service</param>
+        /// <param name="name">The partner service name</param>
+        /// <param name="config">The partner service config</param>
         /// <returns>The partner service client</returns>
-        public IPartnerServiceClient GetPartnerServiceClient(PartnerService service)
+        public IPartnerServiceClient GetPartnerServiceClient(string name, BasePartnerServiceConfiguration config)
         {
-            if (service.Type.Equals(PartnerServiceTypes.AML.ToString(), 
+            if (config.Type.Equals(PartnerServiceType.AML.ToString(), 
                 StringComparison.InvariantCultureIgnoreCase))
             {
-                if (_azureMLClients.ContainsKey(service.UniqueName))
+                if (_azureMLClients.ContainsKey(name))
                 {
-                    _azureMLClients[service.UniqueName].UpdateConfiguration(service.Configuration);
-                    return _azureMLClients[service.UniqueName];
+                    _azureMLClients[name].UpdateConfiguration(config);
+                    return _azureMLClients[name];
                 }
                 else
                 {
-                    IPartnerServiceClient client = new AzureMLWorkspaceClient(service.Configuration);
-                    _azureMLClients.TryAdd(service.UniqueName, client);
+                    IPartnerServiceClient client = new AzureMLWorkspaceClient(config);
+                    _azureMLClients.TryAdd(name, client);
                     return client;
                 }
             }

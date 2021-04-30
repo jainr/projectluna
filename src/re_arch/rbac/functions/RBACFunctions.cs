@@ -8,11 +8,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Luna.RBAC.Data.DataContracts;
+using Luna.RBAC.Public.Client.DataContracts;
 using Luna.RBAC.Clients;
 using Luna.RBAC.Data.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Luna.RBAC.Data.Enums;
+using Luna.RBAC.Public.Client.Enums;
 
 namespace Luna.RBAC
 {
@@ -34,9 +35,9 @@ namespace Luna.RBAC
 
         [FunctionName("AddRoleAssignment")]
         public async Task<IActionResult> AddRoleAssignment(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "roleassignment")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "roleassignments/add")] HttpRequest req)
         {
-            var assignment = await DeserializeRequestBody<RoleAssignment>(req);
+            var assignment = await DeserializeRequestBody<RoleAssignmentDb>(req);
             assignment.CreatedTime = DateTime.UtcNow;
             _dbContext.RoleAssignments.Add(assignment);
             await _dbContext._SaveChangesAsync();
@@ -46,9 +47,9 @@ namespace Luna.RBAC
 
         [FunctionName("RemoveRoleAssignment")]
         public async Task<IActionResult> RemoveRoleAssignment(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "roleassignment")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "roleassignments/remove")] HttpRequest req)
         {
-            var assignment = await DeserializeRequestBody<RoleAssignment>(req);
+            var assignment = await DeserializeRequestBody<RoleAssignmentDb>(req);
             var roleAssignments = await _dbContext.RoleAssignments.
                 Where(r => r.Uid == assignment.Uid && r.Role == assignment.Role).ToListAsync();
 
@@ -61,9 +62,9 @@ namespace Luna.RBAC
 
         [FunctionName("AssignOwnership")]
         public async Task<IActionResult> AssignOwnership(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "ownership")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ownerships/add")] HttpRequest req)
         {
-            var ownership = await DeserializeRequestBody<Ownership>(req);
+            var ownership = await DeserializeRequestBody<OwnershipDb>(req);
             ownership.CreatedTime = DateTime.UtcNow;
             _dbContext.Ownerships.Add(ownership);
             await _dbContext._SaveChangesAsync();
@@ -73,9 +74,9 @@ namespace Luna.RBAC
 
         [FunctionName("RemoveOwnership")]
         public async Task<IActionResult> RemoveOwnership(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "ownership")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ownerships/remove")] HttpRequest req)
         {
-            var ownership = await DeserializeRequestBody<Ownership>(req);
+            var ownership = await DeserializeRequestBody<OwnershipDb>(req);
             var ownerships = await _dbContext.Ownerships.
                 Where(o => o.Uid == ownership.Uid && o.ResourceId == ownership.ResourceId).ToListAsync();
             _dbContext.Ownerships.RemoveRange(ownerships);
@@ -86,28 +87,35 @@ namespace Luna.RBAC
 
         [FunctionName("CanAccess")]
         public async Task<IActionResult> CanAccess(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "canaccess")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "canaccess")] HttpRequest req)
         {
+            if (!_cacheClient.IsCacheInitialized())
+            {
+                var roleAssignments = await _dbContext.RoleAssignments.ToListAsync();
+                var ownerships = await _dbContext.Ownerships.ToListAsync();
+                _cacheClient.InitializeCache(roleAssignments, ownerships);
+            }
+
             var query = await DeserializeRequestBody<RBACQuery>(req);
             var result = new RBACQueryResult()
             {
                 Query = query,
                 CanAccess = false,
-                Role = RBACRoles.Unknown.ToString()
+                Role = RBACRole.Unknown.ToString()
             };
 
             if (_cacheClient.IsSystemAdmin(query.Uid))
             {
                 result.CanAccess = true;
-                result.Role = RBACRoles.SystemAdmin.ToString();
+                result.Role = RBACRole.SystemAdmin.ToString();
             }
             else if (_cacheClient.IsPublisher(query.Uid))
             {
                 if (_cacheClient.IsOwnedBy(query.Uid, query.ResourceId) ||
-                    query.Action.Equals(RBACActions.CREATE_NEW_APPLICATION))
+                    (!string.IsNullOrEmpty(query.Action) && RBACActions.PublisherAllowedActions.Contains(query.Action)))
                 {
                     result.CanAccess = true;
-                    result.Role = RBACRoles.Publisher.ToString();
+                    result.Role = RBACRole.Publisher.ToString();
                 }
             }
 

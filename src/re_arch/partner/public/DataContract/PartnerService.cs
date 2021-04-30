@@ -1,4 +1,5 @@
 ﻿using Luna.Partner.PublicClient.DataContract.PartnerServices;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -14,12 +15,11 @@ namespace Luna.Partner.PublicClient.DataContract
 
         public string Description { get; set; }
 
-        public BasePartnerServiceConfiguration Configuration { get; set; }
-
         public string Tags { get; set; }
 
         public DateTime CreatedTime { get; set; }
 
         public DateTime LastUpdatedTime { get; set; }
+
     }
 }

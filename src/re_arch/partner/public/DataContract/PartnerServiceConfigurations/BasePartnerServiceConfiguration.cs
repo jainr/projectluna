@@ -7,7 +7,19 @@ namespace Luna.Partner.PublicClient.DataContract.PartnerServices
     /// <summary>
     /// Base class for all Partner Services
     /// </summary>
-    public abstract class BasePartnerServiceConfiguration
+    public class BasePartnerServiceConfiguration
     {
+        public BasePartnerServiceConfiguration(PartnerServiceType type)
+        {
+            this.Type = type.ToString();
+        }
+
+        public string DisplayName { get; set; }
+
+        public string Description { get; set; }
+
+        public string Type { get; set; }
+
+        public string Tags { get; set; }
     }
 }

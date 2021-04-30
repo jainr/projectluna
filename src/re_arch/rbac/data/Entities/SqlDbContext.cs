@@ -16,8 +16,8 @@ namespace Luna.RBAC.Data.Entities
             : base(options)
         { }
 
-        public DbSet<RoleAssignment> RoleAssignments { get; set; }
-        public DbSet<Ownership> Ownerships { get; set; }
+        public DbSet<RoleAssignmentDb> RoleAssignments { get; set; }
+        public DbSet<OwnershipDb> Ownerships { get; set; }
 
         /// <summary>
         /// Save changes to database

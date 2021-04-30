@@ -19,50 +19,42 @@ namespace Luna.Partner.Data.Entities
 
         }
 
-        public static PartnerServiceInternal CreateFrom(PartnerService partnerService)
+        public void UpdateFromConfig(BasePartnerServiceConfiguration config)
         {
-            var service = new PartnerServiceInternal();
-            // Copy non-updatable fields
-            service.UniqueName = partnerService.UniqueName;
-            service.Type = partnerService.Type;
-            service.CreatedTime = DateTime.UtcNow;
-            service.LastUpdatedTime = service.CreatedTime;
-
-            service.CopyFrom(partnerService);
-            return service;
-        }
-
-        public void CopyFrom(PartnerService partnerService)
-        {
-            // Copy updatable fileds
-            this.DisplayName = partnerService.DisplayName;
-            this.Description = partnerService.Description;
-            this.Configuration = partnerService.Configuration;
-            this.Tags = partnerService.Tags;
+            this.DisplayName = config.DisplayName;
+            this.Description = config.Description;
+            this.Tags = config.Tags;
             this.LastUpdatedTime = DateTime.UtcNow;
         }
 
-        public PartnerService ToPublicCopy(string configuration)
+        public static PartnerServiceInternal CreateFromConfig(string name, BasePartnerServiceConfiguration config)
+        {
+            var service = new PartnerServiceInternal();
+            // Copy non-updatable fields
+            service.UniqueName = name;
+            service.Type = config.Type;
+            service.Description = config.Description;
+            service.Tags = config.Tags;
+            service.DisplayName = config.DisplayName;
+            service.CreatedTime = DateTime.UtcNow;
+            service.LastUpdatedTime = service.CreatedTime;
+            service.Configuration = config;
+
+            return service;
+        }
+
+        public PartnerService ToPublicPartnerService()
         {
             var service = new PartnerService()
             {
-                UniqueName = this.UniqueName,
                 DisplayName = this.DisplayName,
-                Description = this.Description,
+                UniqueName = this.UniqueName,
                 Type = this.Type,
+                Description = this.Description,
                 Tags = this.Tags,
                 CreatedTime = this.CreatedTime,
                 LastUpdatedTime = this.LastUpdatedTime
             };
-
-            if(configuration != null)
-            {
-                service.Configuration = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(configuration,
-                    new JsonSerializerSettings
-                    {
-                        TypeNameHandling = TypeNameHandling.Auto
-                    });
-            }
 
             return service;
         }

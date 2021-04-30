@@ -1,6 +1,6 @@
 using Luna.RBAC.Clients;
 using Luna.RBAC.Data.Entities;
-using Luna.RBAC.Data.Enums;
+using Luna.RBAC.Public.Client.Enums;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Luna.RBAC.Test
@@ -10,13 +10,13 @@ namespace Luna.RBAC.Test
     {
         private const string admin1 = "admin1";
         private const string admin2 = "admin2";
-        private RoleAssignment admin1RA;
-        private RoleAssignment admin2RA;
+        private RoleAssignmentDb admin1RA;
+        private RoleAssignmentDb admin2RA;
 
         private const string publisher1 = "publisher1";
         private const string publisher2 = "publisher2";
-        private RoleAssignment publisher1RA;
-        private RoleAssignment publisher2RA;
+        private RoleAssignmentDb publisher1RA;
+        private RoleAssignmentDb publisher2RA;
 
         private const string user1 = "user1";
         private const string user2 = "user2";
@@ -24,57 +24,57 @@ namespace Luna.RBAC.Test
         private const string resource1 = "/applications/app2";
         private const string resource2 = "/applications/app1";
 
-        private Ownership ownership1_1;
-        private Ownership ownership1_2;
-        private Ownership ownership2_1;
-        private Ownership ownership2_2;
+        private OwnershipDb ownership1_1;
+        private OwnershipDb ownership1_2;
+        private OwnershipDb ownership2_1;
+        private OwnershipDb ownership2_2;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            admin1RA = new RoleAssignment()
+            admin1RA = new RoleAssignmentDb()
             {
                 Uid = admin1,
-                Role = RBACRoles.SystemAdmin.ToString()
+                Role = RBACRole.SystemAdmin.ToString()
             };
 
-            admin2RA = new RoleAssignment()
+            admin2RA = new RoleAssignmentDb()
             {
                 Uid = admin2,
-                Role = RBACRoles.SystemAdmin.ToString()
+                Role = RBACRole.SystemAdmin.ToString()
             };
 
-            publisher1RA = new RoleAssignment()
+            publisher1RA = new RoleAssignmentDb()
             {
                 Uid = publisher1,
-                Role = RBACRoles.Publisher.ToString()
+                Role = RBACRole.Publisher.ToString()
             };
 
-            publisher2RA = new RoleAssignment()
+            publisher2RA = new RoleAssignmentDb()
             {
                 Uid = publisher2,
-                Role = RBACRoles.Publisher.ToString()
+                Role = RBACRole.Publisher.ToString()
             };
 
-            ownership1_1 = new Ownership()
+            ownership1_1 = new OwnershipDb()
             {
                 Uid = user1,
                 ResourceId = resource1
             };
 
-            ownership1_2 = new Ownership()
+            ownership1_2 = new OwnershipDb()
             {
                 Uid = user1,
                 ResourceId = resource2
             };
 
-            ownership2_1 = new Ownership()
+            ownership2_1 = new OwnershipDb()
             {
                 Uid = user2,
                 ResourceId = resource1
             };
 
-            ownership2_2 = new Ownership()
+            ownership2_2 = new OwnershipDb()
             {
                 Uid = user2,
                 ResourceId = resource2

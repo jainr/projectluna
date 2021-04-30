@@ -1,7 +1,10 @@
 ﻿using Luna.RBAC.Data.DataContracts;
 using Luna.RBAC.Data.Entities;
-using Luna.RBAC.Data.Enums;
+using Luna.RBAC.Public.Client.Enums;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Luna.RBAC.Clients
 {
@@ -10,11 +13,39 @@ namespace Luna.RBAC.Clients
     /// </summary>
     public class RBACCacheClient : IRBACCacheClient
     {
-        private RBACCache _cache;
+        private static RBACCache _cache = new RBACCache();
 
         public RBACCacheClient()
         {
-            _cache = new RBACCache();
+        }
+
+        /// <summary>
+        /// Check if the cache initialized
+        /// </summary>
+        /// <returns>True if the cache is already initialized, false otherwise</returns>
+        public bool IsCacheInitialized()
+        {
+            return _cache.Initialized;
+        }
+
+        /// <summary>
+        /// Initialize the RBAC cache
+        /// </summary>
+        /// <param name="roleAssignments">The role assignments</param>
+        /// <param name="ownerships">The ownerships</param>
+        public void InitializeCache(List<RoleAssignmentDb> roleAssignments, List<OwnershipDb> ownerships)
+        {
+            foreach (var roleAssignment in roleAssignments)
+            {
+                this.AddRoleAssignment(roleAssignment);
+            }
+
+            foreach (var ownership in ownerships)
+            {
+                this.AssignOwnership(ownership);
+            }
+
+            _cache.Initialized = true;
         }
 
         /// <summary>
@@ -22,16 +53,16 @@ namespace Luna.RBAC.Clients
         /// </summary>
         /// <param name="assignment">The role assignment to be added</param>
         /// <returns>True if the role assignment is added, False if the role assignment already exists</returns>
-        public bool AddRoleAssignment(RoleAssignment assignment)
+        public bool AddRoleAssignment(RoleAssignmentDb assignment)
         {
-            RBACRoles role;
-            if (Enum.TryParse<RBACRoles>(assignment.Role, false, out role))
+            RBACRole role;
+            if (Enum.TryParse<RBACRole>(assignment.Role, false, out role))
             {
                 switch (role)
                 {
-                    case RBACRoles.SystemAdmin:
+                    case RBACRole.SystemAdmin:
                         return AddSystemAdmin(assignment.Uid);
-                    case RBACRoles.Publisher:
+                    case RBACRole.Publisher:
                         return AddPublisher(assignment.Uid);
                     default:
                         return false;
@@ -46,16 +77,16 @@ namespace Luna.RBAC.Clients
         /// </summary>
         /// <param name="assignment">The role assignment to be removed</param>
         /// <returns>True if the role assignment is removed, False if the role assignment doesn't exists</returns>
-        public bool RemoveRoleAssignment(RoleAssignment assignment)
+        public bool RemoveRoleAssignment(RoleAssignmentDb assignment)
         {
-            RBACRoles role;
-            if (Enum.TryParse<RBACRoles>(assignment.Role, false, out role))
+            RBACRole role;
+            if (Enum.TryParse<RBACRole>(assignment.Role, false, out role))
             {
                 switch (role)
                 {
-                    case RBACRoles.SystemAdmin:
+                    case RBACRole.SystemAdmin:
                         return RemoveSystemAdmin(assignment.Uid);
-                    case RBACRoles.Publisher:
+                    case RBACRole.Publisher:
                         return RemovePublisher(assignment.Uid);
                     default:
                         return false;
@@ -90,7 +121,7 @@ namespace Luna.RBAC.Clients
         /// </summary>
         /// <param name="ownership">The ownership</param>
         /// <returns>True the ownership is assigned, False if the ownership is already assigned</returns>
-        public bool AssignOwnership(Ownership ownership)
+        public bool AssignOwnership(OwnershipDb ownership)
         {
             return _cache.Ownership.Add(new RBACCachedOwnership(ownership.Uid, ownership.ResourceId));
         }
@@ -100,7 +131,7 @@ namespace Luna.RBAC.Clients
         /// </summary>
         /// <param name="ownership">The ownership</param>
         /// <returns>True if the ownership assignment is remove, False if the ownership doesn't exist</returns>
-        public bool RemoveOwnership(Ownership ownership)
+        public bool RemoveOwnership(OwnershipDb ownership)
         {
             return _cache.Ownership.Remove(new RBACCachedOwnership(ownership.Uid, ownership.ResourceId));
         }

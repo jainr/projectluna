@@ -10,4 +10,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\rbac_public_client\rbac_public_client.csproj" />
+  </ItemGroup>
+
 </Project>

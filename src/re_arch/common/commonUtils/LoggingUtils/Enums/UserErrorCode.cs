@@ -24,6 +24,7 @@ namespace Luna.Common.Utils.LoggingUtils.Enums
         Disconnected,
         InternalServerError,
         MissingQueryParameter,
-        NotSupported
+        NotSupported,
+        CanNotPerformOperation
     }
 }

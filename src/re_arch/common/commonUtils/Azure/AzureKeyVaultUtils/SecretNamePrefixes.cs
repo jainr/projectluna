@@ -7,5 +7,6 @@ namespace Luna.Common.Utils.Azure.AzureKeyvaultUtils
     public class SecretNamePrefixes
     {
         public const string PARTNER_SERVICE_CONFIG = "psc-";
+        public const string APPLICATION_MASTER_KEY = "amk-";
     }
 }

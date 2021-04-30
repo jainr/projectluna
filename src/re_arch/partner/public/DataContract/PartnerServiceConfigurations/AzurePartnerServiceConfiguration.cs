@@ -9,6 +9,12 @@ namespace Luna.Partner.PublicClient.DataContract.PartnerServices
     /// </summary>
     public abstract class AzurePartnerServiceConfiguration : BasePartnerServiceConfiguration
     {
+        public AzurePartnerServiceConfiguration(PartnerServiceType type) : 
+            base(type)
+        {
+
+        }
+
         public string ResourceId { get; set; }
 
         public string TenantId { get; set; }

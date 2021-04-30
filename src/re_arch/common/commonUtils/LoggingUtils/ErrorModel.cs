@@ -10,6 +10,11 @@ namespace Luna.Common.Utils.LoggingUtils
 {
     public class ErrorModel
     {
+        public ErrorModel()
+        {
+
+        }
+
         public ErrorModel(Exception ex, string traceId)
         {
             this.Message = ex.Message;

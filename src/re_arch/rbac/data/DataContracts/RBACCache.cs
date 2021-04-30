@@ -42,13 +42,15 @@ namespace Luna.RBAC.Data.DataContracts
     /// </summary>
     public class RBACCache
     {
-
         public RBACCache()
         {
+            Initialized = false;
             SystemAdmins = new HashSet<string>();
             Publishers = new HashSet<string>();
             Ownership = new HashSet<RBACCachedOwnership>();
         }
+
+        public bool Initialized { get; set; }
 
         public HashSet<string> SystemAdmins { get; set; }
 

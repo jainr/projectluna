@@ -13,8 +13,8 @@ namespace Luna.RBAC.Data.Entities
     public interface ISqlDbContext
     {
 
-        DbSet<RoleAssignment> RoleAssignments { get; set; }
-        DbSet<Ownership> Ownerships { get; set; }
+        DbSet<RoleAssignmentDb> RoleAssignments { get; set; }
+        DbSet<OwnershipDb> Ownerships { get; set; }
 
         /// <summary>
         /// Save the changes to database

@@ -16,8 +16,6 @@ namespace Luna.RBAC.Functions
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            builder.Services.AddSingleton<IRBACCacheClient, RBACCacheClient>();
-
             string connectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING");
             
             // Database context must be registered with the dependency injection (DI) container
@@ -25,6 +23,8 @@ namespace Luna.RBAC.Functions
                 options.UseSqlServer(connectionString));
 
             builder.Services.TryAddScoped<ISqlDbContext, SqlDbContext>();
+
+            builder.Services.AddSingleton<IRBACCacheClient, RBACCacheClient>();
 
             builder.Services.AddApplicationInsightsTelemetry();
         }

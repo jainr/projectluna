@@ -9,6 +9,10 @@ namespace Luna.Partner.PublicClient.DataContract.PartnerServices
     /// </summary>
     public class AzureSynapseWorkspaceConfiguration : AzurePartnerServiceConfiguration
     {
-        
+        public AzureSynapseWorkspaceConfiguration() :
+            base(PartnerServiceType.Synapse)
+        {
+
+        }
     }
 }

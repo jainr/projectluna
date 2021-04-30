@@ -14,12 +14,16 @@ using Luna.Common.Utils.LoggingUtils.Enums;
 using Luna.Common.Utils.HttpUtils;
 using Luna.Common.Utils.LoggingUtils;
 using Luna.Partner.PublicClient.DataContract;
+using Luna.Common.Utils.RestClients;
 using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
 using System.Linq;
 using System.Net;
 using System.Collections.Generic;
+using Luna.Partner.PublicClient.DataContract.PartnerServices;
+using Luna.Common.LoggingUtils;
+using Microsoft.EntityFrameworkCore;
 
-namespace Luna.RBAC
+namespace Luna.Partner.Functions
 {
     /// <summary>
     /// The service maintains all RBAC rules
@@ -51,7 +55,7 @@ namespace Luna.RBAC
         /// <returns></returns>
         [FunctionName("GetPartnerService")]
         public async Task<IActionResult> GetPartnerService(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "partnerServices/{name}")] HttpRequest req, string name)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partnerServices/{name}")] HttpRequest req, string name)
         {
             LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             try
@@ -66,9 +70,13 @@ namespace Luna.RBAC
 
                 var configuration = await _keyVaultUtils.GetSecretAsync(partnerServiceInternal.ConfigurationSecretName);
 
-                var partnerService = partnerServiceInternal.ToPublicCopy(configuration);
+                var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(configuration,
+                    new JsonSerializerSettings
+                    {
+                        TypeNameHandling = TypeNameHandling.Auto
+                    });
 
-                return new OkObjectResult(partnerService);
+                return new OkObjectResult(config);
             }
             catch (Exception ex)
             {
@@ -80,23 +88,23 @@ namespace Luna.RBAC
         /// Get a partner service
         /// </summary>
         /// <param name="req">The http request</param>
-        /// <param name="name">Name of the service</param>
         /// <returns></returns>
         [FunctionName("ListPartnerServicesByType")]
         public async Task<IActionResult> ListPartnerServicesByType(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "partnerServices")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partnerServices")] HttpRequest req)
         {
             LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             try
             {
                 string type;
-                if (req.Query.ContainsKey("type"))
+                if (req.Query.ContainsKey(PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME))
                 {
-                    type = req.Query["type"];
+                    type = req.Query[PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME];
                 }
                 else
                 {
-                    throw new LunaBadRequestUserException("The 'type' query parameter is required.", 
+                    throw new LunaBadRequestUserException(
+                        string.Format(ErrorMessages.MISSING_QUERY_PARAMETER, PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME), 
                         UserErrorCode.MissingQueryParameter);
                 }
 
@@ -104,10 +112,68 @@ namespace Luna.RBAC
                 List<PartnerService> results = new List<PartnerService>();
                 foreach(var service in partnerServicesInternal)
                 {
-                    results.Add(service.ToPublicCopy(null));
+                    results.Add(service.ToPublicPartnerService());
                 }
 
                 return new OkObjectResult(results);
+            }
+            catch (Exception ex)
+            {
+                return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+            }
+        }
+
+
+        /// <summary>
+        /// Update a partner service
+        /// </summary>
+        /// <param name="req">The http request</param>
+        /// <param name="name">The name of the partner service</param>
+        /// <returns></returns>
+        [FunctionName("UpdatePartnerService")]
+        public async Task<IActionResult> UpdatePartnerService(
+        [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "partnerServices/{name}")] HttpRequest req,
+            string name)
+        {
+            LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            try
+            {
+                var requestBody = await HttpUtils.GetRequestBodyAsync(req);
+
+                var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(requestBody,
+                    new JsonSerializerSettings
+                    {
+                        TypeNameHandling = TypeNameHandling.Auto
+                    });
+
+                var currentService = await _dbContext.PartnerServices.SingleOrDefaultAsync(x => x.UniqueName == name);
+
+                if (currentService == null)
+                {
+                    throw new LunaNotFoundUserException(
+                        string.Format(ErrorMessages.PARTNER_SERVICE_DOES_NOT_EXIST, name));
+                }
+
+                if (!currentService.Type.Equals(config.Type))
+                {
+                    throw new LunaConflictUserException(
+                        string.Format(ErrorMessages.CAN_NOT_UPDATE_PARTNER_SERVICE_TYPE, currentService.Type));
+                }
+
+                if (!_serviceClientFactory.GetPartnerServiceClient(name, config).TestConnection())
+                {
+                    throw new LunaBadRequestUserException(
+                        string.Format(ErrorMessages.CAN_NOT_CONNECT_TO_PARTNER_SERVICE, name),
+                        UserErrorCode.Disconnected);
+                }
+
+                await _keyVaultUtils.SetSecretAsync(currentService.ConfigurationSecretName, requestBody);
+
+                currentService.UpdateFromConfig(config);
+                _dbContext.PartnerServices.Update(currentService);
+                await _dbContext._SaveChangesAsync();
+
+                return new OkObjectResult(config);
             }
             catch (Exception ex)
             {
@@ -123,21 +189,26 @@ namespace Luna.RBAC
         /// <returns></returns>
         [FunctionName("AddPartnerService")]
         public async Task<IActionResult> AddPartnerService(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "partnerServices/{name}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Function, "put", Route = "partnerServices/{name}")] HttpRequest req,
             string name)
         {
             LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             try
             {
-                PartnerService service = await HttpUtils.DeserializeRequestBody<PartnerService>(req);
+                var requestBody = await HttpUtils.GetRequestBodyAsync(req);
 
-                if (!name.Equals(service.UniqueName))
+                var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(requestBody, 
+                    new JsonSerializerSettings
                 {
-                    throw new LunaBadRequestUserException("The name in URL does not match the name in request body.",
-                        UserErrorCode.NameMismatch);
+                    TypeNameHandling = TypeNameHandling.Auto
+                });
+
+                if (await _dbContext.PartnerServices.AnyAsync(x => x.UniqueName == name))
+                {
+                    throw new LunaConflictUserException(string.Format(ErrorMessages.PARTNER_SERVICE_ALREADY_EXIST, name));
                 }
 
-                if (!_serviceClientFactory.GetPartnerServiceClient(service).TestConnection())
+                if (!_serviceClientFactory.GetPartnerServiceClient(name, config).TestConnection())
                 {
                     throw new LunaBadRequestUserException("Can not connect to the partner service.", 
                         UserErrorCode.Disconnected);
@@ -145,19 +216,14 @@ namespace Luna.RBAC
 
                 var secretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.PARTNER_SERVICE_CONFIG);
 
-                var configString = JsonConvert.SerializeObject(service.Configuration, new JsonSerializerSettings
-                {
-                    TypeNameHandling = TypeNameHandling.All
-                });
+                await _keyVaultUtils.SetSecretAsync(secretName, requestBody);
 
-                await _keyVaultUtils.SetSecretAsync(secretName, configString);
-
-                var serviceInternal = PartnerServiceInternal.CreateFrom(service);
+                var serviceInternal = PartnerServiceInternal.CreateFromConfig(name, config);
                 serviceInternal.ConfigurationSecretName = secretName;
                 _dbContext.PartnerServices.Add(serviceInternal);
                 await _dbContext._SaveChangesAsync();
 
-                return new OkObjectResult(service);
+                return new OkObjectResult(config);
             }
             catch (Exception ex)
             {
@@ -172,7 +238,7 @@ namespace Luna.RBAC
         /// <returns></returns>
         [FunctionName("RemovePartnerService")]
         public async Task<IActionResult> RemovePartnerService(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "partnerServices/{name}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "partnerServices/{name}")] HttpRequest req,
             string name)
         {
             LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
