@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Luna.Partner.PublicClient.Clients;
 using Luna.RBAC.Public.Client;
 using Luna.Publish.PublicClient.Clients;
+using Luna.PubSub.PublicClient.Clients;
+using Luna.Gallery.Public.Client.Clients;
 
 [assembly: FunctionsStartup(typeof(Luna.Gateway.Functions.Startup))]
 
@@ -44,9 +46,28 @@ namespace Luna.Gateway.Functions
 
             builder.Services.AddSingleton<IPublishServiceClient, PublishServiceClient>();
 
+            builder.Services.AddOptions<PubSubServiceClientConfiguration>().Configure(
+                options =>
+                {
+                    options.ServiceBaseUrl = Environment.GetEnvironmentVariable("PUBSUB_SERVICE_BASE_URL");
+                    options.AuthenticationKey = Environment.GetEnvironmentVariable("PUBSUB_SERVICE_KEY");
+                });
+
+            builder.Services.AddSingleton<IPubSubServiceClient, PubSubServiceClient>();
+
+            builder.Services.AddOptions<GalleryServiceClientConfiguration>().Configure(
+                options =>
+                {
+                    options.ServiceBaseUrl = Environment.GetEnvironmentVariable("GALLERY_SERVICE_BASE_URL");
+                    options.AuthenticationKey = Environment.GetEnvironmentVariable("GALLERY_SERVICE_KEY");
+                });
+
+            builder.Services.AddSingleton<IGalleryServiceClient, GalleryServiceClient>();
+
             string connectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING");
-            
+
             builder.Services.AddApplicationInsightsTelemetry();
+
         }
     }
 }

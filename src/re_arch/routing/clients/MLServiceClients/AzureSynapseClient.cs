@@ -1,5 +1,6 @@
 ﻿using Luna.Common.Utils.RestClients;
 using Luna.Partner.PublicClient.DataContract.PartnerServices;
+using Luna.Publish.PublicClient.DataContract.APIVersions;
 using Luna.Routing.Clients.MLServiceClients.Interfaces;
 using Luna.Routing.Data.DataContracts;
 using System;
@@ -50,6 +51,37 @@ namespace Luna.Routing.Clients.MLServiceClients
         public async Task<string> GetPipelineExecutionJsonOutput(string operationId, LunaRequestHeaders headers)
         {
             return "";
+        }
+
+        Task<OperationStatus> IPipelineEndpointClient.ExecutePipeline(
+            string appName, 
+            string apiName, 
+            string versionName, 
+            string operationName, 
+            string operationId,
+            string input, BaseAPIVersionProp versionProperties, LunaRequestHeaders headers, string predecessorOperationId)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<List<OperationStatus>> IPipelineEndpointClient.ListOperations(BaseAPIVersionProp versionProperties, LunaRequestHeaders headers, string filterString = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task IPipelineEndpointClient.CancelOperation(string operationId, BaseAPIVersionProp versionProperties, LunaRequestHeaders headers)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<OperationStatus> IPipelineEndpointClient.GetPipelineExecutionStatus(string operationId, BaseAPIVersionProp versionProperties, LunaRequestHeaders headers)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<object> IPipelineEndpointClient.GetPipelineExecutionJsonOutput(string operationId, BaseAPIVersionProp versionProperties, LunaRequestHeaders headers)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -10,6 +10,9 @@ GO
 /****** Object:  Schema [routing]    Script Date: 4/29/2021 11:07:14 AM ******/
 CREATE SCHEMA [routing]
 GO
+/****** Object:  Schema [gallery]    Script Date: 4/29/2021 11:07:14 AM ******/
+CREATE SCHEMA [gallery]
+GO
 /****** Object:  Table [partner].[PartnerServices]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
@@ -199,6 +202,103 @@ CREATE TABLE [routing].[PublishedAPIVersions](
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
+
+/****** Object:  Table [routing].[ProcessedEvents]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [routing].[ProcessedEvents](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[EventStoreName] [nvarchar](128) NOT NULL,
+	[LastAppliedEventId] [bigint] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [gallery].[PublishedLunaAppliations]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [gallery].[PublishedLunaAppliations](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[UniqueName] [nvarchar](128) NOT NULL,
+	[DisplayName] [nvarchar](128) NOT NULL,
+	[Description] [nvarchar](max) NOT NULL,
+	[LogoImageUrl] [nvarchar](1024) NOT NULL,
+	[DocumentationUrl] [nvarchar](1024) NOT NULL,
+	[Publisher] [nvarchar](128) NOT NULL,
+	[Details] [nvarchar](max) NOT NULL,
+	[LastAppliedEventId] [bigint] NULL,
+	[Tags] [nvarchar](1024) NOT NULL,
+	[CreatedTime] [datetime2](7) NULL,
+	[LastUpdatedTime] [datetime2](7) NULL,
+	[IsEnabled] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [gallery].[LunaApplicationSubscriptions]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [gallery].[LunaApplicationSubscriptions](
+	[SubscriptionId] [uniqueidentifier] NOT NULL,
+	[SubscriptionName] [nvarchar](128) NOT NULL,
+	[ApplicationName] [nvarchar](128) NOT NULL,
+	[Status] [nvarchar](32) NOT NULL,
+	[Notes] [nvarchar](1024) NOT NULL,
+	[PrimaryKeySecretName] [nvarchar](64) NOT NULL,
+	[SecondaryKeySecretName] [nvarchar](64) NOT NULL,
+	[CreatedTime] [datetime2](7) NOT NULL,
+	[LastUpdatedTime] [datetime2](7) NOT NULL,
+	[UnsubscribedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[SubscriptionId] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [gallery].[LunaApplicationSubscriptionOwners]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [gallery].[LunaApplicationSubscriptionOwners](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[SubscriptionId] [uniqueidentifier] NOT NULL,
+	[UserId] [nvarchar](128) NOT NULL,
+	[UserName] [nvarchar](128) NOT NULL,
+	[CreatedTime] [datetime2](7) NOT NULL,
+    CONSTRAINT FK_subscription_id_owners FOREIGN KEY (SubscriptionId) REFERENCES gallery.LunaApplicationSubscriptions(SubscriptionId),
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  View [routing].[Subscriptions]    Script Date: 5/17/2021 9:18:23 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE VIEW [routing].[Subscriptions]
+AS
+SELECT SubscriptionId, PrimaryKeySecretName, SecondaryKeySecretName, Status
+FROM   gallery.LunaApplicationSubscriptions
+WHERE  (Status = N'Subscribed')
+GO
+
 
 SET ANSI_NULLS ON
 GO

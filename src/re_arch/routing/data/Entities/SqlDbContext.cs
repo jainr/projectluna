@@ -19,6 +19,9 @@ namespace Luna.Routing.Data.Entities
         public DbSet<PublishedAPIVersionDB> PublishedAPIVersions { get; set; }
 
         public DbSet<PartnerServiceDbView> PartnerServices { get; set; }
+        public DbSet<SubscriptionsDBView> Subscriptions { get; set; }
+
+        public DbSet<ProcessedEventDB> ProcessedEvents { get; set; }
 
         /// <summary>
         /// Save changes to database

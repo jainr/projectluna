@@ -8,12 +8,14 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="4.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.14" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.14" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.11" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\partner\public\partner_public_client.csproj" />
+    <ProjectReference Include="..\..\pubsub\public_client\pubsub_public_client.csproj" />
     <ProjectReference Include="..\clients\routing_clients.csproj" />
     <ProjectReference Include="..\data\routing_data.csproj" />
   </ItemGroup>

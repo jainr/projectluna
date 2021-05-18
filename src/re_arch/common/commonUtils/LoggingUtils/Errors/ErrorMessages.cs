@@ -15,6 +15,8 @@ namespace Luna.Common.LoggingUtils
         public const string API_VERSION_DOES_NOT_EXIST = "API version {0} in API {1} does not exist or you do not have permission to access it.";
         public const string PARTNER_SERVICE_DOES_NOT_EXIST = "Partner service {0} does not exist or you do not have permission to access it.";
         public const string APPLICATION_KEY_DOES_NOT_EXIST = "The application key {0} does not exist or you do not have permission to access it.";
+        public const string OPERATION_DOES_NOT_EXIST = "The operation {0} does not exist or you do not have permission to access it.";
+        public const string OPERATION_ID_DOES_NOT_EXIST = "The operation with id {0} does not exist or you do not have permission to access it.";
         public const string MISSING_PARAMETER = "The parameter {0} is required.";
         public const string VALUE_NOT_UPDATABLE = "The value of parameter {0} is not updatable.";
         public const string CAN_NOT_DELETE_APPLICATION_WITH_APIS = "Can not delete the application {0} unless all APIs in the current application is deleted.";
@@ -27,5 +29,16 @@ namespace Luna.Common.LoggingUtils
         public const string CAN_NOT_CONNECT_TO_PARTNER_SERVICE = "Can not connect to partner service {0}.";
         public const string CAN_NOT_PERFORM_OPERATION = "Can not perform the operation.";
         public const string CAN_NOT_REMOVE_YOUR_OWN_ACCOUNT_FROM_ADMN = "Removing your own account from SystemAdmin is not supported";
+        public const string CAN_NOT_CANCEL_EXECUTION = "Can not cancel operation with id {0}. The operation status is {1}.";
+        public const string CAN_NOT_GET_OUTPUT = "Can not get operation output with id {0}. The operation status is {1}.";
+        public const string EVENT_STORE_DOES_NOT_EXIST = "Event store {0} does not exist";
+        public const string EVENT_TYPE_IS_NOT_SUPPORTED = "Event type {0} is not support in event store {1}";
+        public const string SUBSCIRPTION_ALREADY_EXIST = "Subscription with name {0} already exist for application {1}. Pleaes choose a different name and try again.";
+        public const string SUBSCIRPTION_DOES_NOT_EXIST = "The subsciption {0} does not exist or you do not have permission to access it.";
+        public const string SUBSCIRPTION_OWNER_ALREADY_EXIST = "User {0} is already a owner of subscription {1}.";
+        public const string SUBSCIRPTION_OWNER_DOES_NOT_EXIST = "User {0} is not a a owner of subscription {1}.";
+        public const string KEY_NAME_NOT_SUPPORTED = "Regenerate key with name {0} is not supported.";
+        public const string MISSING_REQUEST_BODY = "Request boddy is required.";
+        public const string INVALID_KEY = "The subscription key is invalid.";
     }
 }

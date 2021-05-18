@@ -12,7 +12,7 @@ namespace Luna.Routing.Data.DataContracts
 
         public string Status { get; set; }
 
-        public DateTime StartTime { get; set; }
+        public DateTime? StartTime { get; set; }
 
         public DateTime? EndTime { get; set; }
 

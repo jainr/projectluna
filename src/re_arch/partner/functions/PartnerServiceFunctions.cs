@@ -58,29 +58,39 @@ namespace Luna.Partner.Functions
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partnerServices/{name}")] HttpRequest req, string name)
         {
             LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
-            try
-            {
-                var partnerServiceInternal = _dbContext.PartnerServices.
-                    Where(p => p.UniqueName == name).SingleOrDefault<PartnerServiceInternal>();
 
-                if (partnerServiceInternal == null)
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetPartnerService));
+
+                try
                 {
-                    throw new LunaNotFoundUserException($"Partner service {name} doesn't exist.");
-                }
+                    var partnerServiceInternal = _dbContext.PartnerServices.
+                        Where(p => p.UniqueName == name).SingleOrDefault<PartnerServiceInternal>();
 
-                var configuration = await _keyVaultUtils.GetSecretAsync(partnerServiceInternal.ConfigurationSecretName);
-
-                var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(configuration,
-                    new JsonSerializerSettings
+                    if (partnerServiceInternal == null)
                     {
-                        TypeNameHandling = TypeNameHandling.Auto
-                    });
+                        throw new LunaNotFoundUserException($"Partner service {name} doesn't exist.");
+                    }
 
-                return new OkObjectResult(config);
-            }
-            catch (Exception ex)
-            {
-                return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                    var configuration = await _keyVaultUtils.GetSecretAsync(partnerServiceInternal.ConfigurationSecretName);
+
+                    var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(configuration,
+                        new JsonSerializerSettings
+                        {
+                            TypeNameHandling = TypeNameHandling.Auto
+                        });
+
+                    return new OkObjectResult(config);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetPartnerService));
+                }
             }
         }
 
@@ -94,32 +104,42 @@ namespace Luna.Partner.Functions
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partnerServices")] HttpRequest req)
         {
             LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
-            try
-            {
-                string type;
-                if (req.Query.ContainsKey(PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME))
-                {
-                    type = req.Query[PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME];
-                }
-                else
-                {
-                    throw new LunaBadRequestUserException(
-                        string.Format(ErrorMessages.MISSING_QUERY_PARAMETER, PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME), 
-                        UserErrorCode.MissingQueryParameter);
-                }
 
-                var partnerServicesInternal = _dbContext.PartnerServices.Where(p => p.Type == type).ToList<PartnerServiceInternal>();
-                List<PartnerService> results = new List<PartnerService>();
-                foreach(var service in partnerServicesInternal)
-                {
-                    results.Add(service.ToPublicPartnerService());
-                }
-
-                return new OkObjectResult(results);
-            }
-            catch (Exception ex)
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                _logger.LogMethodBegin(nameof(this.ListPartnerServicesByType));
+
+                try
+                {
+                    string type;
+                    if (req.Query.ContainsKey(PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME))
+                    {
+                        type = req.Query[PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME];
+                    }
+                    else
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.MISSING_QUERY_PARAMETER, PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME),
+                            UserErrorCode.MissingQueryParameter);
+                    }
+
+                    var partnerServicesInternal = _dbContext.PartnerServices.Where(p => p.Type == type).ToList<PartnerServiceInternal>();
+                    List<PartnerService> results = new List<PartnerService>();
+                    foreach (var service in partnerServicesInternal)
+                    {
+                        results.Add(service.ToPublicPartnerService());
+                    }
+
+                    return new OkObjectResult(results);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListPartnerServicesByType));
+                }
             }
         }
 
@@ -136,48 +156,58 @@ namespace Luna.Partner.Functions
             string name)
         {
             LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
-            try
-            {
-                var requestBody = await HttpUtils.GetRequestBodyAsync(req);
 
-                var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(requestBody,
-                    new JsonSerializerSettings
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdatePartnerService));
+
+                try
+                {
+                    var requestBody = await HttpUtils.GetRequestBodyAsync(req);
+
+                    var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(requestBody,
+                        new JsonSerializerSettings
+                        {
+                            TypeNameHandling = TypeNameHandling.Auto
+                        });
+
+                    var currentService = await _dbContext.PartnerServices.SingleOrDefaultAsync(x => x.UniqueName == name);
+
+                    if (currentService == null)
                     {
-                        TypeNameHandling = TypeNameHandling.Auto
-                    });
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.PARTNER_SERVICE_DOES_NOT_EXIST, name));
+                    }
 
-                var currentService = await _dbContext.PartnerServices.SingleOrDefaultAsync(x => x.UniqueName == name);
+                    if (!currentService.Type.Equals(config.Type))
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.CAN_NOT_UPDATE_PARTNER_SERVICE_TYPE, currentService.Type));
+                    }
 
-                if (currentService == null)
-                {
-                    throw new LunaNotFoundUserException(
-                        string.Format(ErrorMessages.PARTNER_SERVICE_DOES_NOT_EXIST, name));
+                    if (!_serviceClientFactory.GetPartnerServiceClient(name, config).TestConnection())
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.CAN_NOT_CONNECT_TO_PARTNER_SERVICE, name),
+                            UserErrorCode.Disconnected);
+                    }
+
+                    await _keyVaultUtils.SetSecretAsync(currentService.ConfigurationSecretName, requestBody);
+
+                    currentService.UpdateFromConfig(config);
+                    _dbContext.PartnerServices.Update(currentService);
+                    await _dbContext._SaveChangesAsync();
+
+                    return new OkObjectResult(config);
                 }
-
-                if (!currentService.Type.Equals(config.Type))
+                catch (Exception ex)
                 {
-                    throw new LunaConflictUserException(
-                        string.Format(ErrorMessages.CAN_NOT_UPDATE_PARTNER_SERVICE_TYPE, currentService.Type));
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
                 }
-
-                if (!_serviceClientFactory.GetPartnerServiceClient(name, config).TestConnection())
+                finally
                 {
-                    throw new LunaBadRequestUserException(
-                        string.Format(ErrorMessages.CAN_NOT_CONNECT_TO_PARTNER_SERVICE, name),
-                        UserErrorCode.Disconnected);
+                    _logger.LogMethodEnd(nameof(this.UpdatePartnerService));
                 }
-
-                await _keyVaultUtils.SetSecretAsync(currentService.ConfigurationSecretName, requestBody);
-
-                currentService.UpdateFromConfig(config);
-                _dbContext.PartnerServices.Update(currentService);
-                await _dbContext._SaveChangesAsync();
-
-                return new OkObjectResult(config);
-            }
-            catch (Exception ex)
-            {
-                return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
             }
         }
 
@@ -193,41 +223,51 @@ namespace Luna.Partner.Functions
             string name)
         {
             LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
-            try
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                var requestBody = await HttpUtils.GetRequestBodyAsync(req);
+                _logger.LogMethodBegin(nameof(this.AddPartnerService));
 
-                var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(requestBody, 
-                    new JsonSerializerSettings
+                try
                 {
-                    TypeNameHandling = TypeNameHandling.Auto
-                });
+                    var requestBody = await HttpUtils.GetRequestBodyAsync(req);
 
-                if (await _dbContext.PartnerServices.AnyAsync(x => x.UniqueName == name))
-                {
-                    throw new LunaConflictUserException(string.Format(ErrorMessages.PARTNER_SERVICE_ALREADY_EXIST, name));
+                    var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(requestBody,
+                        new JsonSerializerSettings
+                        {
+                            TypeNameHandling = TypeNameHandling.Auto
+                        });
+
+                    if (await _dbContext.PartnerServices.AnyAsync(x => x.UniqueName == name))
+                    {
+                        throw new LunaConflictUserException(string.Format(ErrorMessages.PARTNER_SERVICE_ALREADY_EXIST, name));
+                    }
+
+                    if (!_serviceClientFactory.GetPartnerServiceClient(name, config).TestConnection())
+                    {
+                        throw new LunaBadRequestUserException("Can not connect to the partner service.",
+                            UserErrorCode.Disconnected);
+                    }
+
+                    var secretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.PARTNER_SERVICE_CONFIG);
+
+                    await _keyVaultUtils.SetSecretAsync(secretName, requestBody);
+
+                    var serviceInternal = PartnerServiceInternal.CreateFromConfig(name, config);
+                    serviceInternal.ConfigurationSecretName = secretName;
+                    _dbContext.PartnerServices.Add(serviceInternal);
+                    await _dbContext._SaveChangesAsync();
+
+                    return new OkObjectResult(config);
                 }
-
-                if (!_serviceClientFactory.GetPartnerServiceClient(name, config).TestConnection())
+                catch (Exception ex)
                 {
-                    throw new LunaBadRequestUserException("Can not connect to the partner service.", 
-                        UserErrorCode.Disconnected);
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
                 }
-
-                var secretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.PARTNER_SERVICE_CONFIG);
-
-                await _keyVaultUtils.SetSecretAsync(secretName, requestBody);
-
-                var serviceInternal = PartnerServiceInternal.CreateFromConfig(name, config);
-                serviceInternal.ConfigurationSecretName = secretName;
-                _dbContext.PartnerServices.Add(serviceInternal);
-                await _dbContext._SaveChangesAsync();
-
-                return new OkObjectResult(config);
-            }
-            catch (Exception ex)
-            {
-                return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.AddPartnerService));
+                }
             }
         }
 
@@ -242,23 +282,33 @@ namespace Luna.Partner.Functions
             string name)
         {
             LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
-            try
-            {
-                var partnerServiceInternal = _dbContext.PartnerServices.
-                    Where(p => p.UniqueName == name).SingleOrDefault<PartnerServiceInternal>();
 
-                if (partnerServiceInternal == null)
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.RemovePartnerService));
+
+                try
                 {
-                    throw new LunaNotFoundUserException($"Partner service {name} doesn't exist.");
-                }
-                _dbContext.PartnerServices.Remove(partnerServiceInternal);
-                await _dbContext._SaveChangesAsync();
+                    var partnerServiceInternal = _dbContext.PartnerServices.
+                        Where(p => p.UniqueName == name).SingleOrDefault<PartnerServiceInternal>();
 
-                return new NoContentResult();
-            }
-            catch (Exception ex)
-            {
-                return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                    if (partnerServiceInternal == null)
+                    {
+                        throw new LunaNotFoundUserException($"Partner service {name} doesn't exist.");
+                    }
+                    _dbContext.PartnerServices.Remove(partnerServiceInternal);
+                    await _dbContext._SaveChangesAsync();
+
+                    return new NoContentResult();
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.RemovePartnerService));
+                }
             }
         }
 

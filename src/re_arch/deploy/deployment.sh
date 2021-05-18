@@ -33,8 +33,17 @@ rbacFxAppName="${namePrefix}-rbac"
 partnerFxAppName="${namePrefix}-partner"
 publishFxAppName="${namePrefix}-publish"
 routingFxAppName="${namePrefix}-routing"
+pubsubFxAppName="${namePrefix}-pubsub"
+galleryFxAppName="${namePrefix}-gallery"
+provisionFxAppName="${namePrefix}-provision"
 
-az login --only-show-errors
+# Only pop up the login window when neccessary
+state=$(az account subscription show --id $subscriptionId --only-show-errors | ./jq -r '.state')
+
+if [ ${state} != "Enabled" ];
+then
+	az login --only-show-errors
+fi
 
 az account set -s $subscriptionId
 
@@ -94,6 +103,28 @@ then
 	--is-linux true \
     --sku EP1
     
+  # Create provision service function App
+  az functionapp create \
+    --name $provisionFxAppName \
+    --storage-account $storageName \
+    --plan $functionAppPlanName \
+    --resource-group $resourceGroupName \
+    --functions-version 3 \
+	--app-insights $appInsightsName \
+	--os-type Linux \
+	--runtime dotnet
+	
+  # Create pubsub service function App
+  az functionapp create \
+    --name $pubsubFxAppName \
+    --storage-account $storageName \
+    --plan $functionAppPlanName \
+    --resource-group $resourceGroupName \
+    --functions-version 3 \
+	--app-insights $appInsightsName \
+	--os-type Linux \
+	--runtime dotnet
+	
   # Create publish service function App
   az functionapp create \
     --name $publishFxAppName \
@@ -148,6 +179,17 @@ then
 	--app-insights $appInsightsName \
 	--os-type Linux \
 	--runtime dotnet
+    
+  # Create gallery service function App
+  az functionapp create \
+    --name $galleryFxAppName \
+    --storage-account $storageName \
+    --plan $functionAppPlanName \
+    --resource-group $resourceGroupName \
+    --functions-version 3 \
+	--app-insights $appInsightsName \
+	--os-type Linux \
+	--runtime dotnet
 
 fi
 
@@ -180,7 +222,36 @@ az keyvault set-policy --name $keyVaultName --secret-permissions get list set de
 az functionapp identity assign -g $resourceGroupName -n $routingFxAppName
 routingServiceIdentity=$(az functionapp identity show --name $routingFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
 az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $routingServiceIdentity
+
+az functionapp identity assign -g $resourceGroupName -n $galleryFxAppName
+galleryServiceIdentity=$(az functionapp identity show --name $galleryFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
+az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $galleryServiceIdentity
   
+az functionapp identity assign -g $resourceGroupName -n $provisionFxAppName
+provisionServiceIdentity=$(az functionapp identity show --name $provisionFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
+az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $provisionServiceIdentity
+
+# Deploy provision app
+az webapp deployment source config-zip \
+    -g $resourceGroupName \
+	-n $provisionFxAppName \
+    -t 360 \
+    --src provisionfx.zip
+	
+# Deploy gallery app
+az webapp deployment source config-zip \
+    -g $resourceGroupName \
+	-n $galleryFxAppName \
+    -t 360 \
+    --src galleryfx.zip
+	
+# Deploy pubsub app
+az webapp deployment source config-zip \
+    -g $resourceGroupName \
+	-n $pubsubFxAppName \
+    -t 360 \
+    --src pubsubfx.zip
+	
 # Deploy gateway app
 az webapp deployment source config-zip \
     -g $resourceGroupName \
@@ -224,10 +295,15 @@ sqlConnectionSring="Server=tcp:${sqlServerName}.database.windows.net,1433;Initia
 rbacFxUrl="https://${rbacFxAppName}.azurewebsites.net/api/"
 publishFxUrl="https://${publishFxAppName}.azurewebsites.net/api/"
 partnerFxUrl="https://${partnerFxAppName}.azurewebsites.net/api/"
+pubsubFxUrl="https://${pubsubFxAppName}.azurewebsites.net/api/"
+routingFxUrl="https://${routingFxAppName}.azurewebsites.net/api/"
+galleryFxUrl="https://${galleryFxAppName}.azurewebsites.net/api/"
 
 rbacFxKey=$(az functionapp keys list -g $resourceGroupName -n $rbacFxAppName | ./jq -r '.functionKeys.default')
 publishFxKey=$(az functionapp keys list -g $resourceGroupName -n $publishFxAppName | ./jq -r '.functionKeys.default')
 partnerFxKey=$(az functionapp keys list -g $resourceGroupName -n $partnerFxAppName | ./jq -r '.functionKeys.default')
+pubsubFxKey=$(az functionapp keys list -g $resourceGroupName -n $pubsubFxAppName | ./jq -r '.functionKeys.default')
+galleryFxKey=$(az functionapp keys list -g $resourceGroupName -n $galleryFxAppName | ./jq -r '.functionKeys.default')
 
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $gatewayFxAppName \
@@ -237,14 +313,24 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
 			 "RBAC_SERVICE_BASE_URL=${rbacFxUrl}" \
 			 "RBAC_SERVICE_KEY=${rbacFxKey}" \
 			 "PUBLISH_SERVICE_BASE_URL=${publishFxUrl}" \
-			 "PUBLISH_SERVICE_KEY=${publishFxKey}"
+			 "PUBLISH_SERVICE_KEY=${publishFxKey}" \
+			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
+			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}" \
+			 "GALLERY_SERVICE_BASE_URL=${galleryFxUrl}" \
+			 "GALLERY_SERVICE_KEY=${galleryFxKey}"
 
+MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  --name $pubsubFxAppName \
+  --resource-group $resourceGroupName \
+  --settings "STORAGE_ACCOUNT_CONNECTION_STRING=${storageConnectionString}"
+			 
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $publishFxAppName \
   --resource-group $resourceGroupName \
   --settings "SQL_CONNECTION_STRING=${sqlConnectionSring}" \
              "KEY_VAULT_NAME=${keyVaultName}" \
-             "STORAGE_ACCOUNT_CONNECTION_STRING=${storageConnectionString}" 
+			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
+			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"
 
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $partnerFxAppName \
@@ -262,8 +348,26 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --resource-group $resourceGroupName \
   --settings "SQL_CONNECTION_STRING=${sqlConnectionSring}" \
              "KEY_VAULT_NAME=${keyVaultName}" \
-             "STORAGE_ACCOUNT_CONNECTION_STRING=${storageConnectionString}" 
+			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
+			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"
 		   
+MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  --name $galleryFxAppName \
+  --resource-group $resourceGroupName \
+  --settings "SQL_CONNECTION_STRING=${sqlConnectionSring}" \
+             "KEY_VAULT_NAME=${keyVaultName}" \
+			 "ROUTING_SERVICE_BASE_URL=${routingFxUrl}" \
+			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
+			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"
+			 
+MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  --name $provisionFxAppName \
+  --resource-group $resourceGroupName \
+  --settings "SQL_CONNECTION_STRING=${sqlConnectionSring}" \
+             "KEY_VAULT_NAME=${keyVaultName}" \
+			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
+			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"
+			 
 # Setup AAD authentication for gateway service
 tokenIssuerUrl="https://login.microsoftonline.com/${aadTenantId}"
 audience="api://${aadClientId}"

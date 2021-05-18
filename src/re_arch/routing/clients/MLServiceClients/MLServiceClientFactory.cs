@@ -72,6 +72,27 @@ namespace Luna.Routing.Clients.MLServiceClients
         /// <returns>The pipeline endpoint client</returns>
         public async Task<IPipelineEndpointClient> GetPipelineEndpointClient(string versionType, BaseAPIVersionProp versionProperties)
         {
+            if (versionProperties.Type.Equals(RealtimeEndpointAPIVersionType.AzureML.ToString()))
+            {
+                var prop = (AzureMLPipelineEndpointAPIVersionProp)versionProperties;
+
+                if (!_cachedAzureMLClients.ContainsKey(prop.AzureMLWorkspaceName))
+                {
+                    var partnerService = await _dbContext.PartnerServices.SingleOrDefaultAsync(x => x.UniqueName == prop.AzureMLWorkspaceName);
+                    if (partnerService == null)
+                    {
+                        throw new LunaServerException($"Can not find partner service {prop.AzureMLWorkspaceName} in the view.");
+                    }
+
+                    var config = await _keyVaultUtils.GetSecretAsync(partnerService.ConfigurationSecretName);
+                    var amlConfig = JsonConvert.DeserializeObject<AzureMLWorkspaceConfiguration>(config);
+                    _cachedAzureMLClients.Add(prop.AzureMLWorkspaceName,
+                        new AzureMLClient(this._httpClient, amlConfig));
+                }
+
+                return _cachedAzureMLClients[prop.AzureMLWorkspaceName];
+            }
+
             return null;
         }
     

@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Luna.Provision.Public.Client</AssemblyName>
+    <RootNamespace>Luna.Provision.Public.Client</RootNamespace>
+  </PropertyGroup>
+
+</Project>

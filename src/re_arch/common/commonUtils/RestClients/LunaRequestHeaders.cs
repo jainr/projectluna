@@ -12,6 +12,7 @@ namespace Luna.Common.Utils.RestClients
         private const string LUNA_SUBSCRIPTION_ID_HEADER_NAME = "Luna-Subscription-Id";
         private const string LUNA_TRACE_ID_HEADER_NAME = "Luna-Trace-Id";
         private const string LUNA_APPLICATION_MASTER_KEY = "Luna-Application-Master-Key";
+        private const string LUNA_SUBCRIPTION_KEY = "api-key";
         private const string AAD_USER_ID = "X-MS-CLIENT-PRINCIPAL-ID";
         private const string AAD_USER_NAME = "X-MS-CLIENT-PRINCIPAL-NAME";
 
@@ -19,11 +20,13 @@ namespace Luna.Common.Utils.RestClients
 
         public LunaRequestHeaders()
         {
-
         }
 
         public LunaRequestHeaders(HttpRequest req)
         {
+            this.LunaSubscriptionKey = req.Headers.ContainsKey(LUNA_SUBCRIPTION_KEY) ?
+                req.Headers[LUNA_SUBCRIPTION_KEY].ToString() : string.Empty;
+
             this.UserId = req.Headers.ContainsKey(LUNA_USER_ID_HEADER_NAME) ? 
                 req.Headers[LUNA_USER_ID_HEADER_NAME].ToString() : string.Empty;
 
@@ -34,19 +37,20 @@ namespace Luna.Common.Utils.RestClients
             this.UserName = req.Headers.ContainsKey(AAD_USER_NAME) ?
                 req.Headers[AAD_USER_NAME].ToString() : string.Empty;
 
+            // Generate a new TraceId if not included in the header
             this.TraceId = req.Headers.ContainsKey(LUNA_TRACE_ID_HEADER_NAME) ? 
-                req.Headers[LUNA_TRACE_ID_HEADER_NAME].ToString() : string.Empty;
+                req.Headers[LUNA_TRACE_ID_HEADER_NAME].ToString() : Guid.NewGuid().ToString();
 
             this.SubscriptionId = req.Headers.ContainsKey(LUNA_SUBSCRIPTION_ID_HEADER_NAME) ? 
                 req.Headers[LUNA_SUBSCRIPTION_ID_HEADER_NAME].ToString() : string.Empty;
 
-
             this.LunaApplicationMasterKey = req.Headers.ContainsKey(LUNA_APPLICATION_MASTER_KEY) ?
                 req.Headers[LUNA_APPLICATION_MASTER_KEY].ToString() : string.Empty;
 
-
             // Do not phase the function keys! They are validated by Azure functions.
         }
+
+        public string LunaSubscriptionKey { get; set; }
 
         public string SubscriptionId { get; set; }
 
@@ -66,8 +70,27 @@ namespace Luna.Common.Utils.RestClients
             {
                 SubscriptionId = this.SubscriptionId,
                 UserId = this.UserId,
+                UserName = this.UserName,
                 TraceId = this.TraceId
             };
+        }
+
+        public Dictionary<string, object> GetManagementLoggingScopeProperties()
+        {
+            var properties = new Dictionary<string, object>();
+            properties.Add("Luna.UserName", this.UserName);
+            properties.Add("Luna.UserId", this.UserId);
+            properties.Add("Luna.TraceId", this.TraceId);
+            return properties;
+        }
+
+        public Dictionary<string, object> GetRoutingLoggingScopeProperties()
+        {
+            var properties = new Dictionary<string, object>();
+            properties.Add("Luna.SubscriptionId", this.SubscriptionId);
+            properties.Add("Luna.UserId", this.UserId);
+            properties.Add("Luna.TraceId", this.TraceId);
+            return properties;
         }
 
         public void AddToHttpRequestHeaders(HttpRequestHeaders headers)

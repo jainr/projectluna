@@ -4,6 +4,8 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Luna.Common.Utils.RestClients;
+using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace Luna.Common.Utils.HttpUtils
 {

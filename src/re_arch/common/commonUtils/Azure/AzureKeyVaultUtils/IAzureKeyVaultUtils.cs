@@ -35,5 +35,6 @@ namespace Luna.Common.Utils.Azure.AzureKeyvaultUtils
         /// <param name="secretName">The secret name</param>
         /// <returns>True if the secret is deleted, False otherwise</returns>
         Task<bool> DeleteSecretAsync(string secretName);
+
     }
 }

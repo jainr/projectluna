@@ -9,7 +9,8 @@ using Luna.Routing.Clients.MLServiceClients;
 using Luna.Routing.Data.Entities;
 using Luna.Partner.PublicClient.Clients;
 using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
-using Luna.Common.Utils.Azure.AzureStorageUtils;
+using Luna.PubSub.PublicClient.Clients;
+using Luna.Routing.Clients.SecretCacheClients;
 
 [assembly: FunctionsStartup(typeof(Luna.Routing.Functions.Startup))]
 
@@ -28,13 +29,15 @@ namespace Luna.Routing.Functions
             builder.Services.AddHttpClient<IAzureKeyVaultUtils, AzureKeyVaultUtils>()
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
-            builder.Services.AddOptions<AzureStorageConfiguration>().Configure(
+            builder.Services.AddOptions<PubSubServiceClientConfiguration>().Configure(
                 options =>
                 {
-                    options.StorageAccountConnectiongString = Environment.GetEnvironmentVariable("STORAGE_ACCOUNT_CONNECTION_STRING");
+                    options.ServiceBaseUrl = Environment.GetEnvironmentVariable("PUBSUB_SERVICE_BASE_URL");
+                    options.AuthenticationKey = Environment.GetEnvironmentVariable("PUBSUB_SERVICE_KEY");
                 });
 
-            builder.Services.AddSingleton<IAzureStorageUtils, AzureStorageUtils>();
+            builder.Services.AddSingleton<IPubSubServiceClient, PubSubServiceClient>();
+
 
             builder.Services.AddOptions<PartnerServiceClientConfiguration>().Configure(
                 options =>
@@ -56,6 +59,8 @@ namespace Luna.Routing.Functions
                 options.UseSqlServer(connectionString));
 
             builder.Services.TryAddScoped<ISqlDbContext, SqlDbContext>();
+
+            builder.Services.AddSingleton<ISecretCacheClient, SecretCacheClient>();
 
             builder.Services.AddApplicationInsightsTelemetry();
         }
