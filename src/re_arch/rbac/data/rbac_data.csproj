@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\rbac_public_client\rbac_public_client.csproj" />
+    <ProjectReference Include="..\public\rbac_public_client.csproj" />
   </ItemGroup>
 
 </Project>

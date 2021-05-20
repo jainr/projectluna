@@ -1,6 +1,4 @@
-﻿using Luna.Publish.PublicClient.DataContract.APIVersions;
-using Luna.Publish.PublicClient.DataContract.LunaApplications;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;

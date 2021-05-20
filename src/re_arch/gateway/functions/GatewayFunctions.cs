@@ -9,7 +9,7 @@ using Luna.Gallery.Public.Client.DataContracts;
 using Luna.Partner.PublicClient.Clients;
 using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using Luna.Publish.PublicClient.Clients;
-using Luna.Publish.PublicClient.DataContract;
+using Luna.Publish.Public.Client.DataContract;
 using Luna.PubSub.PublicClient.Clients;
 using Luna.RBAC.Public.Client;
 using Luna.RBAC.Public.Client.DataContracts;

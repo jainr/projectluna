@@ -20,7 +20,6 @@ using Luna.Common.Utils.LoggingUtils;
 using Luna.PubSub.PublicClient.Clients;
 using Luna.PubSub.PublicClient;
 using Luna.Provision.Data.Entities;
-using Luna.Publish.PublicClient.DataContract.LunaApplications;
 
 namespace Luna.Provision.Functions
 {
@@ -48,7 +47,7 @@ namespace Luna.Provision.Functions
         }
 
         [FunctionName("ProcessApplicationEvents")]
-        public async Task ProcessApplicationEvents([TimerTrigger("*/5 * * * * *")] TimerInfo myTimer)
+        public async Task ProcessApplicationEvents([QueueTrigger("provision-processapplicationevents")] string myQueueItem)
         {
             // Get the last applied event id
             // If there's no record in the database, it will return the default value of long type 0

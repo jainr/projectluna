@@ -1,0 +1,540 @@
+swagger: '2.0'
+info:
+  title: Luna.Gallery.Functions
+  version: V1
+host: localhost:7071
+schemes:
+  - http
+paths:
+  /api/applications:
+    get:
+      tags:
+        - Application
+      summary: List published applications
+      operationId: getApiApplications
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication'
+            example:
+              UniqueName: mylunaapp
+              DisplayName: My Luna App
+              Description: This is my Luna app
+              LogoImageUrl: https://aka.ms/lunalog.png
+              DocumentationUrl: https://aka.ms/lunadoc
+              Publisher: Microsoft
+              Tags: [ ]
+              Details:
+                APIs: [ ]
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{name}/recommended':
+    get:
+      tags:
+        - Application
+      summary: Get recommended Luna applications
+      operationId: getApiApplicationsByNameRecommended
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of Luna application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication'
+            example:
+              UniqueName: mylunaapp
+              DisplayName: My Luna App
+              Description: This is my Luna app
+              LogoImageUrl: https://aka.ms/lunalog.png
+              DocumentationUrl: https://aka.ms/lunadoc
+              Publisher: Microsoft
+              Tags: [ ]
+              Details:
+                APIs: [ ]
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{name}':
+    get:
+      tags:
+        - Application
+      summary: Get a published Luna application
+      operationId: getApiApplicationsByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of Luna application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication'
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{name}/swagger':
+    get:
+      tags:
+        - Application
+      summary: Get swagger in JSON format for a published Luna application
+      operationId: getApiApplicationsByNameSwagger
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of Luna application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationDetails'
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{appName}/subscriptions/{subscriptionName}':
+    put:
+      tags:
+        - Subscription
+      summary: Create a subscription of a published Luna application
+      operationId: putApiApplicationsByAppNameSubscriptionsBySubscriptionName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionName
+          description: Name of the subscription
+          required: true
+          type: string
+        - in: header
+          name: Luna-User-Id
+          description: The user id of the creator
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{appName}/subscriptions':
+    get:
+      tags:
+        - Subscription
+      summary: List all subscriptions of a published Luna application
+      operationId: getApiApplicationsByAppNameSubscriptions
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: header
+          name: Luna-User-Id
+          description: The user id of the caller
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
+            example:
+              SubscriptionId: 49e15707-ff3f-478d-b667-d2e85ed7c41c
+              SubscriptionName: mysub
+              PrimaryKey: 9c67b140955c4885bcc4dd50f26e5410
+              SecondaryKey: 9e4859b4d75c4aabb2a836e03b2bea0d
+              BaseUrl: https://luna.azurewebapp.net/api
+              Notes: this is my subscription
+              Owners:
+                - UserId: c6caf9ec-6bdb-4cac-b234-32b6a89513a4
+                  UserName: FirstName LastName
+              CreatedTime: '2021-05-20T17:53:07.0255007+00:00'
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{appName}/subscriptions/{subscriptionNameOrId}':
+    get:
+      tags:
+        - Subscription
+      summary: Get a subscription of a published Luna application
+      operationId: getApiApplicationsByAppNameSubscriptionsBySubscriptionNameOrId
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+        - in: header
+          name: Luna-User-Id
+          description: The user id of the creator
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
+      security:
+        - x-functions-key: [ ]
+    delete:
+      tags:
+        - Subscription
+      summary: Delete a subscription of a published Luna application
+      operationId: deleteApiApplicationsByAppNameSubscriptionsBySubscriptionNameOrId
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+        - in: header
+          name: Luna-User-Id
+          description: The user id of the creator
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/UpdateNotes':
+    post:
+      tags:
+        - Subscription
+      summary: Update notes of a subscription
+      operationId: postApiApplicationsByAppNameSubscriptionsBySubscriptionNameOrIdUpdateNotes
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+        - in: header
+          name: Luna-User-Id
+          description: The user id of the creator
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes'
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/AddOwner':
+    post:
+      tags:
+        - Subscription
+      summary: Add owner to a subscription
+      operationId: postApiApplicationsByAppNameSubscriptionsBySubscriptionNameOrIdAddOwner
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+        - in: header
+          name: Luna-User-Id
+          description: The user id of the creator
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/RegenerateKey':
+    post:
+      tags:
+        - Subscription
+      summary: Regenerate a subscription key
+      operationId: postApiApplicationsByAppNameSubscriptionsBySubscriptionNameOrIdRegenerateKey
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+        - in: query
+          name: key-name
+          description: The name of the key. Either PrimaryKey or SecondaryKey
+          required: true
+          type: string
+        - in: header
+          name: Luna-User-Id
+          description: The user id of the creator
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionKeys'
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/RemoveOwner':
+    post:
+      tags:
+        - Subscription
+      summary: Remove owner to a subscription
+      operationId: postApiApplicationsByAppNameSubscriptionsBySubscriptionNameOrIdRemoveOwner
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+        - in: header
+          name: Luna-User-Id
+          description: The user id of the creator
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+      security:
+        - x-functions-key: [ ]
+definitions:
+  Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication:
+    required:
+      - UniqueName
+      - DisplayName
+      - Description
+      - Publisher
+      - Tags
+    type: object
+    properties:
+      UniqueName:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      LogoImageUrl:
+        type: string
+      DocumentationUrl:
+        type: string
+      Publisher:
+        type: string
+      Tags:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaPublishedApplicationTag'
+      Details:
+        $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationDetails'
+    example:
+      UniqueName: mylunaapp
+      DisplayName: My Luna App
+      Description: This is my Luna app
+      LogoImageUrl: https://aka.ms/lunalog.png
+      DocumentationUrl: https://aka.ms/lunadoc
+      Publisher: Microsoft
+      Tags: [ ]
+      Details:
+        APIs: [ ]
+  Luna.Gallery.Public.Client.DataContracts.LunaPublishedApplicationTag:
+    type: object
+    properties:
+      Name:
+        type: string
+      Value:
+        type: string
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationDetails:
+    type: object
+    properties:
+      APIs:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaAPIDetails'
+  Luna.Gallery.Public.Client.DataContracts.LunaAPIDetails:
+    type: object
+    properties:
+      Name:
+        type: string
+      Type:
+        type: string
+      Versions:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaAPIVersionDetails'
+  Luna.Gallery.Public.Client.DataContracts.LunaAPIVersionDetails:
+    type: object
+    properties:
+      Name:
+        type: string
+      Operations:
+        type: array
+        items:
+          type: string
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription:
+    required:
+      - SubscriptionId
+      - SubscriptionName
+    type: object
+    properties:
+      SubscriptionId:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      SubscriptionName:
+        type: string
+      PrimaryKey:
+        type: string
+      SecondaryKey:
+        type: string
+      BaseUrl:
+        type: string
+      Notes:
+        type: string
+      Owners:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+      CreatedTime:
+        format: date-time
+        type: string
+    example:
+      SubscriptionId: 49e15707-ff3f-478d-b667-d2e85ed7c41c
+      SubscriptionName: mysub
+      PrimaryKey: 9c67b140955c4885bcc4dd50f26e5410
+      SecondaryKey: 9e4859b4d75c4aabb2a836e03b2bea0d
+      BaseUrl: https://luna.azurewebapp.net/api
+      Notes: this is my subscription
+      Owners:
+        - UserId: c6caf9ec-6bdb-4cac-b234-32b6a89513a4
+          UserName: FirstName LastName
+      CreatedTime: '2021-05-20T17:53:07.0255007+00:00'
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner:
+    required:
+      - UserId
+    type: object
+    properties:
+      UserId:
+        type: string
+      UserName:
+        type: string
+    example:
+      UserId: d7810e08-faed-43ae-8c91-45aa27400afc
+      UserName: FirstName LastName
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes:
+    required:
+      - Notes
+    type: object
+    properties:
+      Notes:
+        type: string
+    example:
+      Notes: this is my subscription
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionKeys:
+    required:
+      - PrimaryKey
+      - SecondaryKey
+    type: object
+    properties:
+      PrimaryKey:
+        type: string
+      SecondaryKey:
+        type: string
+    example:
+      PrimaryKey: ca32c268fe40481ca0771359199a30cb
+      SecondaryKey: 86be2f40fbbe42d3a2a55010215a244d
+securityDefinitions:
+  x-functions-key:
+    type: apiKey
+    name: x-functions-key
+    in: header
+    description: Azure function key

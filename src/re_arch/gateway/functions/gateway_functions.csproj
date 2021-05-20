@@ -12,9 +12,9 @@
     <ProjectReference Include="..\..\common\commonUtils\common_utils.csproj" />
     <ProjectReference Include="..\..\gallery\public\gallery_public_client.csproj" />
     <ProjectReference Include="..\..\partner\public\partner_public_client.csproj" />
-    <ProjectReference Include="..\..\publish\public_client\publish_public_client.csproj" />
-    <ProjectReference Include="..\..\pubsub\public_client\pubsub_public_client.csproj" />
-    <ProjectReference Include="..\..\rbac\rbac_public_client\rbac_public_client.csproj" />
+    <ProjectReference Include="..\..\publish\public\publish_public_client.csproj" />
+    <ProjectReference Include="..\..\pubsub\public\pubsub_public_client.csproj" />
+    <ProjectReference Include="..\..\rbac\public\rbac_public_client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

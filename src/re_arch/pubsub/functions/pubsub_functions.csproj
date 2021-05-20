@@ -5,6 +5,9 @@
     <AssemblyName>Luna.PubSub.Functions</AssemblyName>
     <RootNamespace>Luna.PubSub.Functions</RootNamespace>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\xiwu\Documents\GitHub\projectluna\src\re_arch\pubsub\functions\Luna.PubSub.Functions.xml</DocumentationFile>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
@@ -15,7 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\common\commonUtils\common_utils.csproj" />
     <ProjectReference Include="..\clients\pubsub_clients.csproj" />
-    <ProjectReference Include="..\public_client\pubsub_public_client.csproj" />
+    <ProjectReference Include="..\public\pubsub_public_client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

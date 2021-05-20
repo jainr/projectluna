@@ -25,6 +25,12 @@ namespace Luna.PubSub.PublicClient
                 SubscriberServiceName = "gallery",
                 SubscriberFunctionName = "processapplicationevents"
             });
+
+            this.EventSubscribers.Add(new LunaEventSubscriber()
+            {
+                SubscriberServiceName = "provision",
+                SubscriberFunctionName = "processapplicationevents"
+            });
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Luna.Common.Utils.RestClients;
-using Luna.Publish.PublicClient.DataContract.APIVersions;
+using Luna.Publish.Public.Client.DataContract;
 using Luna.Routing.Data.DataContracts;
 using System;
 using System.Collections.Generic;

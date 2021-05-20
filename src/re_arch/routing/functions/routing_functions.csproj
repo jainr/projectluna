@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\partner\public\partner_public_client.csproj" />
-    <ProjectReference Include="..\..\pubsub\public_client\pubsub_public_client.csproj" />
+    <ProjectReference Include="..\..\pubsub\public\pubsub_public_client.csproj" />
     <ProjectReference Include="..\clients\routing_clients.csproj" />
     <ProjectReference Include="..\data\routing_data.csproj" />
   </ItemGroup>

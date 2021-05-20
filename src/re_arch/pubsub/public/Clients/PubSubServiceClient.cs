@@ -55,11 +55,11 @@ namespace Luna.PubSub.PublicClient.Clients
         public async Task<List<LunaBaseEventEntity>> ListEventsAsync(string eventStoreName, LunaRequestHeaders headers, string eventType = null, long eventsAfter = 0)
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
-            var url = this._config.ServiceBaseUrl + $"eventStores/{eventStoreName}/events?eventsAfter={eventsAfter}";
+            var url = this._config.ServiceBaseUrl + $"eventStores/{eventStoreName}/events?{PubSubServiceQueryParameters.EVENTS_AFTER}={eventsAfter}";
 
             if (eventType != null)
             {
-                url = url + "&eventType=" + eventType;
+                url = url + $"&{PubSubServiceQueryParameters.EVENT_TYPE}=" + eventType;
             }
 
             var uri = new Uri(url);

@@ -20,7 +20,7 @@ using Luna.Common.Utils.LoggingUtils;
 using Luna.PubSub.PublicClient.Clients;
 using Luna.PubSub.PublicClient;
 using Luna.Gallery.Data.Entities;
-using Luna.Publish.PublicClient.DataContract.LunaApplications;
+using Luna.Publish.Public.Client.DataContract;
 using Luna.Gallery.Public.Client.DataContracts;
 
 namespace Luna.Gallery.Functions
@@ -106,10 +106,31 @@ namespace Luna.Gallery.Functions
             }
         }
 
+        #region published application operations
         /// <summary>
         /// List published applications
         /// </summary>
-        /// <param name="req">The http request</param>
+        /// <group>Application</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/applications</url>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="PublishedLunaApplication"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="PublishedLunaApplication.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of published Luna application
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("ListPublishedApplications")]
         public async Task<IActionResult> ListPublishedApplications(
@@ -142,9 +163,30 @@ namespace Luna.Gallery.Functions
         }
 
         /// <summary>
-        /// Get recommended applications
+        /// Get recommended Luna applications
         /// </summary>
-        /// <param name="req">The http request</param>
+        /// <group>Application</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/applications/{name}/recommended</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="PublishedLunaApplication"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="PublishedLunaApplication.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of published Luna application
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("GetRecommendedApplications")]
         public async Task<IActionResult> GetRecommendedApplications(
@@ -180,9 +222,29 @@ namespace Luna.Gallery.Functions
         }
 
         /// <summary>
-        /// Get a published application
+        /// Get a published Luna application
         /// </summary>
-        /// <param name="req">The http request</param>
+        /// <group>Application</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/applications/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="PublishedLunaApplication"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="PublishedLunaApplication.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of published Luna application
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("GetPublishedApplication")]
         public async Task<IActionResult> GetPublishedApplication(
@@ -219,9 +281,29 @@ namespace Luna.Gallery.Functions
         }
 
         /// <summary>
-        /// Get swagger for a published application
+        /// Get swagger in JSON format for a published Luna application
         /// </summary>
-        /// <param name="req">The http request</param>
+        /// <group>Application</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/applications/{name}/swagger</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationDetails"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationDetails.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of published Luna application
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("GetApplicationSwagger")]
         public async Task<IActionResult> GetApplicationSwagger(
@@ -257,10 +339,35 @@ namespace Luna.Gallery.Functions
             }
         }
 
+        #endregion
+
+        #region subscription operations
         /// <summary>
-        /// Create a subscription
+        /// Create a subscription of a published Luna application
         /// </summary>
+        /// <group>Subscription</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/applications/{appName}/subscriptions/{subscriptionName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="subscriptionName" required="true" cref="string" in="path">Name of the subscription</param>
+        /// <param name="Luna-User-Id" required="true" cref="string" in="header">The user id of the creator</param>
         /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("CreateSubscription")]
         public async Task<IActionResult> CreateSubscription(
@@ -283,8 +390,8 @@ namespace Luna.Gallery.Functions
                     }
 
                     if (await _dbContext.LunaApplicationSubscriptions.
-                        AnyAsync(x => x.Status == LunaApplicationSubscriptionStatus.SUBCRIBED && 
-                            x.ApplicationName == appName && 
+                        AnyAsync(x => x.Status == LunaApplicationSubscriptionStatus.SUBCRIBED &&
+                            x.ApplicationName == appName &&
                             x.SubscriptionName == subscriptionName))
                     {
                         throw new LunaConflictUserException(string.Format(ErrorMessages.SUBSCIRPTION_ALREADY_EXIST, subscriptionName, appName));
@@ -356,9 +463,31 @@ namespace Luna.Gallery.Functions
         }
 
         /// <summary>
-        /// List subscriptions
+        /// List all subscriptions of a published Luna application
         /// </summary>
+        /// <group>Subscription</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/applications/{appName}/subscriptions</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="Luna-User-Id" required="true" cref="string" in="header">The user id of the caller</param>
         /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="LunaApplicationSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("ListSubscriptions")]
         public async Task<IActionResult> ListSubscriptions(
@@ -392,9 +521,31 @@ namespace Luna.Gallery.Functions
         }
 
         /// <summary>
-        /// Get a subscription
+        /// Get a subscription of a published Luna application
         /// </summary>
+        /// <group>Subscription</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/applications/{appName}/subscriptions/{subscriptionNameOrId}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="Luna-User-Id" required="true" cref="string" in="header">The user id of the creator</param>
         /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("GetSubscription")]
         public async Task<IActionResult> GetSubscription(
@@ -431,9 +582,20 @@ namespace Luna.Gallery.Functions
         }
 
         /// <summary>
-        /// Delete a subscription
+        /// Delete a subscription of a published Luna application
         /// </summary>
+        /// <group>Subscription</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/applications/{appName}/subscriptions/{subscriptionNameOrId}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="Luna-User-Id" required="true" cref="string" in="header">The user id of the creator</param>
         /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("DeleteSubscription")]
         public async Task<IActionResult> DeleteSubscription(
@@ -487,9 +649,42 @@ namespace Luna.Gallery.Functions
         }
 
         /// <summary>
-        /// Update notes for a subscription
+        /// Update notes of a subscription
         /// </summary>
-        /// <param name="req">The http request</param>
+        /// <group>Subscription</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/UpdateNotes</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="Luna-User-Id" required="true" cref="string" in="header">The user id of the creator</param>
+        /// <param name="req" in="body">
+        ///     <see cref="LunaApplicationSubscriptionNotes"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionNotes.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription notes
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscriptionNotes"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionNotes.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription notes
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("UpdateSubscriptionNotes")]
         public async Task<IActionResult> UpdateSubscriptionNotes(
@@ -531,9 +726,42 @@ namespace Luna.Gallery.Functions
         }
 
         /// <summary>
-        /// Add Owner to a subscription
+        /// Add owner to a subscription
         /// </summary>
-        /// <param name="req">The http request</param>
+        /// <group>Subscription</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/AddOwner</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="Luna-User-Id" required="true" cref="string" in="header">The user id of the creator</param>
+        /// <param name="req" in="body">
+        ///     <see cref="LunaApplicationSubscriptionOwner"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionOwner.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription owner
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscriptionOwner"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionOwner.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription owner
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("AddSubscriptionOwner")]
         public async Task<IActionResult> AddSubscriptionOwner(
@@ -557,7 +785,7 @@ namespace Luna.Gallery.Functions
                     var owner = await HttpUtils.DeserializeRequestBodyAsync<LunaApplicationSubscriptionOwner>(req);
 
                     if (await _dbContext.LunaApplicationSubscriptionOwners.
-                        AnyAsync(x => x.SubscriptionId == subscriptionDb.SubscriptionId && 
+                        AnyAsync(x => x.SubscriptionId == subscriptionDb.SubscriptionId &&
                             x.UserId == owner.UserId))
                     {
                         throw new LunaConflictUserException(string.Format(ErrorMessages.SUBSCIRPTION_OWNER_ALREADY_EXIST, owner.UserId, subscriptionNameOrId));
@@ -587,9 +815,32 @@ namespace Luna.Gallery.Functions
         }
 
         /// <summary>
-        /// Regenerate API key for a subscription
+        /// Regenerate a subscription key
         /// </summary>
+        /// <group>Subscription</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/RegenerateKey</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="key-name" required="true" cref="string" in="query">The name of the key. Either PrimaryKey or SecondaryKey</param>
+        /// <param name="Luna-User-Id" required="true" cref="string" in="header">The user id of the creator</param>
         /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscriptionKeys"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionKeys.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription keys
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("RegenerateSubscriptionKey")]
         public async Task<IActionResult> RegenerateSubscriptionKey(
@@ -663,9 +914,42 @@ namespace Luna.Gallery.Functions
         }
 
         /// <summary>
-        /// Remove Owner from a subscription
+        /// Remove owner to a subscription
         /// </summary>
-        /// <param name="req">The http request</param>
+        /// <group>Subscription</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/RemoveOwner</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="Luna-User-Id" required="true" cref="string" in="header">The user id of the creator</param>
+        /// <param name="req" in="body">
+        ///     <see cref="LunaApplicationSubscriptionOwner"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionOwner.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription owner
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscriptionOwner"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionOwner.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription owner
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("RemoveSubscriptionOwner")]
         public async Task<IActionResult> RemoveSubscriptionOwner(
@@ -718,6 +1002,9 @@ namespace Luna.Gallery.Functions
             }
         }
 
+        #endregion
+
+        #region private methods
         private async Task<LunaApplicationSubscriptionDB> GetSubscriptionAndCheckOwner(string appName, string subscriptionNameOrId, string userId)
         {
             Guid subscriptionId = Guid.Empty;
@@ -812,5 +1099,6 @@ namespace Luna.Gallery.Functions
 
             return;
         }
+        #endregion
     }
 }

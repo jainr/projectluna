@@ -50,8 +50,16 @@ namespace Luna.Partner.Functions
         /// <summary>
         /// Get a partner service
         /// </summary>
+        /// <group>Partner service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/partnerServices/{name}</url>
         /// <param name="req">The http request</param>
-        /// <param name="name">Name of the service</param>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <response code="200"><see cref="BasePartnerServiceConfiguration"/>Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("GetPartnerService")]
         public async Task<IActionResult> GetPartnerService(
@@ -95,9 +103,22 @@ namespace Luna.Partner.Functions
         }
 
         /// <summary>
-        /// Get a partner service
+        /// List partner services by type
         /// </summary>
+        /// <group>Partner service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/partnerServices</url>
         /// <param name="req">The http request</param>
+        /// <param name="type" cref="string" in="query">Partner service type</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="BasePartnerServiceConfiguration"/>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("ListPartnerServicesByType")]
         public async Task<IActionResult> ListPartnerServicesByType(
@@ -143,12 +164,31 @@ namespace Luna.Partner.Functions
             }
         }
 
-
         /// <summary>
         /// Update a partner service
         /// </summary>
+        /// <group>Partner service</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/partnerServices/{name}</url>
         /// <param name="req">The http request</param>
-        /// <param name="name">The name of the partner service</param>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="sampleRequestContact" in="body">
+        ///     <see cref="BasePartnerServiceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BasePartnerServiceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace as partner service
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200"><see cref="BasePartnerServiceConfiguration"/>Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("UpdatePartnerService")]
         public async Task<IActionResult> UpdatePartnerService(
@@ -211,11 +251,30 @@ namespace Luna.Partner.Functions
             }
         }
 
-
         /// <summary>
         /// Add a partner service
         /// </summary>
-        /// <param name="req">The http request</param>
+        /// <group>Partner service</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/partnerServices/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req" in="body">
+        ///     <see cref="BasePartnerServiceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BasePartnerServiceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace as partner service
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200"><see cref="BasePartnerServiceConfiguration"/>Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("AddPartnerService")]
         public async Task<IActionResult> AddPartnerService(
@@ -274,7 +333,16 @@ namespace Luna.Partner.Functions
         /// <summary>
         /// Remove a partner service
         /// </summary>
+        /// <group>Partner service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/partnerServices/{name}</url>
         /// <param name="req">The http request</param>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
         /// <returns></returns>
         [FunctionName("RemovePartnerService")]
         public async Task<IActionResult> RemovePartnerService(

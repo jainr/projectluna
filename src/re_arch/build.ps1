@@ -12,6 +12,8 @@ param (
 	[switch] $publishLocalSettings = $false
 )
 
+$servicesWithSwaggerConfiged = @('partner','publish','rbac','gallery','pubsub')
+
 $config = ([xml](Get-Content build.config)).config
 
 $subscription = az account subscription show --id $config.subscriptionId --only-show-errors | ConvertFrom-Json
@@ -27,6 +29,11 @@ if ($cleanUp){
 	exit 1
 }
 
+push-location "common\swagger"
+dotnet clean --configuration Release /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary
+dotnet build --configuration Release /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary
+pop-location
+
 foreach ($service in $services) {
 	
 	$filePath = $service + "\functions"
@@ -40,6 +47,13 @@ foreach ($service in $services) {
 	Compress-Archive -Path .\bin\Release\netcoreapp3.1\publish\* -DestinationPath $zipFilePath -Force
 	
 	pop-location
+	
+	if ($servicesWithSwaggerConfiged.Contains($service)){
+		push-location "common\swagger\bin\Release\netcoreapp3.1"
+		$argements = "-r -s " + $service
+		& '.\SwaggerGenerator.exe' $argements.Split(" ")
+		pop-location
+	}
 	
 	if (-not $deployNew){
 		$functionAppName = $config.namePrefix + "-" + $service

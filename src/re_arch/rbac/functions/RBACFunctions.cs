@@ -35,6 +35,30 @@ namespace Luna.RBAC
             this._logger = logger;
         }
 
+        /// <summary>
+        /// Add role assignment
+        /// </summary>
+        /// <group>Role Assignment</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/roleassignments/add</url>
+        /// <param name="req" in="body">
+        ///     <see cref="RoleAssignment"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="RoleAssignment.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of role assignment
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200"><see cref="RoleAssignment"/>Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("AddRoleAssignment")]
         public async Task<IActionResult> AddRoleAssignment(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "roleassignments/add")] HttpRequest req)
@@ -64,6 +88,30 @@ namespace Luna.RBAC
             }
         }
 
+        /// <summary>
+        /// Remove role assignment
+        /// </summary>
+        /// <group>Role Assignment</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/roleassignments/remove</url>
+        /// <param name="req" in="body">
+        ///     <see cref="RoleAssignment"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="RoleAssignment.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of role assignment
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("RemoveRoleAssignment")]
         public async Task<IActionResult> RemoveRoleAssignment(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "roleassignments/remove")] HttpRequest req)
@@ -96,6 +144,30 @@ namespace Luna.RBAC
             }
         }
 
+        /// <summary>
+        /// Assign ownership
+        /// </summary>
+        /// <group>Ownership</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/ownership/add</url>
+        /// <param name="req" in="body">
+        ///     <see cref="Ownership"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="Ownership.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of ownership
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200"><see cref="Ownership"/>Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("AssignOwnership")]
         public async Task<IActionResult> AssignOwnership(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ownerships/add")] HttpRequest req)
@@ -125,6 +197,30 @@ namespace Luna.RBAC
             }
         }
 
+        /// <summary>
+        /// Remove ownership
+        /// </summary>
+        /// <group>Ownership</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/ownership/remove</url>
+        /// <param name="req" in="body">
+        ///     <see cref="Ownership"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="Ownership.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of ownership
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("RemoveOwnership")]
         public async Task<IActionResult> RemoveOwnership(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ownerships/remove")] HttpRequest req)
@@ -155,6 +251,41 @@ namespace Luna.RBAC
             }
         }
 
+        /// <summary>
+        /// Check if a user can access the specified resource and action
+        /// </summary>
+        /// <group>Access Control</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/canaccess</url>
+        /// <param name="req" in="body">
+        ///     <see cref="RBACQuery"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="RBACQuery.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of RBAC query
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="RBACQueryResult"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="RBACQueryResult.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of RBAC query result
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("CanAccess")]
         public async Task<IActionResult> CanAccess(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "canaccess")] HttpRequest req)

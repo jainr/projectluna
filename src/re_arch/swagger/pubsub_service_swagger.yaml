@@ -1,0 +1,175 @@
+swagger: '2.0'
+info:
+  title: Luna.PubSub.Functions
+  version: V1
+host: localhost:7071
+schemes:
+  - http
+paths:
+  '/api/eventStores/{name}':
+    get:
+      tags:
+        - EventStore
+      summary: Get event store connection string
+      operationId: getApiEventStoresByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the event store
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.PubSub.PublicClient.EventStoreInfo'
+      security:
+        - x-functions-key: [ ]
+  '/api/eventStores/{name}/events':
+    get:
+      tags:
+        - Event
+      summary: Get events sorted by published time from specified event store
+      operationId: getApiEventStoresByNameEvents
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the event store
+          required: true
+          type: string
+        - in: query
+          name: event-type
+          description: The event type to query
+          type: string
+        - in: query
+          name: event-after
+          description: 'If specified, only get events generated after the specified event id'
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.PubSub.PublicClient.LunaBaseEventEntity'
+            example:
+              EventType: PUBLISH_APPLICATION_EVENT
+              EventContent: '{}'
+              CreatedTime: '2021-05-20T17:53:07.7855822+00:00'
+              EventSequenceId: 637571299877856758
+              PartitionKey: 
+              RowKey: 
+              Timestamp: '0001-01-01T00:00:00.0000000+00:00'
+              ETag: 
+      security:
+        - x-functions-key: [ ]
+  '/api/eventStores/{name}/events/publish':
+    post:
+      tags:
+        - Event
+      summary: Publish an event to the specified event store
+      operationId: postApiEventStoresByNameEventsPublish
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of event store
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.PubSub.PublicClient.LunaBaseEventEntity'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.PubSub.PublicClient.LunaBaseEventEntity'
+      security:
+        - x-functions-key: [ ]
+definitions:
+  Luna.PubSub.PublicClient.EventStoreInfo:
+    required:
+      - Name
+      - ConnectionString
+      - ValidEventTypes
+      - ConnectionStringValidThroughUtc
+    type: object
+    properties:
+      Name:
+        type: string
+      ConnectionString:
+        type: string
+      ValidEventTypes:
+        type: array
+        items:
+          type: string
+      ConnectionStringValidThroughUtc:
+        format: date-time
+        type: string
+    example:
+      Name: ApplicationEvents
+      ConnectionString: Azure-Table-Storage-Connection-String-With-SaS-Key
+      ValidEventTypes:
+        - DELETE_APPLICATION_EVENT
+        - PUBLISH_APPLICATION_EVENT
+      ConnectionStringValidThroughUtc: '2021-05-20T18:53:07.5819007+00:00'
+  Luna.PubSub.PublicClient.LunaEventSubscriber:
+    type: object
+    properties:
+      SubscriberServiceName:
+        type: string
+      SubscriberFunctionName:
+        type: string
+      SubscriberQueueName:
+        type: string
+  Luna.PubSub.PublicClient.LunaBaseEventEntity:
+    required:
+      - EventType
+      - EventContent
+    type: object
+    properties:
+      EventType:
+        type: string
+      EventContent:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+      EventSequenceId:
+        format: int64
+        type: integer
+      PartitionKey:
+        type: string
+      RowKey:
+        type: string
+      Timestamp:
+        format: date-time
+        type: string
+      ETag:
+        type: string
+    example:
+      EventType: PUBLISH_APPLICATION_EVENT
+      EventContent: '{}'
+      CreatedTime: '2021-05-20T17:53:07.7855822+00:00'
+      EventSequenceId: 637571299877856758
+      PartitionKey: 
+      RowKey: 
+      Timestamp: '0001-01-01T00:00:00.0000000+00:00'
+      ETag: 
+securityDefinitions:
+  x-functions-key:
+    type: apiKey
+    name: x-functions-key
+    in: header
+    description: Azure function key

@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\common\commonUtils\common_utils.csproj" />
-    <ProjectReference Include="..\public_client\pubsub_public_client.csproj" />
+    <ProjectReference Include="..\public\pubsub_public_client.csproj" />
   </ItemGroup>
 
 </Project>

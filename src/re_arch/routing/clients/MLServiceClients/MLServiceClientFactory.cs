@@ -1,7 +1,7 @@
 ﻿using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
 using Luna.Common.Utils.LoggingUtils.Exceptions;
 using Luna.Partner.PublicClient.DataContract.PartnerServices;
-using Luna.Publish.PublicClient.DataContract.APIVersions;
+using Luna.Publish.Public.Client.DataContract;
 using Luna.Publish.PublicClient.Enums;
 using Luna.Routing.Clients.MLServiceClients.Interfaces;
 using Luna.Routing.Data.Entities;

@@ -42,11 +42,30 @@ namespace Luna.PubSub.Functions
         }
 
         /// <summary>
-        /// Get event store connecton string
+        /// Get event store connection string
         /// </summary>
+        /// <group>EventStore</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/eventStores/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the event store</param>
         /// <param name="req">The http request</param>
-        /// <param name="name">The name of the event store</param>
-        /// <returns>The application</returns>
+        /// <response code="200">
+        ///     <see cref="EventStoreInfo"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="EventStoreInfo.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of event store info
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("GetEventStoreConnectionString")]
         public async Task<IActionResult> GetEventStoreConnectionString(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "eventStores/{name}")] HttpRequest req,
@@ -77,11 +96,33 @@ namespace Luna.PubSub.Functions
 
 
         /// <summary>
-        /// Get sorted events
+        /// Get events sorted by published time from specified event store
         /// </summary>
+        /// <group>Event</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/eventStores/{name}/events</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the event store</param>
+        /// <param name="event-type" required="false" cref="string" in="query">The event type to query</param>
+        /// <param name="event-after" required="false" cref="long" in="query">If specified, only get events generated after the specified event id</param>
         /// <param name="req">The http request</param>
-        /// <param name="name">The name of the event store</param>
-        /// <returns>The application</returns>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="LunaBaseEventEntity"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaBaseEventEntity.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of event entity
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("GetSortedEvents")]
         public async Task<IActionResult> GetSortedEvents(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "eventStores/{name}/events")] HttpRequest req,
@@ -127,12 +168,41 @@ namespace Luna.PubSub.Functions
         }
 
         /// <summary>
-        /// publish a event to specified event store
+        /// Publish an event to the specified event store
         /// </summary>
-        /// <param name="req">The http request</param>
-        /// <param name="name">The name of the event store</param>
-        /// <param name="eventType">The event type</param>
-        /// <returns>The application</returns>
+        /// <group>Event</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/eventStores/{name}/events/publish</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of event store</param>
+        /// <param name="req" in="body">
+        ///     <see cref="LunaBaseEventEntity"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaBaseEventEntity.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of event entity
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="LunaBaseEventEntity"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaBaseEventEntity.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of event entity
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("PublishEvent")]
         public async Task<IActionResult> PublishEvent(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "eventStores/{name}/events/publish")] HttpRequest req,

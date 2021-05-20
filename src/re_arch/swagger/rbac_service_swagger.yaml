@@ -1,0 +1,200 @@
+swagger: '2.0'
+info:
+  title: Luna.RBAC.Functions
+  version: V1
+host: localhost:7071
+schemes:
+  - http
+paths:
+  /api/roleassignments/add:
+    post:
+      tags:
+        - Role Assignment
+      summary: Add role assignment
+      operationId: postApiRoleassignmentsAdd
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+      security:
+        - x-functions-key: [ ]
+  /api/roleassignments/remove:
+    post:
+      tags:
+        - Role Assignment
+      summary: Remove role assignment
+      operationId: postApiRoleassignmentsRemove
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+  /api/ownership/add:
+    post:
+      tags:
+        - Ownership
+      summary: Assign ownership
+      operationId: postApiOwnershipAdd
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.Ownership'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.Ownership'
+      security:
+        - x-functions-key: [ ]
+  /api/ownership/remove:
+    post:
+      tags:
+        - Ownership
+      summary: Remove ownership
+      operationId: postApiOwnershipRemove
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.Ownership'
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+  /api/canaccess:
+    post:
+      tags:
+        - Access Control
+      summary: Check if a user can access the specified resource and action
+      operationId: postApiCanaccess
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RBACQuery'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RBACQueryResult'
+      security:
+        - x-functions-key: [ ]
+definitions:
+  Luna.RBAC.Public.Client.DataContracts.RoleAssignment:
+    required:
+      - Uid
+      - UserName
+      - Role
+    type: object
+    properties:
+      Uid:
+        type: string
+      UserName:
+        type: string
+      Role:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+    example:
+      Uid: a90f7880-de0a-41d5-b6ff-bcbf0226cb2f
+      UserName: FirstName LastName
+      Role: Admin
+      CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
+  Luna.RBAC.Public.Client.DataContracts.Ownership:
+    required:
+      - Uid
+      - ResourceId
+    type: object
+    properties:
+      Uid:
+        type: string
+      ResourceId:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+    example:
+      Uid: 722f1f1b-1a63-4e16-9411-88f7ebbf39b2
+      ResourceId: applications/myapp
+      CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
+  Luna.RBAC.Public.Client.DataContracts.RBACQuery:
+    required:
+      - Uid
+      - ResourceId
+    type: object
+    properties:
+      Uid:
+        type: string
+      ResourceId:
+        type: string
+      Action:
+        type: string
+    example:
+      Uid: 1f88a67e-7874-4999-afc0-e1190cf71f0a
+      ResourceId: applications/myapp
+      Action: 
+  Luna.RBAC.Public.Client.DataContracts.RBACQueryResult:
+    required:
+      - Query
+      - CanAccess
+    type: object
+    properties:
+      Query:
+        $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RBACQuery'
+      CanAccess:
+        type: boolean
+      Role:
+        type: string
+    example:
+      Query:
+        Uid: 80150c6b-b699-4090-aa06-f512c1d5cbd2
+        ResourceId: applications/myapp
+        Action: 
+      CanAccess: true
+      Role: Admin
+securityDefinitions:
+  x-functions-key:
+    type: apiKey
+    name: x-functions-key
+    in: header
+    description: Azure function key

@@ -38,6 +38,8 @@ namespace Luna.Gallery.Public.Client.DataContracts
 
     public class LunaApplicationDetails
     {
+        public static string example = "{}";
+
         public LunaApplicationDetails()
         {
             APIs = new List<LunaAPIDetails>();
