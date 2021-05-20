@@ -1,0 +1,453 @@
+swagger: '2.0'
+info:
+  title: Luna.Publish.Functions
+  version: V1
+host: localhost:7071
+schemes:
+  - http
+paths:
+  /api/applicationss:
+    get:
+      tags:
+        - Application
+      summary: List all applications
+      operationId: getApiApplicationss
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplication'
+      security:
+        - x-functions-key: [ ]
+  '/api/applicationss/{name}/masterkeys':
+    get:
+      tags:
+        - Application
+      summary: Get Luna application master keys
+      operationId: getApiApplicationssByNameMasterkeys
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: The name of the application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationMasterKeys'
+      security:
+        - x-functions-key: [ ]
+  '/api/applicationss/{name}':
+    get:
+      tags:
+        - Application
+      summary: Get a Luna application
+      operationId: getApiApplicationssByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: The name of the application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplication'
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{name}':
+    delete:
+      tags:
+        - Application
+      summary: Delete a Luna application
+      operationId: deleteApiApplicationsByName
+      parameters:
+        - in: path
+          name: name
+          description: Name of Luna application
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{name}/regenerateMasterKeys':
+    post:
+      tags:
+        - Application
+      summary: Regenerate Luna application master keys
+      operationId: postApiApplicationsByNameRegenerateMasterKeys
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: query
+          name: key-name
+          description: The key name. Valid values are PrimaryKey or SecondaryKey
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationMasterKeys'
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{name}/publish':
+    post:
+      tags:
+        - Application
+      summary: Publish a Luna application
+      operationId: postApiApplicationsByNamePublish
+      parameters:
+        - in: path
+          name: name
+          description: Name of Luna application
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{appName}/apis/{apiName}':
+    put:
+      tags:
+        - API
+      summary: Create an API in the specified Luna application
+      operationId: putApiApplicationsByAppNameApisByApiName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of API
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - API
+      summary: Update an API in the specified Luna application
+      operationId: patchApiApplicationsByAppNameApisByApiName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of API
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+      security:
+        - x-functions-key: [ ]
+    delete:
+      tags:
+        - API
+      summary: Delete an API from the specified Luna application
+      operationId: deleteApiApplicationsByAppNameApisByApiName
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of API
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+  '/api/applications/{appName}/apis/{apiName}/versions/{versionName}':
+    put:
+      tags:
+        - API Version
+      summary: Create a version in the specified API
+      operationId: putApiApplicationsByAppNameApisByApiNameVersionsByVersionName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of API
+          required: true
+          type: string
+        - in: path
+          name: versionName
+          description: Name of API version
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - API Version
+      summary: Update a version in the specified API
+      operationId: patchApiApplicationsByAppNameApisByApiNameVersionsByVersionName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of API
+          required: true
+          type: string
+        - in: path
+          name: versionName
+          description: Name of API version
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+      security:
+        - x-functions-key: [ ]
+    delete:
+      tags:
+        - s
+      summary: Delete a version from the specified API
+      operationId: deleteApiApplicationsByAppNameApisByApiNameVersionsByVersionName
+      parameters:
+        - in: path
+          name: appName
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of API
+          required: true
+          type: string
+        - in: path
+          name: versionName
+          description: Name of API version
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+definitions:
+  Luna.Publish.Public.Client.DataContract.LunaApplication:
+    required:
+      - Name
+      - Status
+      - Properties
+      - APIs
+    type: object
+    properties:
+      Name:
+        type: string
+      Status:
+        type: string
+      Properties:
+        $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      APIs:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaAPI'
+  Luna.Publish.Public.Client.DataContract.LunaApplicationProp:
+    required:
+      - OwnerUserId
+      - DisplayName
+      - Description
+      - DocumentationUrl
+      - LogoImageUrl
+      - Publisher
+      - Tags
+      - CreatedBy
+      - PrimaryMasterKeySecretName
+      - SecondaryMasterKeySecretName
+    type: object
+    properties:
+      OwnerUserId:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      DocumentationUrl:
+        type: string
+      LogoImageUrl:
+        type: string
+      Publisher:
+        type: string
+      Tags:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationTag'
+      CreatedBy:
+        type: string
+      PrimaryMasterKeySecretName:
+        type: string
+      SecondaryMasterKeySecretName:
+        type: string
+  Luna.Publish.Public.Client.DataContract.LunaApplicationTag:
+    type: object
+    properties:
+      Key:
+        type: string
+      Value:
+        type: string
+  Luna.Publish.Public.Client.DataContract.LunaAPI:
+    type: object
+    properties:
+      Name:
+        type: string
+      Properties:
+        $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+      Versions:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.APIVersion'
+  Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp:
+    required:
+      - DisplayName
+      - Type
+      - Description
+    type: object
+    properties:
+      DisplayName:
+        type: string
+      Type:
+        type: string
+      Description:
+        type: string
+      AdvancedSettings:
+        type: string
+    example:
+      DisplayName: sentimentanalysis
+      Type: Realtime
+      Description: Sentiment analysis API
+      AdvancedSettings: 
+  Luna.Publish.Public.Client.DataContract.APIVersion:
+    type: object
+    properties:
+      Name:
+        type: string
+      Properties:
+        $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+  Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp:
+    required:
+      - Type
+      - Description
+    type: object
+    properties:
+      Type:
+        type: string
+      Description:
+        type: string
+      AdvancedSettings:
+        type: string
+    example:
+      Type: AzureML
+      Description: API version from Azure ML workspace
+      AdvancedSettings: 
+  Luna.Publish.Public.Client.DataContract.LunaApplicationMasterKeys:
+    required:
+      - PrimaryMasterKey
+      - SecondaryMasterKey
+    type: object
+    properties:
+      PrimaryMasterKey:
+        type: string
+      SecondaryMasterKey:
+        type: string
+    example:
+      PrimaryMasterKey: 8a2374d983d54c0d8b7f87448072c44c
+      SecondaryMasterKey: 6954212489a84d13900580f6044c3473
+securityDefinitions:
+  x-functions-key:
+    type: apiKey
+    name: x-functions-key
+    in: header
+    description: Azure function key
