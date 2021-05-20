@@ -1,0 +1,140 @@
+swagger: '2.0'
+info:
+  title: Luna.Partner.Functions
+  version: V1
+host: localhost:7071
+schemes:
+  - http
+paths:
+  '/api/partnerServices/{name}':
+    get:
+      tags:
+        - Partner service
+      summary: Get a partner service
+      operationId: getApiPartnerServicesByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - Partner service
+      summary: Update a partner service
+      operationId: patchApiPartnerServicesByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
+      security:
+        - x-functions-key: [ ]
+    put:
+      tags:
+        - Partner service
+      summary: Add a partner service
+      operationId: putApiPartnerServicesByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
+      security:
+        - x-functions-key: [ ]
+  /api/partnerServices:
+    get:
+      tags:
+        - Partner service
+      summary: List partner services by type
+      operationId: getApiPartnerServices
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: type
+          description: Partner service type
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
+      security:
+        - x-functions-key: [ ]
+definitions:
+  Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration:
+    required:
+      - DisplayName
+      - Description
+      - Type
+      - Tags
+    type: object
+    properties:
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      Type:
+        type: string
+      Tags:
+        type: string
+    example:
+      Region: westus
+      ResourceId: /subscriptions/d92d69d5-4a6a-4dfb-847c-59d684e064ce/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
+      TenantId: 2d5a6213-4c03-4abd-a2dc-b40f54503bb1
+      ClientId: a028692c-c51b-4f99-93eb-4154403a595c
+      ClientSecret: my-client-secret
+      DisplayName: My Azure ML workspace
+      Description: Azure ML workspace
+      Type: AML
+      Tags: purpose=prod;org=hr
+securityDefinitions:
+  x-functions-key:
+    type: apiKey
+    name: x-functions-key
+    in: header
+    description: Azure function key
