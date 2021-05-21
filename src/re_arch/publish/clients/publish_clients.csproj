@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Luna.Publish.Clients</RootNamespace>
+    <AssemblyName>Luna.Publish.Clients</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\common\commonUtils\common_utils.csproj" />
+    <ProjectReference Include="..\data\publish_data.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -148,7 +148,7 @@ namespace Luna.Gateway.Functions
                     {
                         throw new LunaBadRequestUserException(
                             string.Format(ErrorMessages.INVALID_QUERY_PARAMETER_VALUE, PublishQueryParameterConstants.KEY_NAME_QUERY_PARAMETER_NAME),
-                            UserErrorCode.MissingQueryParameter);
+                            UserErrorCode.InvalidParameter);
                     }
 
                     if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&

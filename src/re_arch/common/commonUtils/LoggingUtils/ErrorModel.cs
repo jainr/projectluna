@@ -30,6 +30,15 @@ namespace Luna.Common.Utils.LoggingUtils
                     this.HttpStatusCode = ((LunaUserException)ex).HttpStatusCode;
                 }
             }
+            else
+            {
+                if (ex.InnerException != null && ex.InnerException is LunaUserException)
+                {
+                    this.Message = ex.InnerException.Message;
+                    this.ErrorCode = ((LunaUserException)ex.InnerException).ErrorCode;
+                    this.HttpStatusCode = ((LunaUserException)ex.InnerException).HttpStatusCode;
+                }
+            }
         }
 
         public string Message { get; set; }

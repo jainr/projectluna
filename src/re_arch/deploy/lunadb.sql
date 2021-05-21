@@ -253,7 +253,7 @@ CREATE TABLE [gallery].[LunaApplicationSubscriptions](
 	[SubscriptionId] [uniqueidentifier] NOT NULL,
 	[SubscriptionName] [nvarchar](128) NOT NULL,
 	[ApplicationName] [nvarchar](128) NOT NULL,
-	[Status] [nvarchar](32) NOT NULL,
+	[Status] [nvarchar](64) NOT NULL,
 	[Notes] [nvarchar](1024) NOT NULL,
 	[PrimaryKeySecretName] [nvarchar](64) NOT NULL,
 	[SecondaryKeySecretName] [nvarchar](64) NOT NULL,

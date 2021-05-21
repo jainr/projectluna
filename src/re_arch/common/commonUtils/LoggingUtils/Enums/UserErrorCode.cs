@@ -25,6 +25,7 @@ namespace Luna.Common.Utils.LoggingUtils.Enums
         InternalServerError,
         MissingQueryParameter,
         NotSupported,
-        CanNotPerformOperation
+        CanNotPerformOperation,
+        InvalidInput
     }
 }

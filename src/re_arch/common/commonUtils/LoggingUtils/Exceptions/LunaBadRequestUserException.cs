@@ -7,8 +7,8 @@ namespace Luna.Common.Utils.LoggingUtils.Exceptions
 {
     public class LunaBadRequestUserException : LunaUserException
     {
-        public LunaBadRequestUserException(string message, UserErrorCode code) : 
-            base(message, code, System.Net.HttpStatusCode.BadRequest)
+        public LunaBadRequestUserException(string message, UserErrorCode code, string target = "method_error") : 
+            base(message, code, System.Net.HttpStatusCode.BadRequest, target)
         {
 
         }
