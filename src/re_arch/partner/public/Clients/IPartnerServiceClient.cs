@@ -67,5 +67,35 @@ namespace Luna.Partner.PublicClient.Clients
         /// <returns>The workspace configuration</returns>
         Task<AzureSynapseWorkspaceConfiguration> GetAzureSynapseWorkspaceConfiguration(string name, LunaRequestHeaders headers);
 
+        /// <summary>
+        /// Get ML compute service types
+        /// </summary>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>The compute service types</returns>
+        Task<List<ServiceType>> GetMLComputeServiceTypes(LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Get ML host service types
+        /// </summary>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>The host service types</returns>
+        Task<List<ServiceType>> GetMLHostServiceTypes(LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Get ML component types
+        /// </summary>
+        /// <param name="serviceType">The host service type</param>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>The component types</returns>
+        Task<List<ComponentType>> GetMLComponentTypes(string serviceType, LunaRequestHeaders headers);
+
+        /// Get specified type of ML components from specified partner service
+        /// </summary>
+        /// <param name="serviceName">The partner service name</param>
+        /// <param name="componentType">The component type</param>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>The ML components</returns>
+        Task<List<BaseMLComponent>> GetMLComponents(string serviceName, string componentType, LunaRequestHeaders headers);
+
     }
 }

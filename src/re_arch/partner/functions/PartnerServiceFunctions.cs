@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using Luna.Common.LoggingUtils;
 using Microsoft.EntityFrameworkCore;
+using Luna.Publish.PublicClient.Enums;
 
 namespace Luna.Partner.Functions
 {
@@ -44,6 +45,216 @@ namespace Luna.Partner.Functions
             this._dbContext = dbContext;
             this._keyVaultUtils = keyVaultUtils;
             this._logger = logger;
+        }
+
+        /// <summary>
+        /// Get ML host service types
+        /// </summary>
+        /// <group>Metadata</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/partnerServices/hostservicetypes</url>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="ServiceType"/>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetMLHostServiceTypes")]
+        public async Task<IActionResult> GetMLHostServiceTypes(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partnerServices/hostservicetypes")] HttpRequest req)
+        {
+            LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetMLHostServiceTypes));
+
+                try
+                {
+                    return new OkObjectResult(PartnerServiceTypeMetadata.MLHostServiceTypes);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetMLHostServiceTypes));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get ML compute service types
+        /// </summary>
+        /// <group>Metadata</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/partnerServices/computeservicetypes</url>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="ServiceType"/>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetMLComputeServiceTypes")]
+        public async Task<IActionResult> GetMLComputeServiceTypes(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partnerServices/computeservicetypes")] HttpRequest req)
+        {
+            LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetMLComputeServiceTypes));
+
+                try
+                {
+                    return new OkObjectResult(PartnerServiceTypeMetadata.MLComputeServiceTypes);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetMLComputeServiceTypes));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get ML component types
+        /// </summary>
+        /// <group>Metadata</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/partnerServices/{serviceType}/mlcomponenttypes</url>
+        /// <param name="serviceType" required="true" cref="string" in="path">The ML host service type</param>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="ComponentType"/>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetMLComponentTypes")]
+        public async Task<IActionResult> GetMLComponentTypes(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partnerServices/{serviceType}/mlcomponenttypes")] HttpRequest req, string serviceType)
+        {
+            LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetMLComponentTypes));
+
+                try
+                {
+                    return new OkObjectResult(PartnerServiceComponentTypeMetadata.GetComponentTypes(serviceType));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetMLComponentTypes));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get ML components by type
+        /// </summary>
+        /// <group>Metadata</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/partnerServices/{serviceName}/mlcomponents/{componentType}</url>
+        /// <param name="serviceName" required="true" cref="string" in="path">The partner service name</param>
+        /// <param name="componentType" required="true" cref="string" in="path">The ML component type</param>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="BaseMLComponent"/>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetMLComponents")]
+        public async Task<IActionResult> GetMLComponents(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partnerServices/{serviceName}/mlcomponents/{componentType}")] 
+            HttpRequest req, 
+            string serviceName,
+            string componentType)
+        {
+            LunaRequestHeaders lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetMLComponents));
+
+                try
+                {
+                    var partnerServiceInternal = _dbContext.PartnerServices.
+                        Where(p => p.UniqueName == serviceName).SingleOrDefault<PartnerServiceInternal>();
+
+                    if (partnerServiceInternal == null)
+                    {
+                        throw new LunaNotFoundUserException(string.Format(ErrorMessages.PARTNER_SERVICE_DOES_NOT_EXIST, serviceName));
+                    }
+
+                    var configuration = await _keyVaultUtils.GetSecretAsync(partnerServiceInternal.ConfigurationSecretName);
+
+                    var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(configuration,
+                        new JsonSerializerSettings
+                        {
+                            TypeNameHandling = TypeNameHandling.Auto
+                        });
+
+                    if (componentType.Equals(LunaAPIType.Realtime.ToString()))
+                    {
+                        var client = _serviceClientFactory.GetRealtimeEndpointPartnerServiceClient(serviceName, config);
+
+                        if (client != null)
+                        {
+                            return new OkObjectResult(await client.ListRealtimeEndpointsAsync());
+                        }
+                    }
+                    else if (componentType.Equals(LunaAPIType.Pipeline.ToString()))
+                    {
+                        var client = _serviceClientFactory.GetPipelineEndpointPartnerServiceClient(serviceName, config);
+
+                        if (client != null)
+                        {
+                            return new OkObjectResult(await client.ListPipelineEndpointsAsync());
+                        }
+                    }
+
+                    throw new LunaNotFoundUserException(
+                        string.Format(ErrorMessages.INVALID_ML_COMPONENT_TYPE, serviceName, componentType));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetMLComponents));
+                }
+            }
         }
 
 
@@ -170,9 +381,8 @@ namespace Luna.Partner.Functions
         /// <group>Partner service</group>
         /// <verb>PATCH</verb>
         /// <url>http://localhost:7071/api/partnerServices/{name}</url>
-        /// <param name="req">The http request</param>
         /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
-        /// <param name="sampleRequestContact" in="body">
+        /// <param name="req" in="body">
         ///     <see cref="BasePartnerServiceConfiguration"/>
         ///     <example>
         ///         <value>

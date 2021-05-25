@@ -12,7 +12,7 @@ param (
 	[switch] $publishLocalSettings = $false
 )
 
-$servicesWithSwaggerConfiged = @('partner','publish','rbac','gallery','pubsub')
+$servicesWithSwaggerConfiged = @('partner','publish','rbac','gallery','pubsub','gateway')
 
 $config = ([xml](Get-Content build.config)).config
 

@@ -1,4 +1,5 @@
 # Swagger
+- [Gateway Service Swagger](./swagger/gateway)
 - [Publish Service Swagger](./swagger/publish)
 - [Partner Service Swagger](./swagger/partner)
 - [Pubsub Service Swagger](./swagger/pubsub)

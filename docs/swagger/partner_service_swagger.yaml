@@ -124,13 +124,13 @@ definitions:
         type: string
     example:
       Region: westus
-      ResourceId: /subscriptions/d92d69d5-4a6a-4dfb-847c-59d684e064ce/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
-      TenantId: 2d5a6213-4c03-4abd-a2dc-b40f54503bb1
-      ClientId: a028692c-c51b-4f99-93eb-4154403a595c
+      ResourceId: /subscriptions/a22070aa-cb0d-448e-b49f-8bed7e98ac02/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
+      TenantId: 8145772a-e215-4bc1-a00a-38da2e39649b
+      ClientId: 9298a238-dda6-406f-a281-8a05b6d42e60
       ClientSecret: my-client-secret
       DisplayName: My Azure ML workspace
       Description: Azure ML workspace
-      Type: AML
+      Type: AzureML
       Tags: purpose=prod;org=hr
 securityDefinitions:
   x-functions-key:

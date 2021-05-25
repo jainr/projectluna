@@ -25,6 +25,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Luna.PubSub.PublicClient;
+using Luna.Partner.PublicClient.DataContract;
 
 namespace Luna.Gateway.Functions
 {
@@ -59,14 +61,14 @@ namespace Luna.Gateway.Functions
             var lunaHeaders = new LunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.GetEventStoreConnectionString));
+                _logger.LogMethodBegin(nameof(this.Test));
 
                 try
                 {
                     if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
                         await this._rbacClient.CanAccess(lunaHeaders.UserId, $"rbac", null, lunaHeaders))
                     {
-                        return new OkObjectResult(req.Headers["X-MS-CLIENT-PRINCIPAL-ID"].ToString());
+                        return new OkObjectResult(req.Headers["X-MS-CLIENT-PRINCIPAL-NAME"].ToString());
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -77,12 +79,39 @@ namespace Luna.Gateway.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.GetPartnerService));
+                    _logger.LogMethodEnd(nameof(this.Test));
                 }
             }
         }
 
         #region pubsub
+
+        /// <summary>
+        /// Get event store connection string
+        /// </summary>
+        /// <group>Event Store</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/eventstores/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the event store</param>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="EventStoreInfo"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="EventStoreInfo.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of event store info
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("GetEventStoreConnectionString")]
         public async Task<IActionResult> GetEventStoreConnectionString(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/eventstores/{name}")] HttpRequest req,
@@ -99,7 +128,7 @@ namespace Luna.Gateway.Functions
                     if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
                         await this._rbacClient.CanAccess(lunaHeaders.UserId, $"/eventstores", null, lunaHeaders))
                     {
-                        var result = await _pubSubServiceClient.GetEventStoreConnectionStringAsync(name, lunaHeaders);
+                        EventStoreInfo result = await _pubSubServiceClient.GetEventStoreConnectionStringAsync(name, lunaHeaders);
                         return new OkObjectResult(result);
                     }
 
@@ -118,6 +147,34 @@ namespace Luna.Gateway.Functions
         #endregion
 
         #region publish
+
+        /// <summary>
+        /// Regenerate application master key
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{name}/regeneratemasterkeys</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="key-name" required="true" cref="string" in="query">Name of key</param>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationMasterKeys"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationMasterKeys.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application master keys
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("RegenerateLunaApplicationMasterKeys")]
         public async Task<IActionResult> RegenerateLunaApplicationMasterKeys(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "manage/applications/{name}/regeneratemasterkeys")] HttpRequest req,
@@ -172,6 +229,24 @@ namespace Luna.Gateway.Functions
 
         }
 
+        /// <summary>
+        /// List applications
+        /// </summary>
+        /// <group>Application</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/applications</url>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="LunaApplication"/>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("ListLunaApplications")]
         public async Task<IActionResult> ListLunaApplications(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/applications")] HttpRequest req)
@@ -210,6 +285,32 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Get application master keys
+        /// </summary>
+        /// <group>Application</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{name}/masterkeys</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationMasterKeys"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationMasterKeys.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application master keys
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("GetLunaApplicationMasterKeys")]
         public async Task<IActionResult> GetLunaApplicationMasterKeys(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/applications/{name}/masterkeys")] HttpRequest req,
@@ -244,6 +345,43 @@ namespace Luna.Gateway.Functions
         }
 
 
+        /// <summary>
+        /// Create a new Luna application
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="req" in="body">
+        ///     <see cref="LunaApplicationProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna application properties
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna application properties
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("CreateLunaApplication")]
         public async Task<IActionResult> CreateLunaApplication(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "manage/applications/{name}")] HttpRequest req,
@@ -287,6 +425,43 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Update a Luna application
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="req" in="body">
+        ///     <see cref="LunaApplicationProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna application properties
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna application properties
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("UpdateLunaApplication")]
         public async Task<IActionResult> UpdateLunaApplication(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "manage/applications/{name}")] HttpRequest req,
@@ -323,6 +498,21 @@ namespace Luna.Gateway.Functions
         }
 
 
+        /// <summary>
+        /// Delete a Luna application
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="req">Http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("DeleteLunaApplication")]
         public async Task<IActionResult> DeleteLunaApplication(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "manage/applications/{name}")] HttpRequest req,
@@ -358,6 +548,44 @@ namespace Luna.Gateway.Functions
 
         }
 
+        /// <summary>
+        /// Create an API in a Luna application
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{appName}/apis/{apiName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="apiName" required="true" cref="string" in="path">Name of the API</param>
+        /// <param name="req" in="body">
+        ///     <see cref="BaseLunaAPIProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseLunaAPIProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna API properties
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="BaseLunaAPIProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseLunaAPIProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna API properties
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("CreateLunaAPI")]
         public async Task<IActionResult> CreateLunaAPI(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "manage/applications/{appName}/apis/{apiName}")] HttpRequest req,
@@ -394,6 +622,44 @@ namespace Luna.Gateway.Functions
 
         }
 
+        /// <summary>
+        /// Update an API in a Luna application
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{appName}/apis/{apiName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="apiName" required="true" cref="string" in="path">Name of the API</param>
+        /// <param name="req" in="body">
+        ///     <see cref="BaseLunaAPIProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseLunaAPIProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna API properties
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="BaseLunaAPIProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseLunaAPIProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna API properties
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("UpdateLunaAPI")]
         public async Task<IActionResult> UpdateLunaAPI(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "manage/applications/{appName}/apis/{apiName}")] HttpRequest req,
@@ -430,7 +696,22 @@ namespace Luna.Gateway.Functions
 
         }
 
-
+        /// <summary>
+        /// Delete an API from a Luna application
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{appName}/apis/{apiName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="apiName" required="true" cref="string" in="path">Name of the API</param>
+        /// <param name="req">Http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("DeleteLunaAPI")]
         public async Task<IActionResult> DeleteLunaAPI(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "manage/applications/{appName}/apis/{apiName}")] HttpRequest req,
@@ -466,6 +747,45 @@ namespace Luna.Gateway.Functions
 
         }
 
+        /// <summary>
+        /// Create a new version in a Luna API
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{appName}/apis/{apiName}/versions/{versionName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="apiName" required="true" cref="string" in="path">Name of the API</param>
+        /// <param name="versionName" required="true" cref="string" in="path">Name of the Version</param>
+        /// <param name="req" in="body">
+        ///     <see cref="BaseAPIVersionProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseAPIVersionProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna API version
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="BaseAPIVersionProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseAPIVersionProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna API version
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("CreateLunaAPIVersion")]
         public async Task<IActionResult> CreateLunaAPIVersion(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "manage/applications/{appName}/apis/{apiName}/versions/{versionName}")] HttpRequest req,
@@ -503,6 +823,45 @@ namespace Luna.Gateway.Functions
 
         }
 
+        /// <summary>
+        /// Update a new version in a Luna API
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{appName}/apis/{apiName}/versions/{versionName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="apiName" required="true" cref="string" in="path">Name of the API</param>
+        /// <param name="versionName" required="true" cref="string" in="path">Name of the Version</param>
+        /// <param name="req" in="body">
+        ///     <see cref="BaseAPIVersionProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseAPIVersionProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna API version
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="BaseAPIVersionProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseAPIVersionProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna API version
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("UpdateLunaAPIVersion")]
         public async Task<IActionResult> UpdateLunaAPIVersion(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "manage/applications/{appName}/apis/{apiName}/versions/{versionName}")] HttpRequest req,
@@ -540,7 +899,23 @@ namespace Luna.Gateway.Functions
 
         }
 
-
+        /// <summary>
+        /// Delete a new version in a Luna API
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{appName}/apis/{apiName}/versions/{versionName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="apiName" required="true" cref="string" in="path">Name of the API</param>
+        /// <param name="versionName" required="true" cref="string" in="path">Name of the Version</param>
+        /// <param name="req">Http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("DeleteLunaAPIVersion")]
         public async Task<IActionResult> DeleteLunaAPIVersion(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "manage/applications/{appName}/apis/{apiName}/versions/{versionName}")] HttpRequest req,
@@ -577,6 +952,21 @@ namespace Luna.Gateway.Functions
 
         }
 
+        /// <summary>
+        /// Publish a Luna application
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{name}/publish</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="req">Http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("PublishLunaApplication")]
         public async Task<IActionResult> PublishLunaApplication(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "manage/applications/{name}/publish")] HttpRequest req,
@@ -616,6 +1006,32 @@ namespace Luna.Gateway.Functions
 
         }
 
+        /// <summary>
+        /// Get a Luna application
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationProp"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationProp.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna application properties
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("GetLunaApplication")]
         public async Task<IActionResult> GetLunaApplication(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/applications/{name}")] HttpRequest req,
@@ -653,6 +1069,32 @@ namespace Luna.Gateway.Functions
         #endregion
 
         #region rbac
+
+        /// <summary>
+        /// Remove role assignment
+        /// </summary>
+        /// <group>RBAC</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/manage/rbac/roleassignments/remove</url>
+        /// <param name="req" in="body">
+        ///     <see cref="RoleAssignment"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="RoleAssignment.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of role assignment
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="204">Success</response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("RemoveRoleAssignment")]
         public async Task<IActionResult> RemoveRoleAssignment(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "manage/rbac/roleassignments/remove")] HttpRequest req)
@@ -698,10 +1140,34 @@ namespace Luna.Gateway.Functions
 
         }
 
+        /// <summary>
+        /// Add role assignment
+        /// </summary>
+        /// <group>RBAC</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/manage/rbac/roleassignments/add</url>
+        /// <param name="req" in="body">
+        ///     <see cref="RoleAssignment"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="RoleAssignment.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of role assignment
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="204">Success</response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("AddRoleAssignment")]
         public async Task<IActionResult> AddRoleAssignment(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "manage/rbac/roleassignments/add")] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "manage/rbac/roleassignments/add")] HttpRequest req)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
 
@@ -739,6 +1205,44 @@ namespace Luna.Gateway.Functions
         #endregion
 
         #region partner
+
+        /// <summary>
+        /// Add Azure ML workspace as a partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMLWorkspaceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace configuration
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMLWorkspaceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace configuration
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("AddAzureMLService")]
         public async Task<IActionResult> AddAzureMLService(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
@@ -773,6 +1277,43 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Update Azure ML workspace as a partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMLWorkspaceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace configuration
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMLWorkspaceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace configuration
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("UpdateAzureMLService")]
         public async Task<IActionResult> UpdateAzureMLService(
             [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
@@ -808,6 +1349,22 @@ namespace Luna.Gateway.Functions
 
         }
 
+
+        /// <summary>
+        /// Remove Azure ML workspace as a partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req">Http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("RemoveAzureMLService")]
         public async Task<IActionResult> RemoveAzureMLService(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
@@ -844,6 +1401,32 @@ namespace Luna.Gateway.Functions
 
         }
 
+        /// <summary>
+        /// List Azure ML workspaces registered as a partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/azureml</url>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="PartnerService"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="PartnerService.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace as partner services
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("ListAzureMLPartnerServices")]
         public async Task<IActionResult> ListAzureMLPartnerServices(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/azureml")] HttpRequest req)
@@ -878,8 +1461,34 @@ namespace Luna.Gateway.Functions
 
         }
 
-        [FunctionName("GetPartnerService")]
-        public async Task<IActionResult> GetPartnerService(
+        /// <summary>
+        /// Get an Azure ML workspace as a partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="AzureMLWorkspaceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace configuration
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetAzureMLService")]
+        public async Task<IActionResult> GetAzureMLService(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
             string name)
         {
@@ -887,7 +1496,7 @@ namespace Luna.Gateway.Functions
 
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.GetPartnerService));
+                _logger.LogMethodBegin(nameof(this.GetAzureMLService));
 
                 try
                 {
@@ -907,15 +1516,279 @@ namespace Luna.Gateway.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.GetPartnerService));
+                    _logger.LogMethodEnd(nameof(this.GetAzureMLService));
                 }
             }
 
+        }
+
+        /// <summary>
+        /// List supported ML compute service types
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/metadata/computeservicetypes</url>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="ServiceType"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ServiceType.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of service type
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListMLComputeServiceTypes")]
+        public async Task<IActionResult> ListMLComputeServiceTypes(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/metadata/computeservicetypes")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListMLComputeServiceTypes));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", RBACActions.READ_PARTNER_SERVICES, lunaHeaders))
+                    {
+                        var types = await _partnerServiceClient.GetMLComputeServiceTypes(lunaHeaders);
+                        return new OkObjectResult(types);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListMLComputeServiceTypes));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List supported ML host service types
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/metadata/hostservicetypes</url>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="ServiceType"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ServiceType.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of service type
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListMLHostServiceTypes")]
+        public async Task<IActionResult> ListMLHostServiceTypes(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/metadata/hostservicetypes")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListMLHostServiceTypes));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", RBACActions.READ_PARTNER_SERVICES, lunaHeaders))
+                    {
+                        var types = await _partnerServiceClient.GetMLHostServiceTypes(lunaHeaders);
+                        return new OkObjectResult(types);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListMLHostServiceTypes));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List supported ML component types by a partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/metadata/{serviceType}/mlcomponenttypes</url>
+        /// <param name="serviceType" required="true" cref="string" in="path">The type of partner service</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="ComponentType"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ComponentType.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of component type
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListMLComponentTypes")]
+        public async Task<IActionResult> ListMLComponentTypes(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/metadata/{serviceType}/mlcomponenttypes")] HttpRequest req,
+            string serviceType)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListMLComponentTypes));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", RBACActions.READ_PARTNER_SERVICES, lunaHeaders))
+                    {
+                        var types = await _partnerServiceClient.GetMLComponentTypes(serviceType, lunaHeaders);
+                        return new OkObjectResult(types);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListMLComponentTypes));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List specified type of ML components hosted by a partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/{serviceName}/mlcomponents/{componentType}</url>
+        /// <param name="serviceName" required="true" cref="string" in="path">The name of partner service</param>
+        /// <param name="componentType" required="true" cref="string" in="path">The type of the component</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="BaseMLComponent"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseMLComponent.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of component type
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListMLComponents")]
+            public async Task<IActionResult> ListMLComponents(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/{serviceName}/mlcomponents/{componentType}")] HttpRequest req,
+            string serviceName,
+            string componentType)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListMLComponents));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", RBACActions.READ_PARTNER_SERVICES, lunaHeaders))
+                    {
+                        var types = await _partnerServiceClient.GetMLComponents(serviceName, componentType, lunaHeaders);
+                        return new OkObjectResult(types);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListMLComponents));
+                }
+            }
         }
         #endregion
 
         #region gallery
 
+        /// <summary>
+        /// Get a published Luna application
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">The name of the application</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="PublishedLunaApplication"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="PublishedLunaApplication.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a published Luna application
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("GetPublishedApplication")]
         public async Task<IActionResult> GetPublishedApplication(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "gallery/applications/{appName}")] HttpRequest req,
@@ -949,6 +1822,32 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// List published Luna applications
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/gallery/applications</url>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="PublishedLunaApplication"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="PublishedLunaApplication.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a published Luna application
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("ListPublishedApplications")]
         public async Task<IActionResult> ListPublishedApplications(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "gallery/applications")] HttpRequest req)
@@ -981,6 +1880,32 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Get swagger of a published Luna application
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}/swagger</url>
+        /// <param name="appName" required="true" cref="string" in="path">The name of the application</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSwagger"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSwagger.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of swagger of Luna application
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("GetPublishedApplicationSwagger")]
         public async Task<IActionResult> GetPublishedApplicationSwagger(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "gallery/applications/{appName}/swagger")] HttpRequest req,
@@ -1014,6 +1939,33 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Get recommended applications for the specified Luna application
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}/recommended</url>
+        /// <param name="appName" required="true" cref="string" in="path">The name of the application</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="PublishedLunaApplication"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="PublishedLunaApplication.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a published Luna application
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("GetRecommendedPublishedApplications")]
         public async Task<IActionResult> GetRecommendedPublishedApplications(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "gallery/applications/{appName}/recommended")] HttpRequest req,
@@ -1047,6 +1999,33 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Create a subscription of a published Luna application
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}/subscriptions/{subscriptionName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the Luna application</param>
+        /// <param name="subscriptionName" required="true" cref="string" in="path">Name of the subscription</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("CreateSubscription")]
         public async Task<IActionResult> CreateSubscription(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "gallery/applications/{appName}/subscriptions/{subscriptionName}")] HttpRequest req,
@@ -1081,6 +2060,22 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Delete a subscription of a published Luna application
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="req">Http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("DeleteSubscription")]
         public async Task<IActionResult> DeleteSubscription(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}")] HttpRequest req,
@@ -1115,6 +2110,33 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Get a subscription of Luna application
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}</url>
+        /// <param name="appName" required="true" cref="string" in="path">The name of the application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of subscription of Luna application
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("GetSubscription")]
         public async Task<IActionResult> GetSubscription(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}")] HttpRequest req,
@@ -1149,6 +2171,34 @@ namespace Luna.Gateway.Functions
             }
         }
 
+
+        /// <summary>
+        /// List all subscription of a Luna application for current user
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}/subscriptions</url>
+        /// <param name="appName" required="true" cref="string" in="path">The name of the application</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="LunaApplicationSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of subscription of Luna application
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("ListSubscriptions")]
         public async Task<IActionResult> ListSubscriptions(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "gallery/applications/{appName}/subscriptions")] HttpRequest req,
@@ -1182,6 +2232,44 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Add a owner to the specified subscription
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/addOwner</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="req" in="body">
+        ///     <see cref="LunaApplicationSubscriptionOwner"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionOwner.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of owner of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscriptionOwner"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionOwner.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of owner of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("AddSubscriptionOwner")]
         public async Task<IActionResult> AddSubscriptionOwner(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/addOwner")] HttpRequest req,
@@ -1221,6 +2309,44 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Remove a owner from the specified subscription
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/removeOwner</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="req" in="body">
+        ///     <see cref="LunaApplicationSubscriptionOwner"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionOwner.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of owner of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscriptionOwner"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionOwner.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of owner of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("RemoveSubscriptionOwner")]
         public async Task<IActionResult> RemoveSubscriptionOwner(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/removeOwner")] HttpRequest req,
@@ -1259,6 +2385,34 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Regenerate key for the specified subscription
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/regenerateKey</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="key-name" required="true" cref="string" in="query">Name of the key</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscriptionKeys"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionKeys.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of keys of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("RegenerateSubscriptionKey")]
         public async Task<IActionResult> RegenerateSubscriptionKey(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/regenerateKey")] HttpRequest req,
@@ -1276,7 +2430,7 @@ namespace Luna.Gateway.Functions
                     if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
                         await this._rbacClient.CanAccess(lunaHeaders.UserId, $"subscriptions/{subscriptionNameOrId}", null, lunaHeaders))
                     {
-                        if (!req.Query.ContainsKey("key-name"))
+                        if (!req.Query.ContainsKey(GalleryServiceQueryParametersConstants.SUBCRIPTION_KEY_NAME_PARAM_NAME))
                         {
                             throw new LunaBadRequestUserException(
                                 string.Format(ErrorMessages.MISSING_QUERY_PARAMETER, "key-name"),
@@ -1305,6 +2459,44 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Update notes for the specified subscription
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/updatenotes</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the Luna application</param>
+        /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>
+        /// <param name="req" in="body">
+        ///     <see cref="LunaApplicationSubscriptionNotes"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionNotes.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of notes of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="LunaApplicationSubscriptionNotes"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="LunaApplicationSubscriptionNotes.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of notes of Luna application subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
         [FunctionName("UpdateSubscriptionNotes")]
         public async Task<IActionResult> UpdateSubscriptionNotes(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/updateNotes")] HttpRequest req,

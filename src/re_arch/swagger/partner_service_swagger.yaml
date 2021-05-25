@@ -6,6 +6,63 @@ host: localhost:7071
 schemes:
   - http
 paths:
+  /api/partnerServices/hostservicetypes:
+    get:
+      tags:
+        - Metadata
+      summary: Get ML host service types
+      operationId: getApiPartnerServicesHostservicetypes
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ServiceType'
+      security:
+        - x-functions-key: [ ]
+  /api/partnerServices/computeservicetypes:
+    get:
+      tags:
+        - Metadata
+      summary: Get ML compute service types
+      operationId: getApiPartnerServicesComputeservicetypes
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ServiceType'
+      security:
+        - x-functions-key: [ ]
+  '/api/partnerServices/{serviceType}/mlcomponenttypes':
+    get:
+      tags:
+        - Metadata
+      summary: Get ML component types
+      operationId: getApiPartnerServicesByServiceTypeMlcomponenttypes
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: serviceType
+          description: The ML host service type
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ComponentType'
+      security:
+        - x-functions-key: [ ]
   '/api/partnerServices/{name}':
     get:
       tags:
@@ -106,6 +163,26 @@ paths:
       security:
         - x-functions-key: [ ]
 definitions:
+  Luna.Partner.PublicClient.DataContract.ServiceType:
+    required:
+      - Id
+      - DisplayName
+    type: object
+    properties:
+      Id:
+        type: string
+      DisplayName:
+        type: string
+  Luna.Partner.PublicClient.DataContract.ComponentType:
+    required:
+      - Id
+      - DisplayName
+    type: object
+    properties:
+      Id:
+        type: string
+      DisplayName:
+        type: string
   Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration:
     required:
       - DisplayName
@@ -124,13 +201,13 @@ definitions:
         type: string
     example:
       Region: westus
-      ResourceId: /subscriptions/d92d69d5-4a6a-4dfb-847c-59d684e064ce/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
-      TenantId: 2d5a6213-4c03-4abd-a2dc-b40f54503bb1
-      ClientId: a028692c-c51b-4f99-93eb-4154403a595c
+      ResourceId: /subscriptions/48bf3b0d-8d6c-4484-a02c-b2e06c72c651/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
+      TenantId: ced0b70c-3dda-4d7a-97de-a02fbb65aea7
+      ClientId: 804fd6b4-b06e-457f-9cbc-03a0d2248c04
       ClientSecret: my-client-secret
       DisplayName: My Azure ML workspace
       Description: Azure ML workspace
-      Type: AML
+      Type: AzureML
       Tags: purpose=prod;org=hr
 securityDefinitions:
   x-functions-key:

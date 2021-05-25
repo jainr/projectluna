@@ -1,0 +1,1439 @@
+swagger: '2.0'
+info:
+  title: Luna.Gateway.Functions
+  version: V1
+host: localhost:7071
+schemes:
+  - http
+paths:
+  '/api/manage/eventstores/{name}':
+    get:
+      tags:
+        - Event Store
+      summary: Get event store connection string
+      operationId: getApiManageEventstoresByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the event store
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.PubSub.PublicClient.EventStoreInfo'
+      security:
+        - http-bearer: [ ]
+  '/api/manage/applications/{name}/regeneratemasterkeys':
+    post:
+      tags:
+        - Applications
+      summary: Regenerate application master key
+      operationId: postApiManageApplicationsByNameRegeneratemasterkeys
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the application
+          required: true
+          type: string
+        - in: query
+          name: key-name
+          description: Name of key
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationMasterKeys'
+      security:
+        - http-bearer: [ ]
+  /api/manage/applications:
+    get:
+      tags:
+        - Application
+      summary: List applications
+      operationId: getApiManageApplications
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplication'
+      security:
+        - http-bearer: [ ]
+  '/api/manage/applications/{name}/masterkeys':
+    get:
+      tags:
+        - Application
+      summary: Get application master keys
+      operationId: getApiManageApplicationsByNameMasterkeys
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationMasterKeys'
+      security:
+        - http-bearer: [ ]
+  '/api/manage/applications/{name}':
+    put:
+      tags:
+        - Applications
+      summary: Create a new Luna application
+      operationId: putApiManageApplicationsByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the application
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      security:
+        - http-bearer: [ ]
+    patch:
+      tags:
+        - Applications
+      summary: Update a Luna application
+      operationId: patchApiManageApplicationsByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the application
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      security:
+        - http-bearer: [ ]
+    delete:
+      tags:
+        - Applications
+      summary: Delete a Luna application
+      operationId: deleteApiManageApplicationsByName
+      parameters:
+        - in: path
+          name: name
+          description: Name of the application
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - http-bearer: [ ]
+    get:
+      tags:
+        - Applications
+      summary: Get a Luna application
+      operationId: getApiManageApplicationsByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      security:
+        - http-bearer: [ ]
+  '/api/manage/applications/{appName}/apis/{apiName}':
+    put:
+      tags:
+        - Applications
+      summary: Create an API in a Luna application
+      operationId: putApiManageApplicationsByAppNameApisByApiName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of the API
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+      security:
+        - http-bearer: [ ]
+    patch:
+      tags:
+        - Applications
+      summary: Update an API in a Luna application
+      operationId: patchApiManageApplicationsByAppNameApisByApiName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of the API
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+      security:
+        - http-bearer: [ ]
+    delete:
+      tags:
+        - Applications
+      summary: Delete an API from a Luna application
+      operationId: deleteApiManageApplicationsByAppNameApisByApiName
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of the API
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - http-bearer: [ ]
+  '/api/manage/applications/{appName}/apis/{apiName}/versions/{versionName}':
+    put:
+      tags:
+        - Applications
+      summary: Create a new version in a Luna API
+      operationId: putApiManageApplicationsByAppNameApisByApiNameVersionsByVersionName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of the API
+          required: true
+          type: string
+        - in: path
+          name: versionName
+          description: Name of the Version
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+      security:
+        - http-bearer: [ ]
+    patch:
+      tags:
+        - Applications
+      summary: Update a new version in a Luna API
+      operationId: patchApiManageApplicationsByAppNameApisByApiNameVersionsByVersionName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of the API
+          required: true
+          type: string
+        - in: path
+          name: versionName
+          description: Name of the Version
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+      security:
+        - http-bearer: [ ]
+    delete:
+      tags:
+        - Applications
+      summary: Delete a new version in a Luna API
+      operationId: deleteApiManageApplicationsByAppNameApisByApiNameVersionsByVersionName
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: Name of the API
+          required: true
+          type: string
+        - in: path
+          name: versionName
+          description: Name of the Version
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - http-bearer: [ ]
+  '/api/manage/applications/{name}/publish':
+    post:
+      tags:
+        - Applications
+      summary: Publish a Luna application
+      operationId: postApiManageApplicationsByNamePublish
+      parameters:
+        - in: path
+          name: name
+          description: Name of the application
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - http-bearer: [ ]
+  /manage/rbac/roleassignments/remove:
+    post:
+      tags:
+        - RBAC
+      summary: Remove role assignment
+      operationId: postManageRbacRoleassignmentsRemove
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+      responses:
+        '204':
+          description: Success
+      security:
+        - http-bearer: [ ]
+  /manage/rbac/roleassignments/add:
+    post:
+      tags:
+        - RBAC
+      summary: Add role assignment
+      operationId: postManageRbacRoleassignmentsAdd
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+      responses:
+        '204':
+          description: Success
+      security:
+        - http-bearer: [ ]
+  '/api/manage/partnerservices/azureml/{name}':
+    put:
+      tags:
+        - Partner Service
+      summary: Add Azure ML workspace as a partner service
+      operationId: putApiManagePartnerservicesAzuremlByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.AzureMLWorkspaceConfiguration'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.AzureMLWorkspaceConfiguration'
+      security:
+        - http-bearer: [ ]
+    patch:
+      tags:
+        - Partner Service
+      summary: Update Azure ML workspace as a partner service
+      operationId: patchApiManagePartnerservicesAzuremlByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.AzureMLWorkspaceConfiguration'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.AzureMLWorkspaceConfiguration'
+      security:
+        - http-bearer: [ ]
+    delete:
+      tags:
+        - Partner Service
+      summary: Remove Azure ML workspace as a partner service
+      operationId: deleteApiManagePartnerservicesAzuremlByName
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - http-bearer: [ ]
+    get:
+      tags:
+        - Partner Service
+      summary: Get an Azure ML workspace as a partner service
+      operationId: getApiManagePartnerservicesAzuremlByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.AzureMLWorkspaceConfiguration'
+      security:
+        - http-bearer: [ ]
+  /api/manage/partnerservices/azureml:
+    get:
+      tags:
+        - Partner Service
+      summary: List Azure ML workspaces registered as a partner service
+      operationId: getApiManagePartnerservicesAzureml
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerService'
+            example:
+              UniqueName: amlworkspace
+              DisplayName: My AML workspace
+              Type: AzureML
+              Description: This is my AML workspace
+              Tags: department=hr
+              CreatedTime: '2021-05-22T16:52:35.2473873+00:00'
+              LastUpdatedTime: '2021-05-24T16:52:35.2474673+00:00'
+      security:
+        - http-bearer: [ ]
+  /api/manage/partnerservices/metadata/computeservicetypes:
+    get:
+      tags:
+        - Partner Service
+      summary: List supported ML compute service types
+      operationId: getApiManagePartnerservicesMetadataComputeservicetypes
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ServiceType'
+            example:
+              Id: AzureML
+              DisplayName: Azure Machine Learning workspace
+      security:
+        - http-bearer: [ ]
+  /api/manage/partnerservices/metadata/hostservicetypes:
+    get:
+      tags:
+        - Partner Service
+      summary: List supported ML host service types
+      operationId: getApiManagePartnerservicesMetadataHostservicetypes
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ServiceType'
+            example:
+              Id: AzureML
+              DisplayName: Azure Machine Learning workspace
+      security:
+        - http-bearer: [ ]
+  '/api/manage/partnerservices/metadata/{serviceType}/mlcomponenttypes':
+    get:
+      tags:
+        - Partner Service
+      summary: List supported ML component types by a partner service
+      operationId: getApiManagePartnerservicesMetadataByServiceTypeMlcomponenttypes
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: serviceType
+          description: The type of partner service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ComponentType'
+            example:
+              Id: Realtime
+              DisplayName: Realtime endpoints
+      security:
+        - http-bearer: [ ]
+  '/api/manage/partnerservices/{serviceName}/mlcomponents/{componentType}':
+    get:
+      tags:
+        - Partner Service
+      summary: List specified type of ML components hosted by a partner service
+      operationId: getApiManagePartnerservicesByServiceNameMlcomponentsByComponentType
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: serviceName
+          description: The name of partner service
+          required: true
+          type: string
+        - in: path
+          name: componentType
+          description: The type of the component
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.BaseMLComponent'
+            example:
+              Type: 0
+              Id: myendpoint
+              DisplayName: My Endpoint
+      security:
+        - http-bearer: [ ]
+  '/api/gallery/applications/{appName}':
+    get:
+      tags:
+        - ML Gallery
+      summary: Get a published Luna application
+      operationId: getApiGalleryApplicationsByAppName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: The name of the application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication'
+      security:
+        - http-bearer: [ ]
+  /api/gallery/applications:
+    get:
+      tags:
+        - ML Gallery
+      summary: List published Luna applications
+      operationId: getApiGalleryApplications
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication'
+            example:
+              UniqueName: mylunaapp
+              DisplayName: My Luna App
+              Description: This is my Luna app
+              LogoImageUrl: https://aka.ms/lunalog.png
+              DocumentationUrl: https://aka.ms/lunadoc
+              Publisher: Microsoft
+              Tags: [ ]
+              Details:
+                APIs: [ ]
+      security:
+        - http-bearer: [ ]
+  '/api/gallery/applications/{appName}/swagger':
+    get:
+      tags:
+        - ML Gallery
+      summary: Get swagger of a published Luna application
+      operationId: getApiGalleryApplicationsByAppNameSwagger
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: The name of the application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSwagger'
+      security:
+        - http-bearer: [ ]
+  '/api/gallery/applications/{appName}/recommended':
+    get:
+      tags:
+        - ML Gallery
+      summary: Get recommended applications for the specified Luna application
+      operationId: getApiGalleryApplicationsByAppNameRecommended
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: The name of the application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication'
+            example:
+              UniqueName: mylunaapp
+              DisplayName: My Luna App
+              Description: This is my Luna app
+              LogoImageUrl: https://aka.ms/lunalog.png
+              DocumentationUrl: https://aka.ms/lunadoc
+              Publisher: Microsoft
+              Tags: [ ]
+              Details:
+                APIs: [ ]
+      security:
+        - http-bearer: [ ]
+  '/api/gallery/applications/{appName}/subscriptions/{subscriptionName}':
+    put:
+      tags:
+        - ML Gallery
+      summary: Create a subscription of a published Luna application
+      operationId: putApiGalleryApplicationsByAppNameSubscriptionsBySubscriptionName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionName
+          description: Name of the subscription
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
+      security:
+        - http-bearer: [ ]
+  '/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}':
+    put:
+      tags:
+        - ML Gallery
+      summary: Delete a subscription of a published Luna application
+      operationId: putApiGalleryApplicationsByAppNameSubscriptionsBySubscriptionNameOrId
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - http-bearer: [ ]
+    get:
+      tags:
+        - ML Gallery
+      summary: Get a subscription of Luna application
+      operationId: getApiGalleryApplicationsByAppNameSubscriptionsBySubscriptionNameOrId
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: The name of the application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
+      security:
+        - http-bearer: [ ]
+  '/api/gallery/applications/{appName}/subscriptions':
+    get:
+      tags:
+        - ML Gallery
+      summary: List all subscription of a Luna application for current user
+      operationId: getApiGalleryApplicationsByAppNameSubscriptions
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: The name of the application
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
+            example:
+              SubscriptionId: f086f9fa-09b8-4ceb-8c1b-22b9ff0c1acb
+              SubscriptionName: mysub
+              PrimaryKey: 5cb0327f57ef4097b95fbbd0b59b3d5a
+              SecondaryKey: eded581f6c484475a0cea0409bc837f4
+              BaseUrl: https://luna.azurewebapp.net/api
+              Notes: this is my subscription
+              Owners:
+                - UserId: 227d84e1-97c1-4615-901a-ddf27e608bce
+                  UserName: FirstName LastName
+              CreatedTime: '2021-05-25T16:52:35.2753270+00:00'
+      security:
+        - http-bearer: [ ]
+  '/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/addOwner':
+    post:
+      tags:
+        - ML Gallery
+      summary: Add a owner to the specified subscription
+      operationId: postApiGalleryApplicationsByAppNameSubscriptionsBySubscriptionNameOrIdAddOwner
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+      security:
+        - http-bearer: [ ]
+  '/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/removeOwner':
+    post:
+      tags:
+        - ML Gallery
+      summary: Remove a owner from the specified subscription
+      operationId: postApiGalleryApplicationsByAppNameSubscriptionsBySubscriptionNameOrIdRemoveOwner
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+      security:
+        - http-bearer: [ ]
+  '/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/regenerateKey':
+    post:
+      tags:
+        - ML Gallery
+      summary: Regenerate key for the specified subscription
+      operationId: postApiGalleryApplicationsByAppNameSubscriptionsBySubscriptionNameOrIdRegenerateKey
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+        - in: query
+          name: key-name
+          description: Name of the key
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionKeys'
+      security:
+        - http-bearer: [ ]
+  '/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/updatenotes':
+    post:
+      tags:
+        - ML Gallery
+      summary: Update notes for the specified subscription
+      operationId: postApiGalleryApplicationsByAppNameSubscriptionsBySubscriptionNameOrIdUpdatenotes
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: Name of the Luna application
+          required: true
+          type: string
+        - in: path
+          name: subscriptionNameOrId
+          description: Name or id of the subscription
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes'
+      security:
+        - http-bearer: [ ]
+definitions:
+  Luna.PubSub.PublicClient.EventStoreInfo:
+    required:
+      - Name
+      - ConnectionString
+      - ValidEventTypes
+      - ConnectionStringValidThroughUtc
+    type: object
+    properties:
+      Name:
+        type: string
+      ConnectionString:
+        type: string
+      ValidEventTypes:
+        type: array
+        items:
+          type: string
+      ConnectionStringValidThroughUtc:
+        format: date-time
+        type: string
+    example:
+      Name: ApplicationEvents
+      ConnectionString: Azure-Table-Storage-Connection-String-With-SaS-Key
+      ValidEventTypes:
+        - DELETE_APPLICATION_EVENT
+        - PUBLISH_APPLICATION_EVENT
+      ConnectionStringValidThroughUtc: '2021-05-25T17:52:34.9171960+00:00'
+  Luna.PubSub.PublicClient.LunaEventSubscriber:
+    type: object
+    properties:
+      SubscriberServiceName:
+        type: string
+      SubscriberFunctionName:
+        type: string
+      SubscriberQueueName:
+        type: string
+  Luna.Publish.Public.Client.DataContract.LunaApplicationMasterKeys:
+    required:
+      - PrimaryMasterKey
+      - SecondaryMasterKey
+    type: object
+    properties:
+      PrimaryMasterKey:
+        type: string
+      SecondaryMasterKey:
+        type: string
+    example:
+      PrimaryMasterKey: 20b3af2a24194075bad2816d639aab1b
+      SecondaryMasterKey: 2076a2bbb48b4d6ebee0afacba570877
+  Luna.Publish.Public.Client.DataContract.LunaApplication:
+    required:
+      - Name
+      - Status
+      - APIs
+    type: object
+    properties:
+      Name:
+        type: string
+      Status:
+        type: string
+      Properties:
+        $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      APIs:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaAPI'
+  Luna.Publish.Public.Client.DataContract.LunaApplicationProp:
+    required:
+      - DisplayName
+      - Description
+      - DocumentationUrl
+      - LogoImageUrl
+      - Publisher
+      - Tags
+    type: object
+    properties:
+      OwnerUserId:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      DocumentationUrl:
+        type: string
+      LogoImageUrl:
+        type: string
+      Publisher:
+        type: string
+      Tags:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationTag'
+      CreatedBy:
+        type: string
+      PrimaryMasterKeySecretName:
+        type: string
+      SecondaryMasterKeySecretName:
+        type: string
+    example:
+      OwnerUserId: fbe33377-7434-4adb-9325-ec1effa397a3
+      DisplayName: My App
+      Description: This is my application
+      DocumentationUrl: https://aka.ms/lunadoc
+      LogoImageUrl: https://aka.ms/lunalogo.png
+      Publisher: Microsoft
+      Tags:
+        - Key: Department
+          Value: HR
+      CreatedBy: 
+      PrimaryMasterKeySecretName: 
+      SecondaryMasterKeySecretName: 
+  Luna.Publish.Public.Client.DataContract.LunaApplicationTag:
+    type: object
+    properties:
+      Key:
+        type: string
+      Value:
+        type: string
+  Luna.Publish.Public.Client.DataContract.LunaAPI:
+    type: object
+    properties:
+      Name:
+        type: string
+      Properties:
+        $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+      Versions:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.APIVersion'
+  Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp:
+    required:
+      - DisplayName
+      - Type
+      - Description
+    type: object
+    properties:
+      DisplayName:
+        type: string
+      Type:
+        type: string
+      Description:
+        type: string
+      AdvancedSettings:
+        type: string
+    example:
+      DisplayName: sentimentanalysis
+      Type: Realtime
+      Description: Sentiment analysis API
+      AdvancedSettings: 
+  Luna.Publish.Public.Client.DataContract.APIVersion:
+    type: object
+    properties:
+      Name:
+        type: string
+      Properties:
+        $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+  Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp:
+    required:
+      - Type
+      - Description
+    type: object
+    properties:
+      Type:
+        type: string
+      Description:
+        type: string
+      AdvancedSettings:
+        type: string
+    example:
+      Type: AzureML
+      Description: API version from Azure ML workspace
+      AdvancedSettings: 
+  Luna.RBAC.Public.Client.DataContracts.RoleAssignment:
+    required:
+      - Uid
+      - UserName
+      - Role
+    type: object
+    properties:
+      Uid:
+        type: string
+      UserName:
+        type: string
+      Role:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+    example:
+      Uid: 2f13c7e3-a287-4125-8a93-77333a7b49dd
+      UserName: FirstName LastName
+      Role: SystemAdmin
+      CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
+  Luna.Partner.PublicClient.DataContract.PartnerServices.AzureMLWorkspaceConfiguration:
+    required:
+      - Region
+      - ResourceId
+      - TenantId
+      - ClientId
+      - ClientSecret
+      - DisplayName
+      - Description
+      - Type
+      - Tags
+    type: object
+    properties:
+      Region:
+        type: string
+      ResourceId:
+        type: string
+      TenantId:
+        type: string
+      ClientId:
+        type: string
+      ClientSecret:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      Type:
+        type: string
+      Tags:
+        type: string
+    example:
+      Region: westus
+      ResourceId: /subscriptions/1fdd3535-4147-4571-973d-b2895b15b454/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
+      TenantId: 092a028b-9098-49b4-8a12-b12928d50ab1
+      ClientId: 27aa74a3-9823-45a3-aa61-5f1d0306f01e
+      ClientSecret: my-client-secret
+      DisplayName: My Azure ML workspace
+      Description: Azure ML workspace
+      Type: AzureML
+      Tags: purpose=prod;org=hr
+  Luna.Partner.PublicClient.DataContract.PartnerService:
+    required:
+      - UniqueName
+      - DisplayName
+      - Type
+      - Description
+    type: object
+    properties:
+      UniqueName:
+        type: string
+      DisplayName:
+        type: string
+      Type:
+        type: string
+      Description:
+        type: string
+      Tags:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+      LastUpdatedTime:
+        format: date-time
+        type: string
+  Luna.Partner.PublicClient.DataContract.ServiceType:
+    required:
+      - Id
+      - DisplayName
+    type: object
+    properties:
+      Id:
+        type: string
+      DisplayName:
+        type: string
+  Luna.Partner.PublicClient.DataContract.ComponentType:
+    required:
+      - Id
+      - DisplayName
+    type: object
+    properties:
+      Id:
+        type: string
+      DisplayName:
+        type: string
+  Luna.Partner.PublicClient.DataContract.BaseMLComponent:
+    required:
+      - Type
+      - Id
+      - DisplayName
+    type: object
+    properties:
+      Type:
+        enum:
+          - Realtime
+          - Pipeline
+          - MLProject
+        type: string
+      Id:
+        type: string
+      DisplayName:
+        type: string
+  Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication:
+    required:
+      - UniqueName
+      - DisplayName
+      - Description
+      - Publisher
+      - Tags
+    type: object
+    properties:
+      UniqueName:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      LogoImageUrl:
+        type: string
+      DocumentationUrl:
+        type: string
+      Publisher:
+        type: string
+      Tags:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaPublishedApplicationTag'
+      Details:
+        $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationDetails'
+    example:
+      UniqueName: mylunaapp
+      DisplayName: My Luna App
+      Description: This is my Luna app
+      LogoImageUrl: https://aka.ms/lunalog.png
+      DocumentationUrl: https://aka.ms/lunadoc
+      Publisher: Microsoft
+      Tags: [ ]
+      Details:
+        APIs: [ ]
+  Luna.Gallery.Public.Client.DataContracts.LunaPublishedApplicationTag:
+    type: object
+    properties:
+      Name:
+        type: string
+      Value:
+        type: string
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationDetails:
+    type: object
+    properties:
+      APIs:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaAPIDetails'
+  Luna.Gallery.Public.Client.DataContracts.LunaAPIDetails:
+    type: object
+    properties:
+      Name:
+        type: string
+      Type:
+        type: string
+      Versions:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaAPIVersionDetails'
+  Luna.Gallery.Public.Client.DataContracts.LunaAPIVersionDetails:
+    type: object
+    properties:
+      Name:
+        type: string
+      Operations:
+        type: array
+        items:
+          type: string
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSwagger:
+    type: object
+    properties:
+      APIs:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaAPIDetails'
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription:
+    required:
+      - SubscriptionId
+      - SubscriptionName
+    type: object
+    properties:
+      SubscriptionId:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      SubscriptionName:
+        type: string
+      PrimaryKey:
+        type: string
+      SecondaryKey:
+        type: string
+      BaseUrl:
+        type: string
+      Notes:
+        type: string
+      Owners:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+      CreatedTime:
+        format: date-time
+        type: string
+    example:
+      SubscriptionId: f086f9fa-09b8-4ceb-8c1b-22b9ff0c1acb
+      SubscriptionName: mysub
+      PrimaryKey: 5cb0327f57ef4097b95fbbd0b59b3d5a
+      SecondaryKey: eded581f6c484475a0cea0409bc837f4
+      BaseUrl: https://luna.azurewebapp.net/api
+      Notes: this is my subscription
+      Owners:
+        - UserId: 227d84e1-97c1-4615-901a-ddf27e608bce
+          UserName: FirstName LastName
+      CreatedTime: '2021-05-25T16:52:35.2753270+00:00'
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner:
+    required:
+      - UserId
+    type: object
+    properties:
+      UserId:
+        type: string
+      UserName:
+        type: string
+    example:
+      UserId: f8a614bf-64a1-43f1-b2c4-e5293722280f
+      UserName: FirstName LastName
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionKeys:
+    required:
+      - PrimaryKey
+      - SecondaryKey
+    type: object
+    properties:
+      PrimaryKey:
+        type: string
+      SecondaryKey:
+        type: string
+    example:
+      PrimaryKey: c6d9681eff3245afb92c2ad9644e5bda
+      SecondaryKey: 6f57b662b1f04f4ba85c10ca911beacf
+  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes:
+    required:
+      - Notes
+    type: object
+    properties:
+      Notes:
+        type: string
+    example:
+      Notes: this is my subscription
+securityDefinitions:
+  http-bearer: { }

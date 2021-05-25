@@ -1,4 +1,5 @@
-﻿using Luna.Common.Utils.RestClients;
+﻿using Luna.Common.Utils;
+using Luna.Common.Utils.RestClients;
 using Luna.Gallery.Public.Client.DataContracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -57,6 +58,8 @@ namespace Luna.Gallery.Public.Client.Clients
         /// <returns>The Luna application</returns>
         public async Task<PublishedLunaApplication> GetLunaApplication(string appName, LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}");
@@ -79,6 +82,8 @@ namespace Luna.Gallery.Public.Client.Clients
         /// <returns>The Luna application swagger</returns>
         public async Task<LunaApplicationSwagger> GetLunaApplicationSwagger(string appName, LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}/swagger");
@@ -102,6 +107,8 @@ namespace Luna.Gallery.Public.Client.Clients
             string appName,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}/recommended");
@@ -127,6 +134,9 @@ namespace Luna.Gallery.Public.Client.Clients
             string subscriptionName,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(subscriptionName, nameof(subscriptionName));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}/subscriptions/{subscriptionName}");
@@ -150,6 +160,8 @@ namespace Luna.Gallery.Public.Client.Clients
             string appName,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}/subscriptions");
@@ -175,6 +187,9 @@ namespace Luna.Gallery.Public.Client.Clients
             string subscriptionNameOrId,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(subscriptionNameOrId, nameof(subscriptionNameOrId));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}/subscriptions/{subscriptionNameOrId}");
@@ -200,6 +215,9 @@ namespace Luna.Gallery.Public.Client.Clients
             string subscriptionNameOrId,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(subscriptionNameOrId, nameof(subscriptionNameOrId));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}/subscriptions/{subscriptionNameOrId}");
@@ -223,6 +241,10 @@ namespace Luna.Gallery.Public.Client.Clients
             string notes,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(subscriptionNameOrId, nameof(subscriptionNameOrId));
+            ValidationUtils.ValidateStringValueLength(notes, ValidationUtils.LONG_FREE_TEXT_STRING_MAX_LENGTH, nameof(notes));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}/subscriptions/{subscriptionNameOrId}/UpdateNotes");
@@ -257,6 +279,11 @@ namespace Luna.Gallery.Public.Client.Clients
             string userName,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(subscriptionNameOrId, nameof(subscriptionNameOrId));
+            ValidationUtils.ValidateObjectId(userId, nameof(userId));
+            ValidationUtils.ValidateStringValueLength(userName, ValidationUtils.OBJECT_NAME_STRING_MAX_LENGTH, nameof(userName));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}/subscriptions/{subscriptionNameOrId}/AddOwner");
@@ -290,6 +317,10 @@ namespace Luna.Gallery.Public.Client.Clients
             string userId,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(subscriptionNameOrId, nameof(subscriptionNameOrId));
+            ValidationUtils.ValidateObjectId(userId, nameof(userId));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}/subscriptions/{subscriptionNameOrId}/RemoveOwner");
@@ -323,6 +354,10 @@ namespace Luna.Gallery.Public.Client.Clients
             string keyName,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(subscriptionNameOrId, nameof(subscriptionNameOrId));
+            ValidationUtils.ValidateStringInList(keyName, GalleryServiceQueryParametersConstants.GetValidKeyNames(), nameof(keyName));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
                 $"applications/{appName}/subscriptions/{subscriptionNameOrId}/RegenerateKey?" +

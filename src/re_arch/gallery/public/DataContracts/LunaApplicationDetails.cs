@@ -6,7 +6,7 @@ namespace Luna.Gallery.Public.Client.DataContracts
 {
     public class LunaApplicationSwagger : LunaApplicationDetails
     {
-
+        public static string example = "{}";
     }
 
     public class LunaAPIVersionDetails

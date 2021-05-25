@@ -30,7 +30,6 @@ namespace Luna.Publish.PublicClient.Clients
             this._config = option.CurrentValue ?? throw new ArgumentNullException(nameof(option.CurrentValue));
         }
 
-
         /// <summary>
         /// Regenerate application master keys
         /// </summary>
@@ -43,6 +42,9 @@ namespace Luna.Publish.PublicClient.Clients
             string keyName, 
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateStringInList(keyName, PublishQueryParameterConstants.GetValidKeyNames(), nameof(keyName));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + 
                 $"applications/{appName}/regenerateMasterKeys?{PublishQueryParameterConstants.KEY_NAME_QUERY_PARAMETER_NAME}={keyName}");
@@ -86,6 +88,8 @@ namespace Luna.Publish.PublicClient.Clients
             string name,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}/masterkeys");
 
@@ -106,11 +110,11 @@ namespace Luna.Publish.PublicClient.Clients
             string properties,
             LunaRequestHeaders headers)
         {
-            headers.AzureFunctionKey = this._config.AuthenticationKey;
-            var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}");
-
             ValidationUtils.ValidateObjectId(name, nameof(name));
             ValidationUtils.ValidateInput<LunaApplicationProp>(properties);
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Put, uri, properties, headers);
 
@@ -160,6 +164,11 @@ namespace Luna.Publish.PublicClient.Clients
             string properties,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(apiName, nameof(apiName));
+            ValidationUtils.ValidateObjectId(versionName, nameof(versionName));
+            ValidationUtils.ValidateInput<BaseAPIVersionProp>(properties);
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{appName}/apis/{apiName}/versions/{versionName}");
 
@@ -181,11 +190,11 @@ namespace Luna.Publish.PublicClient.Clients
             string properties,
             LunaRequestHeaders headers)
         {
-            headers.AzureFunctionKey = this._config.AuthenticationKey;
-            var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}");
-
             ValidationUtils.ValidateObjectId(name, nameof(name));
             ValidationUtils.ValidateInput<LunaApplicationProp>(properties);
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Patch, uri, properties, headers);
 
@@ -206,12 +215,12 @@ namespace Luna.Publish.PublicClient.Clients
             string properties,
             LunaRequestHeaders headers)
         {
-            headers.AzureFunctionKey = this._config.AuthenticationKey;
-            var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{appName}/apis/{apiName}");
-
             ValidationUtils.ValidateObjectId(appName, nameof(appName));
             ValidationUtils.ValidateObjectId(apiName, nameof(apiName));
             ValidationUtils.ValidateInput<BaseLunaAPIProp>(properties);
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{appName}/apis/{apiName}");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Patch, uri, properties, headers);
 
@@ -234,6 +243,11 @@ namespace Luna.Publish.PublicClient.Clients
             string properties,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(apiName, nameof(apiName));
+            ValidationUtils.ValidateObjectId(apiName, nameof(versionName));
+            ValidationUtils.ValidateInput<BaseAPIVersionProp>(properties);
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{appName}/apis/{apiName}/versions/{versionName}");
 
@@ -241,7 +255,6 @@ namespace Luna.Publish.PublicClient.Clients
 
             return await GetResponseObject<BaseAPIVersionProp>(response);
         }
-
 
         /// <summary>
         /// Delete Luna applciation
@@ -253,6 +266,7 @@ namespace Luna.Publish.PublicClient.Clients
             string name,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}");
 
@@ -273,6 +287,9 @@ namespace Luna.Publish.PublicClient.Clients
             string apiName,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(apiName, nameof(apiName));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{appName}/apis/{apiName}");
 
@@ -295,6 +312,10 @@ namespace Luna.Publish.PublicClient.Clients
             string versionName,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(apiName, nameof(apiName));
+            ValidationUtils.ValidateObjectId(versionName, nameof(versionName));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{appName}/apis/{apiName}/versions/{versionName}");
 
@@ -302,7 +323,6 @@ namespace Luna.Publish.PublicClient.Clients
 
             return response.IsSuccessStatusCode;
         }
-
 
         /// <summary>
         /// Publish Luna applciation
@@ -316,21 +336,21 @@ namespace Luna.Publish.PublicClient.Clients
             string comments,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+            ValidationUtils.ValidateStringValueLength(comments, ValidationUtils.LONG_FREE_TEXT_STRING_MAX_LENGTH, nameof(comments));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}/publish");
+
+            if (!string.IsNullOrEmpty(comments))
             {
-                headers.AzureFunctionKey = this._config.AuthenticationKey;
-                var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}/publish");
-
-                if (!string.IsNullOrEmpty(comments))
-                {
-                    uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}/publish?comments={comments}");
-                }
-
-                var response = await SendRequestAndVerifySuccess(HttpMethod.Post, uri, null, headers);
-
-                return response.IsSuccessStatusCode;
+                uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}/publish?comments={comments}");
             }
-        }
 
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Post, uri, null, headers);
+
+            return response.IsSuccessStatusCode;
+        }
 
         /// <summary>
         /// Get a Luna applciation
@@ -342,6 +362,8 @@ namespace Luna.Publish.PublicClient.Clients
             string name,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}");
 

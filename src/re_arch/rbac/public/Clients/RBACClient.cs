@@ -1,4 +1,5 @@
-﻿using Luna.Common.Utils.RestClients;
+﻿using Luna.Common.Utils;
+using Luna.Common.Utils.RestClients;
 using Luna.RBAC.Public.Client.DataContracts;
 using Luna.RBAC.Public.Client.Enums;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,6 +77,9 @@ namespace Luna.RBAC.Public.Client
         /// <returns>The workspace configuration</returns>
         public async Task<bool> AddAdmin(string uid, string userName, LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(uid, nameof(uid));
+            ValidationUtils.ValidateObjectId(userName, nameof(userName));
+
             var role = new RoleAssignment()
             {
                 Uid = uid,
@@ -94,9 +98,12 @@ namespace Luna.RBAC.Public.Client
         /// <returns>True if the admin is removed, false otherwise</returns>
         public async Task<bool> RemoveAdmin(string uid, LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(uid, nameof(uid));
+
             var role = new RoleAssignment()
             {
                 Uid = uid,
+                UserName = string.Empty,
                 Role = RBACRole.SystemAdmin.ToString()
             };
 
@@ -113,6 +120,9 @@ namespace Luna.RBAC.Public.Client
         /// <returns>True if the publisher is added, false otherwise</returns>
         public async Task<bool> AddPublisher(string uid, string userName, LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(uid, nameof(uid));
+            ValidationUtils.ValidateObjectId(userName, nameof(userName));
+
             var role = new RoleAssignment()
             {
                 Uid = uid,
@@ -131,6 +141,8 @@ namespace Luna.RBAC.Public.Client
         /// <returns>True if the publisher is removed, false otherwise</returns>
         public async Task<bool> RemovePublisher(string uid, LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(uid, nameof(uid));
+
             var role = new RoleAssignment()
             {
                 Uid = uid,
@@ -149,6 +161,9 @@ namespace Luna.RBAC.Public.Client
         /// <returns>True if the owner is added, false otherwise</returns>
         public async Task<bool> AddApplicationOwner(string uid, string resourceId, LunaRequestHeaders headers)
         {
+            // TODO: validate resource id
+            ValidationUtils.ValidateObjectId(uid, nameof(uid));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"ownerships/add");
             var ownership = new Ownership()
@@ -173,6 +188,9 @@ namespace Luna.RBAC.Public.Client
         /// <returns>True if the owner is added, false otherwise</returns>
         public async Task<bool> RemoveApplicationOwner(string uid, string resourceId, LunaRequestHeaders headers)
         {
+            // TODO: validate resource id
+            ValidationUtils.ValidateObjectId(uid, nameof(uid));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"ownerships/remove");
             var ownership = new Ownership()
@@ -198,6 +216,13 @@ namespace Luna.RBAC.Public.Client
         /// <returns>True if the user can access the resource, false otherwise</returns>
         public async Task<bool> CanAccess(string uid, string resourceId, string action, LunaRequestHeaders headers)
         {
+            // TODO: validate resource id
+            ValidationUtils.ValidateObjectId(uid, nameof(uid));
+            if (action != null)
+            {
+                ValidationUtils.ValidateStringInList(action, RBACActions.ValidActions, nameof(action));
+            }
+
             var result = await GetRBACQueryResult(uid, resourceId, action, headers);
             return result.CanAccess;
         }
@@ -212,6 +237,13 @@ namespace Luna.RBAC.Public.Client
         /// <returns>The RBAC Query result</returns>
         public async Task<RBACQueryResult> GetRBACQueryResult(string uid, string resourceId, string action, LunaRequestHeaders headers)
         {
+            // TODO: validate resource id
+            ValidationUtils.ValidateObjectId(uid, nameof(uid));
+            if (action != null)
+            {
+                ValidationUtils.ValidateStringInList(action, RBACActions.ValidActions, nameof(action));
+            }
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"canaccess");
             var query = new RBACQuery()

@@ -1,6 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using Luna.Common.Utils;
+using Luna.RBAC.Public.Client.Enums;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace Luna.RBAC.Public.Client.DataContracts
@@ -11,10 +14,18 @@ namespace Luna.RBAC.Public.Client.DataContracts
         {
             Uid = Guid.NewGuid().ToString(),
             UserName = "FirstName LastName",
-            Role = "Admin"
+            Role = RBACRole.SystemAdmin.ToString()
         });
 
-        [JsonProperty(PropertyName ="Uid", Required = Required.Always)]
+        [OnDeserialized]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            ValidationUtils.ValidateObjectId(Uid, nameof(Uid));
+            ValidationUtils.ValidateObjectId(UserName, nameof(UserName));
+            ValidationUtils.ValidateEnum(Role, typeof(RBACRole), nameof(Role));
+        }
+
+        [JsonProperty(PropertyName = "Uid", Required = Required.Always)]
         public string Uid { get; set; }
 
         [JsonProperty(PropertyName = "UserName", Required = Required.Always)]

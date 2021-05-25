@@ -16,7 +16,7 @@ namespace Luna.Partner.PublicClient.DataContract.PartnerServices
         {
             DisplayName = "My Azure ML workspace",
             Description = "Azure ML workspace",
-            Type = PartnerServiceType.AML.ToString(),
+            Type = PartnerServiceType.AzureML.ToString(),
             Tags = "purpose=prod;org=hr",
             ResourceId = @"/subscriptions/" + 
                 Guid.NewGuid().ToString() +

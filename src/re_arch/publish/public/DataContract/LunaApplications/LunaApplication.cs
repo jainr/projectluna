@@ -35,7 +35,7 @@ namespace Luna.Publish.Public.Client.DataContract
         [JsonProperty(PropertyName = "Status", Required = Required.Always)]
         public string Status { get; set; }
 
-        [JsonProperty(PropertyName = "Properties", Required = Required.Always)]
+        [JsonProperty(PropertyName = "Properties", Required = Required.Default)]
         public LunaApplicationProp Properties { get; set; }
 
         [JsonProperty(PropertyName = "APIs", Required = Required.Always)]

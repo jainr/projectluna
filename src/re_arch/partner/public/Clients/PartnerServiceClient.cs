@@ -1,6 +1,8 @@
-﻿using Luna.Common.Utils.RestClients;
+﻿using Luna.Common.Utils;
+using Luna.Common.Utils.RestClients;
 using Luna.Partner.PublicClient.DataContract;
 using Luna.Partner.PublicClient.DataContract.PartnerServices;
+using Luna.Publish.PublicClient.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -22,7 +24,7 @@ namespace Luna.Partner.PublicClient.Clients
         [ActivatorUtilitiesConstructor]
         public PartnerServiceClient(IOptionsMonitor<PartnerServiceClientConfiguration> option,
             HttpClient httpClient,
-            ILogger<PartnerServiceClient> logger) : 
+            ILogger<PartnerServiceClient> logger) :
             base(option, httpClient, logger)
         {
             this._httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
@@ -38,9 +40,9 @@ namespace Luna.Partner.PublicClient.Clients
         public async Task<List<PartnerService>> ListAzureMLWorkspaces(LunaRequestHeaders headers)
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
-            var uri = new Uri(this._config.ServiceBaseUrl + 
-                $"partnerServices?{PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME}={PartnerServiceType.AML.ToString()}");
-            
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"partnerServices?{PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME}={PartnerServiceType.AzureML.ToString()}");
+
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
             List<PartnerService> services =
@@ -58,11 +60,13 @@ namespace Luna.Partner.PublicClient.Clients
         /// <returns>The workspace configuration</returns>
         public async Task<AzureMLWorkspaceConfiguration> GetAzureMLWorkspaceConfiguration(string name, LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            AzureMLWorkspaceConfiguration config = 
+            AzureMLWorkspaceConfiguration config =
                 JsonConvert.DeserializeObject<AzureMLWorkspaceConfiguration>(
                     await response.Content.ReadAsStringAsync());
 
@@ -81,6 +85,8 @@ namespace Luna.Partner.PublicClient.Clients
             AzureMLWorkspaceConfiguration config,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
             var content = JsonConvert.SerializeObject(config, new JsonSerializerSettings()
@@ -104,6 +110,8 @@ namespace Luna.Partner.PublicClient.Clients
             AzureMLWorkspaceConfiguration config,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
             var content = JsonConvert.SerializeObject(config, new JsonSerializerSettings()
@@ -125,6 +133,8 @@ namespace Luna.Partner.PublicClient.Clients
             string name,
             LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
             var response = await SendRequestAndVerifySuccess(HttpMethod.Delete, uri, null, headers);
@@ -140,6 +150,8 @@ namespace Luna.Partner.PublicClient.Clients
         /// <returns>The workspace configuration</returns>
         public async Task<AzureSynapseWorkspaceConfiguration> GetAzureSynapseWorkspaceConfiguration(string name, LunaRequestHeaders headers)
         {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
@@ -149,6 +161,85 @@ namespace Luna.Partner.PublicClient.Clients
                     await response.Content.ReadAsStringAsync());
 
             return config;
+        }
+
+        /// <summary>
+        /// Get ML compute service types
+        /// </summary>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>The compute service types</returns>
+        public async Task<List<ServiceType>> GetMLComputeServiceTypes(LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/computeservicetypes");
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            List<ServiceType> serviceTypes =
+                JsonConvert.DeserializeObject<List<ServiceType>>(
+                    await response.Content.ReadAsStringAsync());
+
+            return serviceTypes;
+        }
+
+        /// <summary>
+        /// Get ML host service types
+        /// </summary>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>The host service types</returns>
+        public async Task<List<ServiceType>> GetMLHostServiceTypes(LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/hostservicetypes");
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            List<ServiceType> serviceTypes =
+                JsonConvert.DeserializeObject<List<ServiceType>>(
+                    await response.Content.ReadAsStringAsync());
+
+            return serviceTypes;
+        }
+
+        /// <summary>
+        /// Get ML component types
+        /// </summary>
+        /// <param name="serviceType">The host service type</param>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>The component types</returns>
+        public async Task<List<ComponentType>> GetMLComponentTypes(string serviceType, LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateEnum(serviceType, typeof(PartnerServiceType), nameof(serviceType));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{serviceType}/mlcomponenttypes");
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            List<ComponentType> componentTypes =
+                JsonConvert.DeserializeObject<List<ComponentType>>(
+                    await response.Content.ReadAsStringAsync());
+
+            return componentTypes;
+        }
+
+        /// Get specified type of ML components from specified partner service
+        /// </summary>
+        /// <param name="serviceName">The partner service name</param>
+        /// <param name="componentType">The component type</param>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>The ML components</returns>
+        public async Task<List<BaseMLComponent>> GetMLComponents(string serviceName, string componentType, LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateObjectId(serviceName, nameof(serviceName));
+            ValidationUtils.ValidateEnum(componentType, typeof(LunaAPIType), nameof(componentType));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{serviceName}/mlcomponents/{componentType}");
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            List<BaseMLComponent> components =
+                JsonConvert.DeserializeObject<List<BaseMLComponent>>(
+                    await response.Content.ReadAsStringAsync());
+
+            return components;
         }
     }
 }

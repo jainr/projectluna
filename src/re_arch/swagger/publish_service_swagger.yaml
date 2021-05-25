@@ -66,6 +66,62 @@ paths:
       security:
         - x-functions-key: [ ]
   '/api/applications/{name}':
+    put:
+      tags:
+        - Application
+      summary: Create a Luna application
+      operationId: putApiApplicationsByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - Application
+      summary: Update a Luna application
+      operationId: patchApiApplicationsByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of Luna application
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+      security:
+        - x-functions-key: [ ]
     delete:
       tags:
         - Application
@@ -321,7 +377,6 @@ definitions:
     required:
       - Name
       - Status
-      - Properties
       - APIs
     type: object
     properties:
@@ -337,16 +392,12 @@ definitions:
           $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaAPI'
   Luna.Publish.Public.Client.DataContract.LunaApplicationProp:
     required:
-      - OwnerUserId
       - DisplayName
       - Description
       - DocumentationUrl
       - LogoImageUrl
       - Publisher
       - Tags
-      - CreatedBy
-      - PrimaryMasterKeySecretName
-      - SecondaryMasterKeySecretName
     type: object
     properties:
       OwnerUserId:
@@ -371,6 +422,19 @@ definitions:
         type: string
       SecondaryMasterKeySecretName:
         type: string
+    example:
+      OwnerUserId: c9f786f1-d443-4143-ae45-2cecffcfa507
+      DisplayName: My App
+      Description: This is my application
+      DocumentationUrl: https://aka.ms/lunadoc
+      LogoImageUrl: https://aka.ms/lunalogo.png
+      Publisher: Microsoft
+      Tags:
+        - Key: Department
+          Value: HR
+      CreatedBy: 
+      PrimaryMasterKeySecretName: 
+      SecondaryMasterKeySecretName: 
   Luna.Publish.Public.Client.DataContract.LunaApplicationTag:
     type: object
     properties:
@@ -443,8 +507,8 @@ definitions:
       SecondaryMasterKey:
         type: string
     example:
-      PrimaryMasterKey: 8a2374d983d54c0d8b7f87448072c44c
-      SecondaryMasterKey: 6954212489a84d13900580f6044c3473
+      PrimaryMasterKey: 4954f3c018364183b14a7767376b9a04
+      SecondaryMasterKey: f0b55dc0bd6949e0a065d1889ae7ed9b
 securityDefinitions:
   x-functions-key:
     type: apiKey

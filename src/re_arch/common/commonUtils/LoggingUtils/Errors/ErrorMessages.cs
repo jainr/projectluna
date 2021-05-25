@@ -41,9 +41,10 @@ namespace Luna.Common.LoggingUtils
         public const string MISSING_REQUEST_BODY = "Request boddy is required.";
         public const string INVALID_KEY = "The subscription key is invalid.";
         public const string STRING_PROPERTY_VALUE_TOO_LONG = "The value of property {0} is too long. Allow max length is {1}";
-        public const string INVALID_ENUM_PROPERTY_VALUE = "The value of property {0} is invalid";
+        public const string INVALID_PROPERTY_VALUE = "The value of property {0} is invalid";
         public const string STRING_PROPERTY_NOT_VALID_HTTPS_URL = "The value of property {0} is not a valid https url.";
         public const string INVALID_ID_PROPERTY = "The value of property '{0}' is invalid. It allow only lower case characters or numbers.";
         public const string INVALID_INPUT = "The request body is invalid.";
+        public const string INVALID_ML_COMPONENT_TYPE = "The partner service {0} does not host machine learning components with type {1}";
     }
 }

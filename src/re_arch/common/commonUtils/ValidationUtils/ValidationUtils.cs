@@ -42,7 +42,30 @@ namespace Luna.Common.Utils
             if (!Enum.TryParse(type, value, out result))
             {
                 throw new LunaBadRequestUserException(
-                    string.Format(ErrorMessages.INVALID_ENUM_PROPERTY_VALUE, propertyName),
+                    string.Format(ErrorMessages.INVALID_PROPERTY_VALUE, propertyName),
+                    UserErrorCode.InvalidParameter,
+                    target: propertyName);
+            }
+        }
+
+        public static void ValidateStringInList(string value, string[] validValues, string propertyName = "")
+        {
+            if (!validValues.Contains(value))
+            {
+                throw new LunaBadRequestUserException(
+                    string.Format(ErrorMessages.INVALID_PROPERTY_VALUE, propertyName),
+                    UserErrorCode.InvalidParameter,
+                    target: propertyName);
+            }
+        }
+
+        public static void ValidateStringAsGuid(string value, string propertyName = "")
+        {
+            Guid result;
+            if (!Guid.TryParse(value, out result))
+            {
+                throw new LunaBadRequestUserException(
+                    string.Format(ErrorMessages.INVALID_PROPERTY_VALUE, propertyName),
                     UserErrorCode.InvalidParameter,
                     target: propertyName);
             }

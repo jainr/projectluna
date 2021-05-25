@@ -4,9 +4,7 @@
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <AssemblyName>Luna.Publish.Functions</AssemblyName>
     <RootNamespace>Luna.Publish.Functions</RootNamespace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\Users\xiwu\Documents\GitHub\projectluna\src\re_arch\publish\functions\Luna.Publish.Functions.xml</DocumentationFile>
+    <DocumentationFile>Luna.Publish.Functions.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />

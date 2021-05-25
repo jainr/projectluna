@@ -4,6 +4,7 @@
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <AssemblyName>Luna.Routing.Functions</AssemblyName>
     <RootNamespace>Luna.Routing.Functions</RootNamespace>
+    <DocumentationFile>Luna.Routing.Functions.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />

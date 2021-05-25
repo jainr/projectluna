@@ -15,17 +15,32 @@ namespace Luna.Common.Swagger
     {
         static void GenerateSwagger(string serviceName, string config)
         {
+            var assemblyPathList = new List<string>();
+
+            if (serviceName == "gateway")
+            {
+                assemblyPathList.Add(Path.GetFullPath($@"..\..\..\..\..\{serviceName}\functions\bin\{config}\netcoreapp3.1\Luna.{serviceName}.Functions.dll"));
+                // Gateway service references all other public client libraries
+                foreach (var name in services)
+                {
+                    if (name != "gateway")
+                    {
+                        assemblyPathList.Add(Path.GetFullPath($@"..\..\..\..\..\{name}\public\bin\{config}\netcoreapp3.1\Luna.{name}.Public.Client.dll"));
+                    }
+                }
+            }
+            else
+            {
+                assemblyPathList.Add(Path.GetFullPath($@"..\..\..\..\..\{serviceName}\functions\bin\{config}\netcoreapp3.1\Luna.{serviceName}.Functions.dll"));
+                assemblyPathList.Add(Path.GetFullPath($@"..\..\..\..\..\{serviceName}\public\bin\{config}\netcoreapp3.1\Luna.{serviceName}.Public.Client.dll"));
+            }
+
             var input = new OpenApiGeneratorConfig(
                 annotationXmlDocuments: new List<XDocument>()
                 {
                     XDocument.Load(Path.GetFullPath($@"..\..\..\..\..\{serviceName}\functions\Luna.{serviceName}.Functions.xml")),
                 },
-                assemblyPaths: new List<string>()
-                {
-                    Path.GetFullPath($@"..\..\..\..\..\{serviceName}\functions\bin\{config}\netcoreapp3.1\Luna.{serviceName}.Functions.dll"),
-                    Path.GetFullPath($@"..\..\..\..\..\{serviceName}\public\bin\{config}\netcoreapp3.1\Luna.{serviceName}.Public.Client.dll")
-
-                },
+                assemblyPaths: assemblyPathList,
                 openApiDocumentVersion: "V1",
                 filterSetVersion: FilterSetVersion.V1
             );
@@ -54,10 +69,11 @@ namespace Luna.Common.Swagger
             Console.WriteLine("swaggergenerator.exe -r -s serviceName : generate swagger for the specified service for release build");
         }
 
+        private static string[] services = new string[] { "gallery", "partner", "publish", "pubsub", "rbac", "gateway" };
+
         static void Main(string[] args)
         {
-            string[] services = new string[] { "gallery", "partner", "publish", "pubsub", "rbac" };
-            string[] servicesWithoutSwaggerYet = new string[] { "gateway", "mockup", "provision", "routing" };
+            string[] servicesWithoutSwaggerYet = new string[] {"mockup", "provision", "routing" };
             string config = "Debug";
 
             if (args.Length == 0)

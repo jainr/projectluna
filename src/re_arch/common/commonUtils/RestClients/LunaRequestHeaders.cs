@@ -9,6 +9,7 @@ namespace Luna.Common.Utils.RestClients
     public class LunaRequestHeaders
     {
         private const string LUNA_USER_ID_HEADER_NAME = "Luna-User-Id";
+        private const string LUNA_USER_NAME_HEADER_NAME = "Luna-User-Name";
         private const string LUNA_SUBSCRIPTION_ID_HEADER_NAME = "Luna-Subscription-Id";
         private const string LUNA_TRACE_ID_HEADER_NAME = "Luna-Trace-Id";
         private const string LUNA_APPLICATION_MASTER_KEY = "Luna-Application-Master-Key";
@@ -34,8 +35,12 @@ namespace Luna.Common.Utils.RestClients
             this.UserId = req.Headers.ContainsKey(AAD_USER_ID) ?
                 req.Headers[AAD_USER_ID].ToString() : this.UserId;
 
+            this.UserName = req.Headers.ContainsKey(LUNA_USER_NAME_HEADER_NAME) ?
+                req.Headers[LUNA_USER_NAME_HEADER_NAME].ToString() : string.Empty;
+
+            // Overwrite the user name if AAD auth is used
             this.UserName = req.Headers.ContainsKey(AAD_USER_NAME) ?
-                req.Headers[AAD_USER_NAME].ToString() : string.Empty;
+                req.Headers[AAD_USER_NAME].ToString() : this.UserName;
 
             // Generate a new TraceId if not included in the header
             this.TraceId = req.Headers.ContainsKey(LUNA_TRACE_ID_HEADER_NAME) ? 
@@ -98,6 +103,11 @@ namespace Luna.Common.Utils.RestClients
             if (!string.IsNullOrEmpty(UserId))
             {
                 headers.Add(LUNA_USER_ID_HEADER_NAME, this.UserId);
+            }
+
+            if (!string.IsNullOrEmpty(UserName))
+            {
+                headers.Add(LUNA_USER_NAME_HEADER_NAME, this.UserName);
             }
 
             if (!string.IsNullOrEmpty(SubscriptionId))

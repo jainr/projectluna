@@ -8,14 +8,15 @@ namespace Luna.Partner.Clients.PartnerServiceClients
 {
     public class PartnerServiceClientFactory : IPartnerServiceClientFactory
     {
-        private static Dictionary<string, IPartnerServiceClient> _azureMLClients;
+        private static Dictionary<string, IPartnerServiceClient> _partnerServiceClient;
+        private static Dictionary<string, IRealtimeEndpointPartnerServiceClient> _realtimeEndpointPartnerServiceClient;
+        private static Dictionary<string, IPipelineEndpointPartnerServiceClient> _pipelineEndpointPartnerServiceClient;
 
-        private static Dictionary<string, IPartnerServiceClient> _azureSynapseClients;
-        
         public PartnerServiceClientFactory()
         {
-            _azureMLClients = new Dictionary<string, IPartnerServiceClient>();
-            _azureSynapseClients = new Dictionary<string, IPartnerServiceClient>();
+            _partnerServiceClient = new Dictionary<string, IPartnerServiceClient>();
+            _realtimeEndpointPartnerServiceClient = new Dictionary<string, IRealtimeEndpointPartnerServiceClient>();
+            _pipelineEndpointPartnerServiceClient = new Dictionary<string, IPipelineEndpointPartnerServiceClient>();
         }
 
         /// <summary>
@@ -26,23 +27,86 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         /// <returns>The partner service client</returns>
         public IPartnerServiceClient GetPartnerServiceClient(string name, BasePartnerServiceConfiguration config)
         {
-            if (config.Type.Equals(PartnerServiceType.AML.ToString(), 
-                StringComparison.InvariantCultureIgnoreCase))
+            if (_partnerServiceClient.ContainsKey(name))
             {
-                if (_azureMLClients.ContainsKey(name))
-                {
-                    _azureMLClients[name].UpdateConfiguration(config);
-                    return _azureMLClients[name];
-                }
-                else
-                {
-                    IPartnerServiceClient client = new AzureMLWorkspaceClient(config);
-                    _azureMLClients.TryAdd(name, client);
-                    return client;
-                }
+                _partnerServiceClient[name].UpdateConfiguration(config);
+                return _partnerServiceClient[name];
             }
 
-            return null;
+            IPartnerServiceClient client = null;
+
+            if (config.Type.Equals(PartnerServiceType.AzureML.ToString(), 
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                client = new AzureMLWorkspaceClient(config);
+            }
+
+            if (client != null)
+            {
+                _partnerServiceClient.TryAdd(name, client);
+            }
+
+            return client;
+        }
+
+        /// <summary>
+        /// Get or create a partner service client for realtime endpoints
+        /// </summary>
+        /// <param name="name">The partner service name</param>
+        /// <param name="config">The partner service config</param>
+        /// <returns>The partner service client</returns>
+        public IRealtimeEndpointPartnerServiceClient GetRealtimeEndpointPartnerServiceClient(string name, BasePartnerServiceConfiguration config)
+        {
+            if (_realtimeEndpointPartnerServiceClient.ContainsKey(name))
+            {
+                _realtimeEndpointPartnerServiceClient[name].UpdateConfiguration(config);
+                return _realtimeEndpointPartnerServiceClient[name];
+            }
+
+            IRealtimeEndpointPartnerServiceClient client = null;
+
+            if (config.Type.Equals(PartnerServiceType.AzureML.ToString(),
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                client = new AzureMLWorkspaceClient(config);
+            }
+
+            if (client != null)
+            {
+                _realtimeEndpointPartnerServiceClient.TryAdd(name, client);
+            }
+
+            return client;
+        }
+
+        /// <summary>
+        /// Get or create a partner service client for pipeline endpoints
+        /// </summary>
+        /// <param name="name">The partner service name</param>
+        /// <param name="config">The partner service config</param>
+        /// <returns>The partner service client</returns>
+        public IPipelineEndpointPartnerServiceClient GetPipelineEndpointPartnerServiceClient(string name, BasePartnerServiceConfiguration config)
+        {
+            if (_pipelineEndpointPartnerServiceClient.ContainsKey(name))
+            {
+                _pipelineEndpointPartnerServiceClient[name].UpdateConfiguration(config);
+                return _pipelineEndpointPartnerServiceClient[name];
+            }
+
+            IPipelineEndpointPartnerServiceClient client = null;
+
+            if (config.Type.Equals(PartnerServiceType.AzureML.ToString(),
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                client = new AzureMLWorkspaceClient(config);
+            }
+
+            if (client != null)
+            {
+                _pipelineEndpointPartnerServiceClient.TryAdd(name, client);
+            }
+
+            return client;
         }
     }
 }
