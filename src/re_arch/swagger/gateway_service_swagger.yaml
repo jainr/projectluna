@@ -56,7 +56,7 @@ paths:
   /api/manage/applications:
     get:
       tags:
-        - Application
+        - Applications
       summary: List applications
       operationId: getApiManageApplications
       produces:
@@ -73,7 +73,7 @@ paths:
   '/api/manage/applications/{name}/masterkeys':
     get:
       tags:
-        - Application
+        - Applications
       summary: Get application master keys
       operationId: getApiManageApplicationsByNameMasterkeys
       produces:
@@ -546,8 +546,8 @@ paths:
               Type: AzureML
               Description: This is my AML workspace
               Tags: department=hr
-              CreatedTime: '2021-05-22T17:03:38.5419265+00:00'
-              LastUpdatedTime: '2021-05-24T17:03:38.5420115+00:00'
+              CreatedTime: '2021-05-22T17:13:04.0201010+00:00'
+              LastUpdatedTime: '2021-05-24T17:13:04.0201818+00:00'
       security:
         - http-bearer: [ ]
   /api/manage/partnerservices/metadata/computeservicetypes:
@@ -845,16 +845,16 @@ paths:
             items:
               $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
             example:
-              SubscriptionId: ff8e2531-229d-4531-83d6-2a76de34fecb
+              SubscriptionId: a503c5fa-190f-4d1b-9826-9e1fda57e277
               SubscriptionName: mysub
-              PrimaryKey: 0240a881dd8c42ed83fcdda88fea0324
-              SecondaryKey: 26851edbfa0344b1bb1d43f1127e6d7c
+              PrimaryKey: 517f9a1049b9485698a18c67bcbf5557
+              SecondaryKey: f2dcb42620824478992d4aa0511478d2
               BaseUrl: https://luna.azurewebapp.net/api
               Notes: this is my subscription
               Owners:
-                - UserId: 79564b42-ed7d-4771-bfa3-6a5a92791d48
+                - UserId: c2520253-84a3-4fd7-9a78-f53599b8c753
                   UserName: FirstName LastName
-              CreatedTime: '2021-05-25T17:03:38.5757084+00:00'
+              CreatedTime: '2021-05-25T17:13:04.0423169+00:00'
       security:
         - http-bearer: [ ]
   '/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/addOwner':
@@ -1016,7 +1016,7 @@ definitions:
       ValidEventTypes:
         - DELETE_APPLICATION_EVENT
         - PUBLISH_APPLICATION_EVENT
-      ConnectionStringValidThroughUtc: '2021-05-25T18:03:38.2866149+00:00'
+      ConnectionStringValidThroughUtc: '2021-05-25T18:13:03.8486170+00:00'
   Luna.PubSub.PublicClient.LunaEventSubscriber:
     type: object
     properties:
@@ -1037,8 +1037,8 @@ definitions:
       SecondaryMasterKey:
         type: string
     example:
-      PrimaryMasterKey: c6acf6983ce84d9aa6d2904af1c745a5
-      SecondaryMasterKey: 98508b43a3204b9abedf6a1a71a21cf8
+      PrimaryMasterKey: 5b9e3ae718e446dcb164b4a43584b90e
+      SecondaryMasterKey: 5914ad9931d34c08967bef1933824830
   Luna.Publish.Public.Client.DataContract.LunaApplication:
     required:
       - Name
@@ -1089,7 +1089,7 @@ definitions:
       SecondaryMasterKeySecretName:
         type: string
     example:
-      OwnerUserId: 21ae2fdc-827a-4511-82f9-dbc7b269ca66
+      OwnerUserId: 8b8b3dc5-7ed8-4b88-8b40-5e863858ee51
       DisplayName: My App
       Description: This is my application
       DocumentationUrl: https://aka.ms/lunadoc
@@ -1179,7 +1179,7 @@ definitions:
         format: date-time
         type: string
     example:
-      Uid: 33f19e84-8208-48bc-9993-0d2db0771599
+      Uid: 7eb453db-7b74-47bb-8364-2281b050d30d
       UserName: FirstName LastName
       Role: SystemAdmin
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
@@ -1216,9 +1216,9 @@ definitions:
         type: string
     example:
       Region: westus
-      ResourceId: /subscriptions/95411871-4d9c-4d49-8734-5d2f5a09514d/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
-      TenantId: 35e482a4-7cb2-4b20-9d88-ca682716520a
-      ClientId: 13d3cd02-3ee2-4ee1-84f3-91d9f979c088
+      ResourceId: /subscriptions/57b50e8f-3973-424e-8774-e9606df6f8ad/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
+      TenantId: f72808b3-d90b-4248-b21a-ac802ab26493
+      ClientId: 46b474b3-298d-41d7-8b42-ee06eb874407
       ClientSecret: my-client-secret
       DisplayName: My Azure ML workspace
       Description: Azure ML workspace
@@ -1391,16 +1391,16 @@ definitions:
         format: date-time
         type: string
     example:
-      SubscriptionId: ff8e2531-229d-4531-83d6-2a76de34fecb
+      SubscriptionId: a503c5fa-190f-4d1b-9826-9e1fda57e277
       SubscriptionName: mysub
-      PrimaryKey: 0240a881dd8c42ed83fcdda88fea0324
-      SecondaryKey: 26851edbfa0344b1bb1d43f1127e6d7c
+      PrimaryKey: 517f9a1049b9485698a18c67bcbf5557
+      SecondaryKey: f2dcb42620824478992d4aa0511478d2
       BaseUrl: https://luna.azurewebapp.net/api
       Notes: this is my subscription
       Owners:
-        - UserId: 79564b42-ed7d-4771-bfa3-6a5a92791d48
+        - UserId: c2520253-84a3-4fd7-9a78-f53599b8c753
           UserName: FirstName LastName
-      CreatedTime: '2021-05-25T17:03:38.5757084+00:00'
+      CreatedTime: '2021-05-25T17:13:04.0423169+00:00'
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner:
     required:
       - UserId
@@ -1411,7 +1411,7 @@ definitions:
       UserName:
         type: string
     example:
-      UserId: cc82a04e-8550-4fda-902f-88499026c771
+      UserId: cd140855-7531-4443-8988-f93b91ff13a0
       UserName: FirstName LastName
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionKeys:
     required:
@@ -1424,8 +1424,8 @@ definitions:
       SecondaryKey:
         type: string
     example:
-      PrimaryKey: d14a2370ab8d4cc197dd0e4ea839a4b2
-      SecondaryKey: de553e32900942bfb0c28f3496f9a44a
+      PrimaryKey: d3599b6dde41496bad3e1344771477b2
+      SecondaryKey: f7fff9927c2e47baa2891d598e860df9
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes:
     required:
       - Notes

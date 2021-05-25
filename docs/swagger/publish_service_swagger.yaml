@@ -377,7 +377,6 @@ definitions:
     required:
       - Name
       - Status
-      - Properties
       - APIs
     type: object
     properties:
@@ -424,7 +423,7 @@ definitions:
       SecondaryMasterKeySecretName:
         type: string
     example:
-      OwnerUserId: 414cf562-e723-4b66-87c6-d2e0c659c36d
+      OwnerUserId: c9f786f1-d443-4143-ae45-2cecffcfa507
       DisplayName: My App
       Description: This is my application
       DocumentationUrl: https://aka.ms/lunadoc
@@ -508,8 +507,8 @@ definitions:
       SecondaryMasterKey:
         type: string
     example:
-      PrimaryMasterKey: 06cd5b4f35ff43b88e0612a15a9a2093
-      SecondaryMasterKey: 8f68ef856fe74389812a313557c8a577
+      PrimaryMasterKey: 4954f3c018364183b14a7767376b9a04
+      SecondaryMasterKey: f0b55dc0bd6949e0a065d1889ae7ed9b
 securityDefinitions:
   x-functions-key:
     type: apiKey

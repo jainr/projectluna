@@ -232,7 +232,7 @@ namespace Luna.Gateway.Functions
         /// <summary>
         /// List applications
         /// </summary>
-        /// <group>Application</group>
+        /// <group>Applications</group>
         /// <verb>GET</verb>
         /// <url>http://localhost:7071/api/manage/applications</url>
         /// <param name="req">The http request</param>
@@ -288,7 +288,7 @@ namespace Luna.Gateway.Functions
         /// <summary>
         /// Get application master keys
         /// </summary>
-        /// <group>Application</group>
+        /// <group>Applications</group>
         /// <verb>GET</verb>
         /// <url>http://localhost:7071/api/manage/applications/{name}/masterkeys</url>
         /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
