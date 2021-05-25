@@ -15,6 +15,20 @@ export interface IProductModel extends IBaseModel {
   selectedProductindex?: number  
 }
 
+export interface IProductDetailsModel extends IBaseModel {
+  displayName: string;
+  applicationName: string;
+  owner: string;
+  description: string;
+  logoImageUrl: string;
+  documentationUrl: string;
+  tags: string;
+  createdTime?: string;
+  lastUpdatedTime?: string;
+  Idlist?: string;
+  selectedProductId?: string
+  selectedProductindex?: number  
+}
 export interface ILookupType {
   id:string;
   displayName:string;

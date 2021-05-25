@@ -1,6 +1,6 @@
 import * as yup from "yup";
 import { ObjectSchema } from "yup";
-import { IDeploymentsModel, IDeploymentVersionModel } from "../../../models";
+import { IDeploymentsModel, IDeploymentVersionModel, IProductDetailsModel } from "../../../models";
 import { v4 as uuid } from "uuid";
 import { objectIdNameRegExp, versionNameRegExp } from "./RegExp";
 import { ErrorMessage } from "./ErrorMessage";
@@ -82,12 +82,29 @@ export const initialDeploymentList: IDeploymentsModel[] = [{
   clientId: uuid()
 }];
 
+export const initialProductDetailsValues: IProductDetailsModel = {
+  owner: 'abc',
+  applicationName: '',
+  description: '',
+  displayName: '',
+  documentationUrl: '',
+  logoImageUrl: '',
+  tags: "",
+  clientId: uuid()
+};
 export interface IDeploymentFormValues {
   deployment: IDeploymentsModel;
 }
 
 export interface IDeploymentVersionFormValues {
   version: IDeploymentVersionModel;
+}
+export interface IProductDetailsFormValues {
+  productDetails: IProductDetailsModel;
+}
+
+export const initialDetailsFormValues: IProductDetailsFormValues = {
+  productDetails: initialProductDetailsValues
 }
 
 export const initialDeploymentFormValues: IDeploymentFormValues = {
@@ -136,6 +153,26 @@ export const deletedeploymentValidator: ObjectSchema<IDeploymentsModel> = yup.ob
 
   }
 );
+
+const productDetailsValidator: ObjectSchema<IProductDetailsModel> = yup.object().shape(
+  {
+    applicationName: yup.string(),
+    clientId: yup.string(),
+    owner: yup.string().required("Owners is a required field"),
+    description: yup.string().max(120, "The description is too long. Must be no more than 120 characters"),
+    documentationUrl: yup.string(),
+    logoImageUrl: yup.string().required("Logo Image Url is required"),
+    tags: yup.string().required("Tags is required"),
+    displayName: yup.string().max(64, "The display name is too long. Must be no more than 64 characters"),
+    createdTime: yup.string(),
+    lastUpdatedTime: yup.string()
+  }
+);
+
+export const productDetailsValidationSchema: ObjectSchema<IProductDetailsFormValues> =
+  yup.object().shape({
+    productDetails: productDetailsValidator
+  });
 
 const versionFormValidator: ObjectSchema<IDeploymentVersionModel> = yup.object().shape(
   {

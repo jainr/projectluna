@@ -248,6 +248,7 @@ const Products: React.FunctionComponent = () => {
   };
 
   const Products = ({ products }) => {
+    products= [{applicationName:"abc",displayName:"aa",owner: "bb",description:"asdf"}]
     if (!products || products.length === 0) {
       return <tr>
         <td colSpan={4}><span>No Application</span></td>
