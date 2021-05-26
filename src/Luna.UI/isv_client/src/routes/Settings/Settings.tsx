@@ -5,6 +5,9 @@ import {
   DialogFooter,
   DialogType,
   FontIcon,
+  Label,
+  Pivot,
+  PivotItem,
   PrimaryButton,
   Stack,
   TextField
@@ -72,6 +75,8 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
 
   const [AMLDeleteDialog, setAMLDeleteDialog] = useState<boolean>(false);
   const [selectedAML, setSelectedAML] = useState<IAMLWorkSpaceModel>(initialAMLWorkSpaceValues);
+
+  const [partnerServiceDialogVisible, setPartnerServiceDialogVisible] = useState<boolean>(false);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const globalContext = useGlobalContext();
@@ -145,8 +150,16 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     setWorkSpaceDialogVisible(true);
   }
 
+  const OpenPartnerServiceDialog = () => {
+    setPartnerServiceDialogVisible(true);
+  }
+
   const CloseWorkSpaceDialog = () => {
     setWorkSpaceDialogVisible(false);
+  }
+
+  const ClosePartnerServiceDialog = () => {
+    setPartnerServiceDialogVisible(false);
   }
 
   useEffect(() => {
@@ -241,7 +254,54 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
 
   return (
     <React.Fragment>
-
+    <React.Fragment>
+    <Pivot aria-label="Basic Pivot Example" style={{textAlign:'left'}}>
+      <PivotItem headerText="Permissions">
+        <Label>Pivot #1</Label>
+      </PivotItem>
+      <PivotItem headerText="Partner Service" >       
+        <table className="noborder offer" style={{margin: 10}} cellPadding={5} cellSpacing={0}>
+          <thead>
+            <tr>
+              <th colSpan={3}>              
+              <PrimaryButton text={"New Partner Service"} onClick={() => {
+                  OpenPartnerServiceDialog() }} />   
+              </th>              
+            </tr>
+            <tr>             
+              <th style={{width: 200}}>
+                <FormLabel title={"Name"} />
+              </th>
+              <th style={{width: 200}}>
+                <FormLabel title={"Type"} />
+              </th>
+              <th style={{width: 200}}>
+                <FormLabel title={"Created Date"} />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {loadingWorkSpace ?
+              (
+                <tr>
+                  <td colSpan={4} align={"center"}>
+                    <Stack verticalAlign={"center"} horizontalAlign={"center"} horizontal={true}>
+                      <Loading />
+                    </Stack>
+                  </td>
+                </tr>
+              )
+              :
+              <WorkSpaceList amlWorkSpace={workSpaceList} />
+            }
+          </tbody>
+        </table>
+      </PivotItem>
+      <PivotItem headerText="Review Settings">
+        <Label>Pivot #3</Label>
+      </PivotItem>
+    </Pivot>
+    </React.Fragment>
       <React.Fragment>
         <h3 style={{ textAlign: 'left', fontWeight: 'normal', marginTop: 0, marginBottom: 20, width: '100%' }}>AML
           Workspaces</h3>
@@ -488,6 +548,198 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                         <div style={{ flexGrow: 1 }}></div>
                         <AlternateButton
                           onClick={CloseWorkSpaceDialog}
+                          text="Cancel" className="mar-right-2_Per" />
+                        <PrimaryButton type="submit" id="btnsubmit" className="mar-right-2_Per"
+                          text={isDisplayDeleteButton ? "Update" : "Create"} onClick={submitForm} />
+                      </Stack>
+                    </DialogFooter>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+        </Formik>
+      </Dialog>
+
+      <Dialog
+        hidden={!partnerServiceDialogVisible}
+        onDismiss={ClosePartnerServiceDialog}
+        dialogContentProps={{
+          styles: {
+            subText: {
+              paddingTop: 0
+            },
+            title: {}
+
+          },
+          type: DialogType.normal,
+          title: 'New Partner Service'
+        }}
+        modalProps={{
+          isBlocking: true,
+          isDarkOverlay: true,
+          styles: {
+            main: {
+              minWidth: '35% !important',
+
+            }
+          }
+        }}
+      >
+        <Formik
+          initialValues={workSpace}
+          validationSchema={aMLWorkSpaceFormValidationSchema}
+          enableReinitialize={true}
+          validateOnBlur={true}
+          onSubmit={async (values, { setSubmitting, setErrors }) => {
+
+            // setFormError(null);
+            // setSubmitting(true);
+            // globalContext.showProcessing();
+
+            // //TODO: PUT THIS BACK IN
+            // var createWorkSpaceResult = await ProductService.createOrUpdateWorkSpace(values.aMLWorkSpace);
+            // if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'aMLWorkSpace', createWorkSpaceResult)) {
+            //   toast.error(formError);
+            //   globalContext.hideProcessing();
+            //   return;
+            // }
+
+            // setSubmitting(false);
+
+            // await getWorkSpaceList();
+            // await getGitRepoList();
+            // globalContext.hideProcessing();
+            // toast.success("Success!");
+            // setisEdit(true);
+            // setDisplayDeleteButton(true);
+
+            // Hub.dispatch(
+            //   'AMLWorkspaceCreated',
+            //   {
+            //     event: 'WorkspaceCreated',
+            //     data: true,
+            //     message: ''
+            //   });
+
+            CloseWorkSpaceDialog();
+          }}
+        >
+          {({ handleChange, values, handleBlur, touched, errors, handleSubmit, submitForm, setFieldValue }) => (
+            <table className="offer" style={{ width: '100%' }}>
+              <tbody>
+                <tr>
+                  <td>
+                    <React.Fragment>
+                      <FormLabel title={"Type:"} toolTip={ProductMessages.AMLWorkSpace.WorkspaceName} />                                         
+                    </React.Fragment>
+                  </td>
+                  <td>
+                    <TextField
+                          name={'aMLWorkSpace.workspaceName'}
+                          value={values.aMLWorkSpace.workspaceName}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          errorMessage={getFormErrorString(touched, errors, 'workspaceName')}
+                          placeholder={'Workspace Name'}
+                          className="txtFormField wdth_100_per" disabled={isEdit} max={50} />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <React.Fragment>
+                      <FormLabel title={"Resource Id:"} toolTip={ProductMessages.AMLWorkSpace.ResourceId} />                     
+                    </React.Fragment>
+
+                  </td>
+                  <td>
+                    <TextField
+                          name={'aMLWorkSpace.resourceId'}
+                          value={values.aMLWorkSpace.resourceId}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          errorMessage={getFormErrorString(touched, errors, 'resourceId')}
+                          placeholder={'Resource Id'}
+                          className="txtFormField wdth_100_per" />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <React.Fragment>
+                      <FormLabel title={"Tenant Id:"} toolTip={ProductMessages.AMLWorkSpace.AADTenantId} />                      
+                    </React.Fragment>
+                  </td>
+                  <td>
+                    <TextField
+                          name={'aMLWorkSpace.aadTenantId'}
+                          value={values.aMLWorkSpace.aadTenantId}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          errorMessage={getFormErrorString(touched, errors, 'aadTenantId')}
+                          placeholder={'Tenant Id'}
+                          className="txtFormField wdth_100_per" />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <React.Fragment>
+                      <FormLabel title={"Client Id:"} toolTip={ProductMessages.AMLWorkSpace.AADApplicationId} />                     
+                    </React.Fragment>
+                  </td>
+                  <td>
+                    <TextField
+                          name={'aMLWorkSpace.aadApplicationId'}
+                          value={values.aMLWorkSpace.aadApplicationId}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          errorMessage={getFormErrorString(touched, errors, 'aadApplicationId')}
+                          placeholder={'Client Id'}
+                          className="txtFormField wdth_100_per" />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <React.Fragment>
+                      <FormLabel title={"Client Secret:"} toolTip={ProductMessages.AMLWorkSpace.AADApplicationSecret} />                      
+                    </React.Fragment>
+                  </td>
+                  <td>
+                    <TextField
+                          name={'aMLWorkSpace.aadApplicationSecrets'}
+                          value={values.aMLWorkSpace.aadApplicationSecrets}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          type={'password'}
+                          errorMessage={getFormErrorString(touched, errors, 'aadApplicationSecrets')}
+                          placeholder={'Client Secret'}
+                          className="txtFormField wdth_100_per" />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <React.Fragment>
+                      <FormLabel title={"Name:"} toolTip={ProductMessages.AMLWorkSpace.AADApplicationSecret} />                      
+                    </React.Fragment>
+                  </td>
+                  <td>
+                    <TextField
+                          name={'aMLWorkSpace.aadApplicationSecrets'}
+                          value={values.aMLWorkSpace.aadApplicationSecrets}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          type={'password'}
+                          errorMessage={getFormErrorString(touched, errors, 'aadApplicationSecrets')}
+                          placeholder={'NAme'}
+                          className="txtFormField wdth_100_per" />
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan={2}>
+                    <DialogFooter>
+                      <Stack horizontal={true} gap={15} style={{ width: '100%' }}>                        
+                        <div style={{ flexGrow: 1 }}></div>
+                        <AlternateButton
+                          onClick={ClosePartnerServiceDialog}
                           text="Cancel" className="mar-right-2_Per" />
                         <PrimaryButton type="submit" id="btnsubmit" className="mar-right-2_Per"
                           text={isDisplayDeleteButton ? "Update" : "Create"} onClick={submitForm} />
