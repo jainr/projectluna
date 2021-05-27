@@ -4,7 +4,9 @@ import {
   Dialog,
   DialogFooter,
   DialogType,
+  Dropdown,
   FontIcon,
+  IDropdownOption,
   Label,
   Pivot,
   PivotItem,
@@ -14,7 +16,7 @@ import {
 } from 'office-ui-fabric-react';
 import FormLabel from "../../shared/components/FormLabel";
 import { Formik } from "formik";
-import { IAMLWorkSpaceModel, IGitRepoModel } from "../../models";
+import { IAMLWorkSpaceModel, IGitRepoModel, IPartnerServiceModel } from "../../models";
 import { Loading } from "../../shared/components/Loading";
 import { useGlobalContext } from "../../shared/components/GlobalProvider";
 import { toast } from "react-toastify";
@@ -26,6 +28,12 @@ import {
   initialAMLWorkSpaceValues,
   deleteAMLWorkSpaceValidator,
 } from '../Products/formUtils/AMLWorkSpaceUtils';
+import {
+  partnerServiceFormValidationSchema,
+  IPartnerServiceFormValues,
+  initialPartnerServiceFormValues,
+  initialPartnerServiceValues,
+} from '../Products/formUtils/PartenerServiceUtils';
 import { Hub } from "aws-amplify";
 import ProductService from "../../services/ProductService";
 import { handleSubmissionErrorsForForm } from "../../shared/formUtils/utils";
@@ -62,6 +70,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   //const { } = props;
   let [workSpaceList, setWorkSpaceList] = useState<IAMLWorkSpaceModel[]>();
   let [gitRepoList, setGitRepoList] = useState<IGitRepoModel[]>();
+  let [partnerServiceList, setPartnerServiceList] = useState<IPartnerServiceModel[]>();
   let [workSpace, setWorkSpace] = useState<IAMLWorkSpaceFormValues>(initialAMLWorkSpaceFormValues);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -77,6 +86,10 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   const [selectedAML, setSelectedAML] = useState<IAMLWorkSpaceModel>(initialAMLWorkSpaceValues);
 
   const [partnerServiceDialogVisible, setPartnerServiceDialogVisible] = useState<boolean>(false);
+  const [loadingPartnerService, setLoadingPartnerService] = useState<boolean>(false);
+  const [typeList, setTypeList] = useState<IDropdownOption[]>([]);
+  const [isDisplayUpdateButton, setDisplayUpdateButton] = useState<boolean>(false);
+  let [partnerService, setPartnerService] = useState<IPartnerServiceFormValues>(initialPartnerServiceFormValues);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const globalContext = useGlobalContext();
@@ -107,8 +120,56 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
       toast.error('Failed to load Git repos');
   }
 
+  const getPartnerServiceList = async () => {
+
+    setLoadingPartnerService(true);
+    const results = await ProductService.getPartnerServicesList();
+    results.value = [{type:'Azure Synopsis',resourceId:'123',tenantId:'456',clientId:'789',clinetSecrets:'123456789',partnerServiceName:'ABC',createdDate:'02//05/2021'}]
+    results.success= true;
+    if (results && results.value && results.success) {
+      setPartnerServiceList(results.value);
+      setLoadingPartnerService(false);
+    } else
+      toast.error('Failed to load Product Services');
+  }
+
+  const getTypes = async () => {
+
+    let typeList: IDropdownOption[] = [{
+      key: '',
+      text: ''
+    }];
+    // let TypeResponse = await TypeService.list();
+    // if (TypeResponse.value && TypeResponse.success) {
+    //   var Types = TypeResponse.value;
+    //   Types.map((item, index) => {
+    //     return (
+    //       typeList.push(
+    //         {
+    //           key: item.planName,
+    //           text: item.planName
+    //         })
+    //     )
+    //   })
+    // }
+    typeList[0].text="Select Type";
+    typeList.push({
+      key: "Azure Synapse",
+      text: "Azure Synapse"
+    });
+    typeList.push({
+      key: "Azure Machine Learning",
+      text: "Azure Machine Learning"
+    })
+    setTypeList([...typeList]);
+  }
+
   const getFormErrorString = (touched, errors, property: string) => {
     return touched.aMLWorkSpace && errors.aMLWorkSpace && touched.aMLWorkSpace[property] && errors.aMLWorkSpace[property] ? errors.aMLWorkSpace[property] : '';
+  };
+
+  const getPartnerServiceFormErrorString = (touched, errors, property: string) => {
+    return touched.partnerService && errors.partnerService && touched.partnerService[property] && errors.partnerService[property] ? errors.partnerService[property] : '';
   };
 
   const getDeleteAMLErrorString = (touched, errors, property: string) => {
@@ -128,6 +189,22 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     setisEdit(true);
     setDisplayDeleteButton(true);
     OpenWorkSpaceDialog();
+    //history.push(WebRoute.ModifyProductInfo.replace(':productName', productName));
+  };
+
+  const editPartnerService = async (partnerServiceName: string, idx: number) => {
+
+    //let editedWorkspace = initialAMLWorkSpaceList.filter(a => a.workspaceName === Id)[0];
+    let editPartnerService = await ProductService.getPartnerServiceByName(partnerServiceName);
+    if (editPartnerService && editPartnerService.value && editPartnerService.success) {
+      setPartnerService({ partnerService : editPartnerService.value });
+      // setworkSpaceDeleteIndex(idx);
+    } else
+      toast.error('Failed to load Partner Service');
+
+    setisEdit(true);
+    setDisplayUpdateButton(true);
+    OpenPartnerServiceDialog();
     //history.push(WebRoute.ModifyProductInfo.replace(':productName', productName));
   };
 
@@ -154,6 +231,11 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     setPartnerServiceDialogVisible(true);
   }
 
+  const OpenNewPartnerServiceDialog = () => {
+    setDisplayUpdateButton(false);
+    setPartnerServiceDialogVisible(true);
+  }
+
   const CloseWorkSpaceDialog = () => {
     setWorkSpaceDialogVisible(false);
   }
@@ -166,6 +248,8 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
 
     getWorkSpaceList();
     getGitRepoList();
+    getPartnerServiceList();
+    getTypes();
 
     Hub.listen('AMLWorkspaceNewDialog', (data) => {
       OpenNewWorkSpaceDialog();
@@ -248,6 +332,46 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     }
   }
 
+  const PartnerServiceList = ({ partnerService }) => {
+    if (!partnerService || partnerService.length === 0) {
+      return <tr>
+        <td colSpan={4}><span>No Partner Service</span></td>
+      </tr>;
+    } else {
+      return (
+        partnerService.map((value: IPartnerServiceModel, idx) => {
+          return (
+            <tr key={idx}>
+              <td>
+                <span>{value.partnerServiceName}</span>
+              </td>
+              <td>
+                <span>{value.type}</span>
+              </td>
+              <td>
+                <span>{value.createdDate}</span>
+              </td>
+              <td>
+                <Stack
+                  verticalAlign="center"
+                  horizontalAlign={"space-evenly"}
+                  gap={15}
+                  horizontal={true}
+                >
+                  <FontIcon iconName="Edit" className="deleteicon" onClick={() => {
+                    editPartnerService(value.partnerServiceName, idx)
+                  }} />
+                  {/* <FontIcon iconName="Cancel" className="deleteicon" onClick={() => { deleteWorkSpace(value) }} /> */}
+                </Stack>
+              </td>
+            </tr>
+          );
+        })
+      );
+
+    }
+  }
+
   const CloseAMLDeleteDialog = () => {
     setAMLDeleteDialog(false);
   }
@@ -265,7 +389,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
             <tr>
               <th colSpan={3}>              
               <PrimaryButton text={"New Partner Service"} onClick={() => {
-                  OpenPartnerServiceDialog() }} />   
+                  OpenNewPartnerServiceDialog() }} />   
               </th>              
             </tr>
             <tr>             
@@ -278,13 +402,16 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
               <th style={{width: 200}}>
                 <FormLabel title={"Created Date"} />
               </th>
+              <th style={{width: 200}}>
+                <FormLabel title={"Operations"} />
+              </th>
             </tr>
           </thead>
           <tbody>
-            {loadingWorkSpace ?
+            {loadingPartnerService ?
               (
                 <tr>
-                  <td colSpan={4} align={"center"}>
+                  <td colSpan={5} align={"center"}>
                     <Stack verticalAlign={"center"} horizontalAlign={"center"} horizontal={true}>
                       <Loading />
                     </Stack>
@@ -292,7 +419,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 </tr>
               )
               :
-              <WorkSpaceList amlWorkSpace={workSpaceList} />
+              <PartnerServiceList partnerService={partnerServiceList} />
             }
           </tbody>
         </table>
@@ -587,8 +714,8 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
         }}
       >
         <Formik
-          initialValues={workSpace}
-          validationSchema={aMLWorkSpaceFormValidationSchema}
+          initialValues={partnerService}
+          validationSchema={partnerServiceFormValidationSchema}
           enableReinitialize={true}
           validateOnBlur={true}
           onSubmit={async (values, { setSubmitting, setErrors }) => {
@@ -622,7 +749,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
             //     message: ''
             //   });
 
-            CloseWorkSpaceDialog();
+            ClosePartnerServiceDialog();
           }}
         >
           {({ handleChange, values, handleBlur, touched, errors, handleSubmit, submitForm, setFieldValue }) => (
@@ -635,14 +762,14 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                     </React.Fragment>
                   </td>
                   <td>
-                    <TextField
-                          name={'aMLWorkSpace.workspaceName'}
-                          value={values.aMLWorkSpace.workspaceName}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          errorMessage={getFormErrorString(touched, errors, 'workspaceName')}
-                          placeholder={'Workspace Name'}
-                          className="txtFormField wdth_100_per" disabled={isEdit} max={50} />
+                  <Dropdown options={typeList} id={`Type`}
+                            onBlur={handleBlur}
+                            placeHolder="Choose a Type"
+                            errorMessage={getPartnerServiceFormErrorString(touched, errors, 'type')}
+                            // onChange={(event, option, index) => {
+                            //   selectOnChange(`Type`, setFieldValue, event, option, index);
+                            // }} 
+                            defaultSelectedKey=""/>                   
                   </td>
                 </tr>
                 <tr>
@@ -654,11 +781,11 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                   </td>
                   <td>
                     <TextField
-                          name={'aMLWorkSpace.resourceId'}
-                          value={values.aMLWorkSpace.resourceId}
+                          name={'partnerService.resourceId'}
+                          value={values.partnerService.resourceId}
                           onChange={handleChange}
                           onBlur={handleBlur}
-                          errorMessage={getFormErrorString(touched, errors, 'resourceId')}
+                          errorMessage={getPartnerServiceFormErrorString(touched, errors, 'resourceId')}
                           placeholder={'Resource Id'}
                           className="txtFormField wdth_100_per" />
                   </td>
@@ -671,11 +798,11 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                   </td>
                   <td>
                     <TextField
-                          name={'aMLWorkSpace.aadTenantId'}
-                          value={values.aMLWorkSpace.aadTenantId}
+                          name={'partnerService.tenantId'}
+                          value={values.partnerService.tenantId}
                           onChange={handleChange}
                           onBlur={handleBlur}
-                          errorMessage={getFormErrorString(touched, errors, 'aadTenantId')}
+                          errorMessage={getPartnerServiceFormErrorString(touched, errors, 'tenantId')}
                           placeholder={'Tenant Id'}
                           className="txtFormField wdth_100_per" />
                   </td>
@@ -688,11 +815,11 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                   </td>
                   <td>
                     <TextField
-                          name={'aMLWorkSpace.aadApplicationId'}
-                          value={values.aMLWorkSpace.aadApplicationId}
+                          name={'partnerService.clientId'}
+                          value={values.partnerService.clientId}
                           onChange={handleChange}
                           onBlur={handleBlur}
-                          errorMessage={getFormErrorString(touched, errors, 'aadApplicationId')}
+                          errorMessage={getPartnerServiceFormErrorString(touched, errors, 'clientId')}
                           placeholder={'Client Id'}
                           className="txtFormField wdth_100_per" />
                   </td>
@@ -705,12 +832,12 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                   </td>
                   <td>
                     <TextField
-                          name={'aMLWorkSpace.aadApplicationSecrets'}
-                          value={values.aMLWorkSpace.aadApplicationSecrets}
+                          name={'partnerService.clinetSecrets'}
+                          value={values.partnerService.clinetSecrets}
                           onChange={handleChange}
                           onBlur={handleBlur}
                           type={'password'}
-                          errorMessage={getFormErrorString(touched, errors, 'aadApplicationSecrets')}
+                          errorMessage={getPartnerServiceFormErrorString(touched, errors, 'clinetSecrets')}
                           placeholder={'Client Secret'}
                           className="txtFormField wdth_100_per" />
                   </td>
@@ -723,13 +850,12 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                   </td>
                   <td>
                     <TextField
-                          name={'aMLWorkSpace.aadApplicationSecrets'}
-                          value={values.aMLWorkSpace.aadApplicationSecrets}
+                          name={'partnerService.partnerServiceName'}
+                          value={values.partnerService.partnerServiceName}
                           onChange={handleChange}
                           onBlur={handleBlur}
-                          type={'password'}
-                          errorMessage={getFormErrorString(touched, errors, 'aadApplicationSecrets')}
-                          placeholder={'NAme'}
+                          errorMessage={getPartnerServiceFormErrorString(touched, errors, 'partnerServiceName')}
+                          placeholder={'Partner Service Name'}
                           className="txtFormField wdth_100_per" />
                   </td>
                 </tr>
@@ -738,11 +864,13 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                     <DialogFooter>
                       <Stack horizontal={true} gap={15} style={{ width: '100%' }}>                        
                         <div style={{ flexGrow: 1 }}></div>
+                        <PrimaryButton type="submit" id="btnTestConnection" className="mar-right-2_Per"
+                          text={"Test Connection"} onClick={submitForm} />
+                        <PrimaryButton type="submit" id="btnsubmit" className="mar-right-2_Per"
+                          text={isDisplayUpdateButton ? "Update" : "Create"} onClick={submitForm} />
                         <AlternateButton
                           onClick={ClosePartnerServiceDialog}
                           text="Cancel" className="mar-right-2_Per" />
-                        <PrimaryButton type="submit" id="btnsubmit" className="mar-right-2_Per"
-                          text={isDisplayDeleteButton ? "Update" : "Create"} onClick={submitForm} />
                       </Stack>
                     </DialogFooter>
                   </td>

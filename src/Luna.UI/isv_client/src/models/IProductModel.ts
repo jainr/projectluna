@@ -79,6 +79,16 @@ export interface IAMLWorkSpaceModel extends IBaseModel{
   selectedWorkspaceName:string;
 }
 
+export interface IPartnerServiceModel extends IBaseModel{  
+  type:string;
+  resourceId:string;
+  tenantId:string;
+  clientId:string;
+  registeredTime?:string;
+  clinetSecrets:string;
+  partnerServiceName: string;
+  createdDate: string;
+}
 export interface IMLModelArtifactModel extends IBaseModel{
   name:string;
   version: string;
