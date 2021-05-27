@@ -12,7 +12,8 @@ import {
   IMLModelArtifactModel,
   IMLEndpointArtifactModel,
   IAMLComputeClusterModel,
-  IPermissionsModel
+  IPermissionsModel,
+  IProductDetailsModel
 } from "../models";
 import {v4 as uuid} from "uuid";
 
