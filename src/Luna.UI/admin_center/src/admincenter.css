@@ -1,0 +1,28 @@
+.floatLeft {
+  float: left;
+}
+.bgclrblue{
+  background-color: #4876ca;
+}
+.bgclrred{
+  background-color: #C00000;
+}
+.dashboardcard {
+  color: #fff;
+  margin-right: 1%;
+  min-height: 130px;
+}
+.fnt10
+{
+  font-size: 12px;
+}
+.cardtext
+{
+  padding: 25px;
+  padding-bottom: 0px;
+}
+ .txticon
+ {
+  text-align: right;
+  padding-bottom: 10px;
+ }

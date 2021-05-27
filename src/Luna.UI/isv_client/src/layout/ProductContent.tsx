@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { DefaultButton, FontIcon, getTheme, PrimaryButton, Stack, TextField } from 'office-ui-fabric-react';
+import { DefaultButton, Dialog, DialogFooter, DialogType, FontIcon, getTheme, MessageBar, MessageBarType, PrimaryButton, Stack, TextField, values } from 'office-ui-fabric-react';
 import { useHistory, useLocation } from 'react-router';
 //import { LaoutHelper, LayoutHelperMenuItem } from "./Layout";
 import ProductService from "../services/ProductService";
-import { initialProductValues, deleteProductValidator } from '../routes/Products/formUtils/ProductFormUtils'
-import { IProductModel } from "../models";
+import { initialProductValues, deleteProductValidator, IProductInfoFormValues } from '../routes/Products/formUtils/ProductFormUtils'
+import { IProductDetailsModel, IProductModel } from "../models";
 import { useGlobalContext } from "../shared/components/GlobalProvider";
 
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { handleSubmissionErrorsForForm } from "../shared/formUtils/utils";
 import { toast } from "react-toastify";
 import { DialogBox } from '../shared/components/Dialog';
-import { Formik } from 'formik';
+import { Formik, useFormikContext } from 'formik';
+import FormLabel from '../shared/components/FormLabel';
+import AlternateButton from '../shared/components/AlternateButton';
+import { initialDetailsFormValues, initialProductDetailsValues, IProductDetailsFormValues, productDetailsValidationSchema } from '../routes/Products/formUtils/ProductDetailsUtils';
 
 type ProductProps = {
   productName: string | null;
@@ -29,12 +32,16 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
 
   const [ProductDeleteDialog, setProductDeleteDialog] = useState<boolean>(false);
   const [selectedProductName, setSelectedProductName] = useState<string>('');
+  const [productDialogVisible, setProductDialogVisible] = useState<boolean>(false);
+  const [productDetails, setProductDetails] = useState<IProductDetailsModel>();
+  const [formState, setFormState] = useState<IProductDetailsFormValues>(initialDetailsFormValues);
 
   const theme = getTheme();
 
   const getProductInfo = async (productName: string) => {
 
     let response = await ProductService.get(productName);
+    let details = await ProductService.getDetails(productName);
 
     //let response = initialProductList.filter(p=>p.productName==productName)[0];
 
@@ -42,9 +49,13 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
       setProductModel({ ...response.value })
     }
 
+    if (!details.hasErrors && details.value) {
+      details.value.applicationName  = "abc";
+      details.value.owner = "bb";
+      setProductDetails({ ...details.value })
+    }
+
   }
-
-
 
   useEffect(() => {
     if (productName)
@@ -58,6 +69,22 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
     // setHideSave(location.pathname.toLowerCase().endsWith("/meters"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [history.location, location.pathname]);
+
+  const hideNewProductDialog = (): void => {
+    setProductDialogVisible(false);
+  };
+
+  const handleProductDetails = (): void => {
+    showNewProductDialog();
+  };
+  const showNewProductDialog = (): void => {
+    setProductDialogVisible(true);
+  };
+
+  const handleFormSubmission = async (e) => {
+    if (globalContext.saveForm)
+      await globalContext.saveForm();
+  };
 
   const handleProductDeletion = async (e) => {
 
@@ -175,6 +202,7 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
               horizontalAlign={"end"}
               gap={15}
             >
+              <DefaultButton type="button" id="btnProperties" onClick={handleProductDetails}>Properties</DefaultButton>
               <DefaultButton onClick={handleProductDeletion} className="addbutton">
                 <FontIcon iconName="Cancel" className="deleteicon" /> Delete
               </DefaultButton>
@@ -315,8 +343,211 @@ const ProductContent: React.FunctionComponent<ProductProps> = (props) => {
             </Formik>
           </React.Fragment>
         } />
+      <Dialog
+        hidden={!productDialogVisible}
+        onDismiss={hideNewProductDialog}
+
+        dialogContentProps={{
+          styles: {
+            subText: {
+              paddingTop: 0
+            },
+            title: {
+            }
+
+          },
+          type: DialogType.normal,
+          title: 'Application-'
+        }}
+        modalProps={{
+          isBlocking: true,
+          styles: {
+
+            main: {
+              minWidth: '40% !important'
+            }
+          }
+        }}
+      >
+        <Formik
+          initialValues={formState}
+          validationSchema={productDetailsValidationSchema}
+          enableReinitialize={true}
+          validateOnBlur={true}
+          onSubmit={async (values, { setSubmitting, setErrors }) => {
+            setFormError(null);
+            setSubmitting(true);
+
+            globalContext.showProcessing();
+            // var CreateProductResult = await ProductService.create(values.product);
+            // if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'product', CreateProductResult)) {
+            //   toast.error(formError)
+            //   globalContext.hideProcessing();
+            //   return;
+            // }
+
+            setSubmitting(false);
+            globalContext.hideProcessing();
+            toast.success("Success!");
+            // if (CreateProductResult.value != null)
+            //   history.push(WebRoute.ProductDetail.replace(':applicationName', CreateProductResult.value.applicationName));
+          }}
+        >
+          <ProductDetailsForm productDetails={productDetails} />
+        </Formik> 
+        <DialogFooter>
+          <PrimaryButton
+            onClick={handleFormSubmission}
+            text="Update" />
+          <AlternateButton
+            onClick={hideNewProductDialog}
+            text="Cancel" />
+        </DialogFooter>
+      </Dialog>
     </Stack>
   );
 };
+
+export type IProductDetailsFormFormProps = {
+  formError?: string | null;
+  productDetails?: IProductDetailsModel;
+}
+
+export const ProductDetailsForm: React.FunctionComponent<IProductDetailsFormFormProps> = (props) => {
+  const { values, handleChange, handleBlur, touched, errors, handleSubmit, submitForm, dirty, setFieldValue } = useFormikContext<IProductDetailsFormValues>(); // formikProps
+  const { formError} = props;
+  const globalContext = useGlobalContext();
+
+  useEffect(() => {
+    globalContext.modifySaveForm(async () => {
+      await submitForm();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getProductFormErrorString = (touched, errors, property: string, dirty) => {
+    setTimeout(() => { globalContext.setFormDirty(dirty); }, 500);
+
+    return touched.productDetails && errors.productDetails && touched.productDetails[property] && errors.productDetails[property] ? errors.productDetails[property] : '';
+  };
+
+  const DisplayErrors = (errors) => {
+    return null;
+  };
+  const getidlist = (): string => {
+    let idlist = '123'
+    return idlist;
+  }
+  return (
+    <form style={{ width: '100%' }} autoComplete={"off"} onSubmit={handleSubmit}>
+      {formError && <div style={{ marginBottom: 15 }}><MessageBar messageBarType={MessageBarType.error}>
+        <div dangerouslySetInnerHTML={{ __html: formError }} style={{ textAlign: 'left' }}></div>
+      </MessageBar></div>}
+      <Stack
+        verticalAlign="start"
+        horizontal={false}
+        gap={10}
+        styles={{
+          root: {}
+        }}
+      >
+        
+        <table>
+              <tbody>
+        <DisplayErrors errors={errors} />
+          <React.Fragment>
+                <tr>
+                  <td>
+                    <Stack className={"form_row"}>
+                      <FormLabel title={"Owners:"} toolTip={"Owners"}/>
+                      <input type="hidden" name={'productDetails.Idlist'} value={getidlist()} />
+                      <TextField
+                        name={'productDetails.owner'}
+                        value={values.productDetails.owner}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'owner', dirty)}
+                        placeholder={'Owners'}
+                        />
+                    </Stack>
+                    </td>
+                    <td>
+                    <Stack className={"form_row"}>
+                      <FormLabel title={"Logo Image Url:"} toolTip={"Logo Image Url"}/>
+                      <TextField
+                        name={'productDetails.logoImageUrl'}
+                        value={values.productDetails.logoImageUrl}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'logoImageUrl', dirty)}
+                        placeholder={'Logo Image Url'}
+                        />
+                    </Stack>
+                  </td>
+                </tr>
+          </React.Fragment>
+
+            <tr>
+              <td>
+              <Stack className={"form_row"}>
+                      <FormLabel title={"Display Name:"} toolTip={"Display Name"}/>
+                      <TextField
+                        name={'productDetails.displayName'}
+                        value={values.productDetails.displayName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'displayName', dirty)}
+                        placeholder={'Display Name'}
+                        style={ {width: "100%"} } />
+                    </Stack>
+              </td>
+              <td>
+              <Stack className={"form_row"}>
+                      <FormLabel title={"Documentation Url:"} toolTip={"Documentation Url"}/>
+                      <TextField
+                        name={'productDetails.documentationUrl'}
+                        value={values.productDetails.documentationUrl}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'documentationUrl', dirty)}
+                        placeholder={'Documentation Url'}
+                        style={ {width: "100%"} } />
+                    </Stack>
+              </td>    
+            </tr>        
+            <tr>
+                  <td>
+                  <Stack className={"form_row"}>
+                      <FormLabel title={"Description:"} toolTip={"Description"}/>
+                      <TextField
+                        name={'productDetails.description'}
+                        value={values.productDetails.description}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'description', dirty)}
+                        placeholder={'Description'}
+                        style={ {width: "100%"} } />
+                    </Stack>
+                  </td>
+                  <td>
+                    <Stack className={"form_row"}>
+                      <FormLabel title={"Tags:"} toolTip={"Tags"}/>
+                      <TextField
+                        name={'productDetails.tags'}
+                        value={values.productDetails.tags}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        errorMessage={getProductFormErrorString(touched, errors, 'tags', dirty)}
+                        placeholder={'tags'}
+                        />
+                    </Stack>
+                  </td>
+                </tr>
+          </tbody>
+        </table>
+      </Stack>
+    </form>
+  );
+}
 
 export default ProductContent;

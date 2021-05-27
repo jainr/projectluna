@@ -1,6 +1,6 @@
 import * as yup from "yup";
 import { ObjectSchema } from "yup";
-import { IProductModel } from "../../../models";
+import { IProductDetailsModel, IProductModel } from "../../../models";
 import { v4 as uuid } from "uuid";
 import { objectIdNameRegExp } from "./RegExp";
 import { ErrorMessage } from "./ErrorMessage";
@@ -83,7 +83,6 @@ export const initialProductList: IProductModel[] = [{
   isModified: false,
   clientId: uuid()
 }];
-
 export interface IProductInfoFormValues {
   product: IProductModel;
 }

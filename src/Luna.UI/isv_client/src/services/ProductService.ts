@@ -44,6 +44,19 @@ export default class ProductService extends ServiceBase {
     return result;
   }
 
+  public static async getDetails(productName: string): Promise<Result<IProductDetailsModel>> {
+
+    var result = await this.requestJson<IProductDetailsModel>({
+      url: `/applications/${productName}`,
+      method: "GET"
+    });
+
+    if (!result.hasErrors && result.value)
+      result.value.clientId = uuid();
+
+    return result;
+  }
+
   public static async update(model: IProductModel): Promise<Result<IProductModel>> {
     var result = await this.requestJson<IProductModel>({
       url: `/applications/${model.applicationName}`,
