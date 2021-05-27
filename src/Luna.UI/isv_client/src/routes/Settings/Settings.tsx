@@ -856,7 +856,8 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                           onBlur={handleBlur}
                           errorMessage={getPartnerServiceFormErrorString(touched, errors, 'partnerServiceName')}
                           placeholder={'Partner Service Name'}
-                          className="txtFormField wdth_100_per" />
+                          className="txtFormField wdth_100_per" 
+                          disabled={isDisplayUpdateButton}/>                          
                   </td>
                 </tr>
                 <tr>
