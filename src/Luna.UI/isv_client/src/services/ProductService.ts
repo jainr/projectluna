@@ -11,7 +11,8 @@ import {
   IGitRepoModel,
   IMLModelArtifactModel,
   IMLEndpointArtifactModel,
-  IAMLComputeClusterModel
+  IAMLComputeClusterModel,
+  IPermissionsModel
 } from "../models";
 import {v4 as uuid} from "uuid";
 
@@ -308,6 +309,15 @@ export default class ProductService extends ServiceBase {
 
     var result = await this.requestJson<ISourceModel[]>({
       url: `/apiVersions/sourceTypes/`,
+      method: "GET"
+    });
+
+    return result;
+  }
+
+  public static async getPermissions(): Promise<Result<IPermissionsModel[]>> {
+    var result = await this.requestJson<IPermissionsModel[]>({
+      url: `/permissions/`,
       method: "GET"
     });
 
