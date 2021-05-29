@@ -74,7 +74,7 @@ const Dashboard: React.FunctionComponent = () => {
                 <span>Active <br></br>Installation</span> <br></br>
               </div>              
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="deleteicon" />
+                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="Arrowicon" />
               </div>
             </div>
             <div className="dashboardcard bgclrblue floatLeft">
@@ -83,7 +83,7 @@ const Dashboard: React.FunctionComponent = () => {
                 <span>New Installation in<br></br> Past 30 days</span> <br></br>
               </div>              
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="NavigateForwardIcon" className="deleteicon" />
+                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="Arrowicon" />
               </div>
 
             </div>
@@ -93,7 +93,7 @@ const Dashboard: React.FunctionComponent = () => {
                 <span>Customer  churn in<br></br> past 30 days</span> <br></br>
               </div>
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="NavigateForwardIcon" className="deleteicon" />
+                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="Arrowicon" />
               </div>
             </div>
           </div>
