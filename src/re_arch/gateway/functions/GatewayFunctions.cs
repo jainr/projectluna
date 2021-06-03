@@ -146,7 +146,894 @@ namespace Luna.Gateway.Functions
         }
         #endregion
 
-        #region publish
+        #region publish - Azure Marketplace offer
+
+        /// <summary>
+        /// Create an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateAzureMarketplaceOffer")]
+        public async Task<IActionResult> CreateAzureMarketplaceOffer(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateAzureMarketplaceOffer));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        RBACActions.CREATE_MARKETPLACE_OFFER,
+                        lunaHeaders))
+                    {
+                        var content = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplaceOffer>(req);
+                        var result = await _publishServiceClient.CreateMarketplaceOfferAsync(offerId, content, lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateAzureMarketplaceOffer));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdateAzureMarketplaceOffer")]
+        public async Task<IActionResult> UpdateAzureMarketplaceOffer(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdateAzureMarketplaceOffer));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var content = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplaceOffer>(req);
+                        var result = await _publishServiceClient.UpdateMarketplaceOfferAsync(offerId, content, lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.UpdateAzureMarketplaceOffer));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Publish an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/publish</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("PublishAzureMarketplaceOffer")]
+        public async Task<IActionResult> PublishAzureMarketplaceOffer(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "marketplace/offers/{offerId}/publish")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.PublishAzureMarketplaceOffer));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var result = await _publishServiceClient.PublishMarketplaceOfferAsync(offerId, lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.PublishAzureMarketplaceOffer));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("DeleteAzureMarketplaceOffer")]
+        public async Task<IActionResult> DeleteAzureMarketplaceOffer(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.DeleteAzureMarketplaceOffer));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        await _publishServiceClient.DeleteMarketplaceOfferAsync(offerId, lunaHeaders);
+                        return new NoContentResult();
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.DeleteAzureMarketplaceOffer));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetAzureMarketplaceOffer")]
+        public async Task<IActionResult> GetAzureMarketplaceOffer(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetAzureMarketplaceOffer));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var result = await _publishServiceClient.GetMarketplaceOfferAsync(offerId, lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetAzureMarketplaceOffer));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List Azure Marketplace SaaS offers
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers</url>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListAzureMarketplaceOffers")]
+        public async Task<IActionResult> ListAzureMarketplaceOffers(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "marketplace/offers")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListAzureMarketplaceOffers));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers",
+                        RBACActions.LIST_MARKETPLACE_OFFER,
+                        lunaHeaders))
+                    {
+                        var result = await _publishServiceClient.ListMarketplaceOffersAsync(lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListAzureMarketplaceOffers));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Create a plan in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateAzureMarketplacePlan")]
+        public async Task<IActionResult> CreateAzureMarketplacePlan(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            string offerId,
+            string planId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateAzureMarketplacePlan));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var content = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplacePlan>(req);
+                        var result = await _publishServiceClient.CreateMarketplacePlanAsync(offerId, planId, content, lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateAzureMarketplacePlan));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update a plan in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdateAzureMarketplacePlan")]
+        public async Task<IActionResult> UpdateAzureMarketplacePlan(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            string offerId,
+            string planId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdateAzureMarketplacePlan));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var content = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplacePlan>(req);
+                        var result = await _publishServiceClient.UpdateMarketplacePlanAsync(offerId, planId, content, lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.UpdateAzureMarketplacePlan));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete a plan in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
+        /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("DeleteAzureMarketplacePlan")]
+        public async Task<IActionResult> DeleteAzureMarketplacePlan(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            string offerId,
+            string planId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.DeleteAzureMarketplacePlan));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        await _publishServiceClient.DeleteMarketplacePlanAsync(offerId, planId, lunaHeaders);
+                        return new NoContentResult();
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.DeleteAzureMarketplacePlan));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get a plan in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetAzureMarketplacePlan")]
+        public async Task<IActionResult> GetAzureMarketplacePlan(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            string offerId,
+            string planId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetAzureMarketplacePlan));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var result = await _publishServiceClient.GetMarketplacePlanAsync(offerId, planId, lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetAzureMarketplacePlan));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List plans in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is<see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListAzureMarketplacePlans")]
+        public async Task<IActionResult> ListAzureMarketplacePlans(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "marketplace/offers/{offerId}/plans")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListAzureMarketplacePlans));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var result = await _publishServiceClient.ListMarketplacePlansAsync(offerId, lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListAzureMarketplacePlans));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Get offer parameters
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/offerparameters</url>
+        /// <param name="offerId" required="true" cref="string" in="path">The offer ID</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="MarketplaceOfferParameter"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceOfferParameter.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a marketplace subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetMarketplaceOfferParameters")]
+        public async Task<IActionResult> GetMarketplaceOfferParameters(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/offers/{offerId}/offerparameters")]
+            HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetMarketplaceOfferParameters));
+
+                try
+                {
+                    // This should be a public endpoint
+                    var result = await _galleryServiceClient.GetOfferParametersAsync(offerId, lunaHeaders);
+                    return new OkObjectResult(result);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetMarketplaceOfferParameters));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Resolve Azure Marketplace subscription from token
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/marketplace/subscriptions/resolveToken</url>
+        /// <param name="req" in="body"><see cref="string"/>Token</param>
+        /// <response code="200">
+        ///     <see cref="MarketplaceSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a marketplace subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ResolveMarketplaceSubscription")]
+        public async Task<IActionResult> ResolveMarketplaceSubscription(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "marketplace/subscriptions/resolvetoken")]
+            HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ResolveMarketplaceSubscription));
+
+                try
+                {
+                    // This should be a public endpoint
+                    var token = await HttpUtils.GetRequestBodyAsync(req);
+                    var result = await _galleryServiceClient.ResolveMarketplaceTokenAsync(token, lunaHeaders);
+
+                    // TODO: verify the ownership
+
+                    return new OkObjectResult(result);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ResolveMarketplaceSubscription));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Create Azure Marketplace subscription
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/marketplace/subscriptions/{subscriptionId}</url>
+        /// <param name="subscriptionId" required="true" cref="string" in="path">ID of the subscription</param>
+        /// <param name="req" in="body">
+        ///     <see cref="MarketplaceSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a marketplace subscription
+        ///         </summary>
+        ///     </example>
+        ///     The subscription
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="MarketplaceSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a marketplace subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateMarketplaceSubscription")]
+        public async Task<IActionResult> CreateMarketplaceSubscription(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Put", Route = "marketplace/subscriptions/{subscriptionId}")]
+            HttpRequest req,
+            Guid subscriptionId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateMarketplaceSubscription));
+
+                try
+                {
+                    var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceSubscription>(req);
+                    var result = await _galleryServiceClient.CreateMarketplaceSubscriptionAsync(subscriptionId, content, lunaHeaders);
+                    return new OkObjectResult(result);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateMarketplaceSubscription));
+                }
+            }
+        }
+
+        #endregion
+
+        #region publish - Luna application
 
         /// <summary>
         /// Regenerate application master key
@@ -177,8 +1064,8 @@ namespace Luna.Gateway.Functions
         /// <returns></returns>
         [FunctionName("RegenerateLunaApplicationMasterKeys")]
         public async Task<IActionResult> RegenerateLunaApplicationMasterKeys(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "manage/applications/{name}/regeneratemasterkeys")] HttpRequest req,
-            string name)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "manage/applications/{name}/regeneratemasterkeys")] HttpRequest req,
+        string name)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
 
@@ -2064,7 +2951,7 @@ namespace Luna.Gateway.Functions
         /// Delete a subscription of a published Luna application
         /// </summary>
         /// <group>ML Gallery</group>
-        /// <verb>PUT</verb>
+        /// <verb>DELETE</verb>
         /// <url>http://localhost:7071/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}</url>
         /// <param name="appName" required="true" cref="string" in="path">Name of the Luna application</param>
         /// <param name="subscriptionNameOrId" required="true" cref="string" in="path">Name or id of the subscription</param>

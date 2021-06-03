@@ -82,7 +82,7 @@ namespace Luna.Common.Utils.RestClients
         /// <param name="content">The request content</param>
         /// <param name="headers">The Luna service headers</param>
         /// <returns></returns>
-        private static HttpRequestMessage BuildRequest(
+        protected static HttpRequestMessage BuildRequest(
         HttpMethod method,
         Uri requestUri,
         string content,

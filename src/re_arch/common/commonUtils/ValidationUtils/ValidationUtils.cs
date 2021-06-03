@@ -17,6 +17,11 @@ namespace Luna.Common.Utils
         public static int INTERNAL_OR_PREDEFINED_STRING_MAX_LENGTH = 64;
 
         /// <summary>
+        /// Max length of Azure Marketplace object names (offer, plan)
+        /// </summary>
+        public static int AZURE_MARKETPLACE_OBJECT_STRING_MAX_LENGTH = 64;
+
+        /// <summary>
         /// Max length of object names (application name, user id...)
         /// </summary>
         public static int OBJECT_NAME_STRING_MAX_LENGTH = 128;
@@ -85,7 +90,7 @@ namespace Luna.Common.Utils
         public static void ValidateObjectId(string value, string propertyName)
         {
             // Version names are all lower case or number and max 128 chars
-            if (value != null && !value.All(x => char.IsLower(x) || char.IsNumber(x)))
+            if (value != null && !value.All(x => char.IsLower(x) || char.IsNumber(x) || x == '-'))
             {
                 throw new LunaBadRequestUserException(
                     string.Format(ErrorMessages.INVALID_ID_PROPERTY, propertyName),

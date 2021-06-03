@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Luna.Partner.Clients.PartnerServiceClients
 {
@@ -21,7 +22,7 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         /// <summary>
         /// Validate an registered partner service
         /// </summary>
-        public bool TestConnection()
+        public async Task<bool> TestConnectionAsync()
         {
             //TODO: implement test connection
             return true;

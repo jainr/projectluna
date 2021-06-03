@@ -60,8 +60,8 @@ paths:
             example:
               EventType: PUBLISH_APPLICATION_EVENT
               EventContent: '{}'
-              CreatedTime: '2021-05-25T17:10:50.8197943+00:00'
-              EventSequenceId: 637575594508198861
+              CreatedTime: '2021-06-03T14:55:50.6127968+00:00'
+              EventSequenceId: 637583289506128958
               PartitionKey: 
               RowKey: 
               Timestamp: '0001-01-01T00:00:00.0000000+00:00'
@@ -123,7 +123,7 @@ definitions:
       ValidEventTypes:
         - DELETE_APPLICATION_EVENT
         - PUBLISH_APPLICATION_EVENT
-      ConnectionStringValidThroughUtc: '2021-05-25T18:10:50.5028622+00:00'
+      ConnectionStringValidThroughUtc: '2021-06-03T15:55:50.1912248+00:00'
   Luna.PubSub.PublicClient.LunaEventSubscriber:
     type: object
     properties:
@@ -133,6 +133,10 @@ definitions:
         type: string
       SubscriberQueueName:
         type: string
+      ExcludedEventTypes:
+        type: array
+        items:
+          type: string
   Luna.PubSub.PublicClient.LunaBaseEventEntity:
     required:
       - EventType
@@ -161,8 +165,8 @@ definitions:
     example:
       EventType: PUBLISH_APPLICATION_EVENT
       EventContent: '{}'
-      CreatedTime: '2021-05-25T17:10:50.8197943+00:00'
-      EventSequenceId: 637575594508198861
+      CreatedTime: '2021-06-03T14:55:50.6127968+00:00'
+      EventSequenceId: 637583289506128958
       PartitionKey: 
       RowKey: 
       Timestamp: '0001-01-01T00:00:00.0000000+00:00'

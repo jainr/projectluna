@@ -27,6 +27,8 @@ using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
 using Luna.PubSub.PublicClient;
 using Luna.PubSub.PublicClient.Clients;
 using Luna.Publish.Public.Client.DataContract;
+using Luna.Publish.Public.Client.Enums;
+using Luna.PubSub.Public.Client.DataContract;
 
 namespace Luna.Publish.Functions
 {
@@ -60,6 +62,872 @@ namespace Luna.Publish.Functions
             this._pubSubClient = pubSubClient ?? throw new ArgumentNullException(nameof(pubSubClient));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
+        #region Azure Marketplace SaaS offers
+
+        /// <summary>
+        /// Create an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateAzureMarketplaceOffer")]
+        public async Task<IActionResult> CreateAzureMarketplaceOffer(
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateAzureMarketplaceOffer));
+
+                try
+                {
+                    if (await IsMarketplaceOfferExist(offerId))
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_ALREADY_EXIST, offerId));
+                    }
+
+                    var offer = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplaceOffer>(req);
+
+                    if (!offerId.Equals(offer.MarketplaceOfferId))
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH, offerId, offer.MarketplaceOfferId),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    var offerDb = new AzureMarketplaceOfferDB(offer);
+
+                    _dbContext.AzureMarketplaceOffers.Add(offerDb);
+                    await _dbContext._SaveChangesAsync();
+
+                    return new OkObjectResult(offerDb.ToAzureMarketplaceOffer());
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateAzureMarketplaceOffer));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Update an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdateAzureMarketplaceOffer")]
+        public async Task<IActionResult> UpdateAzureMarketplaceOffer(
+            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdateAzureMarketplaceOffer));
+
+                try
+                {
+                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
+                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
+                        x.MarketplaceOfferId == offerId);
+
+                    if (offerDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                    }
+
+                    var offer = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplaceOffer>(req);
+
+                    if (!offerId.Equals(offer.MarketplaceOfferId))
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH, offerId, offer.MarketplaceOfferId),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    offerDb.Update(offer);
+
+                    _dbContext.AzureMarketplaceOffers.Update(offerDb);
+                    await _dbContext._SaveChangesAsync();
+
+                    return new OkObjectResult(offerDb.ToAzureMarketplaceOffer());
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.UpdateAzureMarketplaceOffer));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Publish an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/publish</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("PublishAzureMarketplaceOffer")]
+        public async Task<IActionResult> PublishAzureMarketplaceOffer(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "marketplace/offers/{offerId}/publish")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.PublishAzureMarketplaceOffer));
+
+                try
+                {
+                    var offerDb = await _dbContext.AzureMarketplaceOffers.
+                        Include(x => x.Plans).SingleOrDefaultAsync(
+                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
+                        x.MarketplaceOfferId == offerId);
+
+                    if (offerDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                    }
+
+                    offerDb.Publish();
+
+                    var eventContent = JsonConvert.SerializeObject(offerDb.ToAzureMarketplaceOfferEvent());
+                    var publishEvent = new PublishAzureMarketplaceOfferEventEntity(offerId, eventContent);
+
+                    using (var transaction = await _dbContext.BeginTransactionAsync())
+                    {
+                        _dbContext.AzureMarketplaceOffers.Update(offerDb);
+                        await _dbContext._SaveChangesAsync();
+
+                        await _pubSubClient.PublishEventAsync(
+                            LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE, 
+                            publishEvent, 
+                            lunaHeaders);
+
+                        transaction.Commit();
+                    }
+
+                    return new OkObjectResult(offerDb.ToAzureMarketplaceOffer());
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.PublishAzureMarketplaceOffer));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("DeleteAzureMarketplaceOffer")]
+        public async Task<IActionResult> DeleteAzureMarketplaceOffer(
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.DeleteAzureMarketplaceOffer));
+
+                try
+                {
+                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
+                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
+                        x.MarketplaceOfferId == offerId);
+
+                    if (offerDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                    }
+
+                    offerDb.Delete();
+
+                    var deleteEvent = new DeleteAzureMarketplaceOfferEventEntity(offerId);
+
+                    using (var transaction = await _dbContext.BeginTransactionAsync())
+                    {
+                        _dbContext.AzureMarketplaceOffers.Update(offerDb);
+                        await _dbContext._SaveChangesAsync();
+
+                        await _pubSubClient.PublishEventAsync(
+                            LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
+                            deleteEvent,
+                            lunaHeaders);
+
+                        transaction.Commit();
+                    }
+
+                    return new NoContentResult();
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.DeleteAzureMarketplaceOffer));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetAzureMarketplaceOffer")]
+        public async Task<IActionResult> GetAzureMarketplaceOffer(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetAzureMarketplaceOffer));
+
+                try
+                {
+                    var offerDb = await _dbContext.AzureMarketplaceOffers.
+                        Include(x => x.Plans).
+                        SingleOrDefaultAsync(
+                            x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
+                            x.MarketplaceOfferId == offerId);
+
+                    if (offerDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                    }
+
+                    return new OkObjectResult(offerDb.ToAzureMarketplaceOffer());
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetAzureMarketplaceOffer));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// List Azure Marketplace SaaS offers
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers</url>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="AzureMarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListAzureMarketplaceOffers")]
+        public async Task<IActionResult> ListAzureMarketplaceOffers(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers")] HttpRequest req)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListAzureMarketplaceOffers));
+
+                try
+                {
+                    var offers = await _dbContext.AzureMarketplaceOffers.Where(
+                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString()).
+                        Select(x => x.ToAzureMarketplaceOffer()).
+                        ToListAsync();
+
+                    return new OkObjectResult(offers);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListAzureMarketplaceOffers));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Create a plan in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateAzureMarketplacePlan")]
+        public async Task<IActionResult> CreateAzureMarketplacePlan(
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            string offerId,
+            string planId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateAzureMarketplacePlan));
+
+                try
+                {
+                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
+                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
+                        x.MarketplaceOfferId == offerId);
+
+                    if (offerDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                    }
+
+                    if (await _dbContext.AzureMarketplacePlans.AnyAsync(x => x.OfferId == offerDb.Id && x.MarketplacePlanId == planId))
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_PLAN_ALREADY_EXIST, planId, offerId));
+                    }
+
+                    var plan = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplacePlan>(req);
+
+                    if (!offerId.Equals(plan.MarketplaceOfferId))
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH, offerId, plan.MarketplaceOfferId),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    if (!planId.Equals(plan.MarketplacePlanId))
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_PLAN_NAME_DOES_NOT_MATCH, planId, plan.MarketplacePlanId),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    var planDb = new AzureMarketplacePlanDB(offerDb.Id, plan);
+
+                    planDb.ManagementKitDownloadUrlSecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.MGMT_KIT_URL);
+
+                    if (!string.IsNullOrEmpty(plan.ManagementKitDownloadUrl))
+                    {
+                        await _keyVaultUtils.SetSecretAsync(planDb.ManagementKitDownloadUrlSecretName, plan.ManagementKitDownloadUrl);
+                    }
+
+                    _dbContext.AzureMarketplacePlans.Add(planDb);
+                    await _dbContext._SaveChangesAsync();
+
+                    return new OkObjectResult(planDb.ToAzureMarketplacePlan(plan.ManagementKitDownloadUrl));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateAzureMarketplacePlan));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update a plan in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdateAzureMarketplacePlan")]
+        public async Task<IActionResult> UpdateAzureMarketplacePlan(
+            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            string offerId,
+            string planId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdateAzureMarketplacePlan));
+
+                try
+                {
+                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
+                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
+                        x.MarketplaceOfferId == offerId);
+
+                    if (offerDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                    }
+
+                    var planDb = await _dbContext.AzureMarketplacePlans.
+                        Include(x => x.Offer).SingleOrDefaultAsync(x => x.OfferId == offerDb.Id && x.MarketplacePlanId == planId);
+
+                    if (planDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, planId, offerId));
+                    }
+
+                    var plan = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplacePlan>(req);
+
+                    if (!offerId.Equals(plan.MarketplaceOfferId))
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH, offerId, plan.MarketplaceOfferId),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    if (!planId.Equals(plan.MarketplacePlanId))
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_PLAN_NAME_DOES_NOT_MATCH, planId, plan.MarketplacePlanId),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    await _dbContext._SaveChangesAsync();
+
+                    using (var transaction = await _dbContext.BeginTransactionAsync())
+                    {
+                        planDb.Update(plan);
+
+                        _dbContext.AzureMarketplacePlans.Update(planDb);
+                        await _dbContext._SaveChangesAsync();
+
+                        if (!string.IsNullOrEmpty(plan.ManagementKitDownloadUrl))
+                        {
+                            await _keyVaultUtils.SetSecretAsync(planDb.ManagementKitDownloadUrlSecretName, plan.ManagementKitDownloadUrl);
+                        }
+
+                        transaction.Commit();
+                    }
+
+                    return new OkObjectResult(planDb.ToAzureMarketplacePlan(plan.ManagementKitDownloadUrl));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.UpdateAzureMarketplacePlan));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete a plan in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
+        /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("DeleteAzureMarketplacePlan")]
+        public async Task<IActionResult> DeleteAzureMarketplacePlan(
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            string offerId,
+            string planId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.DeleteAzureMarketplacePlan));
+
+                try
+                {
+                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
+                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
+                        x.MarketplaceOfferId == offerId);
+
+                    if (offerDb == null)
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                    }
+
+                    var planDb = await _dbContext.AzureMarketplacePlans.
+                        Include(x => x.Offer).SingleOrDefaultAsync(x => x.OfferId == offerDb.Id && x.MarketplacePlanId == planId);
+
+                    if (planDb == null)
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, planId, offerId));
+                    }
+
+
+                    using (var transaction = await _dbContext.BeginTransactionAsync())
+                    {
+                        _dbContext.AzureMarketplacePlans.Remove(planDb);
+                        await _dbContext._SaveChangesAsync();
+
+                        await _keyVaultUtils.DeleteSecretAsync(planDb.ManagementKitDownloadUrlSecretName);
+
+                        transaction.Commit();
+                    }
+
+                    return new NoContentResult();
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.DeleteAzureMarketplacePlan));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get a plan in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetAzureMarketplacePlan")]
+        public async Task<IActionResult> GetAzureMarketplacePlan(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            string offerId,
+            string planId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetAzureMarketplacePlan));
+
+                try
+                {
+                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
+                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
+                        x.MarketplaceOfferId == offerId);
+
+                    if (offerDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                    }
+
+                    var planDb = await _dbContext.AzureMarketplacePlans.
+                        Include(x => x.Offer).SingleOrDefaultAsync(x => x.OfferId == offerDb.Id && x.MarketplacePlanId == planId);
+
+                    if (planDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, planId, offerId));
+                    }
+
+                    var url = await _keyVaultUtils.GetSecretAsync(planDb.ManagementKitDownloadUrlSecretName);
+
+                    return new OkObjectResult(planDb.ToAzureMarketplacePlan(url));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetAzureMarketplacePlan));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List plans in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is<see cref="AzureMarketplacePlan"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace plan
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListAzureMarketplacePlans")]
+        public async Task<IActionResult> ListAzureMarketplacePlans(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}/plans")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListAzureMarketplacePlans));
+
+                try
+                {
+                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
+                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
+                        x.MarketplaceOfferId == offerId);
+
+                    if (offerDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                    }
+
+                    var plans = await _dbContext.
+                        AzureMarketplacePlans.
+                        Where(x => x.OfferId == offerDb.Id).
+                        Select(x => x.ToAzureMarketplacePlan(null)).
+                        ToListAsync();
+
+                    return new OkObjectResult(plans);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListAzureMarketplacePlans));
+                }
+            }
+        }
+        #endregion
 
         #region Luna application operations
 
@@ -1490,6 +2358,18 @@ namespace Luna.Publish.Functions
         private async Task<bool> IsApplicationExist(string appName)
         {
             return await _dbContext.LunaApplications.AnyAsync(x => x.ApplicationName == appName);
+        }
+
+        /// <summary>
+        /// Check if the Azure marketplace offer exists
+        /// </summary>
+        /// <param name="offerId">The Azure marketplace offer id</param>
+        /// <returns>True if the offer exists, False otherwise</returns>
+        private async Task<bool> IsMarketplaceOfferExist(string offerId)
+        {
+            return await _dbContext.AzureMarketplaceOffers.AnyAsync(
+                x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
+                x.MarketplaceOfferId == offerId);
         }
 
         /// <summary>

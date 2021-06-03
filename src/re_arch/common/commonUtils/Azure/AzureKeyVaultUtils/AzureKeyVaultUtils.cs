@@ -33,6 +33,8 @@ namespace Luna.Common.Utils.Azure.AzureKeyvaultUtils
                 ), httpClient
             );
 
+            _logger.LogInformation("Initialize the key vault.");
+
             _vaultBaseUrl = $"https://{option.CurrentValue.KeyVaultName}.vault.azure.net/";
         }
 

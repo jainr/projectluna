@@ -15,7 +15,8 @@ namespace Luna.PubSub.PublicClient
         {
             ValidEventTypes = new List<string>(new string[] { 
                 LunaEventType.DELETE_APPLICATION_EVENT, 
-                LunaEventType.PUBLISH_APPLICATION_EVENT }),
+                LunaEventType.PUBLISH_APPLICATION_EVENT
+            }),
         });
 
         public EventStoreInfo(string name, string connectionString, DateTime? validThrough)
@@ -25,11 +26,6 @@ namespace Luna.PubSub.PublicClient
             this.ConnectionStringValidThroughUtc = validThrough;
             this.ValidEventTypes = new List<string>();
             this.EventSubscribers = new List<LunaEventSubscriber>();
-        }
-
-        public List<string> GetSubscriberQueueNames()
-        {
-            return this.EventSubscribers.Select(x => x.SubscriberQueueName).ToList();
         }
 
         public bool IsValidEventType(string eventName)

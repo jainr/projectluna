@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\publish\public\publish_public_client.csproj" />
     <ProjectReference Include="..\..\pubsub\public\pubsub_public_client.csproj" />
+    <ProjectReference Include="..\clients\gallery_clients.csproj" />
     <ProjectReference Include="..\data\gallery_data.csproj" />
   </ItemGroup>
   <ItemGroup>

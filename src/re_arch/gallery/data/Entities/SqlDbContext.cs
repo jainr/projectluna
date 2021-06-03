@@ -20,6 +20,8 @@ namespace Luna.Gallery.Data.Entities
         public DbSet<LunaApplicationSubscriptionDB> LunaApplicationSubscriptions { get; set; }
         public DbSet<LunaApplicationSubscriptionOwnerDB> LunaApplicationSubscriptionOwners { get; set; }
 
+        public DbSet<AzureMarketplaceSubscriptionDB> AzureMarketplaceSubscriptions { get; set; }
+        public DbSet<PublishedAzureMarketplacePlanDB> PublishedAzureMarketplacePlans { get; set; }
 
         /// <summary>
         /// Save changes to database

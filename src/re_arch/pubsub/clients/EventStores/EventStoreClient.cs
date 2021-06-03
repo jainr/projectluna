@@ -68,9 +68,12 @@ namespace Luna.PubSub.Utils
 
             await _storageUtils.InsertTableEntity(eventStoreName, ev);
 
-            foreach (string queueName in eventStore.GetSubscriberQueueNames())
+            foreach (var subscriber in eventStore.EventSubscribers)
             {
-                await _storageUtils.CreateQueueMessage(queueName, ev.EventType);
+                if (!subscriber.ExcludedEventTypes.Contains(ev.EventType))
+                {
+                    await _storageUtils.CreateQueueMessage(subscriber.SubscriberQueueName, ev.EventType);
+                }
             }
 
             return ev;
@@ -98,6 +101,10 @@ namespace Luna.PubSub.Utils
             else if (name.Equals(LunaEventStoreType.SUBSCRIPTION_EVENT_STORE, StringComparison.InvariantCultureIgnoreCase))
             {
                 return new SubscriptionEventStoreInfo(connectionString, validThrough);
+            }
+            else if (name.Equals(LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new AzureMarketplaceEventStoreInfo(connectionString, validThrough);
             }
             else
             {

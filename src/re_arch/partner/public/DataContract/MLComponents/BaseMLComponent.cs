@@ -13,22 +13,23 @@ namespace Luna.Partner.PublicClient.DataContract
 
         public BaseMLComponent(LunaAPIType type)
         {
-            this.Type = type;
+            this.Type = type.ToString();
         }
-        public BaseMLComponent(string id, string displayName, LunaAPIType type)
+
+        public BaseMLComponent(string id, string name, LunaAPIType type)
         {
             this.Id = id;
-            this.DisplayName = displayName;
-            this.Type = type;
+            this.Name = name;
+            this.Type = type.ToString();
         }
 
         [JsonProperty(PropertyName = "Type", Required = Required.Always)]
-        public LunaAPIType Type { get; set; }
+        public string Type { get; set; }
 
         [JsonProperty(PropertyName = "Id", Required = Required.Always)]
         public string Id { get; set; }
 
-        [JsonProperty(PropertyName = "DisplayName", Required = Required.Always)]
-        public string DisplayName { get; set; }
+        [JsonProperty(PropertyName = "Name", Required = Required.Always)]
+        public string Name { get; set; }
     }
 }

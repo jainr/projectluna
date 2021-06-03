@@ -26,6 +26,10 @@ namespace Luna.Publish.Data.Entities
 
         public DbSet<LunaAPIVersionDB> LunaAPIVersions { get; set; }
 
+        public DbSet<AzureMarketplaceOfferDB> AzureMarketplaceOffers { get; set; }
+
+        public DbSet<AzureMarketplacePlanDB> AzureMarketplacePlans { get; set; }
+
         /// <summary>
         /// Save changes to database
         /// </summary>
@@ -64,6 +68,10 @@ namespace Luna.Publish.Data.Entities
 
             modelBuilder.Entity<LunaAPIVersionDB>()
                 .HasKey(x => new { x.ApplicationName, x.APIName, x.VersionName });
+
+            modelBuilder.Entity<AzureMarketplacePlanDB>()
+                .HasOne(p => p.Offer)
+                .WithMany(o => o.Plans);
         }
     }
 }

@@ -7,8 +7,8 @@ namespace Luna.Partner.PublicClient.DataContract
 {
     public class PipelineEndpoint : BaseMLComponent
     {
-        public PipelineEndpoint(string id, string displayName) :
-            base(id, displayName, LunaAPIType.Realtime)
+        public PipelineEndpoint(string id, string name) :
+            base(id, name, LunaAPIType.Pipeline)
         {
 
         }

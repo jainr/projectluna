@@ -2,6 +2,7 @@
 using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 
 namespace Luna.Partner.Clients.PartnerServiceClients
@@ -11,9 +12,11 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         private static Dictionary<string, IPartnerServiceClient> _partnerServiceClient;
         private static Dictionary<string, IRealtimeEndpointPartnerServiceClient> _realtimeEndpointPartnerServiceClient;
         private static Dictionary<string, IPipelineEndpointPartnerServiceClient> _pipelineEndpointPartnerServiceClient;
+        private HttpClient _httpClient;
 
-        public PartnerServiceClientFactory()
+        public PartnerServiceClientFactory(HttpClient httpClient)
         {
+            _httpClient = httpClient;
             _partnerServiceClient = new Dictionary<string, IPartnerServiceClient>();
             _realtimeEndpointPartnerServiceClient = new Dictionary<string, IRealtimeEndpointPartnerServiceClient>();
             _pipelineEndpointPartnerServiceClient = new Dictionary<string, IPipelineEndpointPartnerServiceClient>();
@@ -38,7 +41,7 @@ namespace Luna.Partner.Clients.PartnerServiceClients
             if (config.Type.Equals(PartnerServiceType.AzureML.ToString(), 
                 StringComparison.InvariantCultureIgnoreCase))
             {
-                client = new AzureMLWorkspaceClient(config);
+                client = new AzureMLWorkspaceClient(_httpClient, config);
             }
 
             if (client != null)
@@ -68,7 +71,7 @@ namespace Luna.Partner.Clients.PartnerServiceClients
             if (config.Type.Equals(PartnerServiceType.AzureML.ToString(),
                 StringComparison.InvariantCultureIgnoreCase))
             {
-                client = new AzureMLWorkspaceClient(config);
+                client = new AzureMLWorkspaceClient(_httpClient, config);
             }
 
             if (client != null)
@@ -98,7 +101,7 @@ namespace Luna.Partner.Clients.PartnerServiceClients
             if (config.Type.Equals(PartnerServiceType.AzureML.ToString(),
                 StringComparison.InvariantCultureIgnoreCase))
             {
-                client = new AzureMLWorkspaceClient(config);
+                client = new AzureMLWorkspaceClient(_httpClient, config);
             }
 
             if (client != null)

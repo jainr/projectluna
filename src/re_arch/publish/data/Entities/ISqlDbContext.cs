@@ -23,6 +23,10 @@ namespace Luna.Publish.Data.Entities
 
         DbSet<LunaAPIVersionDB> LunaAPIVersions { get; set; }
 
+        DbSet<AzureMarketplaceOfferDB> AzureMarketplaceOffers { get; set; }
+
+        DbSet<AzureMarketplacePlanDB> AzureMarketplacePlans { get; set; }
+
         /// <summary>
         /// Save the changes to database
         /// </summary>

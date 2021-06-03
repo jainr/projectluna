@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Luna.Common.LoggingUtils;
 using Newtonsoft.Json.Linq;
+using System.Security;
 
 namespace Luna.Routing.Clients.MLServiceClients
 {
@@ -29,7 +30,7 @@ namespace Luna.Routing.Clients.MLServiceClients
         private readonly AzureMLWorkspaceConfiguration _config;
         private readonly AzureMLCache _cache;
         private readonly HttpClient _httpClient;
-        private string _accessToken;
+        private SecureString _accessToken;
 
         public AzureMLClient(HttpClient httpClient, AzureMLWorkspaceConfiguration config)
         {
@@ -403,7 +404,12 @@ namespace Luna.Routing.Clients.MLServiceClients
             var credential = new ClientCredential(this._config.ClientId, key);
             var authContext = new AuthenticationContext(TOKEN_AUTHENTICATION_ENDPOINT + this._config.TenantId, false);
             var token = await authContext.AcquireTokenAsync(AUTHENTICATION_RESOURCE_ID, credential);
-            this._accessToken = token.AccessToken;
+            
+            this._accessToken.Clear();
+            foreach (var c in token.AccessToken)
+            {
+                this._accessToken.AppendChar(c);
+            }
         }
 
         private async Task<AzureMLPipelineEndpointCache> GetPipelineEndpoint(string endpointName)
@@ -490,13 +496,27 @@ namespace Luna.Routing.Clients.MLServiceClients
 
         private async Task<HttpResponseMessage> SendRequestWithRetryAfterTokenRefresh(HttpRequestMessage request, bool tokenRefreshed = false)
         {
-            request.Headers.Add("Authorization", $"Bearer {this._accessToken}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this._accessToken.ToString());
             var response = await this._httpClient.SendAsync(request);
             
             if (response.StatusCode == HttpStatusCode.Unauthorized && !tokenRefreshed)
             {
                 await RefreshAccessToken();
-                return await SendRequestWithRetryAfterTokenRefresh(request, true);
+
+                // Copy the request and try again
+                var req = new HttpRequestMessage()
+                {
+                    Method = request.Method,
+                    RequestUri = request.RequestUri,
+                    Content = request.Content,
+                };
+
+                foreach (var header in request.Headers)
+                {
+                    req.Headers.Add(header.Key, header.Value);
+                }
+
+                return await SendRequestWithRetryAfterTokenRefresh(req, true);
             }
 
             return response;

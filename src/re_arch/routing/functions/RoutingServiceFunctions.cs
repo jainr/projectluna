@@ -58,6 +58,11 @@ namespace Luna.Routing.Functions
             this._secretCacheClient = secretCacheClient ?? throw new ArgumentNullException(nameof(secretCacheClient));
         }
 
+        /// <summary>
+        /// Process application events
+        /// </summary>
+        /// <param name="myQueueItem">The queue item</param>
+        /// <returns></returns>
         [FunctionName("ProcessApplicationEvents")]
         public async Task ProcessApplicationEvents([QueueTrigger("routing-processapplicationevents")] string myQueueItem)
         {
@@ -102,6 +107,11 @@ namespace Luna.Routing.Functions
             }
         }
 
+        /// <summary>
+        /// Process subscription events
+        /// </summary>
+        /// <param name="myQueueItem">The queue item</param>
+        /// <returns></returns>
         [FunctionName("ProcessSubscriptionEvents")]
         public async Task ProcessSubscriptionEvents([QueueTrigger("routing-processsubscriptionevents")] string myQueueItem)
         {
@@ -175,6 +185,7 @@ namespace Luna.Routing.Functions
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             var versionName = GetAPIVersion(req);
             var operationId = Guid.NewGuid().ToString();
+
             using (_logger.BeginRoutingNamedScope(appName, apiName, versionName, operationId, lunaHeaders, operationName))
             {
                 IStatusCodeActionResult result = null;

@@ -63,6 +63,34 @@ paths:
               $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ComponentType'
       security:
         - x-functions-key: [ ]
+  '/api/partnerServices/{serviceName}/mlcomponents/{componentType}':
+    get:
+      tags:
+        - Metadata
+      summary: Get ML components by type
+      operationId: getApiPartnerServicesByServiceNameMlcomponentsByComponentType
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: serviceName
+          description: The partner service name
+          required: true
+          type: string
+        - in: path
+          name: componentType
+          description: The ML component type
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.BaseMLComponent'
+      security:
+        - x-functions-key: [ ]
   '/api/partnerServices/{name}':
     get:
       tags:
@@ -183,6 +211,19 @@ definitions:
         type: string
       DisplayName:
         type: string
+  Luna.Partner.PublicClient.DataContract.BaseMLComponent:
+    required:
+      - Type
+      - Id
+      - Name
+    type: object
+    properties:
+      Type:
+        type: string
+      Id:
+        type: string
+      Name:
+        type: string
   Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration:
     required:
       - DisplayName
@@ -201,9 +242,9 @@ definitions:
         type: string
     example:
       Region: westus
-      ResourceId: /subscriptions/48bf3b0d-8d6c-4484-a02c-b2e06c72c651/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
-      TenantId: ced0b70c-3dda-4d7a-97de-a02fbb65aea7
-      ClientId: 804fd6b4-b06e-457f-9cbc-03a0d2248c04
+      ResourceId: /subscriptions/9c042615-5efb-4d62-a4a9-742e2cb8f475/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
+      TenantId: 520b7e03-6af7-4a0e-903a-b4ef8e6caf2a
+      ClientId: cbd1831e-9fe1-43f2-8c1b-7a4832a5e96a
       ClientSecret: my-client-secret
       DisplayName: My Azure ML workspace
       Description: Azure ML workspace

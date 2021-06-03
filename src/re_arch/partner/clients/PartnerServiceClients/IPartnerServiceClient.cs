@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Luna.Partner.Clients.PartnerServiceClients
 {
@@ -13,7 +14,7 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         /// <summary>
         /// Validate an registered partner service
         /// </summary>
-        bool TestConnection();
+        Task<bool> TestConnectionAsync();
 
         /// <summary>
         /// Update the configuration of the service client

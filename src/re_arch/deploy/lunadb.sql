@@ -45,6 +45,51 @@ AS
 SELECT uniqueName, configurationSecretName, id, type
 FROM   partner.PartnerServices
 GO
+
+/****** Object:  Table [publish].[AzureMarketplaceOffers]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [publish].[AzureMarketplaceOffers](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[marketplaceOfferId] [nvarchar](50) NOT NULL,
+	[displayName] [nvarchar](128) NOT NULL,
+	[description] [nvarchar](1024) NOT NULL,
+	[status] [nvarchar](64) NOT NULL,
+	[isManualActivation] [bit] NOT NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+	[lastUpdatedTime] [datetime2](7) NOT NULL,
+	[deletedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [publish].[AzureMarketplacePlans]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [publish].[AzureMarketplacePlans](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[offerId] [bigint] NOT NULL,
+	[marketplacePlanId] [nvarchar](50) NOT NULL,
+	[description] [nvarchar](1024) NOT NULL,
+	[isLocalDeployment] [bit] NOT NULL,
+	[managementKitDownloadUrlSecretName] [nvarchar](64) NOT NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+	[lastUpdatedTime] [datetime2](7) NOT NULL,
+    CONSTRAINT FK_marketplace_offer_id_plans FOREIGN KEY (offerId) REFERENCES publish.AzureMarketplaceOffers(id),
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 /****** Object:  Table [publish].[ApplicationSnapshots]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
@@ -277,10 +322,57 @@ CREATE TABLE [gallery].[LunaApplicationSubscriptionOwners](
 	[UserId] [nvarchar](128) NOT NULL,
 	[UserName] [nvarchar](128) NOT NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
-    CONSTRAINT FK_subscription_id_owners FOREIGN KEY (SubscriptionId) REFERENCES gallery.LunaApplicationSubscriptions(SubscriptionId),
+    CONSTRAINT FK_subscription_id_owners FOREIGN KEY (SubscriptionId) REFERENCES gallery.LunaApplicationSubscriptions(SubscriptionId),AzureMarketplaceSubscriptionDB
 PRIMARY KEY CLUSTERED 
 (
 	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [gallery].[PublishedAzureMarketplacePlans]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [gallery].[PublishedAzureMarketplacePlans](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[marketplaceOfferId] [nvarchar](50) NOT NULL,
+	[marketplacePlanId] [nvarchar](50) NOT NULL,
+	[offerDisplayName] [nvarchar](128) NOT NULL,
+	[offerDescription] [nvarchar](1024) NOT NULL,
+	[isLocalDeployment] [bit] NOT NULL,
+	[ManagementKitDownloadUrlSecretName] [nvarchar](64) NOT NULL,
+	[LastAppliedEventId] [bigint] NULL,
+	[IsEnabled] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [gallery].[AzureMarketplaceSubscriptions]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [gallery].[AzureMarketplaceSubscriptions](
+	[SubscriptionId] [uniqueidentifier] NOT NULL,
+	[SubscriptionName] [nvarchar](50) NOT NULL,
+	[OwnerId] [nvarchar](128) NOT NULL,
+	[SaaSSubscriptionStatus] [nvarchar](64) NOT NULL,
+	[OfferId] [nvarchar](50) NOT NULL,
+	[PlanId] [nvarchar](50) NOT NULL,
+	[Publisher] [nvarchar](128) NOT NULL,
+	[ParameterSecretName] [nvarchar](64) NOT NULL,
+	[CreatedTime] [datetime2](7) NOT NULL,
+	[LastUpdatedTime] [datetime2](7) NOT NULL,
+	[ActivatedTime] [datetime2](7) NULL,
+	[UnsubscribedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[SubscriptionId] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO

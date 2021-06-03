@@ -12,6 +12,10 @@ namespace Luna.Common.Utils.Azure.AzureKeyvaultUtils
 
         public const string SUBSCRIPTION_KEY = "sub-";
 
+        public const string MGMT_KIT_URL = "kit-";
+
+        public const string MARKETPLACE_SUBCRIPTION_PARAMETERS = "prm-";
+
         public static string GetNamePrefix(string name)
         {
             if (name.Contains("-"))

@@ -327,6 +327,13 @@ namespace Luna.RBAC
                         }
                     }
 
+                    _logger.LogInformation("User {0} with role {1} {2} access resource {3} with action {4}",
+                        result.Query.Uid,
+                        result.Role,
+                        result.CanAccess ? "can" : "can not",
+                        result.Query.ResourceId,
+                        result.Query.Action ?? "All");
+
                     return new OkObjectResult(result);
                 }
                 catch (Exception ex)

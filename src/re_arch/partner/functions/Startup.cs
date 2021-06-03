@@ -26,7 +26,8 @@ namespace Luna.RBAC.Functions
             builder.Services.AddHttpClient<IAzureKeyVaultUtils, AzureKeyVaultUtils>()
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
-            builder.Services.AddSingleton<IPartnerServiceClientFactory, PartnerServiceClientFactory>();
+            builder.Services.AddHttpClient<IPartnerServiceClientFactory, PartnerServiceClientFactory>()
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
             string connectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING");
             

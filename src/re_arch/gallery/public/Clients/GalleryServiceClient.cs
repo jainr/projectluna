@@ -371,5 +371,107 @@ namespace Luna.Gallery.Public.Client.Clients
 
             return keys;
         }
+
+
+        /// <summary>
+        /// Resolve a marketplace token
+        /// </summary>
+        /// <param name="token">The subscription token</param>
+        /// <param name="headers">The Luna request header</param>
+        /// <returns>The resolved subscription</returns>
+        public async Task<MarketplaceSubscription> ResolveMarketplaceTokenAsync(string token, LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"marketplace/subscriptions/resolvetoken");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Post, uri, token, headers);
+
+            var subscription = JsonConvert.DeserializeObject<MarketplaceSubscription>(await response.Content.ReadAsStringAsync());
+
+            return subscription;
+        }
+
+        /// <summary>
+        /// Create a markplace subscription
+        /// </summary>
+        /// <param name="subscriptionId">The subscription id</param>
+        /// <param name="subscription">The subscription</param>
+        /// <param name="headers">The Luna request header</param>
+        /// <returns>The created subscription</returns>
+        public async Task<MarketplaceSubscription> CreateMarketplaceSubscriptionAsync(
+            Guid subscriptionId,
+            MarketplaceSubscription subscription,
+            LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"marketplace/subscriptions/{subscriptionId}");
+
+            var content = JsonConvert.SerializeObject(subscription);
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Put, uri, content, headers);
+
+            var result = JsonConvert.DeserializeObject<MarketplaceSubscription>(await response.Content.ReadAsStringAsync());
+
+            return result;
+        }
+
+        /// <summary>
+        /// Activate a marketplace subscription
+        /// </summary>
+        /// <param name="subscriptionId">The subscription id</param>
+        /// <param name="headers">The Luna request header</param>
+        /// <returns></returns>
+        public async Task ActivateMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"marketplace/subscriptions/{subscriptionId}/activate");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Post, uri, null, headers);
+
+            return;
+        }
+
+        /// <summary>
+        /// Unsubscribe a marketplace subscription
+        /// </summary>
+        /// <param name="subscriptionId">The subscription id</param>
+        /// <param name="headers">The Luna request header</param>
+        /// <returns></returns>
+        public async Task UnsubscribeMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"marketplace/subscriptions/{subscriptionId}");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Delete, uri, null, headers);
+
+            return;
+        }
+
+        /// <summary>
+        /// Get parameters for the specified offer
+        /// </summary>
+        /// <param name="offerId">The offer id</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The offer parameters</returns>
+        public async Task<List<MarketplaceOfferParameter>> GetOfferParametersAsync(string offerId, LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateStringValueLength(offerId, 
+                ValidationUtils.AZURE_MARKETPLACE_OBJECT_STRING_MAX_LENGTH, 
+                nameof(offerId));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"marketplace/offers/{offerId}/offerparameters");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            var result = JsonConvert.DeserializeObject<List<MarketplaceOfferParameter>>(await response.Content.ReadAsStringAsync());
+
+            return result;
+        }
     }
 }

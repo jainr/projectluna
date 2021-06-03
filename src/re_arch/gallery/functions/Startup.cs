@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
 using Luna.PubSub.PublicClient.Clients;
 using Luna.Gallery.Data.Entities;
+using Luna.Gallery.Clients;
 
 [assembly: FunctionsStartup(typeof(Luna.Gallery.Functions.Startup))]
 
@@ -24,6 +25,17 @@ namespace Luna.Gallery.Functions
                 });
 
             builder.Services.AddHttpClient<IAzureKeyVaultUtils, AzureKeyVaultUtils>()
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
+            builder.Services.AddOptions<AzureMarketplaceClientConfiguration>().Configure(
+                options =>
+                {
+                    options.TenantId = Environment.GetEnvironmentVariable("MARKETPLACE_AUTH_TENANT_ID");
+                    options.ClientId = Environment.GetEnvironmentVariable("MARKETPLACE_AUTH_CLIENT_ID");
+                    options.ClientSecret = Environment.GetEnvironmentVariable("MARKETPLACE_AUTH_CLIENT_SECRET");
+                });
+
+            builder.Services.AddHttpClient<IAzureMarketplaceClient, AzureMarketplaceClient>()
                 .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
             builder.Services.AddOptions<PubSubServiceClientConfiguration>().Configure(

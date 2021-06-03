@@ -6,6 +6,11 @@ namespace Luna.PubSub.PublicClient
 {
     public class LunaEventSubscriber
     {
+        public LunaEventSubscriber()
+        {
+            this.ExcludedEventTypes = new List<string>();
+        }
+
         public string SubscriberServiceName { get; set; }
 
         public string SubscriberFunctionName { get; set; }
@@ -19,6 +24,8 @@ namespace Luna.PubSub.PublicClient
                     this.SubscriberFunctionName.ToLower()); 
             } 
         }
+
+        public List<string> ExcludedEventTypes { get; set; }
     }
 
 }

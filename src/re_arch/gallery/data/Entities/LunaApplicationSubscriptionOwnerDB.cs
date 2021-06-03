@@ -21,6 +21,7 @@ namespace Luna.Gallery.Data.Entities
 
         public DateTime CreatedTime { get; set; }
 
+        [JsonIgnore]
         public LunaApplicationSubscriptionDB Subscription { get; set; }
 
     }

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Luna.Gallery.Clients</AssemblyName>
+    <RootNamespace>Luna.Gallery.Clients</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\public\gallery_public_client.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -224,7 +224,8 @@ namespace Luna.Partner.Functions
                             TypeNameHandling = TypeNameHandling.Auto
                         });
 
-                    if (componentType.Equals(LunaAPIType.Realtime.ToString()))
+                    if (componentType.Equals(LunaAPIType.Realtime.ToString(), 
+                        StringComparison.InvariantCultureIgnoreCase))
                     {
                         var client = _serviceClientFactory.GetRealtimeEndpointPartnerServiceClient(serviceName, config);
 
@@ -233,7 +234,8 @@ namespace Luna.Partner.Functions
                             return new OkObjectResult(await client.ListRealtimeEndpointsAsync());
                         }
                     }
-                    else if (componentType.Equals(LunaAPIType.Pipeline.ToString()))
+                    else if (componentType.Equals(LunaAPIType.Pipeline.ToString(),
+                        StringComparison.InvariantCultureIgnoreCase))
                     {
                         var client = _serviceClientFactory.GetPipelineEndpointPartnerServiceClient(serviceName, config);
 
@@ -435,7 +437,7 @@ namespace Luna.Partner.Functions
                             string.Format(ErrorMessages.CAN_NOT_UPDATE_PARTNER_SERVICE_TYPE, currentService.Type));
                     }
 
-                    if (!_serviceClientFactory.GetPartnerServiceClient(name, config).TestConnection())
+                    if (!await _serviceClientFactory.GetPartnerServiceClient(name, config).TestConnectionAsync())
                     {
                         throw new LunaBadRequestUserException(
                             string.Format(ErrorMessages.CAN_NOT_CONNECT_TO_PARTNER_SERVICE, name),
@@ -512,7 +514,7 @@ namespace Luna.Partner.Functions
                         throw new LunaConflictUserException(string.Format(ErrorMessages.PARTNER_SERVICE_ALREADY_EXIST, name));
                     }
 
-                    if (!_serviceClientFactory.GetPartnerServiceClient(name, config).TestConnection())
+                    if (!await _serviceClientFactory.GetPartnerServiceClient(name, config).TestConnectionAsync())
                     {
                         throw new LunaBadRequestUserException("Can not connect to the partner service.",
                             UserErrorCode.Disconnected);

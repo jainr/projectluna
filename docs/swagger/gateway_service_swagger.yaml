@@ -27,6 +27,377 @@ paths:
             $ref: '#/definitions/Luna.PubSub.PublicClient.EventStoreInfo'
       security:
         - http-bearer: [ ]
+  '/api/marketplace/offers/{offerId}':
+    put:
+      tags:
+        - Azure Marketplace
+      summary: Create an Azure Marketplace SaaS offer
+      operationId: putApiMarketplaceOffersByOfferId
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - Azure Marketplace
+      summary: Update an Azure Marketplace SaaS offer
+      operationId: patchApiMarketplaceOffersByOfferId
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+      security:
+        - x-functions-key: [ ]
+    delete:
+      tags:
+        - Azure Marketplace
+      summary: Delete an Azure Marketplace SaaS offer
+      operationId: deleteApiMarketplaceOffersByOfferId
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+    get:
+      tags:
+        - Azure Marketplace
+      summary: Get an Azure Marketplace SaaS offer
+      operationId: getApiMarketplaceOffersByOfferId
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+      security:
+        - x-functions-key: [ ]
+  '/api/marketplace/offers/{offerId}/publish':
+    post:
+      tags:
+        - Azure Marketplace
+      summary: Publish an Azure Marketplace SaaS offer
+      operationId: postApiMarketplaceOffersByOfferIdPublish
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+      security:
+        - x-functions-key: [ ]
+  /api/marketplace/offers:
+    get:
+      tags:
+        - Azure Marketplace
+      summary: List Azure Marketplace SaaS offers
+      operationId: getApiMarketplaceOffers
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+            example:
+              MarketplaceOfferId: myoffer
+              DisplayName: My Offer
+              Description: This is my offer
+              Status: Draft
+              CreatedTime: '2021-05-31T14:53:14.5730432+00:00'
+              LastUpdatedTime: '2021-06-02T14:53:14.5731008+00:00'
+              DeletedTime: 
+              IsManualActivation: true
+              Plans: [ ]
+      security:
+        - x-functions-key: [ ]
+  '/api/marketplace/offers/{offerId}/plans/{planId}':
+    put:
+      tags:
+        - Azure Marketplace
+      summary: Create a plan in an Azure Marketplace SaaS offer
+      operationId: putApiMarketplaceOffersByOfferIdPlansByPlanId
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: planId
+          description: Id of marketplace SaaS plan
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - Azure Marketplace
+      summary: Update a plan in an Azure Marketplace SaaS offer
+      operationId: patchApiMarketplaceOffersByOfferIdPlansByPlanId
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: planId
+          description: Id of marketplace SaaS plan
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+      security:
+        - x-functions-key: [ ]
+    delete:
+      tags:
+        - Azure Marketplace
+      summary: Delete a plan in an Azure Marketplace SaaS offer
+      operationId: deleteApiMarketplaceOffersByOfferIdPlansByPlanId
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: planId
+          description: Id of marketplace SaaS plan
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+    get:
+      tags:
+        - Azure Marketplace
+      summary: Get a plan in an Azure Marketplace SaaS offer
+      operationId: getApiMarketplaceOffersByOfferIdPlansByPlanId
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: planId
+          description: Id of marketplace SaaS plan
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+      security:
+        - x-functions-key: [ ]
+  '/api/marketplace/offers/{offerId}/plans':
+    get:
+      tags:
+        - Azure Marketplace
+      summary: List plans in an Azure Marketplace SaaS offer
+      operationId: getApiMarketplaceOffersByOfferIdPlans
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+            example:
+              MarketplaceOfferId: myoffer
+              MarketplacePlanId: myplan
+              Description: This is my plan
+              IsLocalDeployment: true
+              ManagementKitDownloadUrl: https://aka.ms/lunamgmtkit
+              ManagementKitDownloadUrlSecretName: 
+              CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
+              LastUpdatedTime: '0001-01-01T00:00:00.0000000-08:00'
+      security:
+        - x-functions-key: [ ]
+  '/api/marketplace/offers/{offerId}/offerparameters':
+    get:
+      tags:
+        - Azure Marketplace
+      summary: Get offer parameters
+      operationId: getApiMarketplaceOffersByOfferIdOfferparameters
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: The offer ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceOfferParameter'
+            example:
+              ParameterName: region
+              DisplayName: Region
+              Description: The Azure region where resources are deployed to.
+              ValueType: string
+              FromList: true
+              ValueList: westus;eastus
+              Maximum: 0
+              Minimum: 0
+      security:
+        - x-functions-key: [ ]
+  /api/marketplace/subscriptions/resolveToken:
+    post:
+      tags:
+        - Azure Marketplace
+      summary: Resolve Azure Marketplace subscription from token
+      operationId: postApiMarketplaceSubscriptionsResolveToken
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscription'
+      security:
+        - x-functions-key: [ ]
+  '/api/marketplace/subscriptions/{subscriptionId}':
+    put:
+      tags:
+        - Azure Marketplace
+      summary: Create Azure Marketplace subscription
+      operationId: putApiMarketplaceSubscriptionsBySubscriptionId
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: subscriptionId
+          description: ID of the subscription
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: The subscription
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscription'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscription'
+      security:
+        - x-functions-key: [ ]
   '/api/manage/applications/{name}/regeneratemasterkeys':
     post:
       tags:
@@ -546,8 +917,8 @@ paths:
               Type: AzureML
               Description: This is my AML workspace
               Tags: department=hr
-              CreatedTime: '2021-05-22T17:13:04.0201010+00:00'
-              LastUpdatedTime: '2021-05-24T17:13:04.0201818+00:00'
+              CreatedTime: '2021-05-31T14:53:14.6658195+00:00'
+              LastUpdatedTime: '2021-06-02T14:53:14.6658625+00:00'
       security:
         - http-bearer: [ ]
   /api/manage/partnerservices/metadata/computeservicetypes:
@@ -643,9 +1014,9 @@ paths:
             items:
               $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.BaseMLComponent'
             example:
-              Type: 0
+              Type: Realtime
               Id: myendpoint
-              DisplayName: My Endpoint
+              Name: My Endpoint
       security:
         - http-bearer: [ ]
   '/api/gallery/applications/{appName}':
@@ -845,16 +1216,16 @@ paths:
             items:
               $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
             example:
-              SubscriptionId: a503c5fa-190f-4d1b-9826-9e1fda57e277
+              SubscriptionId: 0ec17d85-b015-445c-acb1-779ccf92f9f0
               SubscriptionName: mysub
-              PrimaryKey: 517f9a1049b9485698a18c67bcbf5557
-              SecondaryKey: f2dcb42620824478992d4aa0511478d2
+              PrimaryKey: 8c08c6b55cab4b41a54da374fe697b97
+              SecondaryKey: 63ffce8d61e045f9b114a568c40c0c9d
               BaseUrl: https://luna.azurewebapp.net/api
               Notes: this is my subscription
               Owners:
-                - UserId: c2520253-84a3-4fd7-9a78-f53599b8c753
+                - UserId: a876f311-8a4e-4c04-8dba-5d9f61645113
                   UserName: FirstName LastName
-              CreatedTime: '2021-05-25T17:13:04.0423169+00:00'
+              CreatedTime: '2021-06-03T14:53:14.6844759+00:00'
       security:
         - http-bearer: [ ]
   '/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/addOwner':
@@ -1016,7 +1387,7 @@ definitions:
       ValidEventTypes:
         - DELETE_APPLICATION_EVENT
         - PUBLISH_APPLICATION_EVENT
-      ConnectionStringValidThroughUtc: '2021-05-25T18:13:03.8486170+00:00'
+      ConnectionStringValidThroughUtc: '2021-06-03T15:53:14.4244239+00:00'
   Luna.PubSub.PublicClient.LunaEventSubscriber:
     type: object
     properties:
@@ -1025,6 +1396,166 @@ definitions:
       SubscriberFunctionName:
         type: string
       SubscriberQueueName:
+        type: string
+      ExcludedEventTypes:
+        type: array
+        items:
+          type: string
+  Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer:
+    required:
+      - MarketplaceOfferId
+      - DisplayName
+      - Description
+    type: object
+    properties:
+      MarketplaceOfferId:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      Status:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+      LastUpdatedTime:
+        format: date-time
+        type: string
+      DeletedTime:
+        format: date-time
+        type: string
+      IsManualActivation:
+        type: boolean
+      Plans:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+    example:
+      MarketplaceOfferId: myoffer
+      DisplayName: My Offer
+      Description: This is my offer
+      Status: Draft
+      CreatedTime: '2021-05-31T14:53:14.5730432+00:00'
+      LastUpdatedTime: '2021-06-02T14:53:14.5731008+00:00'
+      DeletedTime: 
+      IsManualActivation: true
+      Plans: [ ]
+  Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan:
+    required:
+      - MarketplaceOfferId
+      - MarketplacePlanId
+      - Description
+    type: object
+    properties:
+      MarketplaceOfferId:
+        type: string
+      MarketplacePlanId:
+        type: string
+      Description:
+        type: string
+      IsLocalDeployment:
+        type: boolean
+      ManagementKitDownloadUrl:
+        type: string
+      ManagementKitDownloadUrlSecretName:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+      LastUpdatedTime:
+        format: date-time
+        type: string
+    example:
+      MarketplaceOfferId: myoffer
+      MarketplacePlanId: myplan
+      Description: This is my plan
+      IsLocalDeployment: true
+      ManagementKitDownloadUrl: https://aka.ms/lunamgmtkit
+      ManagementKitDownloadUrlSecretName: 
+      CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
+      LastUpdatedTime: '0001-01-01T00:00:00.0000000-08:00'
+  Luna.Gallery.Public.Client.DataContracts.MarketplaceOfferParameter:
+    required:
+      - ParameterName
+      - DisplayName
+      - Description
+      - ValueType
+      - FromList
+      - ValueList
+      - Maximum
+      - Minimum
+    type: object
+    properties:
+      ParameterName:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      ValueType:
+        type: string
+      FromList:
+        type: boolean
+      ValueList:
+        type: string
+      Maximum:
+        format: int32
+        type: integer
+      Minimum:
+        format: int32
+        type: integer
+  Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscription:
+    required:
+      - Id
+      - PublisherId
+      - OfferId
+      - Name
+      - PlanId
+    type: object
+    properties:
+      Id:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      PublisherId:
+        type: string
+      OfferId:
+        type: string
+      Name:
+        type: string
+      SaaSSubscriptionStatus:
+        type: string
+      PlanId:
+        type: string
+      AllowedCustomerOperations:
+        type: array
+        items:
+          type: string
+      Token:
+        type: string
+      InputParameters:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscriptionParameter'
+    example:
+      Id: d8c06735-2ca5-47af-a747-72eafc5d514d
+      PublisherId: ms-ace
+      OfferId: textanalytics
+      Name: My sub
+      SaaSSubscriptionStatus: Subscribed
+      PlanId: default
+      AllowedCustomerOperations: [ ]
+      Token: 
+      InputParameters: [ ]
+  Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscriptionParameter:
+    type: object
+    properties:
+      Name:
+        type: string
+      Type:
+        type: string
+      Value:
         type: string
   Luna.Publish.Public.Client.DataContract.LunaApplicationMasterKeys:
     required:
@@ -1037,8 +1568,8 @@ definitions:
       SecondaryMasterKey:
         type: string
     example:
-      PrimaryMasterKey: 5b9e3ae718e446dcb164b4a43584b90e
-      SecondaryMasterKey: 5914ad9931d34c08967bef1933824830
+      PrimaryMasterKey: 5fd9430cb7ce47fa8e3f48b5183b03b2
+      SecondaryMasterKey: 8301e5feec904586bfc559f24377d743
   Luna.Publish.Public.Client.DataContract.LunaApplication:
     required:
       - Name
@@ -1089,7 +1620,7 @@ definitions:
       SecondaryMasterKeySecretName:
         type: string
     example:
-      OwnerUserId: 8b8b3dc5-7ed8-4b88-8b40-5e863858ee51
+      OwnerUserId: c192679e-1911-4f0c-9c1a-eb3b5d566721
       DisplayName: My App
       Description: This is my application
       DocumentationUrl: https://aka.ms/lunadoc
@@ -1179,7 +1710,7 @@ definitions:
         format: date-time
         type: string
     example:
-      Uid: 7eb453db-7b74-47bb-8364-2281b050d30d
+      Uid: 8872a070-85fd-498a-9755-9e27b8f35c97
       UserName: FirstName LastName
       Role: SystemAdmin
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
@@ -1216,9 +1747,9 @@ definitions:
         type: string
     example:
       Region: westus
-      ResourceId: /subscriptions/57b50e8f-3973-424e-8774-e9606df6f8ad/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
-      TenantId: f72808b3-d90b-4248-b21a-ac802ab26493
-      ClientId: 46b474b3-298d-41d7-8b42-ee06eb874407
+      ResourceId: /subscriptions/7c66515f-3ac1-4b15-801a-575faaa2d458/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
+      TenantId: 4aced973-945d-4637-b6ca-2ce32a2404a6
+      ClientId: 4e32f03b-f298-43ea-8200-d2a79473ae25
       ClientSecret: my-client-secret
       DisplayName: My Azure ML workspace
       Description: Azure ML workspace
@@ -1272,18 +1803,14 @@ definitions:
     required:
       - Type
       - Id
-      - DisplayName
+      - Name
     type: object
     properties:
       Type:
-        enum:
-          - Realtime
-          - Pipeline
-          - MLProject
         type: string
       Id:
         type: string
-      DisplayName:
+      Name:
         type: string
   Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication:
     required:
@@ -1391,16 +1918,16 @@ definitions:
         format: date-time
         type: string
     example:
-      SubscriptionId: a503c5fa-190f-4d1b-9826-9e1fda57e277
+      SubscriptionId: 0ec17d85-b015-445c-acb1-779ccf92f9f0
       SubscriptionName: mysub
-      PrimaryKey: 517f9a1049b9485698a18c67bcbf5557
-      SecondaryKey: f2dcb42620824478992d4aa0511478d2
+      PrimaryKey: 8c08c6b55cab4b41a54da374fe697b97
+      SecondaryKey: 63ffce8d61e045f9b114a568c40c0c9d
       BaseUrl: https://luna.azurewebapp.net/api
       Notes: this is my subscription
       Owners:
-        - UserId: c2520253-84a3-4fd7-9a78-f53599b8c753
+        - UserId: a876f311-8a4e-4c04-8dba-5d9f61645113
           UserName: FirstName LastName
-      CreatedTime: '2021-05-25T17:13:04.0423169+00:00'
+      CreatedTime: '2021-06-03T14:53:14.6844759+00:00'
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner:
     required:
       - UserId
@@ -1411,7 +1938,7 @@ definitions:
       UserName:
         type: string
     example:
-      UserId: cd140855-7531-4443-8988-f93b91ff13a0
+      UserId: 365960a5-7392-4711-bbba-bf73445ec67c
       UserName: FirstName LastName
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionKeys:
     required:
@@ -1424,8 +1951,8 @@ definitions:
       SecondaryKey:
         type: string
     example:
-      PrimaryKey: d3599b6dde41496bad3e1344771477b2
-      SecondaryKey: f7fff9927c2e47baa2891d598e860df9
+      PrimaryKey: bbac6f0b5c3c418b9dae8fd7eef28a3b
+      SecondaryKey: 40ea05d6be504968ba7c91f6ef3827d8
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes:
     required:
       - Notes
@@ -1437,3 +1964,8 @@ definitions:
       Notes: this is my subscription
 securityDefinitions:
   http-bearer: { }
+  x-functions-key:
+    type: apiKey
+    name: x-functions-key
+    in: header
+    description: Azure function key
