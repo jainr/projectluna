@@ -22,6 +22,9 @@ import { useGlobalContext } from "../../shared/components/GlobalProvider";
 import { toast } from "react-toastify";
 import { handleSubmissionErrorsForForm } from "../../shared/formUtils/utils";
 import { DialogBox } from '../../shared/components/Dialog';
+import SupportService from "../../services/SupportService";
+import { ISupportCasesModel, ISupportPermissionModel } from '../../models';
+import { initialSupportCaseList, initialPermissionList } from "./formUtils/SupportFormUtils";
 
 const Support: React.FunctionComponent = () => {
 
@@ -32,13 +35,121 @@ const Support: React.FunctionComponent = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [formError, setFormError] = useState<string | null>(null);
   const [loadingActiveCaseData, setLoadingActiveCaseData] = useState<boolean>(true);
-  const [loadingPermissionsData, setLoadingPermissionsDataData] = useState<boolean>(true);
+  const [loadingPermissionsData, setLoadingPermissionsData] = useState<boolean>(true);
+  const [activeCaseData, setActiveCaseData] = useState<ISupportCasesModel[]>([]);
+  const [permissionData, setPermissionData] = useState<ISupportPermissionModel[]>([]);
 
   useEffect(() => {
-    setLoadingActiveCaseData(true);
-    setLoadingPermissionsDataData(true);
+    loadstaticdata();
+    // getSupportActiveCaseData();
+    // getSupportPermissionData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadstaticdata = async () => {
+    setLoadingActiveCaseData(true);
+    setActiveCaseData(initialSupportCaseList);
+    setLoadingActiveCaseData(false);
+
+    setLoadingPermissionsData(true);
+    setPermissionData(initialPermissionList);
+    setLoadingPermissionsData(false);
+  }
+
+  const getSupportActiveCaseData = async () => {
+
+    setLoadingActiveCaseData(true);
+    const results = await SupportService.supportCaseList();
+    if (results && !results.hasErrors && results.value)
+      setActiveCaseData(results.value);
+    else {
+      setActiveCaseData([]);
+      if (results.hasErrors) {
+        // TODO: display errors
+        alert(results.errors.join(', '));
+      }
+    }
+    setLoadingActiveCaseData(false);
+  }
+
+  const getSupportPermissionData = async () => {
+
+    setLoadingPermissionsData(true);
+    const results = await SupportService.permissionList();
+    if (results && !results.hasErrors && results.value)
+      setPermissionData(results.value);
+    else {
+      setPermissionData([]);
+      if (results.hasErrors) {
+        // TODO: display errors
+        alert(results.errors.join(', '));
+      }
+
+    }
+
+    setLoadingPermissionsData(false);
+  }
+
+  const SupportCase = ({ activeCase }) => {
+    if (!activeCase || activeCase.length === 0) {
+      return <tr>
+        <td colSpan={4}><span>No Data</span></td>
+      </tr>;
+    } else {
+      return (
+        activeCase.map((value: ISupportCasesModel, idx) => {
+          return (
+            <tr key={idx}>
+              <td>
+                <span style={{ width: 200 }} className="acolor"><a href="">{value.title}</a></span>
+              </td>
+              <td>
+                <span style={{ width: 200 }}>{value.createdBy}</span>
+              </td>
+              <td>
+                <span style={{ width: 200 }}>{value.createdTime}</span>
+              </td>
+              <td>
+                <span style={{ width: 200 }}>{value.lastUpdatedTime}</span>
+              </td>
+              <td>
+                <span style={{ width: 200 }} className="acolor"> <a href="">{value.icmTicket}</a></span>
+              </td>
+            </tr>
+          );
+        })
+      );
+    }
+  }
+
+  const Permissions = ({ permissionData }) => {
+    if (!permissionData || permissionData.length === 0) {
+      return <tr>
+        <td colSpan={4}><span>No Data</span></td>
+      </tr>;
+    } else {
+      return (
+        permissionData.map((value: ISupportPermissionModel, idx) => {
+          return (
+            <tr key={idx}>
+              <td>
+                <span style={{ width: 200 }} className="acolor"><a href="">{value.customerName}</a> </span>
+              </td>
+              <td>
+                <span style={{ width: 200,color:'#000' }}><a href="">{value.activeSupportCase}</a></span>
+              </td>
+              <td>
+                <span style={{ width: 200 }} className="acolor"><a href="">{value.permissions}</a> </span>
+              </td>
+              <td>
+                <span style={{ width: 200 }} className="acolor"><a href="">{value.history}</a></span>
+              </td>
+            </tr>
+          );
+        })
+      );
+    }
+  }
 
   return (
     <Stack
@@ -93,7 +204,7 @@ const Support: React.FunctionComponent = () => {
               <h3>
                 Active Cases
               </h3>
-              
+
               <table className="noborder offergrid" style={{ marginTop: 20, width: '100%' }} cellPadding={5} cellSpacing={0}>
                 <thead>
                   <tr style={{ fontWeight: 'normal' }}>
@@ -115,7 +226,9 @@ const Support: React.FunctionComponent = () => {
                         </td>
                       </tr>
                     )
-                    : null}
+                    :
+                    <SupportCase activeCase={activeCaseData} />
+                  }
                 </tbody>
               </table>
             </PivotItem>
@@ -126,7 +239,7 @@ const Support: React.FunctionComponent = () => {
               }}>
               <h3>
                 Luna Installation
-              </h3>              
+              </h3>
               <table className="noborder offergrid" style={{ marginTop: 20, width: '100%' }} cellPadding={5} cellSpacing={0}>
                 <thead>
                   <tr style={{ fontWeight: 'normal' }}>
@@ -147,14 +260,15 @@ const Support: React.FunctionComponent = () => {
                         </td>
                       </tr>
                     )
-                    : null}
+                    :
+                    <Permissions permissionData={permissionData} />}
                 </tbody>
               </table>
             </PivotItem>
             <PivotItem headerText="Resources" headerButtonProps={{
               'data-order': 3,
               'data-title': 'Resources',
-            }}>              
+            }}>
               <table className="noborder offergrid" style={{ marginTop: 20, width: '100%' }} cellPadding={5} cellSpacing={0}>
                 <tr>
                   <td>

@@ -88,7 +88,7 @@ const Reports: React.FunctionComponent = () => {
                 'data-order': 1,
                 'data-title': 'Luna App',
               }}>
-              <div style={{backgroundColor:'#4472C4',minHeight:'275px',width:'100%'}}>
+              <div style={{backgroundColor:'#4472C4',minHeight:'275px',width:'100%',marginTop:'1%'}}>
                 <Label style={{paddingLeft: '45%',paddingTop:'8%',color:'#fff'}}><h3>This is Power BI Report #1</h3></Label>
               </div>
             </PivotItem>
@@ -97,7 +97,7 @@ const Reports: React.FunctionComponent = () => {
               'data-order': 2,
               'data-title': 'Usage Analysis',
             }}>
-              <div style={{backgroundColor:'#4472C4',minHeight:'275px',width:'100%'}}>
+              <div style={{backgroundColor:'#4472C4',minHeight:'275px',width:'100%',marginTop:'1%'}}>
               <Label style={{paddingLeft: '45%',paddingTop:'8%',color:'#fff'}}><h3>This is Power BI Report #2</h3></Label>
               </div>
             </PivotItem>
@@ -105,7 +105,7 @@ const Reports: React.FunctionComponent = () => {
               'data-order': 3,
               'data-title': 'Supportability',
             }}>
-              <div style={{backgroundColor:'#4472C4',minHeight:'275px',width:'100%'}}>
+              <div style={{backgroundColor:'#4472C4',minHeight:'275px',width:'100%',marginTop:'1%'}}>
               <Label style={{paddingLeft: '45%',paddingTop:'8%',color:'#fff'}}><h3>This is Power BI Report #3</h3></Label>
               </div>
             </PivotItem>

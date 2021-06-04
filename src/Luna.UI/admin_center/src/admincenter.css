@@ -66,3 +66,7 @@
   text-align: right;
   cursor: pointer;
 }
+.acolor a
+{
+  color: rgb(86 166 234);
+}
