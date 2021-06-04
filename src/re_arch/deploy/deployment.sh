@@ -1,4 +1,4 @@
-while getopts "s:r:n:l:q:p:t:c:x:a:u:w:" opt
+while getopts "s:r:n:l:q:p:t:c:x:a:u:w:m:" opt
 do
    case "$opt" in
       s ) subscriptionId="$OPTARG" ;;
@@ -13,6 +13,7 @@ do
 	  a ) adminUserId="$OPTARG" ;;
 	  u ) adminUserName="$OPTARG" ;;
 	  w ) createNew="$OPTARG" ;;
+	  m ) useManagedIdentity="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
@@ -36,6 +37,7 @@ routingFxAppName="${namePrefix}-routing"
 pubsubFxAppName="${namePrefix}-pubsub"
 galleryFxAppName="${namePrefix}-gallery"
 provisionFxAppName="${namePrefix}-provision"
+managedIdentityName="${namePrefix}-uami"
 
 # Only pop up the login window when neccessary
 state=$(az account subscription show --id $subscriptionId --only-show-errors | ./jq -r '.state')
@@ -190,6 +192,11 @@ then
 	--app-insights $appInsightsName \
 	--os-type Linux \
 	--runtime dotnet
+	
+  if [ ${useManagedIdentity} = "y" ];
+  then
+	az identity create -g $resourceGroupName -n $managedIdentityName 
+  fi
 
 fi
 
@@ -211,25 +218,37 @@ az sql server firewall-rule delete \
 # set key vault permission for Partner, Publish and Routing services
 keyVaultScope="/subscriptions/${subscriptionId}/resourcegroups/${resourceGroupName}/providers/Microsoft.KeyVault/vaults/${keyVaultName}"
 
-az functionapp identity assign -g $resourceGroupName -n $publishFxAppName
-publishServiceIdentity=$(az functionapp identity show --name $publishFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
-az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $publishServiceIdentity
-
-az functionapp identity assign -g $resourceGroupName -n $partnerFxAppName
-partnerServiceIdentity=$(az functionapp identity show --name $partnerFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
-az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $partnerServiceIdentity
-
-az functionapp identity assign -g $resourceGroupName -n $routingFxAppName
-routingServiceIdentity=$(az functionapp identity show --name $routingFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
-az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $routingServiceIdentity
-
-az functionapp identity assign -g $resourceGroupName -n $galleryFxAppName
-galleryServiceIdentity=$(az functionapp identity show --name $galleryFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
-az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $galleryServiceIdentity
+if [ ${useManagedIdentity} = "y" ];
+then
+  uamiId=$(az identity show --name $managedIdentityName --resource-group $resourceGroupName | ./jq -r '.principalId') 
+  uamiResourceId=$(az identity show --name $managedIdentityName --resource-group $resourceGroupName | ./jq -r '.id')
+  MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $publishFxAppName --identities $uamiResourceId
+  MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $partnerFxAppName --identities $uamiResourceId
+  MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $routingFxAppName --identities $uamiResourceId
+  MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $galleryFxAppName --identities $uamiResourceId
+  MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $provisionFxAppName --identities $uamiResourceId
+  az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $uamiId
+else
+  az functionapp identity assign -g $resourceGroupName -n $publishFxAppName
+  publishServiceIdentity=$(az functionapp identity show --name $publishFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
+  az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $publishServiceIdentity
   
-az functionapp identity assign -g $resourceGroupName -n $provisionFxAppName
-provisionServiceIdentity=$(az functionapp identity show --name $provisionFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
-az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $provisionServiceIdentity
+  az functionapp identity assign -g $resourceGroupName -n $partnerFxAppName
+  partnerServiceIdentity=$(az functionapp identity show --name $partnerFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
+  az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $partnerServiceIdentity
+  
+  az functionapp identity assign -g $resourceGroupName -n $routingFxAppName
+  routingServiceIdentity=$(az functionapp identity show --name $routingFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
+  az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $routingServiceIdentity
+  
+  az functionapp identity assign -g $resourceGroupName -n $galleryFxAppName
+  galleryServiceIdentity=$(az functionapp identity show --name $galleryFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
+  az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $galleryServiceIdentity
+  
+  az functionapp identity assign -g $resourceGroupName -n $provisionFxAppName
+  provisionServiceIdentity=$(az functionapp identity show --name $provisionFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
+  az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $provisionServiceIdentity
+fi
 
 # Deploy provision app
 az webapp deployment source config-zip \
@@ -291,6 +310,12 @@ az webapp deployment source config-zip \
 storageConnectionString=$(az storage account show-connection-string -g $resourceGroupName -n $storageName | ./jq -r '.connectionString')
 
 sqlConnectionSring="Server=tcp:${sqlServerName}.database.windows.net,1433;Initial Catalog=${sqlDbName};Persist Security Info=False;User ID=${sqlUser};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+
+if [ ${useManagedIdentity} = "y" ];
+then
+  sqlConnectionSring="Server=tcp:${sqlServerName}.database.windows.net,1433;Database=${sqlDbName};"
+  az sql server ad-admin create -u $managedIdentityName -i $uamiId -g $resourceGroupName -s $sqlServerName
+fi
 
 rbacFxUrl="https://${rbacFxAppName}.azurewebsites.net/api/"
 publishFxUrl="https://${publishFxAppName}.azurewebsites.net/api/"
@@ -367,7 +392,40 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
              "KEY_VAULT_NAME=${keyVaultName}" \
 			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
 			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"
-			 
+
+if [ ${useManagedIdentity} = "y" ];
+then
+  MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  	--name $provisionFxAppName \
+  	--resource-group $resourceGroupName \
+  	--settings "USER_ASSIGNED_MANAGED_IDENTITY=${uamiId}"
+  
+  MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  	--name $galleryFxAppName \
+  	--resource-group $resourceGroupName \
+  	--settings "USER_ASSIGNED_MANAGED_IDENTITY=${uamiId}"
+  
+  MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  	--name $routingFxAppName \
+  	--resource-group $resourceGroupName \
+  	--settings "USER_ASSIGNED_MANAGED_IDENTITY=${uamiId}"
+  
+  MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  	--name $rbacFxAppName \
+  	--resource-group $resourceGroupName \
+  	--settings "USER_ASSIGNED_MANAGED_IDENTITY=${uamiId}"
+  
+  MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  	--name $partnerFxAppName \
+  	--resource-group $resourceGroupName \
+  	--settings "USER_ASSIGNED_MANAGED_IDENTITY=${uamiId}"
+  
+  MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  	--name $publishFxAppName \
+  	--resource-group $resourceGroupName \
+  	--settings "USER_ASSIGNED_MANAGED_IDENTITY=${uamiId}"
+fi
+
 # Setup AAD authentication for gateway service
 tokenIssuerUrl="https://login.microsoftonline.com/${aadTenantId}"
 audience="api://${aadClientId}"

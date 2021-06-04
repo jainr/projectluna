@@ -242,9 +242,9 @@ definitions:
         type: string
     example:
       Region: westus
-      ResourceId: /subscriptions/9c042615-5efb-4d62-a4a9-742e2cb8f475/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
-      TenantId: 520b7e03-6af7-4a0e-903a-b4ef8e6caf2a
-      ClientId: cbd1831e-9fe1-43f2-8c1b-7a4832a5e96a
+      ResourceId: /subscriptions/70760bfe-474d-4fc2-ab93-0d9285edfd58/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
+      TenantId: e74169d4-02bf-4fd6-baf2-314e723f07cb
+      ClientId: 22650962-f507-4f37-be2f-badc7d577464
       ClientSecret: my-client-secret
       DisplayName: My Azure ML workspace
       Description: Azure ML workspace

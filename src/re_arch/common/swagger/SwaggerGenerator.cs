@@ -144,7 +144,7 @@ namespace Luna.Common.Swagger
                     return;
                 }
 
-                GenerateSwagger(serviceName, config);
+                GenerateSwagger(serviceName, "Release");
             }
             else
             {

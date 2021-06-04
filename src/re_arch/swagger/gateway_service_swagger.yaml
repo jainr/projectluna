@@ -161,8 +161,8 @@ paths:
               DisplayName: My Offer
               Description: This is my offer
               Status: Draft
-              CreatedTime: '2021-05-31T14:53:14.5730432+00:00'
-              LastUpdatedTime: '2021-06-02T14:53:14.5731008+00:00'
+              CreatedTime: '2021-05-31T22:04:06.9212433+00:00'
+              LastUpdatedTime: '2021-06-02T22:04:06.9213385+00:00'
               DeletedTime: 
               IsManualActivation: true
               Plans: [ ]
@@ -917,8 +917,8 @@ paths:
               Type: AzureML
               Description: This is my AML workspace
               Tags: department=hr
-              CreatedTime: '2021-05-31T14:53:14.6658195+00:00'
-              LastUpdatedTime: '2021-06-02T14:53:14.6658625+00:00'
+              CreatedTime: '2021-05-31T22:04:07.1004411+00:00'
+              LastUpdatedTime: '2021-06-02T22:04:07.1005217+00:00'
       security:
         - http-bearer: [ ]
   /api/manage/partnerservices/metadata/computeservicetypes:
@@ -1148,11 +1148,11 @@ paths:
       security:
         - http-bearer: [ ]
   '/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}':
-    put:
+    delete:
       tags:
         - ML Gallery
       summary: Delete a subscription of a published Luna application
-      operationId: putApiGalleryApplicationsByAppNameSubscriptionsBySubscriptionNameOrId
+      operationId: deleteApiGalleryApplicationsByAppNameSubscriptionsBySubscriptionNameOrId
       parameters:
         - in: path
           name: appName
@@ -1216,16 +1216,16 @@ paths:
             items:
               $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
             example:
-              SubscriptionId: 0ec17d85-b015-445c-acb1-779ccf92f9f0
+              SubscriptionId: 479cba1a-072a-47b9-8b96-e133b2800116
               SubscriptionName: mysub
-              PrimaryKey: 8c08c6b55cab4b41a54da374fe697b97
-              SecondaryKey: 63ffce8d61e045f9b114a568c40c0c9d
+              PrimaryKey: 4774dc3f44da4a2f906c04b8e7a90bdf
+              SecondaryKey: 39ac3dd7fd5749a3a5740f131242911b
               BaseUrl: https://luna.azurewebapp.net/api
               Notes: this is my subscription
               Owners:
-                - UserId: a876f311-8a4e-4c04-8dba-5d9f61645113
+                - UserId: ec7a064e-8eb8-4b47-9b36-3e252655cd81
                   UserName: FirstName LastName
-              CreatedTime: '2021-06-03T14:53:14.6844759+00:00'
+              CreatedTime: '2021-06-03T22:04:07.1402576+00:00'
       security:
         - http-bearer: [ ]
   '/api/gallery/applications/{appName}/subscriptions/{subscriptionNameOrId}/addOwner':
@@ -1387,7 +1387,7 @@ definitions:
       ValidEventTypes:
         - DELETE_APPLICATION_EVENT
         - PUBLISH_APPLICATION_EVENT
-      ConnectionStringValidThroughUtc: '2021-06-03T15:53:14.4244239+00:00'
+      ConnectionStringValidThroughUtc: '2021-06-03T23:04:06.6652572+00:00'
   Luna.PubSub.PublicClient.LunaEventSubscriber:
     type: object
     properties:
@@ -1436,8 +1436,8 @@ definitions:
       DisplayName: My Offer
       Description: This is my offer
       Status: Draft
-      CreatedTime: '2021-05-31T14:53:14.5730432+00:00'
-      LastUpdatedTime: '2021-06-02T14:53:14.5731008+00:00'
+      CreatedTime: '2021-05-31T22:04:06.9212433+00:00'
+      LastUpdatedTime: '2021-06-02T22:04:06.9213385+00:00'
       DeletedTime: 
       IsManualActivation: true
       Plans: [ ]
@@ -1539,7 +1539,7 @@ definitions:
         items:
           $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscriptionParameter'
     example:
-      Id: d8c06735-2ca5-47af-a747-72eafc5d514d
+      Id: bd9ecdb2-6de7-4307-ac6a-84626846c494
       PublisherId: ms-ace
       OfferId: textanalytics
       Name: My sub
@@ -1568,8 +1568,8 @@ definitions:
       SecondaryMasterKey:
         type: string
     example:
-      PrimaryMasterKey: 5fd9430cb7ce47fa8e3f48b5183b03b2
-      SecondaryMasterKey: 8301e5feec904586bfc559f24377d743
+      PrimaryMasterKey: 58b2c488efcf4b45bd8c27cfe7e1fa00
+      SecondaryMasterKey: 8a2ace922509414097d4d409c154da12
   Luna.Publish.Public.Client.DataContract.LunaApplication:
     required:
       - Name
@@ -1620,7 +1620,7 @@ definitions:
       SecondaryMasterKeySecretName:
         type: string
     example:
-      OwnerUserId: c192679e-1911-4f0c-9c1a-eb3b5d566721
+      OwnerUserId: 87a40ed6-7c56-4374-a4a4-71f0a4f9bc5e
       DisplayName: My App
       Description: This is my application
       DocumentationUrl: https://aka.ms/lunadoc
@@ -1710,7 +1710,7 @@ definitions:
         format: date-time
         type: string
     example:
-      Uid: 8872a070-85fd-498a-9755-9e27b8f35c97
+      Uid: 57146b97-39b1-4d66-b8d3-9ef6c8624501
       UserName: FirstName LastName
       Role: SystemAdmin
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
@@ -1747,9 +1747,9 @@ definitions:
         type: string
     example:
       Region: westus
-      ResourceId: /subscriptions/7c66515f-3ac1-4b15-801a-575faaa2d458/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
-      TenantId: 4aced973-945d-4637-b6ca-2ce32a2404a6
-      ClientId: 4e32f03b-f298-43ea-8200-d2a79473ae25
+      ResourceId: /subscriptions/471acb9d-b20c-4230-a738-aa7a3f39abbd/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
+      TenantId: 2101401f-690b-4665-97a4-8a5a81af1584
+      ClientId: 6d2e059b-19e8-43b4-a980-3297b10e7e6e
       ClientSecret: my-client-secret
       DisplayName: My Azure ML workspace
       Description: Azure ML workspace
@@ -1918,16 +1918,16 @@ definitions:
         format: date-time
         type: string
     example:
-      SubscriptionId: 0ec17d85-b015-445c-acb1-779ccf92f9f0
+      SubscriptionId: 479cba1a-072a-47b9-8b96-e133b2800116
       SubscriptionName: mysub
-      PrimaryKey: 8c08c6b55cab4b41a54da374fe697b97
-      SecondaryKey: 63ffce8d61e045f9b114a568c40c0c9d
+      PrimaryKey: 4774dc3f44da4a2f906c04b8e7a90bdf
+      SecondaryKey: 39ac3dd7fd5749a3a5740f131242911b
       BaseUrl: https://luna.azurewebapp.net/api
       Notes: this is my subscription
       Owners:
-        - UserId: a876f311-8a4e-4c04-8dba-5d9f61645113
+        - UserId: ec7a064e-8eb8-4b47-9b36-3e252655cd81
           UserName: FirstName LastName
-      CreatedTime: '2021-06-03T14:53:14.6844759+00:00'
+      CreatedTime: '2021-06-03T22:04:07.1402576+00:00'
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner:
     required:
       - UserId
@@ -1938,7 +1938,7 @@ definitions:
       UserName:
         type: string
     example:
-      UserId: 365960a5-7392-4711-bbba-bf73445ec67c
+      UserId: c399ed69-c7b6-4182-bd14-6cbf43cc0388
       UserName: FirstName LastName
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionKeys:
     required:
@@ -1951,8 +1951,8 @@ definitions:
       SecondaryKey:
         type: string
     example:
-      PrimaryKey: bbac6f0b5c3c418b9dae8fd7eef28a3b
-      SecondaryKey: 40ea05d6be504968ba7c91f6ef3827d8
+      PrimaryKey: 3ef3b4cc6ee44517b43f75d52cefec56
+      SecondaryKey: 4283fc2fb71047b4ab27a3079f6ca78d
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes:
     required:
       - Notes

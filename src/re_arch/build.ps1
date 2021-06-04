@@ -12,6 +12,8 @@ param (
 	[switch] $publishLocalSettings = $false
 )
 
+New-Item -ItemType Directory -Force -Path testbuild
+
 $servicesWithSwaggerConfiged = @('partner','publish','rbac','gallery','pubsub','gateway')
 
 $config = ([xml](Get-Content build.config)).config
@@ -70,7 +72,7 @@ if ($deployNew) {
 	
 	push-location testbuild
 	
-	./deployment.sh -s $config.subscriptionId -r $config.resourceGroupName -l $config.region -n $config.namePrefix -q $config.sqlUserName -p $config.sqlPassword -t $config.tenantId -c $config.clientId -x $config.clientSecret -a $config.adminUserId -u $config.adminUserName -w $config.createNewResource
+	./deployment.sh -s $config.subscriptionId -r $config.resourceGroupName -l $config.region -n $config.namePrefix -q $config.sqlUserName -p $config.sqlPassword -t $config.tenantId -c $config.clientId -x $config.clientSecret -a $config.adminUserId -u $config.adminUserName -w $config.createNewResource -m $config.useManagedIdentity
 
 	pop-location
 	
@@ -137,18 +139,18 @@ if ($publishLocalSettings) {
 	
 	$partnerServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
 	$partnerServiceConfig.Values | add-member -name "AzureWebJobsStorage" -value $storageConnectionString -MemberType NoteProperty
-	$partnerServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty	
+	$partnerServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty		
 	$partnerServiceConfig.Values | add-member -name "KEY_VAULT_NAME" -value $keyVaultName -MemberType NoteProperty	
 	$partnerServiceConfig | ConvertTo-Json -depth 3 | Out-File .\partner\functions\local.settings.json
 	
 	$pubsubServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
 	$pubsubServiceConfig.Values | add-member -name "AzureWebJobsStorage" -value $storageConnectionString -MemberType NoteProperty
-	$pubsubServiceConfig.Values | add-member "STORAGE_ACCOUNT_CONNECTION_STRING" -value $storageConnectionString -MemberType NoteProperty
+	$pubsubServiceConfig.Values | add-member -name "STORAGE_ACCOUNT_CONNECTION_STRING" -value $storageConnectionString -MemberType NoteProperty
 	$pubsubServiceConfig | ConvertTo-Json -depth 3 | Out-File .\pubsub\functions\local.settings.json
 	
 	$rbacServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
 	$rbacServiceConfig.Values | add-member -name "AzureWebJobsStorage" -value $storageConnectionString -MemberType NoteProperty
-	$rbacServiceConfig.Values | add-member "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty
+	$rbacServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty
 	$rbacServiceConfig | ConvertTo-Json -depth 3 | Out-File .\rbac\functions\local.settings.json
 	
 	$routingServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json

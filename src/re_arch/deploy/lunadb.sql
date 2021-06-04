@@ -322,7 +322,7 @@ CREATE TABLE [gallery].[LunaApplicationSubscriptionOwners](
 	[UserId] [nvarchar](128) NOT NULL,
 	[UserName] [nvarchar](128) NOT NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
-    CONSTRAINT FK_subscription_id_owners FOREIGN KEY (SubscriptionId) REFERENCES gallery.LunaApplicationSubscriptions(SubscriptionId),AzureMarketplaceSubscriptionDB
+    CONSTRAINT FK_subscription_id_owners FOREIGN KEY (SubscriptionId) REFERENCES gallery.LunaApplicationSubscriptions(SubscriptionId),
 PRIMARY KEY CLUSTERED 
 (
 	[id] ASC

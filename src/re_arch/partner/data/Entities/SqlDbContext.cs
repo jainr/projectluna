@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,15 @@ namespace Luna.Partner.Data.Entities
     {
         public SqlDbContext(DbContextOptions<SqlDbContext> options)
             : base(options)
-        { }
+        {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("USER_ASSIGNED_MANAGED_IDENTITY")))
+            {
+                var connectionString = @$"RunAs=App;AppId={Environment.GetEnvironmentVariable("USER_ASSIGNED_MANAGED_IDENTITY")}";
+                var connection = (SqlConnection)Database.GetDbConnection();
+                connection.AccessToken = (new Microsoft.Azure.Services.AppAuthentication.AzureServiceTokenProvider(connectionString)).
+                    GetAccessTokenAsync("https://database.windows.net/").Result;
+            }
+        }
 
         public DbSet<PartnerServiceInternal> PartnerServices { get; set; }
 

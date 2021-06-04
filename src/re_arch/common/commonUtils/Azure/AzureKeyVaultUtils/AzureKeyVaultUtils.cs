@@ -26,7 +26,14 @@ namespace Luna.Common.Utils.Azure.AzureKeyvaultUtils
             ILogger<AzureKeyVaultUtils> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            var azureServiceTokenProvider = new AzureServiceTokenProvider();
+            var connectionString = "RunAs=App";
+
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("USER_ASSIGNED_MANAGED_IDENTITY")))
+            {
+                connectionString = $"RunAs=App;AppId={Environment.GetEnvironmentVariable("USER_ASSIGNED_MANAGED_IDENTITY")}";
+            }
+
+            var azureServiceTokenProvider = new AzureServiceTokenProvider(connectionString: connectionString);
             _keyVaultClient = new KeyVaultClient(
                 new KeyVaultClient.AuthenticationCallback(
                     azureServiceTokenProvider.KeyVaultTokenCallback

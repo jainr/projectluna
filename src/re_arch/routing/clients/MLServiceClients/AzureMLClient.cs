@@ -1,22 +1,21 @@
-﻿using Luna.Common.Utils.RestClients;
+﻿using Luna.Common.LoggingUtils;
 using Luna.Common.Utils.LoggingUtils.Exceptions;
+using Luna.Common.Utils.RestClients;
 using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using Luna.Publish.Public.Client.DataContract;
 using Luna.Routing.Clients.MLServiceClients.Interfaces;
 using Luna.Routing.Data.DataContracts;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using Luna.Common.LoggingUtils;
-using Newtonsoft.Json.Linq;
 using System.Security;
+using System.Threading.Tasks;
 
 namespace Luna.Routing.Clients.MLServiceClients
 {
@@ -322,18 +321,68 @@ namespace Luna.Routing.Clients.MLServiceClients
 
             var run = queryResult.Value[0];
 
-            //if (!ExecutionStatus.IsAMLCompletedStatus(run.Status))
-            //{
-            //    throw new LunaConflictUserException(
-            //        string.Format(ErrorMessages.CAN_NOT_GET_OUTPUT,
-            //            operationId,
-            //            ExecutionStatus.FromAzureMLPipelineRunStatusDetail(run.Status)));
-            //}
+            if (!ExecutionStatus.IsAMLCompletedStatus(run.Status))
+            {
+                throw new LunaConflictUserException(
+                    string.Format(ErrorMessages.CAN_NOT_GET_OUTPUT,
+                        operationId,
+                        ExecutionStatus.FromAzureMLPipelineRunStatusDetail(run.Status)));
+            }
 
+            var childRunId = await GetFirstChildRunId(run.RunId, headers);
+            var contentUri = await GetArtifactUri(childRunId, headers);
+
+            var response = await this._httpClient.GetAsync(contentUri);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new LunaServerException(await response.Content.ReadAsStringAsync());
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            try
+            {
+                var parsedContent = JObject.Parse(content);
+                return JsonConvert.DeserializeObject(content);
+            }
+            catch (JsonReaderException)
+            {
+                return new { Result = content };
+            }
+        }
+
+        private async Task<string> GetArtifactUri(string runId, LunaRequestHeaders headers)
+        {
+            var url = string.Format(@"https://{0}.api.azureml.ms/history/v1.0{1}/experiments/{2}/runs/{3}/artifacts/contentinfo?path=logs/azureml/executionlogs.txt",
+                this._config.Region,
+                this._config.ResourceId,
+                headers.SubscriptionId,
+                runId);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            headers.AddToHttpRequestHeaders(request.Headers);
+            var response = await SendRequestWithRetryAfterTokenRefresh(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new LunaServerException(await response.Content.ReadAsStringAsync());
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            var artifact = JsonConvert.DeserializeObject<PipelineRunArtifactContentResponseBody>(content);
+
+            return artifact.ContentUri;
+        }
+
+        private async Task<string> GetFirstChildRunId(string runId, LunaRequestHeaders headers)
+        {
             var url = string.Format(@"https://{0}.api.azureml.ms/history/v1.0{1}/runs/{2}/children",
                this._config.Region,
                this._config.ResourceId,
-               run.RunId);
+               runId);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
 
@@ -354,47 +403,7 @@ namespace Luna.Routing.Clients.MLServiceClients
                     throw new LunaServerException($"Can not find child run for run with id {run.RunId}");
                 }
 
-                var childRunId = childrenRuns.Value[0].RunId;
-
-                url = string.Format(@"https://{0}.api.azureml.ms/history/v1.0{1}/experiments/{2}/runs/{3}/artifacts/contentinfo?path=logs/azureml/executionlogs.txt",
-                    this._config.Region,
-                    this._config.ResourceId,
-                    headers.SubscriptionId,
-                    childRunId);
-
-                request = new HttpRequestMessage(HttpMethod.Get, url);
-
-                headers.AddToHttpRequestHeaders(request.Headers);
-                response = await SendRequestWithRetryAfterTokenRefresh(request);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new LunaServerException(await response.Content.ReadAsStringAsync());
-                }
-
-                content = await response.Content.ReadAsStringAsync();
-
-                var artifact = JsonConvert.DeserializeObject<PipelineRunArtifactContentResponseBody>(content);
-
-                response = await this._httpClient.GetAsync(artifact.ContentUri);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new LunaServerException(await response.Content.ReadAsStringAsync());
-                }
-
-                content = await response.Content.ReadAsStringAsync();
-
-                try
-                {
-                    var parsedContent = JObject.Parse(content);
-                    return JsonConvert.DeserializeObject(content);
-                }
-                catch(JsonReaderException)
-                {
-                    return new { Result = content };
-                }
-
+                return childrenRuns.Value[0].RunId;
             }
         }
 
