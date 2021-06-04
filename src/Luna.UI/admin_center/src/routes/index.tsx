@@ -10,3 +10,12 @@ export const Home = loadable(() => import('./Home/Home'), {
 export const Dashboard = loadable(() => import('./Dashboard/Dashboard'), {
   LoadingComponent: Loading
 });
+
+export const Reports = loadable(() => import('./Reports/Reports'), {
+  LoadingComponent: Loading
+});
+
+export const Support = loadable(() => import('./Support/Support'), {
+  LoadingComponent: Loading
+});
+
