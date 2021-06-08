@@ -2748,7 +2748,7 @@ namespace Luna.Gateway.Functions
                 try
                 {
                     if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
-                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"publishedApplications", "list", lunaHeaders))
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"publishedApplications", null, lunaHeaders))
                     {
                         var appList = await _galleryServiceClient.ListLunaApplications(lunaHeaders);
                         return new OkObjectResult(appList);
@@ -2928,7 +2928,7 @@ namespace Luna.Gateway.Functions
                 try
                 {
                     if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
-                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"subscriptions", "create", lunaHeaders))
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"subscriptions", null, lunaHeaders))
                     {
                         var sub = await _galleryServiceClient.CreateLunaApplicationSubscription(appName, subscriptionName, lunaHeaders);
                         return new OkObjectResult(sub);

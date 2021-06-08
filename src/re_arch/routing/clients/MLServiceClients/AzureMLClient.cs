@@ -29,7 +29,7 @@ namespace Luna.Routing.Clients.MLServiceClients
         private readonly AzureMLWorkspaceConfiguration _config;
         private readonly AzureMLCache _cache;
         private readonly HttpClient _httpClient;
-        private SecureString _accessToken;
+        private string _accessToken;
 
         public AzureMLClient(HttpClient httpClient, AzureMLWorkspaceConfiguration config)
         {
@@ -400,7 +400,7 @@ namespace Luna.Routing.Clients.MLServiceClients
 
                 if (childrenRuns.Value.Count == 0)
                 {
-                    throw new LunaServerException($"Can not find child run for run with id {run.RunId}");
+                    throw new LunaServerException($"Can not find child run for run with id {runId}");
                 }
 
                 return childrenRuns.Value[0].RunId;
@@ -413,12 +413,8 @@ namespace Luna.Routing.Clients.MLServiceClients
             var credential = new ClientCredential(this._config.ClientId, key);
             var authContext = new AuthenticationContext(TOKEN_AUTHENTICATION_ENDPOINT + this._config.TenantId, false);
             var token = await authContext.AcquireTokenAsync(AUTHENTICATION_RESOURCE_ID, credential);
-            
-            this._accessToken.Clear();
-            foreach (var c in token.AccessToken)
-            {
-                this._accessToken.AppendChar(c);
-            }
+
+            this._accessToken = token.AccessToken;
         }
 
         private async Task<AzureMLPipelineEndpointCache> GetPipelineEndpoint(string endpointName)

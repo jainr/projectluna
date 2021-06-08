@@ -140,8 +140,8 @@ paths:
               DisplayName: My Offer
               Description: This is my offer
               Status: Draft
-              CreatedTime: '2021-05-31T14:54:00.9361200+00:00'
-              LastUpdatedTime: '2021-06-02T14:54:00.9363113+00:00'
+              CreatedTime: '2021-06-04T17:46:50.4862132+00:00'
+              LastUpdatedTime: '2021-06-06T17:46:50.4864327+00:00'
               DeletedTime: 
               IsManualActivation: true
               Plans: [ ]
@@ -694,8 +694,8 @@ definitions:
       DisplayName: My Offer
       Description: This is my offer
       Status: Draft
-      CreatedTime: '2021-05-31T14:54:00.9361200+00:00'
-      LastUpdatedTime: '2021-06-02T14:54:00.9363113+00:00'
+      CreatedTime: '2021-06-04T17:46:50.4862132+00:00'
+      LastUpdatedTime: '2021-06-06T17:46:50.4864327+00:00'
       DeletedTime: 
       IsManualActivation: true
       Plans: [ ]
@@ -783,7 +783,7 @@ definitions:
       SecondaryMasterKeySecretName:
         type: string
     example:
-      OwnerUserId: 97784de0-267d-4b8c-a0b3-645df51fc029
+      OwnerUserId: 7440fc12-463e-4865-ab6d-df1b1eff7825
       DisplayName: My App
       Description: This is my application
       DocumentationUrl: https://aka.ms/lunadoc
@@ -830,7 +830,7 @@ definitions:
         type: string
     example:
       DisplayName: sentimentanalysis
-      Type: Realtime
+      Type: Pipeline
       Description: Sentiment analysis API
       AdvancedSettings: 
   Luna.Publish.Public.Client.DataContract.APIVersion:
@@ -867,8 +867,8 @@ definitions:
       SecondaryMasterKey:
         type: string
     example:
-      PrimaryMasterKey: d5fd770e175d40d683429a8c91d21967
-      SecondaryMasterKey: 9241265d6f744b8aacb7550c85fa06c1
+      PrimaryMasterKey: 820b92fdf2184d3a8ba937ff9564e3b4
+      SecondaryMasterKey: 9224997ff5d148378155d7acaa7bf82b
 securityDefinitions:
   x-functions-key:
     type: apiKey

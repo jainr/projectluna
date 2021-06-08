@@ -21,7 +21,7 @@ namespace Luna.RBAC.Public.Client.DataContracts
         internal void OnDeserializedMethod(StreamingContext context)
         {
             ValidationUtils.ValidateObjectId(Uid, nameof(Uid));
-            ValidationUtils.ValidateObjectId(UserName, nameof(UserName));
+            ValidationUtils.ValidateStringValueLength(UserName, ValidationUtils.OBJECT_NAME_STRING_MAX_LENGTH, nameof(UserName));
             ValidationUtils.ValidateEnum(Role, typeof(RBACRole), nameof(Role));
         }
 

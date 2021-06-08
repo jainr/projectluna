@@ -166,16 +166,16 @@ paths:
             items:
               $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
             example:
-              SubscriptionId: 52be7487-435b-432a-8d4d-1a7d62140e6f
+              SubscriptionId: 43ebb35e-be1a-4dbf-92da-fb8a069d6a2c
               SubscriptionName: mysub
-              PrimaryKey: 29204fd37c5a4beb93b961f57e95c844
-              SecondaryKey: e1f33d376cd94183934246be5ab983b9
+              PrimaryKey: a76e55da5d6c4a489c4f5e4033ac3488
+              SecondaryKey: d235f6c4bf86495c9dd37c1f44f817ac
               BaseUrl: https://luna.azurewebapp.net/api
               Notes: this is my subscription
               Owners:
-                - UserId: d7460b37-bcf2-4b99-bccc-7ab19420b3d5
+                - UserId: fcd14a2a-31d3-49c1-9e1b-39063da1ac6a
                   UserName: FirstName LastName
-              CreatedTime: '2021-06-03T14:55:25.9088354+00:00'
+              CreatedTime: '2021-06-07T15:36:51.3036072+00:00'
       security:
         - x-functions-key: [ ]
   '/api/applications/{appName}/subscriptions/{subscriptionNameOrId}':
@@ -606,16 +606,16 @@ definitions:
         format: date-time
         type: string
     example:
-      SubscriptionId: 52be7487-435b-432a-8d4d-1a7d62140e6f
+      SubscriptionId: 43ebb35e-be1a-4dbf-92da-fb8a069d6a2c
       SubscriptionName: mysub
-      PrimaryKey: 29204fd37c5a4beb93b961f57e95c844
-      SecondaryKey: e1f33d376cd94183934246be5ab983b9
+      PrimaryKey: a76e55da5d6c4a489c4f5e4033ac3488
+      SecondaryKey: d235f6c4bf86495c9dd37c1f44f817ac
       BaseUrl: https://luna.azurewebapp.net/api
       Notes: this is my subscription
       Owners:
-        - UserId: d7460b37-bcf2-4b99-bccc-7ab19420b3d5
+        - UserId: fcd14a2a-31d3-49c1-9e1b-39063da1ac6a
           UserName: FirstName LastName
-      CreatedTime: '2021-06-03T14:55:25.9088354+00:00'
+      CreatedTime: '2021-06-07T15:36:51.3036072+00:00'
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner:
     required:
       - UserId
@@ -626,7 +626,7 @@ definitions:
       UserName:
         type: string
     example:
-      UserId: 6cd500d0-258f-43d2-b746-648aa19e4474
+      UserId: 114b34b1-4f9a-4888-926a-b222d3b36ef6
       UserName: FirstName LastName
   Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes:
     required:
@@ -648,8 +648,8 @@ definitions:
       SecondaryKey:
         type: string
     example:
-      PrimaryKey: 206073efb3ca4c63be3538f94866f7f5
-      SecondaryKey: ee017aa80a294ba49711e56d3a772051
+      PrimaryKey: d2e08a34e16a4f3784d264eac0cb2419
+      SecondaryKey: 594f7df5853645148c1ed8ce49a7af15
   Luna.Gallery.Public.Client.DataContracts.MarketplaceOfferParameter:
     required:
       - ParameterName
@@ -714,7 +714,7 @@ definitions:
         items:
           $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscriptionParameter'
     example:
-      Id: 869674d2-0b0c-4f44-852e-e50152917bed
+      Id: 0cedb5f2-51e7-40f1-bd74-27c6b8fda858
       PublisherId: ms-ace
       OfferId: textanalytics
       Name: My sub

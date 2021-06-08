@@ -1,6 +1,8 @@
-﻿using Luna.Publish.PublicClient.Enums;
+﻿using Luna.Common.Utils;
+using Luna.Publish.PublicClient.Enums;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace Luna.Publish.Public.Client.DataContract
@@ -12,5 +14,6 @@ namespace Luna.Publish.Public.Client.DataContract
         {
 
         }
+
     }
 }

@@ -78,7 +78,7 @@ namespace Luna.RBAC.Public.Client
         public async Task<bool> AddAdmin(string uid, string userName, LunaRequestHeaders headers)
         {
             ValidationUtils.ValidateObjectId(uid, nameof(uid));
-            ValidationUtils.ValidateObjectId(userName, nameof(userName));
+            ValidationUtils.ValidateStringValueLength(userName, ValidationUtils.OBJECT_NAME_STRING_MAX_LENGTH, nameof(userName));
 
             var role = new RoleAssignment()
             {
@@ -121,7 +121,7 @@ namespace Luna.RBAC.Public.Client
         public async Task<bool> AddPublisher(string uid, string userName, LunaRequestHeaders headers)
         {
             ValidationUtils.ValidateObjectId(uid, nameof(uid));
-            ValidationUtils.ValidateObjectId(userName, nameof(userName));
+            ValidationUtils.ValidateStringValueLength(userName, ValidationUtils.OBJECT_NAME_STRING_MAX_LENGTH, nameof(userName));
 
             var role = new RoleAssignment()
             {

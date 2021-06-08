@@ -14,6 +14,7 @@ namespace Luna.Publish.Public.Client.DataContract
         {
             DisplayName = "sentimentanalysis",
             Description = "Sentiment analysis API",
+            Type = "Pipeline",
             AdvancedSettings = null
         });
 
@@ -48,7 +49,7 @@ namespace Luna.Publish.Public.Client.DataContract
         public string DisplayName { get; set; }
 
         [JsonProperty(PropertyName = "Type", Required = Required.Always)]
-        public string Type { get; }
+        public string Type { get; set; }
 
         [JsonProperty(PropertyName = "Description", Required = Required.Always)]
         public string Description { get; set; }

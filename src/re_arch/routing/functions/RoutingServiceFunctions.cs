@@ -211,12 +211,20 @@ namespace Luna.Routing.Functions
                             versionProp,
                             lunaHeaders.GetPassThroughHeaders());
 
-                        result = new ContentResult()
+                        if (response.Content.Headers.ContentType.MediaType == "application/json")
                         {
-                            Content = await response.Content.ReadAsStringAsync(),
-                            ContentType = response.Content.Headers.ContentType.MediaType,
-                            StatusCode = (int)response.StatusCode
-                        };
+                            var content = await response.Content.ReadAsStringAsync();
+                            result = new JsonResult(JsonConvert.DeserializeObject(content));
+                        }
+                        else
+                        {
+                            result = new ContentResult()
+                            {
+                                Content = await response.Content.ReadAsStringAsync(),
+                                ContentType = response.Content.Headers.ContentType.MediaType,
+                                StatusCode = (int)response.StatusCode
+                            };
+                        }
                     }
                     else if (apiVersion.APIType.Equals(LunaAPIType.Pipeline.ToString()))
                     {

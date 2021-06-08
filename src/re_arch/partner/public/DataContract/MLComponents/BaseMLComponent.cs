@@ -11,6 +11,11 @@ namespace Luna.Partner.PublicClient.DataContract
         public static string example = JsonConvert.SerializeObject(
             new BaseMLComponent("myendpoint", "My Endpoint", LunaAPIType.Realtime));
 
+        public BaseMLComponent()
+        {
+
+        }
+
         public BaseMLComponent(LunaAPIType type)
         {
             this.Type = type.ToString();

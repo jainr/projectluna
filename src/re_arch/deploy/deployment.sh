@@ -220,13 +220,14 @@ keyVaultScope="/subscriptions/${subscriptionId}/resourcegroups/${resourceGroupNa
 
 if [ ${useManagedIdentity} = "y" ];
 then
-  uamiId=$(az identity show --name $managedIdentityName --resource-group $resourceGroupName | ./jq -r '.principalId') 
+  uamiId=$(az identity show --name $managedIdentityName --resource-group $resourceGroupName | ./jq -r '.clientId') 
   uamiResourceId=$(az identity show --name $managedIdentityName --resource-group $resourceGroupName | ./jq -r '.id')
   MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $publishFxAppName --identities $uamiResourceId
   MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $partnerFxAppName --identities $uamiResourceId
   MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $routingFxAppName --identities $uamiResourceId
   MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $galleryFxAppName --identities $uamiResourceId
   MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $provisionFxAppName --identities $uamiResourceId
+  MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $rbacFxAppName --identities $uamiResourceId
   az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $uamiId
 else
   az functionapp identity assign -g $resourceGroupName -n $publishFxAppName
