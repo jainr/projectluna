@@ -9,7 +9,7 @@ namespace Luna.RBAC.Public.Client.DataContracts
     {
         public static string example = JsonConvert.SerializeObject(new Ownership()
         {
-            Uid = Guid.NewGuid().ToString(),
+            Uid = "fcd14a2a-31d3-49c1-9e1b-39063da1ac6a",
             ResourceId = "applications/myapp"
         });
 

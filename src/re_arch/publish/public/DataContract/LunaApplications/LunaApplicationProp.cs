@@ -14,7 +14,7 @@ namespace Luna.Publish.Public.Client.DataContract
     {
         public static string example = JsonConvert.SerializeObject(new LunaApplicationProp()
         {
-            OwnerUserId = Guid.NewGuid().ToString(),
+            OwnerUserId = "43ebb35e-be1a-4dbf-92da-fb8a069d6a2c",
             DisplayName = "My App",
             Description = "This is my application",
             DocumentationUrl = "https://aka.ms/lunadoc",

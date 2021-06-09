@@ -46,14 +46,19 @@ namespace Luna.Common.Utils.LoggingUtils
             logger.LogInformation($"[FxBegin][{methodName}] Request {methodName} begins.");
         }
 
-        public static void LogRoutingRequestEnd(this ILogger logger, string methodName, int? statusCode, string subscriptionId)
+        public static void LogRoutingRequestEnd(this ILogger logger, 
+            string methodName, 
+            int? statusCode, 
+            string subscriptionId,
+            long elapsedTimeInMS)
         {
             var dict = new Dictionary<string, object>();
             dict.Add("Luna.SubscriptionId", subscriptionId);
             dict.Add("Luna.HttpStatusCode", statusCode ?? -1);
+            dict.Add("Luna.ElapsedTimeInMS", elapsedTimeInMS);
             using (logger.BeginScope(dict))
             {
-                logger.LogInformation($"[FxEnd][{methodName}] Request {methodName} ends with HttpStatusCode {statusCode ?? -1}.");
+                logger.LogInformation($"[FxEnd][{methodName}] Request {methodName} ends with HttpStatusCode {statusCode ?? -1} in {elapsedTimeInMS} ms.");
             }
         }
     }

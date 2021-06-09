@@ -57,5 +57,6 @@ namespace Luna.Common.LoggingUtils
         public const string MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH = "The offer id {0} in request path does not match the offer id in request body {1}.";
         public const string MARKETPLACE_PLAN_NAME_DOES_NOT_MATCH = "The plan id {0} in request path does not match the plan id in request body {1}.";
         public const string MARKETPLACE_SUBSCRIPTION_CAN_NOT_BE_ACTIVATED = "Can not activate Azure marketplace subscription {0}. The subscription is in {1} state.";
+        public const string INTERNAL_SERVER_ERROR = "The server encountered an internal error and was unable to complete your request.";
     }
 }

@@ -1,4 +1,5 @@
-﻿using Luna.Common.Utils.LoggingUtils.Enums;
+﻿using Luna.Common.LoggingUtils;
+using Luna.Common.Utils.LoggingUtils.Enums;
 using Luna.Common.Utils.LoggingUtils.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -38,7 +39,7 @@ namespace Luna.Common.Utils.LoggingUtils
                     this.ErrorCode = ((LunaUserException)ex.InnerException).ErrorCode;
                     this.HttpStatusCode = ((LunaUserException)ex.InnerException).HttpStatusCode;
                 }
-            }
+            }  
         }
 
         public string Message { get; set; }
@@ -57,7 +58,22 @@ namespace Luna.Common.Utils.LoggingUtils
 
         public JsonResult GetHttpResult()
         {
-            var result = new JsonResult(this);
+            JsonResult result = null;
+            if (this.HttpStatusCode == HttpStatusCode.InternalServerError)
+            {
+                result = new JsonResult(new ErrorModel()
+                {
+                    Message = ErrorMessages.INTERNAL_SERVER_ERROR,
+                    TraceId = this.TraceId,
+                    ErrorCode = this.ErrorCode,
+                    HttpStatusCode = this.HttpStatusCode
+                });
+            }
+            else
+            {
+                result = new JsonResult(this);
+            }
+
             result.StatusCode = (int)this.HttpStatusCode;
             return result;
         }

@@ -26,6 +26,7 @@ using Luna.PubSub.PublicClient.Clients;
 using Luna.PubSub.PublicClient;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Luna.Routing.Clients.SecretCacheClients;
+using System.Diagnostics;
 
 namespace Luna.Routing.Functions
 {
@@ -182,6 +183,7 @@ namespace Luna.Routing.Functions
         string apiName,
         string operationName)
         {
+            Stopwatch sw = Stopwatch.StartNew();
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             var versionName = GetAPIVersion(req);
             var operationId = Guid.NewGuid().ToString();
@@ -211,20 +213,12 @@ namespace Luna.Routing.Functions
                             versionProp,
                             lunaHeaders.GetPassThroughHeaders());
 
-                        if (response.Content.Headers.ContentType.MediaType == "application/json")
+                        result = new ContentResult()
                         {
-                            var content = await response.Content.ReadAsStringAsync();
-                            result = new JsonResult(JsonConvert.DeserializeObject(content));
-                        }
-                        else
-                        {
-                            result = new ContentResult()
-                            {
-                                Content = await response.Content.ReadAsStringAsync(),
-                                ContentType = response.Content.Headers.ContentType.MediaType,
-                                StatusCode = (int)response.StatusCode
-                            };
-                        }
+                            Content = await response.Content.ReadAsStringAsync(),
+                            ContentType = response.Content.Headers.ContentType.MediaType,
+                            StatusCode = (int)response.StatusCode
+                        };
                     }
                     else if (apiVersion.APIType.Equals(LunaAPIType.Pipeline.ToString()))
                     {
@@ -255,7 +249,11 @@ namespace Luna.Routing.Functions
                 }
                 finally
                 {
-                    _logger.LogRoutingRequestEnd(nameof(this.CallEndpoint), result.StatusCode, lunaHeaders.SubscriptionId);
+                    sw.Stop();
+                    _logger.LogRoutingRequestEnd(nameof(this.CallEndpoint), 
+                        result.StatusCode, 
+                        lunaHeaders.SubscriptionId, 
+                        sw.ElapsedMilliseconds);
                 }
             }
         }
@@ -273,6 +271,7 @@ namespace Luna.Routing.Functions
             string appName,
             string apiName)
         {
+            Stopwatch sw = Stopwatch.StartNew();
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             var versionName = GetAPIVersion(req);
             using (_logger.BeginRoutingNamedScope(appName, apiName, versionName, null, lunaHeaders))
@@ -312,7 +311,11 @@ namespace Luna.Routing.Functions
                 }
                 finally
                 {
-                    _logger.LogRoutingRequestEnd(nameof(this.ListOperations), result.StatusCode, lunaHeaders.SubscriptionId);
+                    sw.Stop();
+                    _logger.LogRoutingRequestEnd(nameof(this.ListOperations),
+                        result.StatusCode,
+                        lunaHeaders.SubscriptionId,
+                        sw.ElapsedMilliseconds);
                 }
             }
         }
@@ -332,6 +335,7 @@ namespace Luna.Routing.Functions
             string apiName,
             string operationId)
         {
+            Stopwatch sw = Stopwatch.StartNew();
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             var versionName = GetAPIVersion(req);
             using (_logger.BeginRoutingNamedScope(appName, apiName, versionName, operationId, lunaHeaders))
@@ -373,7 +377,11 @@ namespace Luna.Routing.Functions
                 }
                 finally
                 {
-                    _logger.LogRoutingRequestEnd(nameof(this.CancelOperation), result.StatusCode, lunaHeaders.SubscriptionId);
+                    sw.Stop();
+                    _logger.LogRoutingRequestEnd(nameof(this.CancelOperation),
+                        result.StatusCode,
+                        lunaHeaders.SubscriptionId,
+                        sw.ElapsedMilliseconds);
                 }
             }
         }
@@ -393,6 +401,7 @@ namespace Luna.Routing.Functions
             string apiName,
             string operationId)
         {
+            Stopwatch sw = Stopwatch.StartNew();
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             var versionName = GetAPIVersion(req);
             using (_logger.BeginRoutingNamedScope(appName, apiName, versionName, operationId, lunaHeaders))
@@ -433,7 +442,11 @@ namespace Luna.Routing.Functions
                 }
                 finally
                 {
-                    _logger.LogRoutingRequestEnd(nameof(this.GetOperationStatus), result.StatusCode, lunaHeaders.SubscriptionId);
+                    sw.Stop();
+                    _logger.LogRoutingRequestEnd(nameof(this.GetOperationStatus),
+                        result.StatusCode,
+                        lunaHeaders.SubscriptionId,
+                        sw.ElapsedMilliseconds);
                 }
             }
 
@@ -454,6 +467,7 @@ namespace Luna.Routing.Functions
             string apiName,
             string operationId)
         {
+            Stopwatch sw = Stopwatch.StartNew();
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             var versionName = GetAPIVersion(req);
             using (_logger.BeginRoutingNamedScope(appName, apiName, versionName, operationId, lunaHeaders))
@@ -493,7 +507,11 @@ namespace Luna.Routing.Functions
                 }
                 finally
                 {
-                    _logger.LogRoutingRequestEnd(nameof(this.GetOperationOutput), result.StatusCode, lunaHeaders.SubscriptionId);
+                    sw.Stop();
+                    _logger.LogRoutingRequestEnd(nameof(this.GetOperationOutput),
+                        result.StatusCode,
+                        lunaHeaders.SubscriptionId,
+                        sw.ElapsedMilliseconds);
                 }
             }
         }
@@ -515,7 +533,7 @@ namespace Luna.Routing.Functions
             if (apiVersion == null)
             {
                 throw new LunaNotFoundUserException(
-                    string.Format(ErrorMessages.API_VERSION_DOES_NOT_EXIST, apiName, versionName));
+                    string.Format(ErrorMessages.API_VERSION_DOES_NOT_EXIST, versionName, apiName));
             }
 
             return apiVersion;

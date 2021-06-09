@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.KeyVault;
+﻿using Luna.Common.Utils.LoggingUtils.Exceptions;
+using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -87,8 +88,8 @@ namespace Luna.Common.Utils.Azure.AzureKeyvaultUtils
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
-                return false;
+                // DO NOT log secret value!
+                throw new LunaServerException($"Can not set secret {secretName} in Azure key vault.", innerException: ex);
             }
         }
 
@@ -109,8 +110,7 @@ namespace Luna.Common.Utils.Azure.AzureKeyvaultUtils
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
-                return null;
+                throw new LunaServerException($"Can not get secret {secretName} in Azure key vault.", innerException: ex);
             }
         }
 

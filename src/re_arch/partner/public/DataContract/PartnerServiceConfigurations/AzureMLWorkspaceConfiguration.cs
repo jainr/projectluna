@@ -17,10 +17,10 @@ namespace Luna.Partner.PublicClient.DataContract.PartnerServices
             Type = PartnerServiceType.AzureML.ToString(),
             Tags = "purpose=prod;org=hr",
             ResourceId = @"/subscriptions/" +
-                Guid.NewGuid().ToString() +
+                "fcd14a2a-31d3-49c1-9e1b-39063da1ac6a" +
                 "/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name",
-            TenantId = Guid.NewGuid().ToString(),
-            ClientId = Guid.NewGuid().ToString(),
+            TenantId = "43ebb35e-be1a-4dbf-92da-fb8a069d6a2c",
+            ClientId = "114b34b1-4f9a-4888-926a-b222d3b36ef6",
             ClientSecret = "my-client-secret",
             Region = "westus"
         });
