@@ -1,4 +1,5 @@
-﻿using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
+﻿using Luna.Common.Utils;
+using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
 using Luna.Common.Utils.LoggingUtils.Exceptions;
 using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using Luna.Publish.Public.Client.DataContract;
@@ -24,14 +25,17 @@ namespace Luna.Routing.Clients.MLServiceClients
         private readonly ISqlDbContext _dbContext;
         private readonly HttpClient _httpClient;
         private readonly IAzureKeyVaultUtils _keyVaultUtils;
+        private readonly IEncryptionUtils _encryptionUtils;
 
         [ActivatorUtilitiesConstructor]
         public MLServiceClientFactory(HttpClient httpClient, ISqlDbContext dbContext,
-            IAzureKeyVaultUtils keyVaultUtils)
+            IAzureKeyVaultUtils keyVaultUtils,
+            IEncryptionUtils encryptionUtils)
         {
             this._httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             this._dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             this._keyVaultUtils = keyVaultUtils ?? throw new ArgumentNullException(nameof(keyVaultUtils));
+            this._encryptionUtils = encryptionUtils ?? throw new ArgumentNullException(nameof(encryptionUtils));
         }
 
         /// <summary>
@@ -56,7 +60,7 @@ namespace Luna.Routing.Clients.MLServiceClients
                     var config = await _keyVaultUtils.GetSecretAsync(partnerService.ConfigurationSecretName);
                     var amlConfig = JsonConvert.DeserializeObject<AzureMLWorkspaceConfiguration>(config);
                     _cachedAzureMLClients.Add(prop.AzureMLWorkspaceName,
-                        new AzureMLClient(this._httpClient, amlConfig));
+                        new AzureMLClient(this._httpClient, _encryptionUtils, amlConfig));
                 }
 
                 return _cachedAzureMLClients[prop.AzureMLWorkspaceName];
@@ -87,7 +91,7 @@ namespace Luna.Routing.Clients.MLServiceClients
                     var config = await _keyVaultUtils.GetSecretAsync(partnerService.ConfigurationSecretName);
                     var amlConfig = JsonConvert.DeserializeObject<AzureMLWorkspaceConfiguration>(config);
                     _cachedAzureMLClients.Add(prop.AzureMLWorkspaceName,
-                        new AzureMLClient(this._httpClient, amlConfig));
+                        new AzureMLClient(this._httpClient, _encryptionUtils, amlConfig));
                 }
 
                 return _cachedAzureMLClients[prop.AzureMLWorkspaceName];

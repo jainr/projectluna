@@ -11,6 +11,7 @@ using Luna.Partner.PublicClient.Clients;
 using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
 using Luna.PubSub.PublicClient.Clients;
 using Luna.Routing.Clients.SecretCacheClients;
+using Luna.Common.Utils;
 
 [assembly: FunctionsStartup(typeof(Luna.Routing.Functions.Startup))]
 
@@ -20,6 +21,14 @@ namespace Luna.Routing.Functions
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
+            builder.Services.AddOptions<EncryptionConfiguration>().Configure(
+                options =>
+                {
+                    options.SymmetricKey = Environment.GetEnvironmentVariable("ENCRYPTION_ASYMMETRIC_KEY");
+                });
+
+            builder.Services.AddSingleton<IEncryptionUtils, EncryptionUtils>();
+
             builder.Services.AddOptions<AzureKeyVaultConfiguration>().Configure(
                 options =>
                 {

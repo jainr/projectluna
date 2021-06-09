@@ -23,6 +23,7 @@ using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using Luna.Common.LoggingUtils;
 using Microsoft.EntityFrameworkCore;
 using Luna.Publish.PublicClient.Enums;
+using Luna.Common.Utils;
 
 namespace Luna.Partner.Functions
 {
@@ -41,10 +42,10 @@ namespace Luna.Partner.Functions
             ISqlDbContext dbContext, 
             ILogger<PartnerServiceFunctions> logger)
         {
-            this._serviceClientFactory = serviceClientFactory;
-            this._dbContext = dbContext;
-            this._keyVaultUtils = keyVaultUtils;
-            this._logger = logger;
+            this._serviceClientFactory = serviceClientFactory ?? throw new ArgumentNullException(nameof(serviceClientFactory));
+            this._dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            this._keyVaultUtils = keyVaultUtils ?? throw new ArgumentNullException(nameof(keyVaultUtils));
+            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>

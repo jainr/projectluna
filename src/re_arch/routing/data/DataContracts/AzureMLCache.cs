@@ -14,6 +14,10 @@ namespace Luna.Routing.Data.DataContracts
         public bool AadAuthEnabled { get; set; }
 
         public string Key { get; set; }
+
+        public string Token { get; set; }
+
+        public DateTime ExperyTime { get; set; }
     }
 
     public class AzureMLPipelineEndpointCache

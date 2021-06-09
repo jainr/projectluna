@@ -1,7 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using Luna.Common.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Luna.Partner.PublicClient.DataContract.PartnerServices
 {
@@ -14,6 +16,15 @@ namespace Luna.Partner.PublicClient.DataContract.PartnerServices
             base(type)
         {
 
+        }
+
+        public async Task EncryptSecretsAsync(IEncryptionUtils utils)
+        {
+            this.ClientSecret = await utils.EncryptStringWithSymmetricKeyAsync(this.ClientSecret);
+        }
+        public async Task DecryptSecretsAsync(IEncryptionUtils utils)
+        {
+            this.ClientSecret = await utils.DecryptStringWithSymmetricKeyAsync(this.ClientSecret);
         }
 
         [JsonProperty(PropertyName = "ResourceId", Required = Required.Always)]

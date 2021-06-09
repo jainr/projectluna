@@ -20,15 +20,18 @@ namespace Luna.Partner.PublicClient.Clients
         private readonly HttpClient _httpClient;
         private readonly ILogger<PartnerServiceClient> _logger;
         private readonly PartnerServiceClientConfiguration _config;
+        private readonly IEncryptionUtils _encryptionUtils;
 
         [ActivatorUtilitiesConstructor]
         public PartnerServiceClient(IOptionsMonitor<PartnerServiceClientConfiguration> option,
             HttpClient httpClient,
+            IEncryptionUtils encryptionUtils,
             ILogger<PartnerServiceClient> logger) :
             base(option, httpClient, logger)
         {
             this._httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this._encryptionUtils = encryptionUtils ?? throw new ArgumentNullException(nameof(encryptionUtils));
             this._config = option.CurrentValue ?? throw new ArgumentNullException(nameof(option.CurrentValue));
         }
 
@@ -89,6 +92,9 @@ namespace Luna.Partner.PublicClient.Clients
 
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
+
+            await config.EncryptSecretsAsync(_encryptionUtils);
+
             var content = JsonConvert.SerializeObject(config, new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.All
@@ -114,10 +120,14 @@ namespace Luna.Partner.PublicClient.Clients
 
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
+
+            await config.EncryptSecretsAsync(_encryptionUtils);
+
             var content = JsonConvert.SerializeObject(config, new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.All
             });
+
             var response = await SendRequestAndVerifySuccess(HttpMethod.Patch, uri, content, headers);
 
             return config;

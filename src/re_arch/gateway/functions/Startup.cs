@@ -9,6 +9,7 @@ using Luna.RBAC.Public.Client;
 using Luna.Publish.PublicClient.Clients;
 using Luna.PubSub.PublicClient.Clients;
 using Luna.Gallery.Public.Client.Clients;
+using Luna.Common.Utils;
 
 [assembly: FunctionsStartup(typeof(Luna.Gateway.Functions.Startup))]
 
@@ -18,6 +19,13 @@ namespace Luna.Gateway.Functions
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
+            builder.Services.AddOptions<EncryptionConfiguration>().Configure(
+                options =>
+                {
+                    options.SymmetricKey = Environment.GetEnvironmentVariable("ENCRYPTION_ASYMMETRIC_KEY");
+                });
+
+            builder.Services.AddSingleton<IEncryptionUtils, EncryptionUtils>();
 
             builder.Services.AddOptions<PartnerServiceClientConfiguration>().Configure(
                 options =>
@@ -27,6 +35,7 @@ namespace Luna.Gateway.Functions
                 });
             
             builder.Services.AddSingleton<IPartnerServiceClient, PartnerServiceClient>();
+
 
             builder.Services.AddOptions<RBACClientConfiguration>().Configure(
                 options =>

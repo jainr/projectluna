@@ -1,4 +1,5 @@
 ﻿using Luna.Common.LoggingUtils;
+using Luna.Common.Utils;
 using Luna.Common.Utils.LoggingUtils.Enums;
 using Luna.Common.Utils.LoggingUtils.Exceptions;
 using Luna.Partner.PublicClient.DataContract;
@@ -28,11 +29,16 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         private AzureMLWorkspaceConfiguration _config;
         private HttpClient _httpClient;
 
-        public AzureMLWorkspaceClient(HttpClient httpClient, BasePartnerServiceConfiguration configuration)
+        public AzureMLWorkspaceClient(HttpClient httpClient,
+            IEncryptionUtils encryptionUtils, 
+            BasePartnerServiceConfiguration configuration)
         {
-            this._config = (AzureMLWorkspaceConfiguration)configuration;
-            this._httpClient = httpClient;
-            Task task = this.RefreshAccessToken();
+            this._config = (AzureMLWorkspaceConfiguration)configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this._httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            Task task = this._config.DecryptSecretsAsync(encryptionUtils);
+            task.Wait();
+
+            task = this.RefreshAccessToken();
             task.Wait();
         }
 

@@ -87,6 +87,11 @@ if ($publishLocalSettings) {
 	$storageConnectionString = $storageAccount.connectionString
 	
 	$sqlConnectionSring = "Server=tcp:" + $config.namePrefix + "-sqlserver.database.windows.net,1433;Initial Catalog=" + $config.namePrefix + "-sqldb;Persist Security Info=False;User ID=" + $config.sqlUserName + ";Password=" + $config.sqlPassword + ";MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+	
+	$gatewayFxAppName = $config.namePrefix + "-gateway"
+	$settings = az functionapp config appsettings list  -g $config.resourceGroupName -n $gatewayFxAppName | ConvertFrom-Json
+	$keySetting = $settings | where { $_.name -eq "ENCRYPTION_ASYMMETRIC_KEY"}
+	$encryptionKey = $keySetting.value
 
 	$rbacFxUrl = "https://" + $config.namePrefix + "-rbac.azurewebsites.net/api/"
 	$publishFxUrl = "https://" + $config.namePrefix + "-publish.azurewebsites.net/api/"
@@ -135,12 +140,14 @@ if ($publishLocalSettings) {
 	$gatewayServiceConfig.Values | add-member -name "PARTNER_SERVICE_KEY" -value $partnerFxKey -MemberType NoteProperty	
 	$gatewayServiceConfig.Values | add-member -name "GALLERY_SERVICE_BASE_URL" -value $galleryFxUrl -MemberType NoteProperty
 	$gatewayServiceConfig.Values | add-member -name "GALLERY_SERVICE_KEY" -value $galleryFxKey -MemberType NoteProperty	
+	$gatewayServiceConfig.Values | add-member -name "ENCRYPTION_ASYMMETRIC_KEY" -value $encryptionKey -MemberType NoteProperty	
 	$gatewayServiceConfig | ConvertTo-Json -depth 3 | Out-File .\gateway\functions\local.settings.json
 	
 	$partnerServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
 	$partnerServiceConfig.Values | add-member -name "AzureWebJobsStorage" -value $storageConnectionString -MemberType NoteProperty
 	$partnerServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty		
 	$partnerServiceConfig.Values | add-member -name "KEY_VAULT_NAME" -value $keyVaultName -MemberType NoteProperty	
+	$partnerServiceConfig.Values | add-member -name "ENCRYPTION_ASYMMETRIC_KEY" -value $encryptionKey -MemberType NoteProperty	
 	$partnerServiceConfig | ConvertTo-Json -depth 3 | Out-File .\partner\functions\local.settings.json
 	
 	$pubsubServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
@@ -159,6 +166,7 @@ if ($publishLocalSettings) {
 	$routingServiceConfig.Values | add-member -name "PUBSUB_SERVICE_KEY" -value $pubsubFxKey -MemberType NoteProperty	
 	$routingServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty	
 	$routingServiceConfig.Values | add-member -name "KEY_VAULT_NAME" -value $keyVaultName -MemberType NoteProperty	
+	$routingServiceConfig.Values | add-member -name "ENCRYPTION_ASYMMETRIC_KEY" -value $encryptionKey -MemberType NoteProperty	
 	$routingServiceConfig | ConvertTo-Json -depth 3 | Out-File .\routing\functions\local.settings.json
 	
 	$galleryServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json

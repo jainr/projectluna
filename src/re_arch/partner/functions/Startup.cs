@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Luna.Partner.Clients.PartnerServiceClients;
 using Luna.Partner.Data.Entities;
 using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
+using Luna.Common.Utils;
 
 [assembly: FunctionsStartup(typeof(Luna.RBAC.Functions.Startup))]
 
@@ -17,6 +18,14 @@ namespace Luna.RBAC.Functions
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
+            builder.Services.AddOptions<EncryptionConfiguration>().Configure(
+                options =>
+                {
+                    options.SymmetricKey = Environment.GetEnvironmentVariable("ENCRYPTION_ASYMMETRIC_KEY");
+                });
+
+            builder.Services.AddSingleton<IEncryptionUtils, EncryptionUtils>();
+
             builder.Services.AddOptions<AzureKeyVaultConfiguration>().Configure(
                 options =>
                 {

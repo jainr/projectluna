@@ -308,6 +308,8 @@ az webapp deployment source config-zip \
     --src routingfx.zip
 
 # Set service configuration
+encryptionKey=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32 ; echo '')
+
 storageConnectionString=$(az storage account show-connection-string -g $resourceGroupName -n $storageName | ./jq -r '.connectionString')
 
 sqlConnectionSring="Server=tcp:${sqlServerName}.database.windows.net,1433;Initial Catalog=${sqlDbName};Persist Security Info=False;User ID=${sqlUser};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
@@ -343,7 +345,8 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
 			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
 			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}" \
 			 "GALLERY_SERVICE_BASE_URL=${galleryFxUrl}" \
-			 "GALLERY_SERVICE_KEY=${galleryFxKey}"
+			 "GALLERY_SERVICE_KEY=${galleryFxKey}" \
+			 "ENCRYPTION_ASYMMETRIC_KEY=${encryptionKey}"
 
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $pubsubFxAppName \
@@ -362,7 +365,8 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $partnerFxAppName \
   --resource-group $resourceGroupName \
   --settings "SQL_CONNECTION_STRING=${sqlConnectionSring}" \
-             "KEY_VAULT_NAME=${keyVaultName}" 
+             "KEY_VAULT_NAME=${keyVaultName}" \
+			 "ENCRYPTION_ASYMMETRIC_KEY=${encryptionKey}"
 
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $rbacFxAppName \
@@ -375,7 +379,8 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --settings "SQL_CONNECTION_STRING=${sqlConnectionSring}" \
              "KEY_VAULT_NAME=${keyVaultName}" \
 			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
-			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"
+			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}" \
+			 "ENCRYPTION_ASYMMETRIC_KEY=${encryptionKey}"
 		   
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $galleryFxAppName \

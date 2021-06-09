@@ -1,4 +1,5 @@
 ﻿using Luna.Common.LoggingUtils;
+using Luna.Common.Utils;
 using Luna.Common.Utils.LoggingUtils.Exceptions;
 using Luna.Common.Utils.RestClients;
 using Luna.Partner.PublicClient.DataContract.PartnerServices;
@@ -31,12 +32,16 @@ namespace Luna.Routing.Clients.MLServiceClients
         private readonly HttpClient _httpClient;
         private string _accessToken;
 
-        public AzureMLClient(HttpClient httpClient, AzureMLWorkspaceConfiguration config)
+        public AzureMLClient(HttpClient httpClient,
+            IEncryptionUtils encryptionUtils, 
+            AzureMLWorkspaceConfiguration config)
         {
             this._httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             this._config = config;
+            Task task = this._config.DecryptSecretsAsync(encryptionUtils);
+            task.Wait();
             this._cache = new AzureMLCache();
-            Task task = this.RefreshAccessToken();
+            task = this.RefreshAccessToken();
             task.Wait();
         }
 
@@ -84,13 +89,13 @@ namespace Luna.Routing.Clients.MLServiceClients
             request.Content = new StringContent(input);
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            if (endpoint.AuthEnabled && !endpoint.AadAuthEnabled)
+            if (endpoint.AadAuthEnabled)
+            {
+                request.Headers.Add(AUTHORIZATION_HEADER, string.Format(BEARER_TOKEN_FORMAT, endpoint.Token));
+            }
+            else if (endpoint.AuthEnabled)
             {
                 request.Headers.Add(AUTHORIZATION_HEADER, string.Format(BEARER_TOKEN_FORMAT, endpoint.Key));
-            }
-            else if (endpoint.AadAuthEnabled)
-            {
-                request.Headers.Add(AUTHORIZATION_HEADER, string.Format(BEARER_TOKEN_FORMAT, this._accessToken));
             }
 
             headers.AddToHttpRequestHeaders(request.Headers);
@@ -100,7 +105,7 @@ namespace Luna.Routing.Clients.MLServiceClients
             if (shouldRefreshCacheAndRetry && 
                 (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.Unauthorized))
             {
-                // TODO: refresh cache
+                _cache.RealTimeEndpoints.Remove(endpointName);
                 return await CallRealtimeEndpointInternal(operationName, input, versionProperties, headers, false);
             }
 
@@ -439,7 +444,13 @@ namespace Luna.Routing.Clients.MLServiceClients
                     AadAuthEnabled = endpointInfo.AadAuthEnabled
                 };
 
-                if (endpointInfo.AuthEnabled && !endpointInfo.AadAuthEnabled)
+                if (endpointInfo.AadAuthEnabled)
+                {
+                    var token = await GetRealtimeEndpointToken(endpointName);
+                    endpoint.Token = token.AccessToken;
+                    endpoint.ExperyTime = new DateTime(token.ExpiryOn);
+                }
+                else if (endpointInfo.AuthEnabled)
                 {
                     endpoint.Key = await GetRealtimeEndpointKey(endpointName);
                 }
@@ -470,6 +481,29 @@ namespace Luna.Routing.Clients.MLServiceClients
 
             throw new LunaServerException(
                 string.Format("Failed to get AML realtime endpoint. Status code: {0}. Error: {1}",
+                response.StatusCode,
+                await response.Content.ReadAsStringAsync()));
+        }
+
+        private async Task<RealtimeEndpointTokenResponse> GetRealtimeEndpointToken(string endpointName, bool tokenRefreshed = false)
+        {
+            var url = string.Format(@"https://{0}.api.azureml.ms/modelmanagement/v1.0{1}/services/{2}/token",
+                this._config.Region,
+                this._config.ResourceId,
+                endpointName);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, new Uri(url));
+            var response = await SendRequestWithRetryAfterTokenRefresh(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                var token = JsonConvert.DeserializeObject<RealtimeEndpointTokenResponse>(responseContent);
+                return token;
+            }
+
+            throw new LunaServerException(
+                string.Format("Failed to get AML realtime endpoint token. Status code: {0}. Error: {1}",
                 response.StatusCode,
                 await response.Content.ReadAsStringAsync()));
         }
@@ -533,6 +567,12 @@ namespace Luna.Routing.Clients.MLServiceClients
         }
     }
 
+    public class RealtimeEndpointTokenResponse
+    {
+        public string AccessToken { get; set; }
+
+        public long ExpiryOn { get; set; }
+    }
 
     public class RealtimeEndpointResponse
     {
@@ -542,6 +582,8 @@ namespace Luna.Routing.Clients.MLServiceClients
         public bool AuthEnabled { get; set; }
 
         public bool AadAuthEnabled { get; set; }
+
+        public string Token { get; set; }
     }
 
     public class PipelineEndpointResponse
