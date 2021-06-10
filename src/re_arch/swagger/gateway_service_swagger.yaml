@@ -841,8 +841,8 @@ paths:
               Type: AzureML
               Description: This is my AML workspace
               Tags: department=hr
-              CreatedTime: '2021-06-07T20:17:16.4091027+00:00'
-              LastUpdatedTime: '2021-06-09T20:17:16.4092416+00:00'
+              CreatedTime: '2021-06-10T18:00:30.1320267-07:00'
+              LastUpdatedTime: '2021-06-10T18:00:30.1320267-07:00'
       security:
         - http-bearer: [ ]
   /api/manage/partnerservices/metadata/computeservicetypes:
@@ -1463,7 +1463,7 @@ definitions:
         items:
           $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscriptionParameter'
     example:
-      Id: 75835406-4afa-4b0e-8423-f09315bcf125
+      Id: 7de85fed-9f81-44c0-ab36-d4540064200e
       PublisherId: ms-ace
       OfferId: textanalytics
       Name: My sub

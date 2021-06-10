@@ -112,62 +112,6 @@ paths:
             $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
       security:
         - x-functions-key: [ ]
-    patch:
-      tags:
-        - Partner service
-      summary: Update a partner service
-      operationId: patchApiPartnerServicesByName
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: name
-          description: Name of the partner service
-          required: true
-          type: string
-        - in: body
-          name: body
-          description: Request contract
-          required: true
-          schema:
-            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
-      security:
-        - x-functions-key: [ ]
-    put:
-      tags:
-        - Partner service
-      summary: Add a partner service
-      operationId: putApiPartnerServicesByName
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: name
-          description: Name of the partner service
-          required: true
-          type: string
-        - in: body
-          name: body
-          description: Request contract
-          required: true
-          schema:
-            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
-      security:
-        - x-functions-key: [ ]
   /api/partnerServices:
     get:
       tags:
@@ -240,16 +184,6 @@ definitions:
         type: string
       Tags:
         type: string
-    example:
-      Region: westus
-      ResourceId: /subscriptions/27ea24fe-e2c2-4027-ac4c-2beff0a31755/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
-      TenantId: 1ef61524-9e96-4bcc-a657-f1bfb15f5550
-      ClientId: a25f3db7-6c2a-47eb-8f59-28a9f527f000
-      ClientSecret: my-client-secret
-      DisplayName: My Azure ML workspace
-      Description: Azure ML workspace
-      Type: AzureML
-      Tags: purpose=prod;org=hr
 securityDefinitions:
   x-functions-key:
     type: apiKey

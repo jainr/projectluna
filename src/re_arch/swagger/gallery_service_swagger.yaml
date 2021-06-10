@@ -714,7 +714,7 @@ definitions:
         items:
           $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscriptionParameter'
     example:
-      Id: fee0817b-fa68-4f00-b1f7-d46b50605032
+      Id: 7de85fed-9f81-44c0-ab36-d4540064200e
       PublisherId: ms-ace
       OfferId: textanalytics
       Name: My sub
