@@ -16,8 +16,8 @@ namespace Luna.Publish.Public.Client.DataContract
             DisplayName = "My Offer",
             Description = "This is my offer",
             Status = MarketplaceOfferStatus.Draft.ToString(),
-            CreatedTime = DateTime.UtcNow.AddDays(-3),
-            LastUpdatedTime = DateTime.UtcNow.AddDays(-1),
+            CreatedTime = new DateTime(637588561931352800),
+            LastUpdatedTime = new DateTime(637588561931352800),
             IsManualActivation = true
         });
 

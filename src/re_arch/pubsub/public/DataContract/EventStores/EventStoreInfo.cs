@@ -11,7 +11,7 @@ namespace Luna.PubSub.PublicClient
         public static string example = JsonConvert.SerializeObject(new EventStoreInfo(
             "ApplicationEvents",
             "Azure-Table-Storage-Connection-String-With-SaS-Key",
-            DateTime.UtcNow.AddHours(1))
+            new DateTime(637588561931352800))
         {
             ValidEventTypes = new List<string>(new string[] { 
                 LunaEventType.DELETE_APPLICATION_EVENT, 

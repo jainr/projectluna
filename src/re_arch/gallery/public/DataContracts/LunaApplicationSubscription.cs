@@ -9,20 +9,20 @@ namespace Luna.Gallery.Public.Client.DataContracts
     {
         public static string example = JsonConvert.SerializeObject(new LunaApplicationSubscription()
         {
-            SubscriptionId = Guid.NewGuid(),
+            SubscriptionId = new Guid("0eb1e9dd-df4e-4b03-9e8f-6d8ac0eab782"),
             SubscriptionName = "mysub",
-            PrimaryKey = Guid.NewGuid().ToString("N"),
-            SecondaryKey = Guid.NewGuid().ToString("N"),
+            PrimaryKey = "60158cd36c464531bf40a6c7efc629cd",
+            SecondaryKey = "fc7cfaab23b0494aa53f178f7fbc720c",
             BaseUrl = "https://luna.azurewebapp.net/api",
             Notes = "this is my subscription",
-            CreatedTime = DateTime.UtcNow,
+            CreatedTime = new DateTime(637589448301320267),
             Owners = new List<LunaApplicationSubscriptionOwner>(
                 new LunaApplicationSubscriptionOwner[]
                 {
                     new LunaApplicationSubscriptionOwner()
                     {
                         UserName = "FirstName LastName",
-                        UserId = Guid.NewGuid().ToString()
+                        UserId = "c4627f84-c3a8-45b3-8709-565bd2e50b97"
                     }
                 })
         });

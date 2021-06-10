@@ -1534,7 +1534,7 @@ namespace Luna.Gallery.Functions
 
         private string GetBaseUrl(string appName)
         {
-            return string.Format("{0}/{0}",
+            return string.Format("{0}{1}",
                         Environment.GetEnvironmentVariable(ROUTING_SERVICE_BASE_URL_CONFIG_NAME, EnvironmentVariableTarget.Process),
                         appName);
         }

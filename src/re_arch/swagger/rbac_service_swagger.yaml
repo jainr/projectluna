@@ -136,7 +136,7 @@ definitions:
         format: date-time
         type: string
     example:
-      Uid: b46324b3-6a92-4e35-84be-fa1b2919af69
+      Uid: ebcab4f7-bccd-4416-bdce-fd525c2b1770
       UserName: FirstName LastName
       Role: SystemAdmin
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
@@ -154,7 +154,7 @@ definitions:
         format: date-time
         type: string
     example:
-      Uid: 8f64f98b-e2f6-4d7b-93fd-c3793175bbea
+      Uid: fcd14a2a-31d3-49c1-9e1b-39063da1ac6a
       ResourceId: applications/myapp
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
   Luna.RBAC.Public.Client.DataContracts.RBACQuery:
@@ -170,7 +170,7 @@ definitions:
       Action:
         type: string
     example:
-      Uid: 52a82d69-6e31-41b2-b709-d8e4cf5a3c71
+      Uid: c594a0c5-84f4-4223-a975-bd4d41e5a1c1
       ResourceId: applications/myapp
       Action: 
   Luna.RBAC.Public.Client.DataContracts.RBACQueryResult:
@@ -187,7 +187,7 @@ definitions:
         type: string
     example:
       Query:
-        Uid: f9c5d81b-4a15-4dbc-9b23-d9af47c28acf
+        Uid: 046a6291-f995-4068-af7b-03527f7913ad
         ResourceId: applications/myapp
         Action: 
       CanAccess: true

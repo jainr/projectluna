@@ -27,6 +27,7 @@ using Luna.PubSub.PublicClient;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Luna.Routing.Clients.SecretCacheClients;
 using System.Diagnostics;
+using Luna.Routing.Data;
 
 namespace Luna.Routing.Functions
 {
@@ -253,6 +254,88 @@ namespace Luna.Routing.Functions
                     _logger.LogRoutingRequestEnd(nameof(this.CallEndpoint), 
                         result.StatusCode, 
                         lunaHeaders.SubscriptionId, 
+                        sw.ElapsedMilliseconds);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get API metadata
+        /// </summary>
+        /// <param name="req">The http request</param>
+        /// <param name="appName">The application name</param>
+        /// <param name="apiName">The API name</param>
+        /// <returns></returns>
+        [FunctionName("GetAPIMetadata")]
+        public async Task<IActionResult> GetAPIMetadata(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{appName}/{apiName}/metadata")] HttpRequest req,
+            string appName,
+            string apiName)
+        {
+            Stopwatch sw = Stopwatch.StartNew();
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+
+            using (_logger.BeginRoutingNamedScope(appName, apiName, "all", null, lunaHeaders))
+            {
+                IStatusCodeActionResult result = null;
+
+                _logger.LogRoutingRequestBegin(nameof(this.GetAPIMetadata));
+
+                try
+                {
+                    var versions = await _dbContext.PublishedAPIVersions.
+                        Where(x => x.ApplicationName == appName && x.APIType == apiName && x.IsEnabled).
+                        ToListAsync();
+
+                    if (versions.Count > 0)
+                    {
+                        lunaHeaders = await ValidateAccessKeys(lunaHeaders, versions[0]);
+
+                        var metadata = new LunaAPIMetadata(appName, apiName, versions[0].APIType);
+
+                        foreach (var version in versions)
+                        {
+                            var versionMeta = new LunaAPIVersionMetadata(version.VersionName);
+                            var prop = GetAPIVersionProperties(version.VersionProperties);
+
+                            if (prop.GetType() == typeof(AzureMLRealtimeEndpointAPIVersionProp))
+                            {
+                                foreach(var endpoint in ((AzureMLRealtimeEndpointAPIVersionProp)prop).Endpoints)
+                                {
+                                    versionMeta.Operations.Add(endpoint.OperationName);
+                                }
+                            }
+                            else if (prop.GetType() == typeof(AzureMLPipelineEndpointAPIVersionProp))
+                            {
+                                foreach (var endpoint in ((AzureMLPipelineEndpointAPIVersionProp)prop).Endpoints)
+                                {
+                                    versionMeta.Operations.Add(endpoint.OperationName);
+                                }
+                            }
+
+                            metadata.Versions.Add(versionMeta);
+                        }
+
+                        result = new OkObjectResult(metadata);
+                        return result;
+                    }
+                    else
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.API_DOES_NOT_EXIST, apiName, appName));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result = ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                    return result;
+                }
+                finally
+                {
+                    sw.Stop();
+                    _logger.LogRoutingRequestEnd(nameof(this.GetAPIMetadata),
+                        result.StatusCode,
+                        lunaHeaders.SubscriptionId,
                         sw.ElapsedMilliseconds);
                 }
             }

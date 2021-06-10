@@ -9,8 +9,8 @@ namespace Luna.Gallery.Public.Client.DataContracts
     {
         public static string example = JsonConvert.SerializeObject(new LunaApplicationSubscriptionKeys()
         {
-            PrimaryKey = Guid.NewGuid().ToString("N"),
-            SecondaryKey = Guid.NewGuid().ToString("N"),
+            PrimaryKey = "3cbeda43ef6b4dc0b61220fbb2f7dda4",
+            SecondaryKey = "fc7cfaab23b0494aa53f178f7fbc720c",
         });
 
         [JsonProperty(PropertyName = "PrimaryKey", Required = Required.Always)]

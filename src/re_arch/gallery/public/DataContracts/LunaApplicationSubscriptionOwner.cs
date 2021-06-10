@@ -9,7 +9,7 @@ namespace Luna.Gallery.Public.Client.DataContracts
     {
         public static string example = JsonConvert.SerializeObject(new LunaApplicationSubscriptionOwner()
         {
-            UserId = Guid.NewGuid().ToString(),
+            UserId = "2d88c6a1-8ece-49e8-8b23-673c6a4272d2",
             UserName = "FirstName LastName"
         });
 

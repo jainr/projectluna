@@ -12,8 +12,8 @@ namespace Luna.PubSub.PublicClient
         {
             EventType = LunaEventType.PUBLISH_APPLICATION_EVENT,
             EventContent = "{}",
-            CreatedTime = DateTime.UtcNow,
-            EventSequenceId = DateTime.UtcNow.Ticks
+            CreatedTime = new DateTime(637588561931352800),
+            EventSequenceId = 637588561931352800
         });
 
         [JsonProperty(PropertyName = "EventType", Required = Required.Always)]

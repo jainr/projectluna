@@ -140,8 +140,8 @@ paths:
               DisplayName: My Offer
               Description: This is my offer
               Status: Draft
-              CreatedTime: '2021-06-06T17:21:53.8307160+00:00'
-              LastUpdatedTime: '2021-06-08T17:21:53.8307933+00:00'
+              CreatedTime: '2021-06-07T17:55:59.2817238+00:00'
+              LastUpdatedTime: '2021-06-09T17:55:59.2818521+00:00'
               DeletedTime: 
               IsManualActivation: true
               Plans: [ ]
@@ -694,8 +694,8 @@ definitions:
       DisplayName: My Offer
       Description: This is my offer
       Status: Draft
-      CreatedTime: '2021-06-06T17:21:53.8307160+00:00'
-      LastUpdatedTime: '2021-06-08T17:21:53.8307933+00:00'
+      CreatedTime: '2021-06-07T17:55:59.2817238+00:00'
+      LastUpdatedTime: '2021-06-09T17:55:59.2818521+00:00'
       DeletedTime: 
       IsManualActivation: true
       Plans: [ ]
@@ -783,7 +783,7 @@ definitions:
       SecondaryMasterKeySecretName:
         type: string
     example:
-      OwnerUserId: 0889d272-5b38-4321-86e9-645fe44e3509
+      OwnerUserId: 43ebb35e-be1a-4dbf-92da-fb8a069d6a2c
       DisplayName: My App
       Description: This is my application
       DocumentationUrl: https://aka.ms/lunadoc
@@ -867,8 +867,8 @@ definitions:
       SecondaryMasterKey:
         type: string
     example:
-      PrimaryMasterKey: 92d3dd2a428540e7871aee92af26fc7d
-      SecondaryMasterKey: 60158cd36c464531bf40a6c7efc629cd
+      PrimaryMasterKey: 06586848423d4b5aa6e71645af312acd
+      SecondaryMasterKey: 62f82a4de32a4d7098004c762ae1b32f
 securityDefinitions:
   x-functions-key:
     type: apiKey

@@ -9,8 +9,8 @@ namespace Luna.Publish.Public.Client.DataContract
     {
         public static string example = JsonConvert.SerializeObject(new LunaApplicationMasterKeys()
         {
-            PrimaryMasterKey = Guid.NewGuid().ToString("N"),
-            SecondaryMasterKey = Guid.NewGuid().ToString("N"),
+            PrimaryMasterKey = "92d3dd2a428540e7871aee92af26fc7d",
+            SecondaryMasterKey = "60158cd36c464531bf40a6c7efc629cd",
         });
 
         [JsonProperty(PropertyName = "PrimaryMasterKey", Required = Required.Always)]

@@ -12,7 +12,7 @@ namespace Luna.RBAC.Public.Client.DataContracts
     {
         public static string example = JsonConvert.SerializeObject(new RoleAssignment()
         {
-            Uid = Guid.NewGuid().ToString(),
+            Uid = "b46324b3-6a92-4e35-84be-fa1b2919af69",
             UserName = "FirstName LastName",
             Role = RBACRole.SystemAdmin.ToString()
         });
