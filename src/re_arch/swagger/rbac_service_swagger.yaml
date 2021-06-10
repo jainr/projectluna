@@ -187,7 +187,7 @@ definitions:
         type: string
     example:
       Query:
-        Uid: 0d788481-cbb0-433d-9ff7-a46cf4341c03
+        Uid: 26c029cc-a9e4-483e-808c-ad3556f9a9d8
         ResourceId: applications/myapp
         Action: 
       CanAccess: true

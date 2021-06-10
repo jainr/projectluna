@@ -14,8 +14,8 @@ namespace Luna.Partner.PublicClient.DataContract
             Type = "AzureML",
             Description = "This is my AML workspace",
             Tags = "department=hr",
-            CreatedTime = DateTime.UtcNow.AddDays(-3),
-            LastUpdatedTime = DateTime.UtcNow.AddDays(-1)
+            CreatedTime = new DateTime(637589448301320267),
+            LastUpdatedTime = new DateTime(637589448301320267)
         });
 
         [JsonProperty(PropertyName = "UniqueName", Required = Required.Always)]

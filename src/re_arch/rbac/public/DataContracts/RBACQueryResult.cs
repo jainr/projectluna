@@ -11,7 +11,7 @@ namespace Luna.RBAC.Public.Client.DataContracts
         {
             Query = new RBACQuery()
             {
-                Uid = Guid.NewGuid().ToString(),
+                Uid = "b46324b3-6a92-4e35-84be-fa1b2919af69",
                 ResourceId = "applications/myapp",
                 Action = null
             },

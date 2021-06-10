@@ -21,8 +21,8 @@ namespace Luna.Partner.PublicClient.DataContract.PartnerServices
             ResourceId = @"/subscriptions/" + 
                 Guid.NewGuid().ToString() +
                 "/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name",
-            TenantId = Guid.NewGuid().ToString(),
-            ClientId = Guid.NewGuid().ToString(),
+            TenantId = "0e2c5f5c-f79f-41b6-b1fe-5e5da2ad10e5",
+            ClientId = "75835406-4afa-4b0e-8423-f09315bcf125",
             ClientSecret = "my-client-secret",
             Region="westus"
 

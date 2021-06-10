@@ -9,7 +9,7 @@ namespace Luna.Gallery.Public.Client.DataContracts
     {
         public static string example = JsonConvert.SerializeObject(new MarketplaceSubscription()
         {
-            Id = Guid.NewGuid(),
+            Id = new Guid("7de85fed-9f81-44c0-ab36-d4540064200e"),
             PublisherId = "ms-ace",
             OfferId = "textanalytics",
             PlanId = "default",
