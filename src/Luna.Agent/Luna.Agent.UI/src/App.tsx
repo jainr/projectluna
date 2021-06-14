@@ -9,6 +9,7 @@ import withAuthProvider, { AuthComponentProps } from './AuthProvider';
 import { HashRouter as Router, Route } from 'react-router-dom';
 import Home from './components/Home/Home';
 import AIServices from './components/AIServices/AIServices';
+import AIServiceDetails from './components/AIServices/AIServiceDetails';
 import DataSources from './components/DataSources/DataSources';
 import Settings from './components/Settings/Settings';
 import Tasks from './components/Tasks/Tasks';
@@ -84,6 +85,7 @@ class App extends React.Component<AuthComponentProps, IAppState> {
                 <Route path="/tasks" component={Tasks} />
                 <Route path="/settings" component={Settings} />
                 <Route path="/details/:id?" component={SubscriptionDetail} />
+                <Route path="/servicedetails" component={AIServiceDetails} />
               </Router>
             }
           </div>

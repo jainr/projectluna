@@ -2,6 +2,9 @@
 // Licensed under the MIT License.
 
 import * as React from 'react';
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { vs } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import mytext from './SampleCode';
 import FooterLinks from '../FooterLinks/FooterLinks';
 import { Stack, Text, Link, Image, StackItem, TextField, ImageFit, Panel, DefaultButton, PrimaryButton, Separator, Dropdown, IDropdownOption, Dialog, DialogType, IModalProps, IDialogContentProps, DialogFooter } from '@fluentui/react';
 import { PanelStyles } from '../../helpers/PanelStyles';
@@ -17,6 +20,7 @@ import { getTypeParameterOwner } from 'typescript';
 import { PromptState } from 'msal/lib-commonjs/utils/Constants';
 import { withRouter } from "react-router-dom";
 import { useHistory, useLocation } from 'react-router';
+
 
 function generateUUID() { // Public Domain/MIT
   var d = new Date().getTime();//Timestamp
@@ -56,7 +60,7 @@ const AIServices = () => {
   });
 
   React.useEffect(() => {
-      loadData();
+      loadData();     
   }, []);
 
   /**
@@ -188,7 +192,13 @@ const AIServices = () => {
         </Stack>
         </div>
         <br />
-        
+        <div style={{height:'500px'}}>
+          <p>
+        <SyntaxHighlighter language="typescript" style={vs}>
+        {mytext}
+           </SyntaxHighlighter>
+           </p>
+        </div>
 
       <div style={PanelStyles}>
         <p style={{ display: offerData && offerData.length >= 1 ? "none" : "block" }}>
