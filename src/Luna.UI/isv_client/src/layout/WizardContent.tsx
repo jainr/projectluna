@@ -6,6 +6,7 @@ import AlternateButton from '../shared/components/AlternateButton';
 import {initialWizardFormValues, IWizardFormValues, wizardFormValidationSchema } from '../routes/Wizard/formUtils/wizardFormUtils'
 import { useGlobalContext } from '../shared/components/GlobalProvider';
 import { toast } from 'react-toastify';
+import adalContext from '../adalConfig';
 // import { useGlobalContext } from "../../shared/components/GlobalProvider";
 
 
@@ -26,6 +27,12 @@ const WizardContent: React.FunctionComponent = (props) => {
   const [selectedKey, setSelectedKey] = React.useState(0);
   const [isExpand, setIsExpand] = React.useState(true);
   const [isGitHubSelected, setGitHubSelected] = React.useState(false);
+
+  let userName = "";  
+  var response = adalContext.AuthContext.getCachedUser();
+  if (response && response.profile && response.profile.name)
+    userName = response.profile.name;
+
   // const { values, handleChange, handleBlur, touched, errors, handleSubmit, setFieldValue } = useFormikContext<IWizardFormValues>(); // formikProps
   const getServiceTypes = async () => {
 
@@ -576,7 +583,7 @@ const WizardContent: React.FunctionComponent = (props) => {
                         <TextField 
                         placeholder={"Publisher"} 
                         name={'wizard.publisher'}
-                        value={values.wizard.publisher} 
+                        value={userName} 
                         onChange={handleChange}
                       onBlur={handleBlur}
                       errorMessage={getFormErrorString(touched, errors, 'publisher')} />

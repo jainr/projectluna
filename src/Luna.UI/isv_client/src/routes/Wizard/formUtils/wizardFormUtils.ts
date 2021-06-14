@@ -3,6 +3,8 @@ import * as yup from "yup";
 import { ObjectSchema } from "yup";
 import { ISubscriptionsPostModel, ISubscriptionsModel, ISubscriptionsWarnings } from "../../../models";
 import { IWizardModel } from "../../../models/IWizardModel";
+import { ErrorMessage } from "../../Wizard/formUtils/ErrorMessage";
+import { httpURLRegExp, opetarionNameRegExp } from "../../Products/formUtils/RegExp";
 
 export interface IWizardFormValues {
   wizard: IWizardModel;
@@ -14,14 +16,48 @@ const wizardFormValidator: ObjectSchema<IWizardModel> = yup.object().shape(
   sourceService: yup.string().required("Source Service required"),
   mLComponentType: yup.string().required("ML Component Type required"),
   mLComponent: yup.string().required("ML Component required"),
-  operationName: yup.string().required("Operation Name required"),
-  applicationDisplayName: yup.string().required("Application Display Name required"),
-  applicationName: yup.string().required("Application Name required"),
-  apiName: yup.string().required("API Name required"),
-  apiVersion: yup.string().required("API Version required"),
+  operationName: yup.string().matches(opetarionNameRegExp,
+    {
+      message: ErrorMessage.operationName,
+      excludeEmptyString: true
+    }),
+    // .max(128,"The Operation Name is too long. Must be no more than 128 characters"),
+  applicationDisplayName: yup.string().matches(opetarionNameRegExp,
+    {
+      message: ErrorMessage.applicationDisplayName,
+      excludeEmptyString: true
+    }),
+  applicationName: yup.string().matches(opetarionNameRegExp,
+    {
+      message: ErrorMessage.applicationName,
+      excludeEmptyString: true
+    }),
+  apiName: yup.string().matches(opetarionNameRegExp,
+    {
+      message: ErrorMessage.apiName,
+      excludeEmptyString: true
+    }),
+  apiVersion: yup.string().matches(opetarionNameRegExp,
+    {
+      message: ErrorMessage.apiVersion,
+      excludeEmptyString: true
+    }),
   applicationDescription: yup.string(),
-  logoImageURL: yup.string(),
-  documentationURL: yup.string(),
+  logoImageURL: yup.string().matches(httpURLRegExp,
+    {
+      message: ErrorMessage.Url,
+      excludeEmptyString: true
+    }),
+  documentationURL: yup.string().matches(httpURLRegExp,
+    {
+      message: ErrorMessage.Url,
+      excludeEmptyString: true
+    }),
+  // publisher: yup.string().matches(opetarionNameRegExp,
+  //   {
+  //     message: ErrorMessage.publisher,
+  //     excludeEmptyString: true
+  //   }),
   publisher: yup.string(),
   branchOrCommitHash: yup.string(),
   executionConfigFile: yup.string(),
