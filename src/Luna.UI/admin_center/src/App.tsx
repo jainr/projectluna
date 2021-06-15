@@ -28,6 +28,8 @@ const App: React.FC = () => {
         {/* Protected Routes */}
         <AuthRoute exact={true} path={WebRoute.Home} component={Routes.Home}/>        
         <AuthRoute exact={true} path={WebRoute.Dashboard} component={Routes.Dashboard}/>       
+        <AuthRoute exact={true} path={WebRoute.Reports} component={Routes.Reports}/>       
+        <AuthRoute exact={true} path={WebRoute.Supports} component={Routes.Support}/>       
 
         <Route component={NotFound}/>
       </Switch>

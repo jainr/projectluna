@@ -1,28 +1,72 @@
 .floatLeft {
   float: left;
 }
-.bgclrblue{
+.bgclrblue {
   background-color: #4876ca;
 }
-.bgclrred{
-  background-color: #C00000;
+.bgclrred {
+  background-color: #c00000;
 }
 .dashboardcard {
   color: #fff;
   margin-right: 1%;
-  min-height: 130px;
+  min-height: 170px;
+  width: 20%;
 }
-.fnt10
-{
+.fnt10 {
   font-size: 12px;
 }
-.cardtext
-{
+.cardtext {
   padding: 25px;
   padding-bottom: 0px;
+  padding-top: 0px;
 }
- .txticon
- {
+.txticon {
   text-align: right;
   padding-bottom: 10px;
- }
+}
+.Arrowicon {
+  padding-right: 5%;
+}
+.footerclass {
+  width: 100% !important;
+  background-color: transparent;
+}
+.background {
+  background-color: #f1f1f1;
+}
+.innerbackground {
+  background-color: #fff;
+}
+.admincentercontent {
+  /* height: calc(96% - 57px) !important; */
+  height: 96% !important;
+}
+.abovenav {
+}
+.abovenav .ms-FocusZone {
+  height: 96%;
+}
+
+.footerclass li a {
+  color: gray;
+}
+.footerclass li {
+  float: left;
+  list-style: none;
+  margin-right: 8px;
+  padding: 4px;
+}
+.footerclass .sperator
+{
+  color: gray;
+  font-weight: bold;
+}
+.collapsearrow{
+  text-align: right;
+  cursor: pointer;
+}
+.acolor a
+{
+  color: rgb(86 166 234);
+}
