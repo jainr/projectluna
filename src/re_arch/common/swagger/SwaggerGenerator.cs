@@ -56,6 +56,17 @@ namespace Luna.Common.Swagger
                 openApiDocumentGenerationSettings: new OpenApiDocumentGenerationSettings(true)
             );
 
+            foreach (var diag in result.OperationGenerationDiagnostics)
+            {
+                if (diag.Errors.Count > 0)
+                {
+                    foreach (var error in diag.Errors)
+                    {
+                        Console.WriteLine($"[Error][{error.ExceptionType}]: {error.Message}.");
+                    }
+                }
+            }
+
             File.WriteAllText($@"..\..\..\..\..\swagger\{serviceName}_service_swagger.yaml", openApiDocuments.First().Value.SerializeAsYaml(OpenApiSpecVersion.OpenApi2_0));
         }
 
@@ -151,10 +162,6 @@ namespace Luna.Common.Swagger
                 PrintUsage();
                 return;
             }
-
         }
-
-
-
     }
 }

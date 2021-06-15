@@ -14,21 +14,16 @@ namespace Luna.Partner.Public.Client
     /// </summary>
     public class BasePartnerServiceConfiguration
     {
-        public static string example = JsonConvert.SerializeObject(new AzureMLWorkspaceConfiguration()
+        
+        public static string example = JsonConvert.SerializeObject(new
         {
             DisplayName = "My Azure ML workspace",
             Description = "Azure ML workspace",
             Type = PartnerServiceType.AzureML.ToString(),
-            Tags = "purpose=prod;org=hr",
-            ResourceId = @"/subscriptions/" + 
-                Guid.NewGuid().ToString() +
-                "/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name",
-            TenantId = "0e2c5f5c-f79f-41b6-b1fe-5e5da2ad10e5",
-            ClientId = "75835406-4afa-4b0e-8423-f09315bcf125",
-            ClientSecret = "my-client-secret",
-            Region="westus"
-
+            Tags = ""
         });
+       
+        //public static string example = "{}";
 
         public BasePartnerServiceConfiguration(PartnerServiceType type)
         {
@@ -66,7 +61,7 @@ namespace Luna.Partner.Public.Client
         /// <summary>
         /// The tags for the partner service
         /// </summary>
-        [JsonProperty(PropertyName = "Tags", Required = Required.Always)]
+        [JsonProperty(PropertyName = "Tags", Required = Required.Default)]
         public string Tags { get; set; }
     }
 }

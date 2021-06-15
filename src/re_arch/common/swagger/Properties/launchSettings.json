@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "swagger": {
+      "commandName": "Project",
+      "commandLineArgs": "-s gateway"
+    }
+  }
+}

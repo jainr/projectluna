@@ -10,7 +10,7 @@ namespace Luna.Partner.Public.Client
     /// </summary>
     public class AzureMLWorkspaceConfiguration : AzurePartnerServiceConfiguration
     {
-        public static string example = JsonConvert.SerializeObject(new AzureMLWorkspaceConfiguration()
+        public static string example = JsonConvert.SerializeObject(new
         {
             DisplayName = "My Azure ML workspace",
             Description = "Azure ML workspace",

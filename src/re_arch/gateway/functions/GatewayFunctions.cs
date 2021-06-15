@@ -2657,7 +2657,7 @@ namespace Luna.Gateway.Functions
         /// <summary>
         /// List supported ML compute service types
         /// </summary>
-        /// <group>Partner Service (deprecated)</group>
+        /// <group>Partner Service</group>
         /// <verb>GET</verb>
         /// <url>http://localhost:7071/api/manage/partnerservices/metadata/computeservicetypes</url>
         /// <param name="req">Http request</param>

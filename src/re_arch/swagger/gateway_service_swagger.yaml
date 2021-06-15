@@ -826,6 +826,62 @@ paths:
       security:
         - http-bearer: [ ]
   '/api/manage/partnerservices/{name}':
+    put:
+      tags:
+        - Partner Service
+      summary: Register a partner service
+      operationId: putApiManagePartnerservicesByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
+      security:
+        - http-bearer: [ ]
+    patch:
+      tags:
+        - Partner Service
+      summary: Update a partner service
+      operationId: patchApiManagePartnerservicesByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
+      security:
+        - http-bearer: [ ]
     delete:
       tags:
         - Partner Service
@@ -840,6 +896,26 @@ paths:
       responses:
         '204':
           description: Success
+      security:
+        - http-bearer: [ ]
+    get:
+      tags:
+        - Partner Service
+      summary: Get a partner service
+      operationId: getApiManagePartnerservicesByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
       security:
         - http-bearer: [ ]
   /api/manage/partnerservices:
@@ -954,7 +1030,7 @@ paths:
   /api/manage/partnerservices/metadata/computeservicetypes:
     get:
       tags:
-        - Partner Service (deprecated)
+        - Partner Service
       summary: List supported ML compute service types
       operationId: getApiManagePartnerservicesMetadataComputeservicetypes
       produces:
@@ -972,6 +1048,62 @@ paths:
       security:
         - http-bearer: [ ]
   '/api/manage/partnerservices/azureml/{name}':
+    put:
+      tags:
+        - Partner Service - deprecated
+      summary: Add Azure ML workspace as a partner service
+      operationId: putApiManagePartnerservicesAzuremlByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.AzureMLWorkspaceConfiguration'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.AzureMLWorkspaceConfiguration'
+      security:
+        - http-bearer: [ ]
+    patch:
+      tags:
+        - Partner Service - deprecated)
+      summary: Update Azure ML workspace as a partner service
+      operationId: patchApiManagePartnerservicesAzuremlByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.AzureMLWorkspaceConfiguration'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.AzureMLWorkspaceConfiguration'
+      security:
+        - http-bearer: [ ]
     delete:
       tags:
         - Partner Service - deprecated
@@ -986,6 +1118,26 @@ paths:
       responses:
         '204':
           description: Success
+      security:
+        - http-bearer: [ ]
+    get:
+      tags:
+        - Partner Service - deprecated
+      summary: Get an Azure ML workspace as a partner service
+      operationId: getApiManagePartnerservicesAzuremlByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.AzureMLWorkspaceConfiguration'
       security:
         - http-bearer: [ ]
   /api/manage/partnerservices/azureml:
@@ -1713,7 +1865,6 @@ definitions:
       - DisplayName
       - Description
       - Type
-      - Tags
     type: object
     properties:
       DisplayName:
@@ -1724,6 +1875,11 @@ definitions:
         type: string
       Tags:
         type: string
+    example:
+      DisplayName: My Azure ML workspace
+      Description: Azure ML workspace
+      Type: AzureML
+      Tags: ''
   Luna.Partner.Public.Client.PartnerService:
     required:
       - UniqueName
@@ -1791,7 +1947,6 @@ definitions:
       - DisplayName
       - Description
       - Type
-      - Tags
     type: object
     properties:
       Region:
@@ -1812,6 +1967,16 @@ definitions:
         type: string
       Tags:
         type: string
+    example:
+      DisplayName: My Azure ML workspace
+      Description: Azure ML workspace
+      Type: AzureML
+      Tags: purpose=prod;org=hr
+      ResourceId: /subscriptions/fcd14a2a-31d3-49c1-9e1b-39063da1ac6a/resourceGroups/rg-name/providers/Microsoft.MachineLearningServices/workspaces/workspace-name
+      TenantId: 43ebb35e-be1a-4dbf-92da-fb8a069d6a2c
+      ClientId: 114b34b1-4f9a-4888-926a-b222d3b36ef6
+      ClientSecret: my-client-secret
+      Region: westus
   Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication:
     required:
       - UniqueName
