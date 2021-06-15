@@ -262,5 +262,23 @@ namespace Luna.RBAC.Public.Client
 
             return responseContent;
         }
+
+        /// <summary>
+        /// List all role assignments
+        /// </summary>
+        /// <param name="headers"></param>
+        /// <returns>The role assignments</returns>
+        public async Task<List<RoleAssignment>> ListRoleAssignments(LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"roleassignments");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            var responseContent = JsonConvert.DeserializeObject<List<RoleAssignment>>(
+                await response.Content.ReadAsStringAsync());
+
+            return responseContent;
+        }
     }
 }

@@ -6,6 +6,28 @@ host: localhost:7071
 schemes:
   - http
 paths:
+  /api/roleassignments:
+    get:
+      tags:
+        - Role Assignment
+      summary: List role assignments
+      operationId: getApiRoleassignments
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Request contract
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+            example:
+              Uid: b46324b3-6a92-4e35-84be-fa1b2919af69
+              UserName: FirstName LastName
+              Role: SystemAdmin
+              CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
+      security:
+        - x-functions-key: [ ]
   /api/roleassignments/add:
     post:
       tags:

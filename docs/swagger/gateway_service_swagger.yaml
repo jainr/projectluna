@@ -791,6 +791,8 @@ paths:
       operationId: postManageRbacRoleassignmentsAdd
       consumes:
         - application/json
+      produces:
+        - application/json
       parameters:
         - in: body
           name: body
@@ -798,6 +800,26 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+      responses:
+        '200':
+          description: Request contract
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+            example:
+              Uid: b46324b3-6a92-4e35-84be-fa1b2919af69
+              UserName: FirstName LastName
+              Role: SystemAdmin
+              CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
+      security:
+        - http-bearer: [ ]
+  /manage/rbac/roleassignments:
+    get:
+      tags:
+        - RBAC
+      summary: List role assignments
+      operationId: getManageRbacRoleassignments
       responses:
         '204':
           description: Success
@@ -849,68 +871,6 @@ paths:
               Tags: department=hr
               CreatedTime: '2021-06-10T18:00:30.1320267-07:00'
               LastUpdatedTime: '2021-06-10T18:00:30.1320267-07:00'
-      security:
-        - http-bearer: [ ]
-  '/api/manage/partnerservices/azureml/{name}':
-    delete:
-      tags:
-        - Partner Service
-      summary: Remove Azure ML workspace as a partner service
-      operationId: deleteApiManagePartnerservicesAzuremlByName
-      parameters:
-        - in: path
-          name: name
-          description: Name of the partner service
-          required: true
-          type: string
-      responses:
-        '204':
-          description: Success
-      security:
-        - http-bearer: [ ]
-  /api/manage/partnerservices/azureml:
-    get:
-      tags:
-        - Partner Service
-      summary: List Azure ML workspaces registered as a partner service
-      operationId: getApiManagePartnerservicesAzureml
-      produces:
-        - application/json
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Luna.Partner.Public.Client.PartnerService'
-            example:
-              UniqueName: amlworkspace
-              DisplayName: My AML workspace
-              Type: AzureML
-              Description: This is my AML workspace
-              Tags: department=hr
-              CreatedTime: '2021-06-10T18:00:30.1320267-07:00'
-              LastUpdatedTime: '2021-06-10T18:00:30.1320267-07:00'
-      security:
-        - http-bearer: [ ]
-  /api/manage/partnerservices/metadata/computeservicetypes:
-    get:
-      tags:
-        - Partner Service
-      summary: List supported ML compute service types
-      operationId: getApiManagePartnerservicesMetadataComputeservicetypes
-      produces:
-        - application/json
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Luna.Partner.Public.Client.ServiceType'
-            example:
-              Id: AzureML
-              DisplayName: Azure Machine Learning workspace
       security:
         - http-bearer: [ ]
   /api/manage/partnerservices/metadata/hostservicetypes:
@@ -989,6 +949,68 @@ paths:
               Type: Realtime
               Id: myendpoint
               Name: My Endpoint
+      security:
+        - http-bearer: [ ]
+  /api/manage/partnerservices/metadata/computeservicetypes:
+    get:
+      tags:
+        - Partner Service (deprecated)
+      summary: List supported ML compute service types
+      operationId: getApiManagePartnerservicesMetadataComputeservicetypes
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.Public.Client.ServiceType'
+            example:
+              Id: AzureML
+              DisplayName: Azure Machine Learning workspace
+      security:
+        - http-bearer: [ ]
+  '/api/manage/partnerservices/azureml/{name}':
+    delete:
+      tags:
+        - Partner Service - deprecated
+      summary: Remove Azure ML workspace as a partner service
+      operationId: deleteApiManagePartnerservicesAzuremlByName
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - http-bearer: [ ]
+  /api/manage/partnerservices/azureml:
+    get:
+      tags:
+        - Partner Service - deprecated
+      summary: List Azure ML workspaces registered as a partner service
+      operationId: getApiManagePartnerservicesAzureml
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.Public.Client.PartnerService'
+            example:
+              UniqueName: amlworkspace
+              DisplayName: My AML workspace
+              Type: AzureML
+              Description: This is my AML workspace
+              Tags: department=hr
+              CreatedTime: '2021-06-10T18:00:30.1320267-07:00'
+              LastUpdatedTime: '2021-06-10T18:00:30.1320267-07:00'
       security:
         - http-bearer: [ ]
   '/api/gallery/applications/{appName}':
@@ -1726,37 +1748,6 @@ definitions:
       LastUpdatedTime:
         format: date-time
         type: string
-  Luna.Partner.Public.Client.AzureMLWorkspaceConfiguration:
-    required:
-      - Region
-      - ResourceId
-      - TenantId
-      - ClientId
-      - ClientSecret
-      - DisplayName
-      - Description
-      - Type
-      - Tags
-    type: object
-    properties:
-      Region:
-        type: string
-      ResourceId:
-        type: string
-      TenantId:
-        type: string
-      ClientId:
-        type: string
-      ClientSecret:
-        type: string
-      DisplayName:
-        type: string
-      Description:
-        type: string
-      Type:
-        type: string
-      Tags:
-        type: string
   Luna.Partner.Public.Client.ServiceType:
     required:
       - Id
@@ -1789,6 +1780,37 @@ definitions:
       Id:
         type: string
       Name:
+        type: string
+  Luna.Partner.Public.Client.AzureMLWorkspaceConfiguration:
+    required:
+      - Region
+      - ResourceId
+      - TenantId
+      - ClientId
+      - ClientSecret
+      - DisplayName
+      - Description
+      - Type
+      - Tags
+    type: object
+    properties:
+      Region:
+        type: string
+      ResourceId:
+        type: string
+      TenantId:
+        type: string
+      ClientId:
+        type: string
+      ClientSecret:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      Type:
+        type: string
+      Tags:
         type: string
   Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication:
     required:

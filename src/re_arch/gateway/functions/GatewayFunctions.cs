@@ -2044,6 +2044,65 @@ namespace Luna.Gateway.Functions
         ///     </example>
         ///     Request contract
         /// </param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="RoleAssignment"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="RoleAssignment.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of role assignment
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListRoleAssignments")]
+        public async Task<IActionResult> ListRoleAssignments(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/rbac/roleassignments")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListRoleAssignments));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"rbac", null, lunaHeaders))
+                    {
+                        var result = await _rbacClient.ListRoleAssignments(lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListRoleAssignments));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List role assignments
+        /// </summary>
+        /// <group>RBAC</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/manage/rbac/roleassignments</url>
+        /// <param name="req">The http request</param>
         /// <response code="204">Success</response>
         /// <security type="http" name="http-bearer">
         ///     <description>Test security</description>
@@ -2416,380 +2475,6 @@ namespace Luna.Gateway.Functions
         }
 
         /// <summary>
-        /// Add Azure ML workspace as a partner service
-        /// </summary>
-        /// <group>Partner Service</group>
-        /// <verb>PUT</verb>
-        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
-        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
-        /// <param name="req" in="body">
-        ///     <see cref="AzureMLWorkspaceConfiguration"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of Azure ML workspace configuration
-        ///         </summary>
-        ///     </example>
-        ///     Request contract
-        /// </param>
-        /// <response code="200">
-        ///     <see cref="AzureMLWorkspaceConfiguration"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of Azure ML workspace configuration
-        ///         </summary>
-        ///     </example>
-        ///     Success
-        /// </response>
-        /// <security type="http" name="http-bearer">
-        ///     <description>Test security</description>
-        ///     <scheme>bearer</scheme>
-        ///     <bearerFormat>JWT</bearerFormat>
-        /// </security>
-        /// <returns></returns>
-        [FunctionName("AddAzureMLService")]
-        public async Task<IActionResult> AddAzureMLService(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
-            string name)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.AddAzureMLService));
-
-                try
-                {
-                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
-                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"partnerservices", null, lunaHeaders))
-                    {
-                        var config = await HttpUtils.DeserializeRequestBodyAsync<AzureMLWorkspaceConfiguration>(req);
-                        await _partnerServiceClient.RegisterAzureMLWorkspace(name, config, lunaHeaders);
-                        return new OkObjectResult(config);
-                    }
-
-                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.AddAzureMLService));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Update Azure ML workspace as a partner service
-        /// </summary>
-        /// <group>Partner Service</group>
-        /// <verb>PATCH</verb>
-        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
-        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
-        /// <param name="req" in="body">
-        ///     <see cref="AzureMLWorkspaceConfiguration"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of Azure ML workspace configuration
-        ///         </summary>
-        ///     </example>
-        ///     Request contract
-        /// </param>
-        /// <response code="200">
-        ///     <see cref="AzureMLWorkspaceConfiguration"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of Azure ML workspace configuration
-        ///         </summary>
-        ///     </example>
-        ///     Success
-        /// </response>
-        /// <security type="http" name="http-bearer">
-        ///     <description>Test security</description>
-        ///     <scheme>bearer</scheme>
-        ///     <bearerFormat>JWT</bearerFormat>
-        /// </security>
-        /// <returns></returns>
-        [FunctionName("UpdateAzureMLService")]
-        public async Task<IActionResult> UpdateAzureMLService(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
-            string name)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.UpdateAzureMLService));
-
-                try
-                {
-                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
-                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"partnerservices", null, lunaHeaders))
-                    {
-                        var config = await HttpUtils.DeserializeRequestBodyAsync<AzureMLWorkspaceConfiguration>(req);
-                        await _partnerServiceClient.UpdateAzureMLWorkspace(name, config, lunaHeaders);
-                        return new OkObjectResult(config);
-                    }
-
-                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.UpdateAzureMLService));
-                }
-            }
-
-        }
-
-
-        /// <summary>
-        /// Remove Azure ML workspace as a partner service
-        /// </summary>
-        /// <group>Partner Service</group>
-        /// <verb>DELETE</verb>
-        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
-        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
-        /// <param name="req">Http request</param>
-        /// <response code="204">Success</response>
-        /// <security type="http" name="http-bearer">
-        ///     <description>Test security</description>
-        ///     <scheme>bearer</scheme>
-        ///     <bearerFormat>JWT</bearerFormat>
-        /// </security>
-        /// <returns></returns>
-        [FunctionName("RemoveAzureMLService")]
-        public async Task<IActionResult> RemoveAzureMLService(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
-            string name)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.RemoveAzureMLService));
-
-                try
-                {
-                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
-                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"partnerservices", null, lunaHeaders))
-                    {
-                        if (await _partnerServiceClient.DeleteAzureMLWorkspace(name, lunaHeaders))
-                        {
-                            return new NoContentResult();
-                        }
-                    }
-
-                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.RemoveAzureMLService));
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// List Azure ML workspaces registered as a partner service
-        /// </summary>
-        /// <group>Partner Service</group>
-        /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/manage/partnerservices/azureml</url>
-        /// <param name="req">Http request</param>
-        /// <response code="200">
-        ///     <see cref="List{T}"/>
-        ///     where T is <see cref="PartnerService"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="PartnerService.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of Azure ML workspace as partner services
-        ///         </summary>
-        ///     </example>
-        ///     Success
-        /// </response>
-        /// <security type="http" name="http-bearer">
-        ///     <description>Test security</description>
-        ///     <scheme>bearer</scheme>
-        ///     <bearerFormat>JWT</bearerFormat>
-        /// </security>
-        /// <returns></returns>
-        [FunctionName("ListAzureMLPartnerServices")]
-        public async Task<IActionResult> ListAzureMLPartnerServices(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/azureml")] HttpRequest req)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.ListAzureMLPartnerServices));
-
-                try
-                {
-                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
-                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", null, lunaHeaders))
-                    {
-                        var config = await _partnerServiceClient.ListAzureMLWorkspaces(lunaHeaders);
-                        return new OkObjectResult(config);
-                    }
-
-                    throw new LunaUnauthorizedUserException(
-                        string.Format(ErrorMessages.CAN_NOT_PERFORM_OPERATION));
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.ListAzureMLPartnerServices));
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// Get an Azure ML workspace as a partner service
-        /// </summary>
-        /// <group>Partner Service</group>
-        /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
-        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
-        /// <param name="req">Http request</param>
-        /// <response code="200">
-        ///     <see cref="AzureMLWorkspaceConfiguration"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of Azure ML workspace configuration
-        ///         </summary>
-        ///     </example>
-        ///     Success
-        /// </response>
-        /// <security type="http" name="http-bearer">
-        ///     <description>Test security</description>
-        ///     <scheme>bearer</scheme>
-        ///     <bearerFormat>JWT</bearerFormat>
-        /// </security>
-        /// <returns></returns>
-        [FunctionName("GetAzureMLService")]
-        public async Task<IActionResult> GetAzureMLService(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
-            string name)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.GetAzureMLService));
-
-                try
-                {
-                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
-                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", null, lunaHeaders))
-                    {
-                        var config = await _partnerServiceClient.GetAzureMLWorkspaceConfiguration(name, lunaHeaders);
-                        return new OkObjectResult(config);
-                    }
-
-                    throw new LunaUnauthorizedUserException(
-                        string.Format(ErrorMessages.PARTNER_SERVICE_DOES_NOT_EXIST, name));
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.GetAzureMLService));
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// List supported ML compute service types
-        /// </summary>
-        /// <group>Partner Service</group>
-        /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/manage/partnerservices/metadata/computeservicetypes</url>
-        /// <param name="req">Http request</param>
-        /// <response code="200">
-        ///     <see cref="List{T}"/>
-        ///     where T is <see cref="ServiceType"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="ServiceType.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of service type
-        ///         </summary>
-        ///     </example>
-        ///     Success
-        /// </response>
-        /// <security type="http" name="http-bearer">
-        ///     <description>Test security</description>
-        ///     <scheme>bearer</scheme>
-        ///     <bearerFormat>JWT</bearerFormat>
-        /// </security>
-        /// <returns></returns>
-        [FunctionName("ListMLComputeServiceTypes")]
-        public async Task<IActionResult> ListMLComputeServiceTypes(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/metadata/computeservicetypes")] HttpRequest req)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.ListMLComputeServiceTypes));
-
-                try
-                {
-                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
-                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", RBACActions.READ_PARTNER_SERVICES, lunaHeaders))
-                    {
-                        var types = await _partnerServiceClient.GetMLComputeServiceTypes(lunaHeaders);
-                        return new OkObjectResult(types);
-                    }
-
-                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.ListMLComputeServiceTypes));
-                }
-            }
-        }
-
-        /// <summary>
         /// List supported ML host service types
         /// </summary>
         /// <group>Partner Service</group>
@@ -2936,7 +2621,7 @@ namespace Luna.Gateway.Functions
         /// </security>
         /// <returns></returns>
         [FunctionName("ListMLComponents")]
-            public async Task<IActionResult> ListMLComponents(
+        public async Task<IActionResult> ListMLComponents(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/{serviceName}/mlcomponents/{componentType}")] HttpRequest req,
             string serviceName,
             string componentType)
@@ -2968,6 +2653,384 @@ namespace Luna.Gateway.Functions
                 }
             }
         }
+
+        /// <summary>
+        /// List supported ML compute service types
+        /// </summary>
+        /// <group>Partner Service (deprecated)</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/metadata/computeservicetypes</url>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="ServiceType"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ServiceType.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of service type
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListMLComputeServiceTypes")]
+        public async Task<IActionResult> ListMLComputeServiceTypes(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/metadata/computeservicetypes")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListMLComputeServiceTypes));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", RBACActions.READ_PARTNER_SERVICES, lunaHeaders))
+                    {
+                        var types = await _partnerServiceClient.GetMLComputeServiceTypes(lunaHeaders);
+                        return new OkObjectResult(types);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListMLComputeServiceTypes));
+                }
+            }
+        }
+
+        #endregion
+        #region Partner Services (deprecated)
+
+        /// <summary>
+        /// Add Azure ML workspace as a partner service
+        /// </summary>
+        /// <group>Partner Service - deprecated</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMLWorkspaceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace configuration
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMLWorkspaceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace configuration
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("AddAzureMLService")]
+        public async Task<IActionResult> AddAzureMLService(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.AddAzureMLService));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"partnerservices", null, lunaHeaders))
+                    {
+                        var config = await HttpUtils.DeserializeRequestBodyAsync<AzureMLWorkspaceConfiguration>(req);
+                        await _partnerServiceClient.RegisterAzureMLWorkspace(name, config, lunaHeaders);
+                        return new OkObjectResult(config);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.AddAzureMLService));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update Azure ML workspace as a partner service
+        /// </summary>
+        /// <group>Partner Service - deprecated)</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AzureMLWorkspaceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace configuration
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AzureMLWorkspaceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace configuration
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdateAzureMLService")]
+        public async Task<IActionResult> UpdateAzureMLService(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdateAzureMLService));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"partnerservices", null, lunaHeaders))
+                    {
+                        var config = await HttpUtils.DeserializeRequestBodyAsync<AzureMLWorkspaceConfiguration>(req);
+                        await _partnerServiceClient.UpdateAzureMLWorkspace(name, config, lunaHeaders);
+                        return new OkObjectResult(config);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.UpdateAzureMLService));
+                }
+            }
+
+        }
+
+
+        /// <summary>
+        /// Remove Azure ML workspace as a partner service
+        /// </summary>
+        /// <group>Partner Service - deprecated</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req">Http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("RemoveAzureMLService")]
+        public async Task<IActionResult> RemoveAzureMLService(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.RemoveAzureMLService));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"partnerservices", null, lunaHeaders))
+                    {
+                        if (await _partnerServiceClient.DeleteAzureMLWorkspace(name, lunaHeaders))
+                        {
+                            return new NoContentResult();
+                        }
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.RemoveAzureMLService));
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// List Azure ML workspaces registered as a partner service
+        /// </summary>
+        /// <group>Partner Service - deprecated</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/azureml</url>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="PartnerService"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="PartnerService.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace as partner services
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListAzureMLPartnerServices")]
+        public async Task<IActionResult> ListAzureMLPartnerServices(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/azureml")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListAzureMLPartnerServices));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", null, lunaHeaders))
+                    {
+                        var config = await _partnerServiceClient.ListAzureMLWorkspaces(lunaHeaders);
+                        return new OkObjectResult(config);
+                    }
+
+                    throw new LunaUnauthorizedUserException(
+                        string.Format(ErrorMessages.CAN_NOT_PERFORM_OPERATION));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListAzureMLPartnerServices));
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Get an Azure ML workspace as a partner service
+        /// </summary>
+        /// <group>Partner Service - deprecated</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="AzureMLWorkspaceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AzureMLWorkspaceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace configuration
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetAzureMLService")]
+        public async Task<IActionResult> GetAzureMLService(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/azureml/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetAzureMLService));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", null, lunaHeaders))
+                    {
+                        var config = await _partnerServiceClient.GetAzureMLWorkspaceConfiguration(name, lunaHeaders);
+                        return new OkObjectResult(config);
+                    }
+
+                    throw new LunaUnauthorizedUserException(
+                        string.Format(ErrorMessages.PARTNER_SERVICE_DOES_NOT_EXIST, name));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetAzureMLService));
+                }
+            }
+
+        }
+
         #endregion
 
         #region gallery

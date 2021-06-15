@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Luna.RBAC.Public.Client.Enums;
 using Luna.Common.Utils.HttpUtils;
 using Luna.Common.Utils.LoggingUtils;
+using System.Collections.Generic;
 
 namespace Luna.RBAC
 {
@@ -33,6 +34,56 @@ namespace Luna.RBAC
             this._cacheClient = cacheClient;
             this._dbContext = dbContext;
             this._logger = logger;
+        }
+
+        /// <summary>
+        /// List role assignments
+        /// </summary>
+        /// <group>Role Assignment</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/roleassignments</url>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="RoleAssignment"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="RoleAssignment.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of role assignment
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListRoleAssignments")]
+        public async Task<IActionResult> ListRoleAssignments(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "roleassignments")] HttpRequest req)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListRoleAssignments));
+
+                try
+                {
+                    var assignments = await _dbContext.RoleAssignments.ToListAsync();
+                    return new OkObjectResult(assignments);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListRoleAssignments));
+                }
+            }
         }
 
         /// <summary>

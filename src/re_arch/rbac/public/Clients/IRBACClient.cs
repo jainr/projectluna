@@ -98,5 +98,12 @@ namespace Luna.RBAC.Public.Client
         /// <param name="headers">The Luna request header</param>
         /// <returns>The RBAC Query result</returns>
         Task<RBACQueryResult> GetRBACQueryResult(string uid, string resourceId, string action, LunaRequestHeaders headers);
+
+        /// <summary>
+        /// List all role assignments
+        /// </summary>
+        /// <param name="headers"></param>
+        /// <returns>The role assignments</returns>
+        Task<List<RoleAssignment>> ListRoleAssignments(LunaRequestHeaders headers);
     }
 }
