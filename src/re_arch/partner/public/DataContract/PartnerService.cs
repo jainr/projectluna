@@ -1,9 +1,8 @@
-﻿using Luna.Partner.PublicClient.DataContract.PartnerServices;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Luna.Partner.PublicClient.DataContract
+namespace Luna.Partner.Public.Client
 {
     public class PartnerService
     {

@@ -2,7 +2,7 @@
 using Luna.Common.Utils;
 using Luna.Common.Utils.LoggingUtils.Exceptions;
 using Luna.Common.Utils.RestClients;
-using Luna.Partner.PublicClient.DataContract.PartnerServices;
+using Luna.Partner.Public.Client;
 using Luna.Publish.Public.Client.DataContract;
 using Luna.Routing.Clients.MLServiceClients.Interfaces;
 using Luna.Routing.Data.DataContracts;
@@ -97,7 +97,7 @@ namespace Luna.Routing.Clients.MLServiceClients
             {
                 request.Headers.Add(AUTHORIZATION_HEADER, string.Format(BEARER_TOKEN_FORMAT, endpoint.Key));
             }
-
+            // Add timeout setting.
             headers.AddToHttpRequestHeaders(request.Headers);
 
             var response = await this._httpClient.SendAsync(request);

@@ -6,8 +6,6 @@ using Luna.Common.Utils.LoggingUtils.Exceptions;
 using Luna.Common.Utils.RestClients;
 using Luna.Gallery.Public.Client.Clients;
 using Luna.Gallery.Public.Client.DataContracts;
-using Luna.Partner.PublicClient.Clients;
-using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using Luna.Publish.PublicClient.Clients;
 using Luna.Publish.Public.Client.DataContract;
 using Luna.PubSub.PublicClient.Clients;
@@ -26,7 +24,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Luna.PubSub.PublicClient;
-using Luna.Partner.PublicClient.DataContract;
+using Luna.Partner.Public.Client;
+using Newtonsoft.Json;
 
 namespace Luna.Gateway.Functions
 {
@@ -2094,6 +2093,329 @@ namespace Luna.Gateway.Functions
         #region partner
 
         /// <summary>
+        /// Register a partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req" in="body">
+        ///     <see cref="BasePartnerServiceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BasePartnerServiceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of partner service configuration
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="BasePartnerServiceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BasePartnerServiceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of partner service configuration
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("AddPartnerService")]
+        public async Task<IActionResult> AddPartnerService(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "manage/partnerservices/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.AddPartnerService));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"partnerservices", null, lunaHeaders))
+                    {
+                        var config = await ParsePartnerServiceConfigurationAsync(req);
+
+                        await _partnerServiceClient.RegisterPartnerServiceAsync(name, config, lunaHeaders);
+                        return new OkObjectResult(config);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.AddPartnerService));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update a partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req" in="body">
+        ///     <see cref="BasePartnerServiceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BasePartnerServiceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of partner service configuration
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="BasePartnerServiceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BasePartnerServiceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of partner service configuration
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdatePartnerService")]
+        public async Task<IActionResult> UpdatePartnerService(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "manage/partnerservices/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdatePartnerService));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"partnerservices", null, lunaHeaders))
+                    {
+                        var config = await ParsePartnerServiceConfigurationAsync(req);
+                        await _partnerServiceClient.UpdatePartnerServiceAsync(name, config, lunaHeaders);
+                        return new OkObjectResult(config);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.UpdatePartnerService));
+                }
+            }
+
+        }
+
+
+        /// <summary>
+        /// Remove a registered partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req">Http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("RemovePartnerService")]
+        public async Task<IActionResult> RemovePartnerService(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "manage/partnerservices/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.RemovePartnerService));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"partnerservices", null, lunaHeaders))
+                    {
+                        if (await _partnerServiceClient.DeletePartnerServiceAsync(name, lunaHeaders))
+                        {
+                            return new NoContentResult();
+                        }
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.RemovePartnerService));
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// List all partner services
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices</url>
+        /// <param name="req">Http request</param>
+        /// <param name="type" required="true" cref="string" in="query">Type of partner service</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="PartnerService"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="PartnerService.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure ML workspace as partner services
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListPartnerServices")]
+        public async Task<IActionResult> ListPartnerServices(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListPartnerServices));
+
+                try
+                {
+                    string type = null;
+                    if (req.Query.ContainsKey(PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME))
+                    {
+                        type = req.Query[PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME].ToString();
+                    }
+
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", null, lunaHeaders))
+                    {
+                        var config = await _partnerServiceClient.ListPartnerServicesAsync(lunaHeaders, type);
+                        return new OkObjectResult(config);
+                    }
+
+                    throw new LunaUnauthorizedUserException(
+                        string.Format(ErrorMessages.CAN_NOT_PERFORM_OPERATION));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListPartnerServices));
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Get a partner service
+        /// </summary>
+        /// <group>Partner Service</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/partnerservices/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
+        /// <param name="req">Http request</param>
+        /// <response code="200">
+        ///     <see cref="BasePartnerServiceConfiguration"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BasePartnerServiceConfiguration.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of partner service configuration
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetPartnerService")]
+        public async Task<IActionResult> GetPartnerService(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/partnerservices/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetPartnerService));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, "partnerservices", null, lunaHeaders))
+                    {
+                        var config = await _partnerServiceClient.GetPartnerServiceConfigurationAsync(name, lunaHeaders);
+                        return new OkObjectResult(config);
+                    }
+
+                    throw new LunaUnauthorizedUserException(
+                        string.Format(ErrorMessages.PARTNER_SERVICE_DOES_NOT_EXIST, name));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetPartnerService));
+                }
+            }
+        }
+
+        /// <summary>
         /// Add Azure ML workspace as a partner service
         /// </summary>
         /// <group>Partner Service</group>
@@ -3422,5 +3744,47 @@ namespace Luna.Gateway.Functions
             }
         }
         #endregion
+
+        private async Task<BasePartnerServiceConfiguration> ParsePartnerServiceConfigurationAsync(HttpRequest req)
+        {
+            var requestBody = await HttpUtils.GetRequestBodyAsync(req);
+
+            var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(requestBody, new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto
+            });
+
+            if (config.Type.Equals(PartnerServiceType.AzureML.ToString(),
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                config = JsonConvert.DeserializeObject<AzureMLWorkspaceConfiguration>(requestBody, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Auto
+                });
+            }
+            else if (config.Type.Equals(PartnerServiceType.GitHub.ToString(),
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                config = JsonConvert.DeserializeObject<GitHubPartnerServiceConfiguration>(requestBody, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Auto
+                });
+            }
+            else if (config.Type.Equals(PartnerServiceType.AzureSynapse.ToString(),
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                config = JsonConvert.DeserializeObject<AzureSynapseWorkspaceConfiguration>(requestBody, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Auto
+                });
+            }
+            else
+            {
+                throw new LunaBadRequestUserException(string.Format(ErrorMessages.INVALID_PARTNER_SERVICE_TYPE),
+                    UserErrorCode.InvalidParameter, nameof(config.Type));
+            }
+
+            return config;
+        }
     }
 }

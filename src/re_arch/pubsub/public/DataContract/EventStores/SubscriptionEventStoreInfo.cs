@@ -18,6 +18,12 @@ namespace Luna.PubSub.PublicClient
                 SubscriberServiceName = "routing",
                 SubscriberFunctionName = "processsubscriptionevents"
             });
+
+            this.EventSubscribers.Add(new LunaEventSubscriber()
+            {
+                SubscriberServiceName = "provision",
+                SubscriberFunctionName = "processsubscriptionevents"
+            });
         }
     }
 }

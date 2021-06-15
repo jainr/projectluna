@@ -20,7 +20,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ServiceType'
+              $ref: '#/definitions/Luna.Partner.Public.Client.ServiceType'
       security:
         - x-functions-key: [ ]
   /api/partnerServices/computeservicetypes:
@@ -37,7 +37,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ServiceType'
+              $ref: '#/definitions/Luna.Partner.Public.Client.ServiceType'
       security:
         - x-functions-key: [ ]
   '/api/partnerServices/{serviceType}/mlcomponenttypes':
@@ -60,7 +60,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ComponentType'
+              $ref: '#/definitions/Luna.Partner.Public.Client.ComponentType'
       security:
         - x-functions-key: [ ]
   '/api/partnerServices/{serviceName}/mlcomponents/{componentType}':
@@ -88,7 +88,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.BaseMLComponent'
+              $ref: '#/definitions/Luna.Partner.Public.Client.BaseMLComponent'
       security:
         - x-functions-key: [ ]
   '/api/partnerServices/{name}':
@@ -109,7 +109,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
+            $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
       security:
         - x-functions-key: [ ]
   /api/partnerServices:
@@ -131,11 +131,11 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration'
+              $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
       security:
         - x-functions-key: [ ]
 definitions:
-  Luna.Partner.PublicClient.DataContract.ServiceType:
+  Luna.Partner.Public.Client.ServiceType:
     required:
       - Id
       - DisplayName
@@ -145,7 +145,7 @@ definitions:
         type: string
       DisplayName:
         type: string
-  Luna.Partner.PublicClient.DataContract.ComponentType:
+  Luna.Partner.Public.Client.ComponentType:
     required:
       - Id
       - DisplayName
@@ -155,7 +155,7 @@ definitions:
         type: string
       DisplayName:
         type: string
-  Luna.Partner.PublicClient.DataContract.BaseMLComponent:
+  Luna.Partner.Public.Client.BaseMLComponent:
     required:
       - Type
       - Id
@@ -168,7 +168,7 @@ definitions:
         type: string
       Name:
         type: string
-  Luna.Partner.PublicClient.DataContract.PartnerServices.BasePartnerServiceConfiguration:
+  Luna.Partner.Public.Client.BasePartnerServiceConfiguration:
     required:
       - DisplayName
       - Description

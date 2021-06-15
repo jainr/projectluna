@@ -803,6 +803,54 @@ paths:
           description: Success
       security:
         - http-bearer: [ ]
+  '/api/manage/partnerservices/{name}':
+    delete:
+      tags:
+        - Partner Service
+      summary: Remove a registered partner service
+      operationId: deleteApiManagePartnerservicesByName
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - http-bearer: [ ]
+  /api/manage/partnerservices:
+    get:
+      tags:
+        - Partner Service
+      summary: List all partner services
+      operationId: getApiManagePartnerservices
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: type
+          description: Type of partner service
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Partner.Public.Client.PartnerService'
+            example:
+              UniqueName: amlworkspace
+              DisplayName: My AML workspace
+              Type: AzureML
+              Description: This is my AML workspace
+              Tags: department=hr
+              CreatedTime: '2021-06-10T18:00:30.1320267-07:00'
+              LastUpdatedTime: '2021-06-10T18:00:30.1320267-07:00'
+      security:
+        - http-bearer: [ ]
   '/api/manage/partnerservices/azureml/{name}':
     delete:
       tags:
@@ -834,7 +882,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.PartnerService'
+              $ref: '#/definitions/Luna.Partner.Public.Client.PartnerService'
             example:
               UniqueName: amlworkspace
               DisplayName: My AML workspace
@@ -859,7 +907,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ServiceType'
+              $ref: '#/definitions/Luna.Partner.Public.Client.ServiceType'
             example:
               Id: AzureML
               DisplayName: Azure Machine Learning workspace
@@ -879,7 +927,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ServiceType'
+              $ref: '#/definitions/Luna.Partner.Public.Client.ServiceType'
             example:
               Id: AzureML
               DisplayName: Azure Machine Learning workspace
@@ -905,7 +953,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.ComponentType'
+              $ref: '#/definitions/Luna.Partner.Public.Client.ComponentType'
             example:
               Id: Realtime
               DisplayName: Realtime endpoints
@@ -936,7 +984,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.PublicClient.DataContract.BaseMLComponent'
+              $ref: '#/definitions/Luna.Partner.Public.Client.BaseMLComponent'
             example:
               Type: Realtime
               Id: myendpoint
@@ -1638,7 +1686,47 @@ definitions:
       UserName: FirstName LastName
       Role: SystemAdmin
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
-  Luna.Partner.PublicClient.DataContract.PartnerServices.AzureMLWorkspaceConfiguration:
+  Luna.Partner.Public.Client.BasePartnerServiceConfiguration:
+    required:
+      - DisplayName
+      - Description
+      - Type
+      - Tags
+    type: object
+    properties:
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      Type:
+        type: string
+      Tags:
+        type: string
+  Luna.Partner.Public.Client.PartnerService:
+    required:
+      - UniqueName
+      - DisplayName
+      - Type
+      - Description
+    type: object
+    properties:
+      UniqueName:
+        type: string
+      DisplayName:
+        type: string
+      Type:
+        type: string
+      Description:
+        type: string
+      Tags:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+      LastUpdatedTime:
+        format: date-time
+        type: string
+  Luna.Partner.Public.Client.AzureMLWorkspaceConfiguration:
     required:
       - Region
       - ResourceId
@@ -1669,31 +1757,7 @@ definitions:
         type: string
       Tags:
         type: string
-  Luna.Partner.PublicClient.DataContract.PartnerService:
-    required:
-      - UniqueName
-      - DisplayName
-      - Type
-      - Description
-    type: object
-    properties:
-      UniqueName:
-        type: string
-      DisplayName:
-        type: string
-      Type:
-        type: string
-      Description:
-        type: string
-      Tags:
-        type: string
-      CreatedTime:
-        format: date-time
-        type: string
-      LastUpdatedTime:
-        format: date-time
-        type: string
-  Luna.Partner.PublicClient.DataContract.ServiceType:
+  Luna.Partner.Public.Client.ServiceType:
     required:
       - Id
       - DisplayName
@@ -1703,7 +1767,7 @@ definitions:
         type: string
       DisplayName:
         type: string
-  Luna.Partner.PublicClient.DataContract.ComponentType:
+  Luna.Partner.Public.Client.ComponentType:
     required:
       - Id
       - DisplayName
@@ -1713,7 +1777,7 @@ definitions:
         type: string
       DisplayName:
         type: string
-  Luna.Partner.PublicClient.DataContract.BaseMLComponent:
+  Luna.Partner.Public.Client.BaseMLComponent:
     required:
       - Type
       - Id

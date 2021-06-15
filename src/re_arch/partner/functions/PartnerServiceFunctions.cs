@@ -13,17 +13,16 @@ using Luna.Common.Utils.LoggingUtils.Exceptions;
 using Luna.Common.Utils.LoggingUtils.Enums;
 using Luna.Common.Utils.HttpUtils;
 using Luna.Common.Utils.LoggingUtils;
-using Luna.Partner.PublicClient.DataContract;
 using Luna.Common.Utils.RestClients;
 using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
 using System.Linq;
 using System.Net;
 using System.Collections.Generic;
-using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using Luna.Common.LoggingUtils;
 using Microsoft.EntityFrameworkCore;
 using Luna.Publish.PublicClient.Enums;
 using Luna.Common.Utils;
+using Luna.Partner.Public.Client;
 
 namespace Luna.Partner.Functions
 {
@@ -228,7 +227,7 @@ namespace Luna.Partner.Functions
                     if (componentType.Equals(LunaAPIType.Realtime.ToString(), 
                         StringComparison.InvariantCultureIgnoreCase))
                     {
-                        var client = _serviceClientFactory.GetRealtimeEndpointPartnerServiceClient(serviceName, config);
+                        var client = await _serviceClientFactory.GetRealtimeEndpointPartnerServiceClientAsync(serviceName, config);
 
                         if (client != null)
                         {
@@ -238,7 +237,7 @@ namespace Luna.Partner.Functions
                     else if (componentType.Equals(LunaAPIType.Pipeline.ToString(),
                         StringComparison.InvariantCultureIgnoreCase))
                     {
-                        var client = _serviceClientFactory.GetPipelineEndpointPartnerServiceClient(serviceName, config);
+                        var client = await _serviceClientFactory.GetPipelineEndpointPartnerServiceClientAsync(serviceName, config);
 
                         if (client != null)
                         {
@@ -350,22 +349,17 @@ namespace Luna.Partner.Functions
                     if (req.Query.ContainsKey(PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME))
                     {
                         type = req.Query[PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME];
+                        var partnerServices = await _dbContext.PartnerServices.Where(p => p.Type == type)
+                            .Select(x => x.ToPublicPartnerService()).ToListAsync();
+
+                        return new OkObjectResult(partnerServices);
                     }
                     else
                     {
-                        throw new LunaBadRequestUserException(
-                            string.Format(ErrorMessages.MISSING_QUERY_PARAMETER, PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME),
-                            UserErrorCode.MissingQueryParameter);
-                    }
+                        var partnerServices = await _dbContext.PartnerServices.Select(x => x.ToPublicPartnerService()).ToListAsync();
 
-                    var partnerServicesInternal = _dbContext.PartnerServices.Where(p => p.Type == type).ToList<PartnerServiceInternal>();
-                    List<PartnerService> results = new List<PartnerService>();
-                    foreach (var service in partnerServicesInternal)
-                    {
-                        results.Add(service.ToPublicPartnerService());
+                        return new OkObjectResult(partnerServices);
                     }
-
-                    return new OkObjectResult(results);
                 }
                 catch (Exception ex)
                 {
@@ -437,8 +431,9 @@ namespace Luna.Partner.Functions
                         throw new LunaConflictUserException(
                             string.Format(ErrorMessages.CAN_NOT_UPDATE_PARTNER_SERVICE_TYPE, currentService.Type));
                     }
+                    var client = await _serviceClientFactory.GetPartnerServiceClientAsync(name, config);
 
-                    if (!await _serviceClientFactory.GetPartnerServiceClient(name, config).TestConnectionAsync())
+                    if (!await client.TestConnectionAsync())
                     {
                         throw new LunaBadRequestUserException(
                             string.Format(ErrorMessages.CAN_NOT_CONNECT_TO_PARTNER_SERVICE, name),
@@ -515,7 +510,9 @@ namespace Luna.Partner.Functions
                         throw new LunaConflictUserException(string.Format(ErrorMessages.PARTNER_SERVICE_ALREADY_EXIST, name));
                     }
 
-                    if (!await _serviceClientFactory.GetPartnerServiceClient(name, config).TestConnectionAsync())
+                    var client = await _serviceClientFactory.GetPartnerServiceClientAsync(name, config);
+
+                    if (!await client.TestConnectionAsync())
                     {
                         throw new LunaBadRequestUserException("Can not connect to the partner service.",
                             UserErrorCode.Disconnected);

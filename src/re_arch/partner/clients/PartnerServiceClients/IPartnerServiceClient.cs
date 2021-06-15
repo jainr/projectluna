@@ -1,4 +1,4 @@
-﻿using Luna.Partner.PublicClient.DataContract.PartnerServices;
+﻿using Luna.Partner.Public.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,7 +20,7 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         /// Update the configuration of the service client
         /// </summary>
         /// <param name="configuration">The configuration in JSON format</param>
-        void UpdateConfiguration(BasePartnerServiceConfiguration configuration);
+        Task UpdateConfigurationAsync(BasePartnerServiceConfiguration configuration);
 
     }
 }

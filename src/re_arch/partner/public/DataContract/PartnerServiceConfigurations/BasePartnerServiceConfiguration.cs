@@ -1,11 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using Luna.Common.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace Luna.Partner.PublicClient.DataContract.PartnerServices
+namespace Luna.Partner.Public.Client
 {
     /// <summary>
     /// Base class for all Partner Services
@@ -31,6 +33,14 @@ namespace Luna.Partner.PublicClient.DataContract.PartnerServices
         public BasePartnerServiceConfiguration(PartnerServiceType type)
         {
             this.Type = type.ToString();
+        }
+
+        public virtual async Task EncryptSecretsAsync(IEncryptionUtils utils)
+        {
+        }
+
+        public virtual async Task DecryptSecretsAsync(IEncryptionUtils utils)
+        {
         }
 
         /// <summary>

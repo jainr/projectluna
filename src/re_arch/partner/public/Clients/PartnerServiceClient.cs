@@ -1,7 +1,5 @@
 ﻿using Luna.Common.Utils;
 using Luna.Common.Utils.RestClients;
-using Luna.Partner.PublicClient.DataContract;
-using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using Luna.Publish.PublicClient.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,7 +11,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Partner.PublicClient.Clients
+namespace Luna.Partner.Public.Client
 {
     public class PartnerServiceClient : RestClient, IPartnerServiceClient
     {
@@ -33,6 +31,160 @@ namespace Luna.Partner.PublicClient.Clients
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this._encryptionUtils = encryptionUtils ?? throw new ArgumentNullException(nameof(encryptionUtils));
             this._config = option.CurrentValue ?? throw new ArgumentNullException(nameof(option.CurrentValue));
+        }
+
+        /// <summary>
+        /// Get the specified partner service
+        /// </summary>
+        /// <param name="name">The name of the partner service</param>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>The partner service configuration</returns>
+        public async Task<BasePartnerServiceConfiguration> GetPartnerServiceConfigurationAsync(string name, LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+            var content = await response.Content.ReadAsStringAsync();
+            var config = JsonConvert.DeserializeObject<BasePartnerServiceConfiguration>(
+                    content, new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.Auto
+                    });
+
+            if (config.Type.Equals(PartnerServiceType.AzureML.ToString(),
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                config = JsonConvert.DeserializeObject<AzureMLWorkspaceConfiguration>(
+                       content, new JsonSerializerSettings()
+                       {
+                           TypeNameHandling = TypeNameHandling.Auto
+                       });
+            }
+            else if (config.Type.Equals(PartnerServiceType.AzureSynapse.ToString(),
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                config = JsonConvert.DeserializeObject<AzureSynapseWorkspaceConfiguration>(
+                       content, new JsonSerializerSettings()
+                       {
+                           TypeNameHandling = TypeNameHandling.Auto
+                       });
+            }
+            else if (config.Type.Equals(PartnerServiceType.GitHub.ToString(),
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                config = JsonConvert.DeserializeObject<GitHubPartnerServiceConfiguration>(
+                       content, new JsonSerializerSettings()
+                       {
+                           TypeNameHandling = TypeNameHandling.Auto
+                       });
+            }
+
+            return config;
+        }
+
+        /// <summary>
+        /// List all partner services
+        /// </summary>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>All registered partner services</returns>
+        public async Task<List<PartnerService>> ListPartnerServicesAsync(LunaRequestHeaders headers, string type = null)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+
+            var serviceBaseUrl = this._config.ServiceBaseUrl + "partnerServices";
+            if (!string.IsNullOrEmpty(type))
+            {
+                serviceBaseUrl = serviceBaseUrl + 
+                    $"?{PartnerQueryParameterConstats.PARTNER_SERVICE_TYPE_QUERY_PARAM_NAME}={type}";
+            }
+
+            var uri = new Uri(serviceBaseUrl);
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            List<PartnerService> services =
+                JsonConvert.DeserializeObject<List<PartnerService>>(
+                    await response.Content.ReadAsStringAsync());
+
+            return services;
+        }
+
+        /// <summary>
+        /// Register a new partner service
+        /// </summary>
+        /// <param name="name">The name of partner service</param>
+        /// <param name="config">The configuration</param>
+        /// <param name="headers">The request headers</param>
+        /// <returns></returns>
+        public async Task<BasePartnerServiceConfiguration> RegisterPartnerServiceAsync(
+            string name,
+            BasePartnerServiceConfiguration config,
+            LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
+
+            await config.EncryptSecretsAsync(_encryptionUtils);
+
+            var content = JsonConvert.SerializeObject(config, new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.All
+            });
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Put, uri, content, headers);
+
+            return config;
+        }
+
+        /// <summary>
+        /// Update a partner service
+        /// </summary>
+        /// <param name="name">The name of partner service</param>
+        /// <param name="config">The configuration</param>
+        /// <param name="headers">The request headers</param>
+        /// <returns></returns>
+        public async Task<BasePartnerServiceConfiguration> UpdatePartnerServiceAsync(
+            string name,
+            BasePartnerServiceConfiguration config,
+            LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
+
+            await config.EncryptSecretsAsync(_encryptionUtils);
+
+            var content = JsonConvert.SerializeObject(config, new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.All
+            });
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Patch, uri, content, headers);
+
+            return config;
+        }
+
+        /// <summary>
+        /// Delete a partner service
+        /// </summary>
+        /// <param name="name">The name of partner service</param>
+        /// <param name="headers">The request headers</param>
+        /// <returns></returns>
+        public async Task<bool> DeletePartnerServiceAsync(
+            string name,
+            LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"partnerServices/{name}");
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Delete, uri, null, headers);
+
+            return response.IsSuccessStatusCode;
         }
 
         /// <summary>

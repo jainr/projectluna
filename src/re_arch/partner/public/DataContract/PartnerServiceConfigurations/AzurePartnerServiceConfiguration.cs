@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Partner.PublicClient.DataContract.PartnerServices
+namespace Luna.Partner.Public.Client
 {
     /// <summary>
     /// Base class for all Azure Partner Services
@@ -18,11 +18,11 @@ namespace Luna.Partner.PublicClient.DataContract.PartnerServices
 
         }
 
-        public async Task EncryptSecretsAsync(IEncryptionUtils utils)
+        public override async Task EncryptSecretsAsync(IEncryptionUtils utils)
         {
             this.ClientSecret = await utils.EncryptStringWithSymmetricKeyAsync(this.ClientSecret);
         }
-        public async Task DecryptSecretsAsync(IEncryptionUtils utils)
+        public override async Task DecryptSecretsAsync(IEncryptionUtils utils)
         {
             this.ClientSecret = await utils.DecryptStringWithSymmetricKeyAsync(this.ClientSecret);
         }

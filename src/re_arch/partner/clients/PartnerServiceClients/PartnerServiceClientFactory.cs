@@ -1,10 +1,10 @@
 ﻿using Luna.Common.Utils;
-using Luna.Partner.PublicClient.DataContract;
-using Luna.Partner.PublicClient.DataContract.PartnerServices;
+using Luna.Partner.Public.Client;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Luna.Partner.Clients.PartnerServiceClients
 {
@@ -32,11 +32,11 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         /// <param name="name">The partner service name</param>
         /// <param name="config">The partner service config</param>
         /// <returns>The partner service client</returns>
-        public IPartnerServiceClient GetPartnerServiceClient(string name, BasePartnerServiceConfiguration config)
+        public async Task<IPartnerServiceClient> GetPartnerServiceClientAsync(string name, BasePartnerServiceConfiguration config)
         {
             if (_partnerServiceClient.ContainsKey(name))
             {
-                _partnerServiceClient[name].UpdateConfiguration(config);
+                await _partnerServiceClient[name].UpdateConfigurationAsync(config);
                 return _partnerServiceClient[name];
             }
 
@@ -46,6 +46,11 @@ namespace Luna.Partner.Clients.PartnerServiceClients
                 StringComparison.InvariantCultureIgnoreCase))
             {
                 client = new AzureMLWorkspaceClient(_httpClient, _encryptionUtils, config);
+            }
+            else if (config.Type.Equals(PartnerServiceType.GitHub.ToString(),
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                client = new GitHubClient(_httpClient, _encryptionUtils, config);
             }
 
             if (client != null)
@@ -62,11 +67,11 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         /// <param name="name">The partner service name</param>
         /// <param name="config">The partner service config</param>
         /// <returns>The partner service client</returns>
-        public IRealtimeEndpointPartnerServiceClient GetRealtimeEndpointPartnerServiceClient(string name, BasePartnerServiceConfiguration config)
+        public async Task<IRealtimeEndpointPartnerServiceClient> GetRealtimeEndpointPartnerServiceClientAsync(string name, BasePartnerServiceConfiguration config)
         {
             if (_realtimeEndpointPartnerServiceClient.ContainsKey(name))
             {
-                _realtimeEndpointPartnerServiceClient[name].UpdateConfiguration(config);
+                await _realtimeEndpointPartnerServiceClient[name].UpdateConfigurationAsync(config);
                 return _realtimeEndpointPartnerServiceClient[name];
             }
 
@@ -92,11 +97,11 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         /// <param name="name">The partner service name</param>
         /// <param name="config">The partner service config</param>
         /// <returns>The partner service client</returns>
-        public IPipelineEndpointPartnerServiceClient GetPipelineEndpointPartnerServiceClient(string name, BasePartnerServiceConfiguration config)
+        public async Task<IPipelineEndpointPartnerServiceClient> GetPipelineEndpointPartnerServiceClientAsync(string name, BasePartnerServiceConfiguration config)
         {
             if (_pipelineEndpointPartnerServiceClient.ContainsKey(name))
             {
-                _pipelineEndpointPartnerServiceClient[name].UpdateConfiguration(config);
+                await _pipelineEndpointPartnerServiceClient[name].UpdateConfigurationAsync(config);
                 return _pipelineEndpointPartnerServiceClient[name];
             }
 

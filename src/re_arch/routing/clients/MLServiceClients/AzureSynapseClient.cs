@@ -1,5 +1,5 @@
 ﻿using Luna.Common.Utils.RestClients;
-using Luna.Partner.PublicClient.DataContract.PartnerServices;
+using Luna.Partner.Public.Client;
 using Luna.Publish.Public.Client.DataContract;
 using Luna.Routing.Clients.MLServiceClients.Interfaces;
 using Luna.Routing.Data.DataContracts;

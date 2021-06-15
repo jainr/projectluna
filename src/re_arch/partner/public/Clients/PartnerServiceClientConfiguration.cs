@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Partner.PublicClient.Clients
+namespace Luna.Partner.Public.Client
 {
     public class PartnerServiceClientConfiguration : RestClientConfiguration
     {

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Luna.Provision.Clients</AssemblyName>
+    <RootNamespace>Luna.Provision.Clients</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\common\commonUtils\common_utils.csproj" />
+    <ProjectReference Include="..\data\provision_data.csproj" />
+  </ItemGroup>
+
+</Project>

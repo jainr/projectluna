@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Partner.PublicClient.DataContract.PartnerServices
+namespace Luna.Partner.Public.Client
 {
     /// <summary>
     /// The database entity for Azure ML workspace

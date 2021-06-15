@@ -1,4 +1,4 @@
-﻿using Luna.Partner.PublicClient.DataContract.PartnerServices;
+﻿using Luna.Partner.Public.Client;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -32,7 +32,7 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         /// Update the configuration of the service client
         /// </summary>
         /// <param name="configuration">The configuration</param>
-        public void UpdateConfiguration(BasePartnerServiceConfiguration configuration)
+        public async Task UpdateConfigurationAsync(BasePartnerServiceConfiguration configuration)
         {
             this._config = (AzureSynapseWorkspaceConfiguration)configuration;
         }

@@ -53,6 +53,7 @@ namespace Luna.Common.LoggingUtils
         public const string INVALID_TENANT_OR_CLIENT_ID = "The tenant id or client id is invalid.";
         public const string INVALID_CLIENT_SECRET = "The client secret is invalid.";
         public const string INVALID_MARKETPLACE_TOKEN = "The Azure marketplace token is invalid.";
+        public const string INVALID_PARTNER_SERVICE_TYPE = "The partner service type {0} is invalid.";
         public const string MARKETPLACE_SUBSCRIPTION_DOES_NOT_EXIST = "The Azure marketplace subscription {0} does not exist or you don't have permission to access it.";
         public const string MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH = "The offer id {0} in request path does not match the offer id in request body {1}.";
         public const string MARKETPLACE_PLAN_NAME_DOES_NOT_MATCH = "The plan id {0} in request path does not match the plan id in request body {1}.";

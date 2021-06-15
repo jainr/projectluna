@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Luna.Partner.PublicClient.Clients;
 using Luna.RBAC.Public.Client;
 using Luna.Publish.PublicClient.Clients;
 using Luna.PubSub.PublicClient.Clients;
 using Luna.Gallery.Public.Client.Clients;
 using Luna.Common.Utils;
+using Luna.Partner.Public.Client;
 
 [assembly: FunctionsStartup(typeof(Luna.Gateway.Functions.Startup))]
 

@@ -1,15 +1,62 @@
 ﻿using Luna.Common.Utils.RestClients;
-using Luna.Partner.PublicClient.DataContract;
-using Luna.Partner.PublicClient.DataContract.PartnerServices;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Partner.PublicClient.Clients
+namespace Luna.Partner.Public.Client
 {
     public interface IPartnerServiceClient
     {
+        /// <summary>
+        /// Get the specified partner service
+        /// </summary>
+        /// <param name="name">The name of the partner service</param>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>The partner service configuration</returns>
+        Task<BasePartnerServiceConfiguration> GetPartnerServiceConfigurationAsync(string name, LunaRequestHeaders headers);
+
+        /// <summary>
+        /// List all partner services
+        /// </summary>
+        /// <param name="headers">The luna request headers</param>
+        /// <returns>All registered partner services</returns>
+        Task<List<PartnerService>> ListPartnerServicesAsync(LunaRequestHeaders headers, string type = null);
+
+        /// <summary>
+        /// Register a new partner service
+        /// </summary>
+        /// <param name="name">The name of partner service</param>
+        /// <param name="config">The configuration</param>
+        /// <param name="headers">The request headers</param>
+        /// <returns></returns>
+        Task<BasePartnerServiceConfiguration> RegisterPartnerServiceAsync(
+            string name,
+            BasePartnerServiceConfiguration config,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Update a partner service
+        /// </summary>
+        /// <param name="name">The name of partner service</param>
+        /// <param name="config">The configuration</param>
+        /// <param name="headers">The request headers</param>
+        /// <returns></returns>
+        Task<BasePartnerServiceConfiguration> UpdatePartnerServiceAsync(
+            string name,
+            BasePartnerServiceConfiguration config,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Delete a partner service
+        /// </summary>
+        /// <param name="name">The name of partner service</param>
+        /// <param name="headers">The request headers</param>
+        /// <returns></returns>
+        Task<bool> DeletePartnerServiceAsync(
+            string name,
+            LunaRequestHeaders headers);
+
         /// <summary>
         /// Get Azure ML workspace configuration
         /// </summary>

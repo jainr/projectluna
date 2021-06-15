@@ -7,11 +7,11 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Luna.Routing.Clients.MLServiceClients;
 using Luna.Routing.Data.Entities;
-using Luna.Partner.PublicClient.Clients;
 using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
 using Luna.PubSub.PublicClient.Clients;
 using Luna.Routing.Clients.SecretCacheClients;
 using Luna.Common.Utils;
+using Luna.Partner.Public.Client;
 
 [assembly: FunctionsStartup(typeof(Luna.Routing.Functions.Startup))]
 

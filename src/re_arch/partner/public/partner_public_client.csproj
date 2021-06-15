@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>Luna.Partner.PublicClient</RootNamespace>
+    <RootNamespace>Luna.Partner.Public.Client</RootNamespace>
     <AssemblyName>Luna.Partner.Public.Client</AssemblyName>
   </PropertyGroup>
 

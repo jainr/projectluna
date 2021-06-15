@@ -62,6 +62,22 @@ namespace Luna.Provision.Functions
 
         }
 
+        [FunctionName("ProcessSubscriptionEvents")]
+        public async Task ProcessSubscriptionEvents([QueueTrigger("provision-processsubscriptionevents")] string myQueueItem)
+        {
+            // Get the last applied event id
+            // If there's no record in the database, it will return the default value of long type 0
+            var lastAppliedEventId = await _dbContext.LunaApplicationSwaggers.
+                OrderByDescending(x => x.LastAppliedEventId).
+                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+
+            var events = await _pubSubClient.ListEventsAsync(
+                LunaEventStoreType.SUBSCRIPTION_EVENT_STORE,
+                new LunaRequestHeaders(),
+                eventsAfter: lastAppliedEventId);
+
+        }
+
         /// <summary>
         /// Test endpoint
         /// </summary>

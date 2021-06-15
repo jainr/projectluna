@@ -2,8 +2,7 @@
 using Luna.Common.Utils;
 using Luna.Common.Utils.LoggingUtils.Enums;
 using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.Partner.PublicClient.DataContract;
-using Luna.Partner.PublicClient.DataContract.PartnerServices;
+using Luna.Partner.Public.Client;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Newtonsoft.Json;
 using System;
@@ -61,7 +60,7 @@ namespace Luna.Partner.Clients.PartnerServiceClients
         /// Update the configuration of the service client
         /// </summary>
         /// <param name="configuration">The configuration in JSON format</param>
-        public void UpdateConfiguration(BasePartnerServiceConfiguration configuration)
+        public async Task UpdateConfigurationAsync(BasePartnerServiceConfiguration configuration)
         {
             this._config = (AzureMLWorkspaceConfiguration)configuration;
         }

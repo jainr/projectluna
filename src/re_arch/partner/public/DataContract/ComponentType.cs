@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Partner.PublicClient.DataContract
+namespace Luna.Partner.Public.Client
 {
     public class ComponentType
     {

@@ -1,5 +1,4 @@
-﻿using Luna.Partner.PublicClient.DataContract;
-using Luna.Partner.PublicClient.DataContract.PartnerServices;
+﻿using Luna.Partner.Public.Client;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
