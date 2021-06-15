@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Checkbox,
   DefaultButton,
   Dialog,
   DialogFooter,
@@ -16,7 +17,7 @@ import {
 } from 'office-ui-fabric-react';
 import FormLabel from "../../shared/components/FormLabel";
 import { Formik } from "formik";
-import { IAMLWorkSpaceModel, IGitRepoModel, IPartnerServiceModel } from "../../models";
+import { IAMLWorkSpaceModel, IAutomationWebhookModel, IGitRepoModel, IPartnerServiceModel } from "../../models";
 import { Loading } from "../../shared/components/Loading";
 import { useGlobalContext } from "../../shared/components/GlobalProvider";
 import { toast } from "react-toastify";
@@ -34,6 +35,12 @@ import {
   initialPartnerServiceFormValues,
   initialPartnerServiceValues,
 } from '../Products/formUtils/PartenerServiceUtils';
+import {
+  automationWebhookFormValidationSchema,
+  IAutomationWebhookFormValues,
+  initialAutomationWebhookFormValues,
+  initialAutomationWebhookValues,
+} from '../Products/formUtils/AutomationWebhookUtils';
 import { Hub } from "aws-amplify";
 import ProductService from "../../services/ProductService";
 import { handleSubmissionErrorsForForm } from "../../shared/formUtils/utils";
@@ -71,6 +78,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   let [workSpaceList, setWorkSpaceList] = useState<IAMLWorkSpaceModel[]>();
   let [gitRepoList, setGitRepoList] = useState<IGitRepoModel[]>();
   let [partnerServiceList, setPartnerServiceList] = useState<IPartnerServiceModel[]>();
+  let [automationWebhookList, setAutomationWebhookList] = useState<IAutomationWebhookModel[]>();
   let [workSpace, setWorkSpace] = useState<IAMLWorkSpaceFormValues>(initialAMLWorkSpaceFormValues);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -85,11 +93,15 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   const [AMLDeleteDialog, setAMLDeleteDialog] = useState<boolean>(false);
   const [selectedAML, setSelectedAML] = useState<IAMLWorkSpaceModel>(initialAMLWorkSpaceValues);
 
-  const [partnerServiceDialogVisible, setPartnerServiceDialogVisible] = useState<boolean>(false);
-  const [loadingPartnerService, setLoadingPartnerService] = useState<boolean>(false);
+  const [automationWebhookDialogVisible, setAutomationWebhookDialogVisible] = useState<boolean>(false);
+  const [loadingAutomationWebhook, setLoadingAutomationWebhook] = useState<boolean>(false);
   const [typeList, setTypeList] = useState<IDropdownOption[]>([]);
   const [isDisplayUpdateButton, setDisplayUpdateButton] = useState<boolean>(false);
   let [partnerService, setPartnerService] = useState<IPartnerServiceFormValues>(initialPartnerServiceFormValues);
+  let [automationWebhook, setAutomationWebhook] = useState<IAutomationWebhookFormValues>(initialAutomationWebhookFormValues);
+
+  const [partnerServiceDialogVisible, setPartnerServiceDialogVisible] = useState<boolean>(false);
+  const [loadingPartnerService, setLoadingPartnerService] = useState<boolean>(false);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const globalContext = useGlobalContext();
@@ -133,6 +145,18 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
       toast.error('Failed to load Product Services');
   }
 
+  const getAutomationWebhookList = async () => {
+
+    setLoadingAutomationWebhook(true);
+    const results = await ProductService.getAutomationWebhooksList();
+    results.value = [{name:'Azure Synopsis',webhookURL:'/webhooks/Mywebhook', enabled:true,createdDate:'02//05/2021',clientId:'123'}]
+    results.success= true;
+    if (results && results.value && results.success) {
+      setAutomationWebhookList(results.value);
+      setLoadingAutomationWebhook(false);
+    } else
+      toast.error('Failed to load Automation Webhooks');
+  }
   const getTypes = async () => {
 
     let typeList: IDropdownOption[] = [{
@@ -172,6 +196,10 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     return touched.partnerService && errors.partnerService && touched.partnerService[property] && errors.partnerService[property] ? errors.partnerService[property] : '';
   };
 
+  const getAutomationWebhookFormErrorString = (touched, errors, property: string) => {
+    return touched.automationWebhook && errors.automationWebhook && touched.automationWebhook[property] && errors.automationWebhook[property] ? errors.automationWebhook[property] : '';
+  };
+
   const getDeleteAMLErrorString = (touched, errors, property: string) => {
     return (touched.selectedWorkspaceName && errors.selectedWorkspaceName && touched[property] && errors[property]) ? errors[property] : '';
   };
@@ -208,6 +236,22 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     //history.push(WebRoute.ModifyProductInfo.replace(':productName', productName));
   };
 
+  const editAutomationWebhook = async (automationWebhookName: string, idx: number) => {
+
+    //let editedWorkspace = initialAMLWorkSpaceList.filter(a => a.workspaceName === Id)[0];
+    let editAutomationWebhook = await ProductService.getAutomationWebhookByName(automationWebhookName);
+    if (editAutomationWebhook && editAutomationWebhook.value && editAutomationWebhook.success) {
+      setAutomationWebhook({ automationWebhook : editAutomationWebhook.value });
+      // setworkSpaceDeleteIndex(idx);
+    } else
+      toast.error('Failed to load Automation Webhook');
+
+    setisEdit(true);
+    setDisplayUpdateButton(true);
+    OpenAutomationWebhookDialog();
+    //history.push(WebRoute.ModifyProductInfo.replace(':productName', productName));
+  };
+
   const deleteWorkSpace = async (aMLWorkSpaceModelSelected: IAMLWorkSpaceModel) => {
 
     setSelectedAML(aMLWorkSpaceModelSelected);
@@ -236,6 +280,15 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     setPartnerServiceDialogVisible(true);
   }
 
+  const OpenAutomationWebhookDialog = () => {
+    setAutomationWebhookDialogVisible(true);
+  }
+
+  const OpenNewAutomationWebhookDialog = () => {
+    setDisplayUpdateButton(false);
+    setAutomationWebhookDialogVisible(true);
+  }
+
   const CloseWorkSpaceDialog = () => {
     setWorkSpaceDialogVisible(false);
   }
@@ -244,11 +297,16 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     setPartnerServiceDialogVisible(false);
   }
 
+  const CloseAutomationWebhookDialog = () => {
+    setAutomationWebhookDialogVisible(false);
+  }
+
   useEffect(() => {
 
     getWorkSpaceList();
     getGitRepoList();
     getPartnerServiceList();
+    getAutomationWebhookList();
     getTypes();
 
     Hub.listen('AMLWorkspaceNewDialog', (data) => {
@@ -283,6 +341,46 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 >
                   <FontIcon iconName="Edit" className="deleteicon" onClick={() => {
                     editWorkSpace(value.workspaceName, idx)
+                  }} />
+                  {/* <FontIcon iconName="Cancel" className="deleteicon" onClick={() => { deleteWorkSpace(value) }} /> */}
+                </Stack>
+              </td>
+            </tr>
+          );
+        })
+      );
+
+    }
+  }
+
+  const AutomationWebhooksList = ({ automationWebhook }) => {
+    if (!automationWebhook || automationWebhook.length === 0) {
+      return <tr>
+        <td colSpan={4}><span>No Automation Webhooks</span></td>
+      </tr>;
+    } else {
+      return (
+        automationWebhook.map((value: IAutomationWebhookModel, idx) => {
+          return (
+            <tr key={idx}>
+              <td>
+                <span>{value.name}</span>
+              </td>
+              <td>
+                <span>{value.enabled ? 'Enabled' : 'Disabled'}</span>
+              </td>
+              <td>
+                <span>{value.createdDate}</span>
+              </td>
+              <td>
+                <Stack
+                  verticalAlign="center"
+                  horizontalAlign={"space-evenly"}
+                  gap={15}
+                  horizontal={true}
+                >
+                  <FontIcon iconName="Edit" className="deleteicon" onClick={() => {
+                    editAutomationWebhook(value.name, idx)
                   }} />
                   {/* <FontIcon iconName="Cancel" className="deleteicon" onClick={() => { deleteWorkSpace(value) }} /> */}
                 </Stack>
@@ -425,7 +523,45 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
         </table>
       </PivotItem>
       <PivotItem headerText="Review Settings">
-        <Label>Pivot #3</Label>
+      <h3 style={{fontWeight:'normal'}}>Automation Webhooks</h3>
+      <table className="noborder offer" style={{margin: 10}} cellPadding={5} cellSpacing={0}>     
+          <thead>                       
+            <tr>             
+              <th style={{width: 200}}>
+                <FormLabel title={"Name"} />
+              </th>
+              <th style={{width: 200}}>
+                <FormLabel title={"Status"} />
+              </th>
+              <th style={{width: 200}}>
+                <FormLabel title={"Created Date"} />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {loadingAutomationWebhook ?
+              (
+                <tr>
+                  <td colSpan={4} align={"center"}>
+                    <Stack verticalAlign={"center"} horizontalAlign={"center"} horizontal={true}>
+                      <Loading />
+                    </Stack>
+                  </td>
+                </tr>
+              )
+              :
+              <AutomationWebhooksList automationWebhook={automationWebhookList} />
+            }
+          </tbody>
+          <tfoot>
+          <tr>   
+          <td colSpan={3} style={{paddingTop: '1%'}}>
+              <PrimaryButton text={"New Automation Webhook"} onClick={() => {
+                  OpenNewAutomationWebhookDialog() }} />                 
+          </td>          
+            </tr>
+          </tfoot>
+        </table>
       </PivotItem>
     </Pivot>
     </React.Fragment>
@@ -871,6 +1007,146 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                           text={isDisplayUpdateButton ? "Update" : "Create"} onClick={submitForm} />
                         <AlternateButton
                           onClick={ClosePartnerServiceDialog}
+                          text="Cancel" className="mar-right-2_Per" />
+                      </Stack>
+                    </DialogFooter>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+        </Formik>
+      </Dialog>
+
+      <Dialog
+        hidden={!automationWebhookDialogVisible}
+        onDismiss={CloseAutomationWebhookDialog}
+        dialogContentProps={{
+          styles: {
+            subText: {
+              paddingTop: 0
+            },
+            title: {}
+
+          },
+          type: DialogType.normal,
+          title: 'Add New Automation Webhook'
+        }}
+        modalProps={{
+          isBlocking: true,
+          isDarkOverlay: true,
+          styles: {
+            main: {
+              minWidth: '35% !important',
+
+            }
+          }
+        }}
+      >
+        <Formik
+          initialValues={automationWebhook}
+          validationSchema={automationWebhookFormValidationSchema}
+          enableReinitialize={true}
+          validateOnBlur={true}
+          onSubmit={async (values, { setSubmitting, setErrors }) => {
+
+            // setFormError(null);
+            // setSubmitting(true);
+            // globalContext.showProcessing();
+
+            // //TODO: PUT THIS BACK IN
+            // var createWorkSpaceResult = await ProductService.createOrUpdateWorkSpace(values.aMLWorkSpace);
+            // if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'aMLWorkSpace', createWorkSpaceResult)) {
+            //   toast.error(formError);
+            //   globalContext.hideProcessing();
+            //   return;
+            // }
+
+            // setSubmitting(false);
+
+            // await getWorkSpaceList();
+            // await getGitRepoList();
+            // globalContext.hideProcessing();
+            // toast.success("Success!");
+            // setisEdit(true);
+            // setDisplayDeleteButton(true);
+
+            // Hub.dispatch(
+            //   'AMLWorkspaceCreated',
+            //   {
+            //     event: 'WorkspaceCreated',
+            //     data: true,
+            //     message: ''
+            //   });
+
+            CloseAutomationWebhookDialog();
+          }}
+        >
+          {({ handleChange, values, handleBlur, touched, errors, handleSubmit, submitForm, setFieldValue }) => (
+            <table className="offer" style={{ width: '100%' }}>
+              <tbody>
+                <tr>
+                  <td>
+                    <React.Fragment>
+                      <FormLabel title={"Name:"} toolTip={ProductMessages.AMLWorkSpace.WorkspaceName} />                                         
+                    </React.Fragment>
+                  </td>
+                  <td>
+                  <TextField
+                          name={'automationWebhook.name'}
+                          value={values.automationWebhook.name}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          errorMessage={getAutomationWebhookFormErrorString(touched, errors, 'name')}
+                          placeholder={'Name'}
+                          className="txtFormField wdth_100_per" 
+                          disabled={isEdit}/>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <React.Fragment>
+                      <FormLabel title={"Webhook URL:"} toolTip={ProductMessages.AMLWorkSpace.ResourceId} />                     
+                    </React.Fragment>
+
+                  </td>
+                  <td>
+                    <TextField
+                          name={'automationWebhook.webhookURL'}
+                          value={values.automationWebhook.webhookURL}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          errorMessage={getAutomationWebhookFormErrorString(touched, errors, 'webhookURL')}
+                          placeholder={'Webhook URL'}
+                          className="txtFormField wdth_100_per" />
+                  </td>
+                </tr>   
+                <tr>
+                  <td>
+                    <React.Fragment>
+                      <FormLabel title={"Enabled:"} toolTip={ProductMessages.AMLWorkSpace.ResourceId} />                     
+                    </React.Fragment>
+
+                  </td>
+                  <td>
+                    <Checkbox
+                          name={'automationWebhook.enabled'}
+                          defaultChecked={values.automationWebhook.enabled}
+                          onChange={handleChange}
+                          onBlur={handleBlur}                          
+                          placeholder={'Webhook URL'}
+                          className="txtFormField wdth_100_per" />
+                  </td>
+                </tr>           
+                <tr>
+                  <td colSpan={2}>
+                    <DialogFooter>
+                      <Stack horizontal={true} gap={15} style={{ width: '100%' }}>                        
+                        <div style={{ flexGrow: 1 }}></div>                        
+                        <PrimaryButton type="submit" id="btnsubmit" className="mar-right-2_Per"
+                          text={isDisplayUpdateButton ? "Update" : "Add"} onClick={submitForm} />
+                        <AlternateButton
+                          onClick={CloseAutomationWebhookDialog}
                           text="Cancel" className="mar-right-2_Per" />
                       </Stack>
                     </DialogFooter>

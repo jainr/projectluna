@@ -89,6 +89,14 @@ export interface IPartnerServiceModel extends IBaseModel{
   partnerServiceName: string;
   createdDate: string;
 }
+
+export interface IAutomationWebhookModel extends IBaseModel{  
+  name:string;
+  webhookURL:string;  
+  enabled: boolean;
+  clientId:string;
+  createdDate: string;
+}
 export interface IMLModelArtifactModel extends IBaseModel{
   name:string;
   version: string;
