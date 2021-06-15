@@ -16,5 +16,7 @@ export enum WebRoute {
   Products = '/Products',
   ModifyProductInfo = '/ModifyProduct/:productName/Info',
   ProductDetail= '/ModifyProduct/:applicationName/ProductDetail',
-  Settings = '/Settings'
+  Settings = '/Settings',
+  Wizard = '/Wizard'
+
 }

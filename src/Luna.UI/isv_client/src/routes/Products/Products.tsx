@@ -368,7 +368,8 @@ const Products: React.FunctionComponent = () => {
           }}
         >
           <PrimaryButton text={"New AI Application"} onClick={handleNewProduct} />
-          <PrimaryButton text={"Usage Reports"} style={{ left: '10%', bottom: '50%' }}  onClick={showLunaWebhookUrlv2Dialog} />
+          <PrimaryButton text={"Usage Reports"} style={{ left: '18%', bottom: '32%' }}  onClick={showLunaWebhookUrlv2Dialog} />
+          <PrimaryButton text={"Wizard"} style={{ left: '33%', bottom: '65%' }} onClick={() => {history.push(WebRoute.Wizard)}} />
         </Stack>
         <table className="noborder offergrid" style={{ marginTop: 20, width: '100%' }} cellPadding={5} cellSpacing={0}>
           <thead>

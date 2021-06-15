@@ -11,6 +11,7 @@ import ReviewOfferContent from './ReviewOfferContent';
 import SubscriptionDetailContent from "./SubscriptionDetailContent";
 import GlobalProcessingController from './GlobalProcessingController';
 import Settings from '../routes/Settings/Settings';
+import WizardContent from './WizardContent';
 
 export interface LayoutHelperMenuItem {
   title: string;
@@ -39,7 +40,8 @@ const Layout: React.FunctionComponent = (props) => {
     || location.pathname.toLowerCase().startsWith('/products')
     || location.pathname.toLowerCase().startsWith('/settings'));
   let modifyProductActive = (location.pathname.toLowerCase().startsWith('/modifyproduct'));
-  if (modifyOfferActive || reviewOfferActive || listViewActive || subscriptionDetailActive || modifyProductActive || noVersionActive)
+  let wizardActive = (location.pathname.toLowerCase().startsWith('/wizard'));
+  if (modifyOfferActive || reviewOfferActive || listViewActive || subscriptionDetailActive || modifyProductActive || noVersionActive || wizardActive)
     genericContentWrapper = false;
 
   let offerName: string | null = null;
@@ -104,6 +106,9 @@ const Layout: React.FunctionComponent = (props) => {
           </Content>
         )}
                
+          {(wizardActive) && (
+            <WizardContent>{children}</WizardContent>
+          )}
 
         {/* This must be the last content wrapper */}
         {(reviewOfferActive || genericContentWrapper) && (

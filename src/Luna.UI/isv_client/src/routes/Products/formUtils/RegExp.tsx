@@ -8,6 +8,7 @@ export const deploymentNameRegExp = /^[a-z_-][a-z0-9_-]*$/;
 export const versionNameRegExp = /^[a-z0-9\.-]{1,50}$/;
 export const workSpaceNameRegExp = /^[a-z_-][a-z0-9_-]*$/;
 export const objectIdNameRegExp = /^[a-z][a-z0-9_-]{4,49}$/;
+export const opetarionNameRegExp = /^[a-z0-9\.-]{1,128}$/;
 
 
 
