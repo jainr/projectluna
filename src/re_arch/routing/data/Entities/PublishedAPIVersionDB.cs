@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Routing.Data.Entities
+namespace Luna.Routing.Data
 {
     /// <summary>
     /// The database entity for published API version

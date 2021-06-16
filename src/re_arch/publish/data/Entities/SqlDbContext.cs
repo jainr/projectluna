@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Publish.Data.Entities
+namespace Luna.Publish.Data
 {
     /// <summary>
     /// The SQL database context for Entity framework
@@ -38,6 +38,8 @@ namespace Luna.Publish.Data.Entities
         public DbSet<AzureMarketplaceOfferDB> AzureMarketplaceOffers { get; set; }
 
         public DbSet<AzureMarketplacePlanDB> AzureMarketplacePlans { get; set; }
+
+        public DbSet<AutomationWebhookDB> AutomationWebhooks { get; set; }
 
         /// <summary>
         /// Save changes to database

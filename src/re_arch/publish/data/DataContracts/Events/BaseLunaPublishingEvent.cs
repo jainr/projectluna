@@ -1,9 +1,8 @@
-﻿using Luna.Publish.Data.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Publish.Data.DataContracts.Events
+namespace Luna.Publish.Data
 {
     public class BaseLunaPublishingEvent
     {

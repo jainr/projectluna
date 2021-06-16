@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Routing.Data.DataContracts
+namespace Luna.Routing.Data
 {
     public class OperationStatus
     {

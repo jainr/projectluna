@@ -11,14 +11,9 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.EntityFrameworkCore;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.Common.Utils.LoggingUtils;
-using Luna.Common.Utils.HttpUtils;
-using Luna.Common.LoggingUtils;
-using Luna.Common.Utils.LoggingUtils.Enums;
-using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
-using Luna.PubSub.PublicClient;
-using Luna.PubSub.Utils;
+using Luna.Common.Utils;
+using Luna.PubSub.Public.Client;
+using Luna.PubSub.Clients;
 
 namespace Luna.PubSub.Functions
 {

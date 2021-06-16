@@ -46,6 +46,26 @@ SELECT uniqueName, configurationSecretName, id, type
 FROM   partner.PartnerServices
 GO
 
+/****** Object:  Table [publish].[AutomationWebhooks]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [publish].[AutomationWebhooks](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[description] [nvarchar](1024) NOT NULL,
+	[webhookUrl] [nvarchar](1024) NOT NULL,
+	[isEnabled] [bit] NOT NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+	[lastUpdatedTime] [datetime2](7) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 /****** Object:  Table [publish].[AzureMarketplaceOffers]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO

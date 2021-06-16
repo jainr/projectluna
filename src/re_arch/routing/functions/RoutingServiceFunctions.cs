@@ -7,27 +7,16 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Luna.Routing.Data.Entities;
-using Luna.Routing.Clients.MLServiceClients;
+using Luna.Routing.Data;
+using Luna.Routing.Clients;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.Common.Utils.LoggingUtils.Enums;
-using Luna.Common.LoggingUtils;
-using Luna.Common.Utils.HttpUtils;
-using Luna.Common.Utils.RestClients;
-using Luna.Publish.PublicClient.Enums;
-using System.Web.Http;
-using Luna.Publish.Public.Client.DataContract;
+using Luna.Common.Utils;
+using Luna.Publish.Public.Client;
 using System.Collections.Generic;
-using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
-using Luna.Common.Utils.LoggingUtils;
-using Luna.PubSub.PublicClient.Clients;
-using Luna.PubSub.PublicClient;
+using Luna.PubSub.Public.Client;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Luna.Routing.Clients.SecretCacheClients;
 using System.Diagnostics;
-using Luna.Routing.Data;
 
 namespace Luna.Routing.Functions
 {
@@ -121,7 +110,8 @@ namespace Luna.Routing.Functions
             // If there's no record in the database, it will return the default value of long type 0
             var lastAppliedEventId = await _dbContext.ProcessedEvents.
                 Where(x => x.EventStoreName == LunaEventStoreType.SUBSCRIPTION_EVENT_STORE).
-                Select(x => x.LastAppliedEventId).SingleOrDefaultAsync();
+                OrderByDescending(x => x.LastAppliedEventId).
+                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
 
             // Add the record if lastAppliedEventId is 0
             if (lastAppliedEventId == 0)
@@ -129,7 +119,7 @@ namespace Luna.Routing.Functions
                 await _dbContext.ProcessedEvents.AddAsync(new ProcessedEventDB()
                 {
                     EventStoreName = LunaEventStoreType.SUBSCRIPTION_EVENT_STORE,
-                    LastAppliedEventId = 0
+                    LastAppliedEventId = -1
                 });
 
                 await _dbContext._SaveChangesAsync();
@@ -607,7 +597,7 @@ namespace Luna.Routing.Functions
             {
                 throw new LunaBadRequestUserException(ErrorMessages.MISSING_QUERY_PARAMETER, UserErrorCode.MissingQueryParameter);
             }
-            var apiVersion = await _dbContext.PublishedAPIVersions.SingleOrDefaultAsync(
+            var apiVersion = await _dbContext.PublishedAPIVersions.FirstOrDefaultAsync(
                 x => x.IsEnabled &&
                 x.ApplicationName == appName &&
                 x.APIName == apiName &&
@@ -746,6 +736,9 @@ namespace Luna.Routing.Functions
             {
                 TypeNameHandling = TypeNameHandling.All
             });
+
+            // If this function is triggered more than one time on the same event, there will be duplicated API version created
+            // We used FirstOrDefault when getting API version from database to mitigate this issue.
 
             var oldVersions = await _dbContext.PublishedAPIVersions.
                 Where(x => x.ApplicationName == app.Name && x.IsEnabled).

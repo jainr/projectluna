@@ -1,10 +1,9 @@
-﻿using Luna.Publish.Data.DataContracts.Events;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Publish.Data.Entities
+namespace Luna.Publish.Data
 {
     /// <summary>
     /// The database entity for publishing events

@@ -1,17 +1,14 @@
-﻿using Luna.Common.Utils;
-using Luna.Common.Utils.RestClients;
-using Luna.Publish.Public.Client.DataContract;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Luna.Common.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Luna.Publish.PublicClient.Clients
+namespace Luna.Publish.Public.Client
 {
     public class PublishServiceClient : RestClient, IPublishServiceClient
     {
@@ -620,6 +617,105 @@ namespace Luna.Publish.PublicClient.Clients
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
             return await GetResponseObject<List<AzureMarketplacePlan>>(response);
+        }
+
+        /// <summary>
+        /// Create an automation webhook
+        /// </summary>
+        /// <param name="name">Name of the automation webhook</param>
+        /// <param name="webhook">The webhook</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The webhook created</returns>
+        public async Task<AutomationWebhook> CreateAutomationWebhookAsync(string name,
+            AutomationWebhook webhook,
+            LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"reviewsettings/webhooks/{name}");
+
+            var content = JsonConvert.SerializeObject(webhook);
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Put, uri, content, headers);
+
+            return await GetResponseObject<AutomationWebhook>(response);
+        }
+
+        /// <summary>
+        /// Update an automation webhook
+        /// </summary>
+        /// <param name="name">Name of the automation webhook</param>
+        /// <param name="webhook">The webhook</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The webhook updated</returns>
+        public async Task<AutomationWebhook> UpdateAutomationWebhookAsync(string name,
+            AutomationWebhook webhook,
+            LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"reviewsettings/webhooks/{name}");
+
+            var content = JsonConvert.SerializeObject(webhook);
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Patch, uri, content, headers);
+
+            return await GetResponseObject<AutomationWebhook>(response);
+        }
+
+        /// <summary>
+        /// Get an automation webhook
+        /// </summary>
+        /// <param name="name">Name of the automation webhook</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The webhook</returns>
+        public async Task<AutomationWebhook> GetAutomationWebhookAsync(string name,
+            LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"reviewsettings/webhooks/{name}");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            return await GetResponseObject<AutomationWebhook>(response);
+        }
+
+        /// <summary>
+        /// List automation webhooks
+        /// </summary>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The webhooks</returns>
+        public async Task<List<AutomationWebhook>> ListAutomationWebhooksAsync(LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"reviewsettings/webhooks");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            return await GetResponseObject<List<AutomationWebhook>>(response);
+        }
+
+        /// <summary>
+        /// Delete an automation webhook
+        /// </summary>
+        /// <param name="name">Name of the automation webhook</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns></returns>
+        public async Task DeleteAutomationWebhookAsync(string name,
+            LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateObjectId(name, nameof(name));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"reviewsettings/webhooks/{name}");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Delete, uri, null, headers);
+
+            return;
         }
 
         private async Task<T> GetResponseObject<T>(HttpResponseMessage response)

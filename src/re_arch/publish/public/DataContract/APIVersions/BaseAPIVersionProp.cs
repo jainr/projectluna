@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using Luna.Common.Utils;
-using Luna.Publish.PublicClient.Enums;
 using Newtonsoft.Json;
 
-namespace Luna.Publish.Public.Client.DataContract
+namespace Luna.Publish.Public.Client
 {
     public class BaseAPIVersionProp : UpdatableProperties
     {

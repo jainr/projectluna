@@ -1,4 +1,4 @@
-﻿using Luna.Common.Utils.RestClients;
+﻿using Luna.Common.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,7 +9,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.PubSub.PublicClient.Clients
+namespace Luna.PubSub.Public.Client
 {
     public class PubSubServiceClient : RestClient, IPubSubServiceClient
     {

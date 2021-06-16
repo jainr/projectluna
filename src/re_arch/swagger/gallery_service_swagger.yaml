@@ -20,7 +20,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication'
+              $ref: '#/definitions/Luna.Gallery.Public.Client.PublishedLunaApplication'
             example:
               UniqueName: mylunaapp
               DisplayName: My Luna App
@@ -53,7 +53,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication'
+              $ref: '#/definitions/Luna.Gallery.Public.Client.PublishedLunaApplication'
             example:
               UniqueName: mylunaapp
               DisplayName: My Luna App
@@ -84,7 +84,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.PublishedLunaApplication'
       security:
         - x-functions-key: [ ]
   '/api/applications/{name}/swagger':
@@ -105,7 +105,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationDetails'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationDetails'
       security:
         - x-functions-key: [ ]
   '/api/applications/{appName}/subscriptions/{subscriptionName}':
@@ -136,7 +136,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscription'
       security:
         - x-functions-key: [ ]
   '/api/applications/{appName}/subscriptions':
@@ -164,7 +164,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
+              $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscription'
             example:
               SubscriptionId: 0eb1e9dd-df4e-4b03-9e8f-6d8ac0eab782
               SubscriptionName: mysub
@@ -206,7 +206,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscription'
       security:
         - x-functions-key: [ ]
     delete:
@@ -266,12 +266,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscriptionNotes'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscriptionNotes'
       security:
         - x-functions-key: [ ]
   '/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/AddOwner':
@@ -305,12 +305,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscriptionOwner'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscriptionOwner'
       security:
         - x-functions-key: [ ]
   '/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/RegenerateKey':
@@ -346,7 +346,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionKeys'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscriptionKeys'
       security:
         - x-functions-key: [ ]
   '/api/applications/{appName}/subscriptions/{subscriptionNameOrId}/RemoveOwner':
@@ -380,12 +380,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscriptionOwner'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscriptionOwner'
       security:
         - x-functions-key: [ ]
   '/api/marketplace/offers/{offerId}/offerparameters':
@@ -408,7 +408,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceOfferParameter'
+              $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceOfferParameter'
             example:
               ParameterName: region
               DisplayName: Region
@@ -441,7 +441,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscription'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
       security:
         - x-functions-key: [ ]
   '/api/marketplace/subscriptions/{subscriptionId}':
@@ -465,12 +465,12 @@ paths:
           description: The subscription
           required: true
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscription'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscription'
+            $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
       security:
         - x-functions-key: [ ]
     delete:
@@ -507,7 +507,7 @@ paths:
       security:
         - x-functions-key: [ ]
 definitions:
-  Luna.Gallery.Public.Client.DataContracts.PublishedLunaApplication:
+  Luna.Gallery.Public.Client.PublishedLunaApplication:
     required:
       - UniqueName
       - DisplayName
@@ -531,9 +531,9 @@ definitions:
       Tags:
         type: array
         items:
-          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaPublishedApplicationTag'
+          $ref: '#/definitions/Luna.Gallery.Public.Client.LunaPublishedApplicationTag'
       Details:
-        $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationDetails'
+        $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationDetails'
     example:
       UniqueName: mylunaapp
       DisplayName: My Luna App
@@ -544,21 +544,21 @@ definitions:
       Tags: [ ]
       Details:
         APIs: [ ]
-  Luna.Gallery.Public.Client.DataContracts.LunaPublishedApplicationTag:
+  Luna.Gallery.Public.Client.LunaPublishedApplicationTag:
     type: object
     properties:
       Name:
         type: string
       Value:
         type: string
-  Luna.Gallery.Public.Client.DataContracts.LunaApplicationDetails:
+  Luna.Gallery.Public.Client.LunaApplicationDetails:
     type: object
     properties:
       APIs:
         type: array
         items:
-          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaAPIDetails'
-  Luna.Gallery.Public.Client.DataContracts.LunaAPIDetails:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.LunaAPIDetails'
+  Luna.Gallery.Public.Client.LunaAPIDetails:
     type: object
     properties:
       Name:
@@ -568,8 +568,8 @@ definitions:
       Versions:
         type: array
         items:
-          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaAPIVersionDetails'
-  Luna.Gallery.Public.Client.DataContracts.LunaAPIVersionDetails:
+          $ref: '#/definitions/Luna.Gallery.Public.Client.LunaAPIVersionDetails'
+  Luna.Gallery.Public.Client.LunaAPIVersionDetails:
     type: object
     properties:
       Name:
@@ -578,7 +578,7 @@ definitions:
         type: array
         items:
           type: string
-  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscription:
+  Luna.Gallery.Public.Client.LunaApplicationSubscription:
     required:
       - SubscriptionId
       - SubscriptionName
@@ -601,7 +601,7 @@ definitions:
       Owners:
         type: array
         items:
-          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner'
+          $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscriptionOwner'
       CreatedTime:
         format: date-time
         type: string
@@ -616,7 +616,7 @@ definitions:
         - UserId: c4627f84-c3a8-45b3-8709-565bd2e50b97
           UserName: FirstName LastName
       CreatedTime: '2021-06-10T18:00:30.1320267-07:00'
-  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionOwner:
+  Luna.Gallery.Public.Client.LunaApplicationSubscriptionOwner:
     required:
       - UserId
     type: object
@@ -628,7 +628,7 @@ definitions:
     example:
       UserId: 2d88c6a1-8ece-49e8-8b23-673c6a4272d2
       UserName: FirstName LastName
-  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionNotes:
+  Luna.Gallery.Public.Client.LunaApplicationSubscriptionNotes:
     required:
       - Notes
     type: object
@@ -637,7 +637,7 @@ definitions:
         type: string
     example:
       Notes: this is my subscription
-  Luna.Gallery.Public.Client.DataContracts.LunaApplicationSubscriptionKeys:
+  Luna.Gallery.Public.Client.LunaApplicationSubscriptionKeys:
     required:
       - PrimaryKey
       - SecondaryKey
@@ -650,7 +650,7 @@ definitions:
     example:
       PrimaryKey: 3cbeda43ef6b4dc0b61220fbb2f7dda4
       SecondaryKey: fc7cfaab23b0494aa53f178f7fbc720c
-  Luna.Gallery.Public.Client.DataContracts.MarketplaceOfferParameter:
+  Luna.Gallery.Public.Client.MarketplaceOfferParameter:
     required:
       - ParameterName
       - DisplayName
@@ -680,7 +680,7 @@ definitions:
       Minimum:
         format: int32
         type: integer
-  Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscription:
+  Luna.Gallery.Public.Client.MarketplaceSubscription:
     required:
       - Id
       - PublisherId
@@ -712,7 +712,7 @@ definitions:
       InputParameters:
         type: array
         items:
-          $ref: '#/definitions/Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscriptionParameter'
+          $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscriptionParameter'
     example:
       Id: 7de85fed-9f81-44c0-ab36-d4540064200e
       PublisherId: ms-ace
@@ -723,7 +723,7 @@ definitions:
       AllowedCustomerOperations: [ ]
       Token: 
       InputParameters: [ ]
-  Luna.Gallery.Public.Client.DataContracts.MarketplaceSubscriptionParameter:
+  Luna.Gallery.Public.Client.MarketplaceSubscriptionParameter:
     type: object
     properties:
       Name:

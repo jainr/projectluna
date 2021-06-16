@@ -1,5 +1,5 @@
-﻿using Luna.Common.Utils.RestClients;
-using Luna.Gallery.Public.Client.DataContracts;
+﻿using Luna.Common.Utils;
+using Luna.Gallery.Public.Client;
 using System;
 using System.Threading.Tasks;
 

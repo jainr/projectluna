@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Routing.Data.Entities
+namespace Luna.Routing.Data
 {
     /// <summary>
     /// The SQL database context for Entity framework

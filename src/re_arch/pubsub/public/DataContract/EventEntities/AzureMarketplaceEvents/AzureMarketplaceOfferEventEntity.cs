@@ -1,11 +1,10 @@
-﻿using Luna.PubSub.PublicClient;
-using Microsoft.Azure.Cosmos.Table;
+﻿using Microsoft.Azure.Cosmos.Table;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Luna.PubSub.Public.Client.DataContract
+namespace Luna.PubSub.Public.Client
 {
     public abstract class AzureMarketplaceOfferEventEntity : LunaBaseEventEntity
     {

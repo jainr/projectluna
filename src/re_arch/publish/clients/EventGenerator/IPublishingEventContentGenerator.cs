@@ -1,10 +1,10 @@
-﻿using Luna.Publish.Public.Client.DataContract;
+﻿using Luna.Publish.Public.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Publish.Clients.EventGenerator
+namespace Luna.Publish.Clients
 {
     /// <summary>
     /// The client interface to generate publishing events

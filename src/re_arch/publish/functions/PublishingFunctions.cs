@@ -8,27 +8,13 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Luna.Publish.Clients.EventGenerator;
-using Luna.Publish.Clients.HttpRequestParser;
-using Luna.Publish.Data.Entities;
-using Luna.Publish.Data.Enums;
-using Luna.Publish.Clients.EventProcessor;
+using Luna.Publish.Clients;
 using System.Collections.Generic;
-using Luna.Publish.Data.DataContracts.Events;
-using Microsoft.Azure.Cosmos.Table;
+using Luna.Publish.Data;
+using Luna.Common.Utils;
+using Luna.Publish.Public.Client;
+using Luna.PubSub.Public.Client;
 using Microsoft.EntityFrameworkCore;
-using Luna.Publish.PublicClient.Enums;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.Common.Utils.LoggingUtils;
-using Luna.Common.Utils.HttpUtils;
-using Luna.Common.LoggingUtils;
-using Luna.Common.Utils.LoggingUtils.Enums;
-using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
-using Luna.PubSub.PublicClient;
-using Luna.PubSub.PublicClient.Clients;
-using Luna.Publish.Public.Client.DataContract;
-using Luna.Publish.Public.Client.Enums;
-using Luna.PubSub.Public.Client.DataContract;
 
 namespace Luna.Publish.Functions
 {
@@ -62,6 +48,339 @@ namespace Luna.Publish.Functions
             this._pubSubClient = pubSubClient ?? throw new ArgumentNullException(nameof(pubSubClient));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
+        #region Review Settings
+
+        /// <summary>
+        /// Create an automation webhook
+        /// </summary>
+        /// <group>Review Settings</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/reviewsettings/webhooks/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the webhook</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AutomationWebhook"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AutomationWebhook.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Automation webhook
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AutomationWebhook"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AutomationWebhook.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Automation webhook
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateAutomationWebhook")]
+        public async Task<IActionResult> CreateAutomationWebhook(
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "reviewsettings/webhooks/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateAutomationWebhook));
+
+                try
+                {
+                    if (await IsAutomationWebhookExist(name))
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.AUTOMATION_WEBHOOK_ALREADY_EXIST, name));
+                    }
+
+                    var webhook = await HttpUtils.DeserializeRequestBodyAsync<AutomationWebhook>(req);
+
+                    if (!name.Equals(webhook.Name))
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.AUTOMATION_WEBHOOK_NAME_DOES_NOT_MATCH, name, webhook.Name),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    var webhookDb = new AutomationWebhookDB(webhook);
+
+                    _dbContext.AutomationWebhooks.Add(webhookDb);
+                    await _dbContext._SaveChangesAsync();
+
+                    return new OkObjectResult(webhookDb.ToAutomationWebhook());
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateAutomationWebhook));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Update an automation webhook
+        /// </summary>
+        /// <group>Review Settings</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/reviewsettings/webhooks/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the automation webhook</param>
+        /// <param name="req" in="body">
+        ///     <see cref="AutomationWebhook"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AutomationWebhook.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of automation webhook
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="AutomationWebhook"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AutomationWebhook.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of automation webhook
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdateAutomationWebhook")]
+        public async Task<IActionResult> UpdateAutomationWebhook(
+            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "reviewsettings/webhooks/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdateAutomationWebhook));
+
+                try
+                {
+                    var webhookDb = await _dbContext.AutomationWebhooks.SingleOrDefaultAsync(
+                        x => x.Name == name);
+
+                    if (webhookDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.AUTOMATION_WEBHOOK_DOES_NOT_EXIST, name));
+                    }
+
+                    var webhook = await HttpUtils.DeserializeRequestBodyAsync<AutomationWebhook>(req);
+
+                    if (!name.Equals(webhook.Name))
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.AUTOMATION_WEBHOOK_NAME_DOES_NOT_MATCH, name, webhook.Name),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    webhookDb.Update(webhook);
+
+                    _dbContext.AutomationWebhooks.Update(webhookDb);
+                    await _dbContext._SaveChangesAsync();
+
+                    return new OkObjectResult(webhookDb.ToAutomationWebhook());
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.UpdateAutomationWebhook));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete an automation webhook
+        /// </summary>
+        /// <group>Review Settings</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/reviewsettings/webhooks/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the automation webhook</param>
+        /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("DeleteAutomationWebhook")]
+        public async Task<IActionResult> DeleteAutomationWebhook(
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "reviewsettings/webhooks/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.DeleteAutomationWebhook));
+
+                try
+                {
+                    var webhookDb = await _dbContext.AutomationWebhooks.SingleOrDefaultAsync(
+                        x => x.Name == name);
+
+                    if (webhookDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.AUTOMATION_WEBHOOK_DOES_NOT_EXIST, name));
+                    }
+
+                    _dbContext.AutomationWebhooks.Remove(webhookDb);
+                    await _dbContext._SaveChangesAsync();
+
+                    return new NoContentResult();
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.DeleteAutomationWebhook));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get an automation webhook
+        /// </summary>
+        /// <group>Review Settings</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/reviewsettings/webhooks/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the automation webhook</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="AutomationWebhook"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AutomationWebhook.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of automation webhook
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetAutomationWebhook")]
+        public async Task<IActionResult> GetAutomationWebhook(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "reviewsettings/webhooks/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetAutomationWebhook));
+
+                try
+                {
+                    var webhookDb = await _dbContext.AutomationWebhooks.SingleOrDefaultAsync(
+                        x => x.Name == name);
+
+                    if (webhookDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.AUTOMATION_WEBHOOK_DOES_NOT_EXIST, name));
+                    }
+
+                    return new OkObjectResult(webhookDb.ToAutomationWebhook());
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetAutomationWebhook));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// List automation webhooks
+        /// </summary>
+        /// <group>Application Review</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/reviewsettings/webhooks</url>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="AutomationWebhook"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="AutomationWebhook.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of automation webhook
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListAutomationWebhook")]
+        public async Task<IActionResult> ListAutomationWebhook(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "reviewsettings/webhooks")] HttpRequest req)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListAutomationWebhook));
+
+                try
+                {
+                    var webhooks = await _dbContext.AutomationWebhooks.
+                        Select(x => x.ToAutomationWebhook()).
+                        ToListAsync();
+
+                    return new OkObjectResult(webhooks);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListAutomationWebhook));
+                }
+            }
+        }
+        #endregion
 
         #region Azure Marketplace SaaS offers
 
@@ -1057,7 +1376,7 @@ namespace Luna.Publish.Functions
         /// </summary>
         /// <group>Application</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/applicationss/{name}</url>
+        /// <url>http://localhost:7071/api/applications/{name}</url>
         /// <param name="name" required="true" cref="string" in="path">The name of the application</param>
         /// <response code="200">
         ///     <see cref="LunaApplication"/>
@@ -2371,6 +2690,13 @@ namespace Luna.Publish.Functions
                 x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
                 x.MarketplaceOfferId == offerId);
         }
+
+        private async Task<bool> IsAutomationWebhookExist(string name)
+        {
+            return await _dbContext.AutomationWebhooks.AnyAsync(
+                x => x.Name == name);
+        }
+
 
         /// <summary>
         /// Check if any Luna API exsits in the specified application

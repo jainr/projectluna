@@ -1,10 +1,9 @@
-﻿using Luna.Common.Utils.RestClients;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Common.Utils.LoggingUtils
+namespace Luna.Common.Utils
 {
     public static class LoggingExtensions
     {

@@ -1,10 +1,10 @@
-﻿using Luna.Common.Utils.RestClients;
+﻿using Luna.Common.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Gallery.Public.Client.Clients
+namespace Luna.Gallery.Public.Client
 {
     public class GalleryServiceClientConfiguration : RestClientConfiguration
     {

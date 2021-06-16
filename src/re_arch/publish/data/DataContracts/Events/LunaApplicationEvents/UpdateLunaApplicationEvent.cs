@@ -1,10 +1,9 @@
-﻿using Luna.Publish.Data.Enums;
-using Luna.Publish.Public.Client.DataContract;
+﻿using Luna.Publish.Public.Client;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Luna.Publish.Data.DataContracts.Events.LunaApplicationEvents
+namespace Luna.Publish.Data
 {
     /// <summary>
     /// The update Luna application event. 

@@ -1,5 +1,5 @@
-﻿using Luna.Common.Utils.RestClients;
-using Luna.Gallery.Data;
+﻿using Luna.Common.Utils;
+using Luna.Provision.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -7,21 +7,14 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Luna.Partner.Clients.PartnerServiceClients;
-using Luna.Partner.Data.Entities;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.Common.Utils.LoggingUtils.Enums;
-using Luna.Common.Utils.HttpUtils;
-using Luna.Common.Utils.LoggingUtils;
-using Luna.Common.Utils.RestClients;
-using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
+using Luna.Partner.Clients;
+using Luna.Partner.Data;
+using Luna.Common.Utils;
 using System.Linq;
 using System.Net;
 using System.Collections.Generic;
-using Luna.Common.LoggingUtils;
 using Microsoft.EntityFrameworkCore;
-using Luna.Publish.PublicClient.Enums;
-using Luna.Common.Utils;
+using Luna.Publish.Public.Client;
 using Luna.Partner.Public.Client;
 
 namespace Luna.Partner.Functions

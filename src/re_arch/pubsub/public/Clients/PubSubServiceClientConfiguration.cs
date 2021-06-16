@@ -1,10 +1,10 @@
-﻿using Luna.Common.Utils.RestClients;
+﻿using Luna.Common.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.PubSub.PublicClient.Clients
+namespace Luna.PubSub.Public.Client
 {
     public class PubSubServiceClientConfiguration : RestClientConfiguration
     {

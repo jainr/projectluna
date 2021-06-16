@@ -1,12 +1,10 @@
-﻿using Luna.Publish.Public.Client.DataContract;
-using Luna.Publish.PublicClient.Enums;
-using Luna.Routing.Clients.MLServiceClients.Interfaces;
+﻿using Luna.Publish.Public.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Routing.Clients.MLServiceClients
+namespace Luna.Routing.Clients
 {
     public interface IMLServiceClientFactory
     {

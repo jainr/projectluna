@@ -1,8 +1,5 @@
-﻿using Luna.Common.LoggingUtils;
-using Luna.Common.Utils.LoggingUtils.Enums;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.Publish.Public.Client.DataContract;
-using Luna.Publish.PublicClient.Enums;
+﻿using Luna.Common.Utils;
+using Luna.Publish.Public.Client;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;
@@ -11,7 +8,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Publish.Clients.HttpRequestParser
+namespace Luna.Publish.Clients
 {
     public class HttpRequestParser : IHttpRequestParser
     {

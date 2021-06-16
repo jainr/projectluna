@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Provision.Public.Client.DataContracts
+namespace Luna.Provision.Public.Client
 {
     public class LunaApplicationSwagger
     {

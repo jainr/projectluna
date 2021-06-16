@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Routing.Data.Entities
+namespace Luna.Routing.Data
 {
     /// <summary>
     /// ISqlDbContext interface for EntityFramework

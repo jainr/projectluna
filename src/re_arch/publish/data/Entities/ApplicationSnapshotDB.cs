@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Publish.Data.Entities
+namespace Luna.Publish.Data
 {
     /// <summary>
     /// The database entity for application snapshots

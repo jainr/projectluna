@@ -1,22 +1,30 @@
-﻿using Luna.Common.Utils.RestClients;
+﻿using Luna.Common.Utils;
 using Luna.Partner.Public.Client;
-using Luna.Publish.Public.Client.DataContract;
-using Luna.Routing.Clients.MLServiceClients.Interfaces;
-using Luna.Routing.Data.DataContracts;
+using Luna.Publish.Public.Client;
+using Luna.Routing.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Routing.Clients.MLServiceClients
+namespace Luna.Routing.Clients
 {
     public class AzureSynapseClient : IPipelineEndpointClient
     {
         private AzureSynapseWorkspaceConfiguration _config;
+        private bool _needRefresh = false;
 
         public AzureSynapseClient(AzureSynapseWorkspaceConfiguration config)
         {
             this._config = config;
+        }
+
+        public bool NeedRefresh
+        {
+            get
+            {
+                return this._needRefresh;
+            }
         }
 
         /// <summary>

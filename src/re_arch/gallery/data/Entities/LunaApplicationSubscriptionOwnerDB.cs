@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace Luna.Gallery.Data.Entities
+namespace Luna.Gallery.Data
 {
     public class LunaApplicationSubscriptionOwnerDB
     {

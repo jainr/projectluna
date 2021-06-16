@@ -1,10 +1,6 @@
-﻿using Luna.Common.Utils.RestClients;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Luna.Common.Utils;
 
-namespace Luna.Publish.PublicClient.Clients
+namespace Luna.Publish.Public.Client
 {
     public class PublishServiceClientConfiguration : RestClientConfiguration
     {

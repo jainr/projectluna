@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using Luna.PubSub.Utils;
+using Luna.PubSub.Clients;
 
 [assembly: FunctionsStartup(typeof(Luna.PubSub.Functions.Startup))]
 

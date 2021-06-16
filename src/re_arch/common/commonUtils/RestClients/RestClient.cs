@@ -1,6 +1,4 @@
-﻿using Luna.Common.Utils.LoggingUtils;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -9,7 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Luna.Common.Utils.RestClients
+namespace Luna.Common.Utils
 {
     public class RestClient
     {

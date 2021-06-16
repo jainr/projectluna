@@ -1,10 +1,9 @@
-﻿using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
 
-namespace Luna.Common.Utils.LoggingUtils
+namespace Luna.Common.Utils
 {
     public class ErrorUtils
     {

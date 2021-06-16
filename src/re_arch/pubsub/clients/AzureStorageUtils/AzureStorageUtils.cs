@@ -1,5 +1,4 @@
-﻿using Luna.PubSub.PublicClient;
-using Microsoft.Azure.Cosmos.Table;
+﻿using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -11,8 +10,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Storage.Queues;
+using Luna.PubSub.Public.Client;
 
-namespace Luna.PubSub.Utils
+namespace Luna.PubSub.Clients
 {
     public class AzureStorageUtils : IAzureStorageUtils
     {

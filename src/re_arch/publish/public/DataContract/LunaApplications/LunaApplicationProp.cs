@@ -1,14 +1,9 @@
-﻿using Luna.Common.LoggingUtils;
-using Luna.Common.Utils;
-using Luna.Common.Utils.LoggingUtils.Enums;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
+using Luna.Common.Utils;
+using Newtonsoft.Json;
 
-namespace Luna.Publish.Public.Client.DataContract
+namespace Luna.Publish.Public.Client
 {
     public class LunaApplicationProp : UpdatableProperties
     {

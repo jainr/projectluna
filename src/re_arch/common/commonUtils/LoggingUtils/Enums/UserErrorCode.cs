@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Common.Utils.LoggingUtils.Enums
+namespace Luna.Common.Utils
 {
     /// <summary>
     /// The user error code for troublethooting

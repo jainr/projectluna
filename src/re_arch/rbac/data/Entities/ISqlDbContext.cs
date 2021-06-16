@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.RBAC.Data.Entities
+namespace Luna.RBAC.Data
 {
     /// <summary>
     /// ISqlDbContext interface for EntityFramework

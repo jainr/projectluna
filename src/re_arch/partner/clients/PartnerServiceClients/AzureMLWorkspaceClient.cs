@@ -1,7 +1,4 @@
-﻿using Luna.Common.LoggingUtils;
-using Luna.Common.Utils;
-using Luna.Common.Utils.LoggingUtils.Enums;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
+﻿using Luna.Common.Utils;
 using Luna.Partner.Public.Client;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Newtonsoft.Json;
@@ -12,7 +9,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Luna.Partner.Clients.PartnerServiceClients
+namespace Luna.Partner.Clients
 {
     /// <summary>
     /// The client class for Azure ML

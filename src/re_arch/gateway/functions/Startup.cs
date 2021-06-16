@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Luna.RBAC.Public.Client;
-using Luna.Publish.PublicClient.Clients;
-using Luna.PubSub.PublicClient.Clients;
-using Luna.Gallery.Public.Client.Clients;
+using Luna.Publish.Public.Client;
+using Luna.PubSub.Public.Client;
+using Luna.Gallery.Public.Client;
 using Luna.Common.Utils;
 using Luna.Partner.Public.Client;
 

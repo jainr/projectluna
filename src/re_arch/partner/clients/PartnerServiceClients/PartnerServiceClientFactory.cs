@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Partner.Clients.PartnerServiceClients
+namespace Luna.Partner.Clients
 {
     public class PartnerServiceClientFactory : IPartnerServiceClientFactory
     {

@@ -1,15 +1,17 @@
-﻿using Luna.Common.Utils.RestClients;
-using Luna.Publish.Public.Client.DataContract;
+﻿using Luna.Common.Utils;
+using Luna.Publish.Public.Client;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Routing.Clients.MLServiceClients.Interfaces
+namespace Luna.Routing.Clients
 {
     public interface IRealtimeEndpointClient
     {
+        bool NeedRefresh { get; }
+
         /// <summary>
         /// Call the realtime endpoint
         /// </summary>

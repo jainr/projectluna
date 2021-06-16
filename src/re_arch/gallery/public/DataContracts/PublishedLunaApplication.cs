@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Gallery.Public.Client.DataContracts
+namespace Luna.Gallery.Public.Client
 {
     public class PublishedLunaApplication
     {

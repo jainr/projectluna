@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.RBAC.Data.Entities
+namespace Luna.RBAC.Data
 {
     /// <summary>
     /// The SQL database context for Entity framework

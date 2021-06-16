@@ -1,12 +1,10 @@
-﻿using Luna.Publish.Data.DataContracts.Events.LunaAPIEvents;
-using Luna.Publish.Data.DataContracts.Events.LunaAPIVersionEvents;
-using Luna.Publish.Data.DataContracts.Events.LunaApplicationEvents;
-using Luna.Publish.Public.Client.DataContract;
+﻿using Luna.Publish.Data;
+using Luna.Publish.Public.Client;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
-namespace Luna.Publish.Clients.EventGenerator
+namespace Luna.Publish.Clients
 {
     /// <summary>
     /// The client class to generate event content

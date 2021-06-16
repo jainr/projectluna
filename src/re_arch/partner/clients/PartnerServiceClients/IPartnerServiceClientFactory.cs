@@ -1,11 +1,11 @@
-﻿using Luna.Partner.Data.Entities;
+﻿using Luna.Partner.Data;
 using Luna.Partner.Public.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Partner.Clients.PartnerServiceClients
+namespace Luna.Partner.Clients
 {
     public interface IPartnerServiceClientFactory
     {

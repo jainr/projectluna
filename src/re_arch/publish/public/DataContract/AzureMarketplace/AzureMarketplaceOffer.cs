@@ -1,12 +1,10 @@
-﻿using Luna.Common.Utils;
-using Luna.Publish.Public.Client.Enums;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
+using Luna.Common.Utils;
+using Newtonsoft.Json;
 
-namespace Luna.Publish.Public.Client.DataContract
+namespace Luna.Publish.Public.Client
 {
     public class AzureMarketplaceOffer
     {

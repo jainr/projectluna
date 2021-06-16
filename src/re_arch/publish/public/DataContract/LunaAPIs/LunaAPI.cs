@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace Luna.Publish.Public.Client.DataContract
+namespace Luna.Publish.Public.Client
 {
     public class LunaAPI
     {

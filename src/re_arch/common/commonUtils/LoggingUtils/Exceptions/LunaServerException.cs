@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Common.Utils.LoggingUtils.Exceptions
+namespace Luna.Common.Utils
 {
     public class LunaServerException : LunaException
     {

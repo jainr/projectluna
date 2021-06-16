@@ -1,9 +1,6 @@
-﻿using Luna.Common.LoggingUtils;
-using Luna.Common.Utils.LoggingUtils.Enums;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.Common.Utils.RestClients;
-using Luna.Gallery.Clients.DataContracts;
-using Luna.Gallery.Public.Client.DataContracts;
+﻿using Luna.Common.Utils;
+using Luna.Gallery.Clients;
+using Luna.Gallery.Public.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

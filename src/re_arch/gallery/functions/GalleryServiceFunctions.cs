@@ -9,21 +9,13 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.Common.Utils.LoggingUtils.Enums;
-using Luna.Common.LoggingUtils;
-using Luna.Common.Utils.HttpUtils;
-using Luna.Common.Utils.RestClients;
+using Luna.Common.Utils;
 using System.Collections.Generic;
-using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
-using Luna.Common.Utils.LoggingUtils;
-using Luna.PubSub.PublicClient.Clients;
-using Luna.PubSub.PublicClient;
-using Luna.Gallery.Data.Entities;
-using Luna.Publish.Public.Client.DataContract;
-using Luna.Gallery.Public.Client.DataContracts;
+using Luna.PubSub.Public.Client;
+using Luna.Gallery.Data;
+using Luna.Publish.Public.Client;
+using Luna.Gallery.Public.Client;
 using Luna.Gallery.Clients;
-using Luna.PubSub.Public.Client.DataContract;
 
 namespace Luna.Gallery.Functions
 {

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Gallery.Data
+namespace Luna.Provision.Data
 {
     public class LunaApplicationTelemetryItem: TableEntity
     {

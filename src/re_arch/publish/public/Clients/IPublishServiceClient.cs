@@ -1,11 +1,8 @@
-﻿using Luna.Common.Utils.RestClients;
-using Luna.Publish.Public.Client.DataContract;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Luna.Common.Utils;
 
-namespace Luna.Publish.PublicClient.Clients
+namespace Luna.Publish.Public.Client
 {
     public interface IPublishServiceClient
     {
@@ -288,6 +285,53 @@ namespace Luna.Publish.PublicClient.Clients
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The plans</returns>
         Task<List<AzureMarketplacePlan>> ListMarketplacePlansAsync(string offerName,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Create an automation webhook
+        /// </summary>
+        /// <param name="name">Name of the automation webhook</param>
+        /// <param name="webhook">The webhook</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The webhook created</returns>
+        Task<AutomationWebhook> CreateAutomationWebhookAsync(string name,
+            AutomationWebhook webhook,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Update an automation webhook
+        /// </summary>
+        /// <param name="name">Name of the automation webhook</param>
+        /// <param name="webhook">The webhook</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The webhook updated</returns>
+        Task<AutomationWebhook> UpdateAutomationWebhookAsync(string name,
+            AutomationWebhook webhook,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Get an automation webhook
+        /// </summary>
+        /// <param name="name">Name of the automation webhook</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The webhook</returns>
+        Task<AutomationWebhook> GetAutomationWebhookAsync(string name,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// List automation webhooks
+        /// </summary>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The webhooks</returns>
+        Task<List<AutomationWebhook>> ListAutomationWebhooksAsync(LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Delete an automation webhook
+        /// </summary>
+        /// <param name="name">Name of the automation webhook</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns></returns>
+        Task DeleteAutomationWebhookAsync(string name,
             LunaRequestHeaders headers);
     }
 }

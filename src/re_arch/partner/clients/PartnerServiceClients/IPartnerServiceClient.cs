@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Partner.Clients.PartnerServiceClients
+namespace Luna.Partner.Clients
 {
     /// <summary>
     /// The client interface to access real time endpoints

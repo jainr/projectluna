@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.RBAC.Public.Client.DataContracts
+namespace Luna.RBAC.Public.Client
 {
     public class RBACActions
     {

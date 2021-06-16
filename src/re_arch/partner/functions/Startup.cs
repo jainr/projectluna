@@ -5,9 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Luna.Partner.Clients.PartnerServiceClients;
-using Luna.Partner.Data.Entities;
-using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
+using Luna.Partner.Clients;
+using Luna.Partner.Data;
 using Luna.Common.Utils;
 
 [assembly: FunctionsStartup(typeof(Luna.RBAC.Functions.Startup))]

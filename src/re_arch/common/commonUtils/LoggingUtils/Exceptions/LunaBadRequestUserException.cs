@@ -1,9 +1,8 @@
-﻿using Luna.Common.Utils.LoggingUtils.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Common.Utils.LoggingUtils.Exceptions
+namespace Luna.Common.Utils
 {
     public class LunaBadRequestUserException : LunaUserException
     {

@@ -1,15 +1,17 @@
-﻿using Luna.Common.Utils.RestClients;
-using Luna.Publish.Public.Client.DataContract;
-using Luna.Routing.Data.DataContracts;
+﻿using Luna.Common.Utils;
+using Luna.Publish.Public.Client;
+using Luna.Routing.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Routing.Clients.MLServiceClients.Interfaces
+namespace Luna.Routing.Clients
 {
     public interface IPipelineEndpointClient
     {
+        bool NeedRefresh { get; }
+
         /// <summary>
         /// Execute pipeline by calling the pipeline endpoint
         /// </summary>

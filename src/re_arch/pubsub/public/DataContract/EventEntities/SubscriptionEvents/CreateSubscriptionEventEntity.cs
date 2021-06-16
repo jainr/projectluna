@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.PubSub.PublicClient
+namespace Luna.PubSub.Public.Client
 {
     public class CreateSubscriptionEventEntity : SubscriptionEventEntity
     {

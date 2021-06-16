@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Common.Utils.Azure.AzureKeyvaultUtils
+namespace Luna.Common.Utils
 {
     public interface IAzureKeyVaultUtils
     {

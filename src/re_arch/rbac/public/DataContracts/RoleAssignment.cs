@@ -1,12 +1,11 @@
 ﻿using Luna.Common.Utils;
-using Luna.RBAC.Public.Client.Enums;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Luna.RBAC.Public.Client.DataContracts
+namespace Luna.RBAC.Public.Client
 {
     public class RoleAssignment
     {

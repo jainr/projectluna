@@ -1,11 +1,11 @@
-﻿using Luna.PubSub.PublicClient;
+﻿using Luna.PubSub.Public.Client;
 using Microsoft.Azure.Cosmos.Table;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.PubSub.Utils
+namespace Luna.PubSub.Clients
 {
     public interface IAzureStorageUtils
     {

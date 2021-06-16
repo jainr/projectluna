@@ -20,7 +20,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+              $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignment'
             example:
               Uid: b46324b3-6a92-4e35-84be-fa1b2919af69
               UserName: FirstName LastName
@@ -44,12 +44,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignment'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignment'
       security:
         - x-functions-key: [ ]
   /api/roleassignments/remove:
@@ -66,7 +66,7 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RoleAssignment'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignment'
       responses:
         '204':
           description: Success
@@ -88,12 +88,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.Ownership'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.Ownership'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.Ownership'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.Ownership'
       security:
         - x-functions-key: [ ]
   /api/ownership/remove:
@@ -110,7 +110,7 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.Ownership'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.Ownership'
       responses:
         '204':
           description: Success
@@ -132,16 +132,16 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RBACQuery'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.RBACQuery'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RBACQueryResult'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.RBACQueryResult'
       security:
         - x-functions-key: [ ]
 definitions:
-  Luna.RBAC.Public.Client.DataContracts.RoleAssignment:
+  Luna.RBAC.Public.Client.RoleAssignment:
     required:
       - Uid
       - UserName
@@ -162,7 +162,7 @@ definitions:
       UserName: FirstName LastName
       Role: SystemAdmin
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
-  Luna.RBAC.Public.Client.DataContracts.Ownership:
+  Luna.RBAC.Public.Client.Ownership:
     required:
       - Uid
       - ResourceId
@@ -179,7 +179,7 @@ definitions:
       Uid: fcd14a2a-31d3-49c1-9e1b-39063da1ac6a
       ResourceId: applications/myapp
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
-  Luna.RBAC.Public.Client.DataContracts.RBACQuery:
+  Luna.RBAC.Public.Client.RBACQuery:
     required:
       - Uid
       - ResourceId
@@ -195,14 +195,14 @@ definitions:
       Uid: b46324b3-6a92-4e35-84be-fa1b2919af69
       ResourceId: applications/myapp
       Action: 
-  Luna.RBAC.Public.Client.DataContracts.RBACQueryResult:
+  Luna.RBAC.Public.Client.RBACQueryResult:
     required:
       - Query
       - CanAccess
     type: object
     properties:
       Query:
-        $ref: '#/definitions/Luna.RBAC.Public.Client.DataContracts.RBACQuery'
+        $ref: '#/definitions/Luna.RBAC.Public.Client.RBACQuery'
       CanAccess:
         type: boolean
       Role:

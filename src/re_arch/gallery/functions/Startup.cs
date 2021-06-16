@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
-using Luna.PubSub.PublicClient.Clients;
-using Luna.Gallery.Data.Entities;
+using Luna.Common.Utils;
+using Luna.PubSub.Public.Client;
+using Luna.Gallery.Data;
 using Luna.Gallery.Clients;
 
 [assembly: FunctionsStartup(typeof(Luna.Gallery.Functions.Startup))]

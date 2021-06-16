@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AssemblyName>Luna.PubSub.Utils</AssemblyName>
-    <RootNamespace>Luna.PubSub.Utils</RootNamespace>
+    <AssemblyName>Luna.PubSub.Clients</AssemblyName>
+    <RootNamespace>Luna.PubSub.Clients</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

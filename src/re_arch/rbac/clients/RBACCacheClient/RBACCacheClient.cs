@@ -1,6 +1,5 @@
-﻿using Luna.RBAC.Data.DataContracts;
-using Luna.RBAC.Data.Entities;
-using Luna.RBAC.Public.Client.Enums;
+﻿using Luna.RBAC.Data;
+using Luna.RBAC.Public.Client;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

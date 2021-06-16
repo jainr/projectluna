@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Luna.RBAC.Data.Entities;
+using Luna.RBAC.Data;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 [assembly: FunctionsStartup(typeof(Luna.RBAC.Functions.Startup))]

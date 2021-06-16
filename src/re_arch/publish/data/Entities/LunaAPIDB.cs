@@ -1,11 +1,10 @@
-﻿using Luna.Publish.Public.Client.DataContract;
-using Luna.Publish.PublicClient.Enums;
+﻿using Luna.Publish.Public.Client;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace Luna.Publish.Data.Entities
+namespace Luna.Publish.Data
 {
     public class LunaAPIDB
     {

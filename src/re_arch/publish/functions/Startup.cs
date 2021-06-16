@@ -5,12 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Luna.Publish.Clients.EventGenerator;
-using Luna.Publish.Clients.HttpRequestParser;
-using Luna.Publish.Data.Entities;
-using Luna.Publish.Clients.EventProcessor;
-using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
-using Luna.PubSub.PublicClient.Clients;
+using Luna.Publish.Data;
+using Luna.Publish.Clients;
+using Luna.Common.Utils;
+using Luna.PubSub.Public.Client;
 
 [assembly: FunctionsStartup(typeof(Luna.Publish.Functions.Startup))]
 

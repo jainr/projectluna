@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Common.Utils.Azure.AzureKeyvaultUtils
+namespace Luna.Common.Utils
 {
     public class LunaSecretItem
     {

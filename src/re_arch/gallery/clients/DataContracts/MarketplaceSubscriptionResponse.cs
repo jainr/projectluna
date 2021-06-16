@@ -1,9 +1,9 @@
-﻿using Luna.Gallery.Public.Client.DataContracts;
+﻿using Luna.Gallery.Public.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Gallery.Clients.DataContracts
+namespace Luna.Gallery.Clients
 {
     public class MarketplaceSubscriptionResponse
     {

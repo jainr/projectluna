@@ -1,11 +1,7 @@
 ﻿using Luna.Common.Utils;
-using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
 using Luna.Partner.Public.Client;
-using Luna.Publish.Public.Client.DataContract;
-using Luna.Publish.PublicClient.Enums;
-using Luna.Routing.Clients.MLServiceClients.Interfaces;
-using Luna.Routing.Data.Entities;
+using Luna.Publish.Public.Client;
+using Luna.Routing.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -15,7 +11,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Routing.Clients.MLServiceClients
+namespace Luna.Routing.Clients
 {
     public class MLServiceClientFactory : IMLServiceClientFactory
     {
@@ -49,8 +45,16 @@ namespace Luna.Routing.Clients.MLServiceClients
             if (versionProperties.Type.Equals(RealtimeEndpointAPIVersionType.AzureML.ToString()))
             {
                 var prop = (AzureMLRealtimeEndpointAPIVersionProp)versionProperties;
-                if (!_cachedAzureMLClients.ContainsKey(prop.AzureMLWorkspaceName))
+                
+                if (!_cachedAzureMLClients.ContainsKey(prop.AzureMLWorkspaceName) ||
+                    _cachedAzureMLClients[prop.AzureMLWorkspaceName].NeedRefresh)
                 {
+                    // Remove the workspace from cache if marked as need refresh
+                    if (_cachedAzureMLClients.ContainsKey(prop.AzureMLWorkspaceName))
+                    {
+                        _cachedAzureMLClients.Remove(prop.AzureMLWorkspaceName);
+                    }
+
                     var partnerService = await _dbContext.PartnerServices.SingleOrDefaultAsync(x => x.UniqueName == prop.AzureMLWorkspaceName);
                     if (partnerService == null)
                     {
@@ -80,8 +84,15 @@ namespace Luna.Routing.Clients.MLServiceClients
             {
                 var prop = (AzureMLPipelineEndpointAPIVersionProp)versionProperties;
 
-                if (!_cachedAzureMLClients.ContainsKey(prop.AzureMLWorkspaceName))
+                if (!_cachedAzureMLClients.ContainsKey(prop.AzureMLWorkspaceName) ||
+                    _cachedAzureMLClients[prop.AzureMLWorkspaceName].NeedRefresh)
                 {
+                    // Remove the workspace from cache if marked as need refresh
+                    if (_cachedAzureMLClients.ContainsKey(prop.AzureMLWorkspaceName))
+                    {
+                        _cachedAzureMLClients.Remove(prop.AzureMLWorkspaceName);
+                    }
+
                     var partnerService = await _dbContext.PartnerServices.SingleOrDefaultAsync(x => x.UniqueName == prop.AzureMLWorkspaceName);
                     if (partnerService == null)
                     {

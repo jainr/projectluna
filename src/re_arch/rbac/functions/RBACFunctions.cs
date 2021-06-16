@@ -7,15 +7,12 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Luna.RBAC.Data.DataContracts;
-using Luna.RBAC.Public.Client.DataContracts;
+using Luna.RBAC.Data;
+using Luna.RBAC.Public.Client;
 using Luna.RBAC.Clients;
-using Luna.RBAC.Data.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Luna.RBAC.Public.Client.Enums;
-using Luna.Common.Utils.HttpUtils;
-using Luna.Common.Utils.LoggingUtils;
+using Luna.Common.Utils;
 using System.Collections.Generic;
 
 namespace Luna.RBAC

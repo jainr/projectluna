@@ -1,4 +1,4 @@
-﻿using Luna.RBAC.Data.Entities;
+﻿using Luna.RBAC.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Gallery.Data.Entities
+namespace Luna.Gallery.Data
 {
     /// <summary>
     /// ISqlDbContext interface for EntityFramework

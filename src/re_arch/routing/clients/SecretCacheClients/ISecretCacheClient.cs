@@ -1,10 +1,10 @@
-﻿using Luna.Routing.Data.Entities;
+﻿using Luna.Routing.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Routing.Clients.SecretCacheClients
+namespace Luna.Routing.Clients
 {
     public interface ISecretCacheClient
     {

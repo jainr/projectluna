@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Common.LoggingUtils
+namespace Luna.Common.Utils
 {
     public class ErrorMessages
     {
+        public const string AUTOMATION_WEBHOOK_ALREADY_EXIST = "Name of {0} is being used by other automation webhook. Please choose a different name and try again.";
         public const string APPLICATION_ALREADY_EXIST = "Name of {0} is being used by other applications. Please choose a different name and try again.";
         public const string MARKETPLACE_OFFER_ALREADY_EXIST = "Id of {0} is being used by other Azure marketplace offers. Please choose a different name and try again.";
         public const string MARKETPLACE_PLAN_ALREADY_EXIST = "Id of {0} is being used by other Azure marketplace plans in offer {1}. Please choose a different name and try again.";
@@ -13,6 +14,7 @@ namespace Luna.Common.LoggingUtils
         public const string API_VERSION_ALREADY_EXIST = "Name of {0} is being used by other versions in current API {1}. Please choose a different name and try again.";
         public const string PARTNER_SERVICE_ALREADY_EXIST = "Name of {0} is being used by other partner services. Please choose a different name and try again.";
         public const string APPLICATION_DOES_NOT_EXIST = "Application {0} does not exist or you do not have permission to access it.";
+        public const string AUTOMATION_WEBHOOK_DOES_NOT_EXIST = "Automation webhook {0} does not exist or you do not have permission to access it.";
         public const string MARKETPLACE_OFFER_DOES_NOT_EXIST = "Azure marketplace offer {0} does not exist or you do not have permission to access it.";
         public const string MARKETPLACE_PLAN_DOES_NOT_EXIST = "Azure marketplace plan {0} in offer {1} does not exist or you do not have permission to access it.";
         public const string API_DOES_NOT_EXIST = "API {0} in application {1} does not exist or you do not have permission to access it.";
@@ -56,6 +58,7 @@ namespace Luna.Common.LoggingUtils
         public const string INVALID_PARTNER_SERVICE_TYPE = "The partner service type {0} is invalid.";
         public const string MARKETPLACE_SUBSCRIPTION_DOES_NOT_EXIST = "The Azure marketplace subscription {0} does not exist or you don't have permission to access it.";
         public const string MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH = "The offer id {0} in request path does not match the offer id in request body {1}.";
+        public const string AUTOMATION_WEBHOOK_NAME_DOES_NOT_MATCH = "The webhook name {0} in request path does not match the webhook name in request body {1}.";
         public const string MARKETPLACE_PLAN_NAME_DOES_NOT_MATCH = "The plan id {0} in request path does not match the plan id in request body {1}.";
         public const string MARKETPLACE_SUBSCRIPTION_CAN_NOT_BE_ACTIVATED = "Can not activate Azure marketplace subscription {0}. The subscription is in {1} state.";
         public const string INTERNAL_SERVER_ERROR = "The server encountered an internal error and was unable to complete your request.";

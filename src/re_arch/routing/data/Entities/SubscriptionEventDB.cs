@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Routing.Data.Entities
+namespace Luna.Routing.Data
 {
     public class ProcessedEventDB
     {

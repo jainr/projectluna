@@ -1,11 +1,11 @@
-﻿using Luna.Gallery.Public.Client.DataContracts;
-using Luna.Publish.Public.Client.DataContract;
+﻿using Luna.Gallery.Public.Client;
+using Luna.Publish.Public.Client;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Gallery.Data.Entities
+namespace Luna.Gallery.Data
 {
     public class PublishedLunaAppliationDB
     {

@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Partner.Data.Entities
+namespace Luna.Partner.Data
 {
     /// <summary>
     /// The database entity for partner services

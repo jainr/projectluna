@@ -1,6 +1,5 @@
 ﻿using Luna.Common.Utils;
-using Luna.Common.Utils.RestClients;
-using Luna.Publish.PublicClient.Enums;
+using Luna.Publish.Public.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

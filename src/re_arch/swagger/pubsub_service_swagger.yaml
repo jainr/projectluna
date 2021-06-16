@@ -24,7 +24,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.PubSub.PublicClient.EventStoreInfo'
+            $ref: '#/definitions/Luna.PubSub.Public.Client.EventStoreInfo'
       security:
         - x-functions-key: [ ]
   '/api/eventStores/{name}/events':
@@ -56,7 +56,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.PubSub.PublicClient.LunaBaseEventEntity'
+              $ref: '#/definitions/Luna.PubSub.Public.Client.LunaBaseEventEntity'
             example:
               EventType: PUBLISH_APPLICATION_EVENT
               EventContent: '{}'
@@ -89,16 +89,16 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.PubSub.PublicClient.LunaBaseEventEntity'
+            $ref: '#/definitions/Luna.PubSub.Public.Client.LunaBaseEventEntity'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.PubSub.PublicClient.LunaBaseEventEntity'
+            $ref: '#/definitions/Luna.PubSub.Public.Client.LunaBaseEventEntity'
       security:
         - x-functions-key: [ ]
 definitions:
-  Luna.PubSub.PublicClient.EventStoreInfo:
+  Luna.PubSub.Public.Client.EventStoreInfo:
     required:
       - Name
       - ConnectionString
@@ -124,7 +124,7 @@ definitions:
         - DELETE_APPLICATION_EVENT
         - PUBLISH_APPLICATION_EVENT
       ConnectionStringValidThroughUtc: '2021-06-09T17:23:13.1352800-07:00'
-  Luna.PubSub.PublicClient.LunaEventSubscriber:
+  Luna.PubSub.Public.Client.LunaEventSubscriber:
     type: object
     properties:
       SubscriberServiceName:
@@ -137,7 +137,7 @@ definitions:
         type: array
         items:
           type: string
-  Luna.PubSub.PublicClient.LunaBaseEventEntity:
+  Luna.PubSub.Public.Client.LunaBaseEventEntity:
     required:
       - EventType
       - EventContent

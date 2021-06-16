@@ -1,11 +1,7 @@
-﻿using Luna.Common.LoggingUtils;
-using Luna.Common.Utils;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.Common.Utils.RestClients;
+﻿using Luna.Common.Utils;
 using Luna.Partner.Public.Client;
-using Luna.Publish.Public.Client.DataContract;
-using Luna.Routing.Clients.MLServiceClients.Interfaces;
-using Luna.Routing.Data.DataContracts;
+using Luna.Publish.Public.Client;
+using Luna.Routing.Data;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -18,7 +14,7 @@ using System.Net.Http.Headers;
 using System.Security;
 using System.Threading.Tasks;
 
-namespace Luna.Routing.Clients.MLServiceClients
+namespace Luna.Routing.Clients
 {
     public class AzureMLClient : IRealtimeEndpointClient, IPipelineEndpointClient
     {
@@ -31,6 +27,7 @@ namespace Luna.Routing.Clients.MLServiceClients
         private readonly AzureMLCache _cache;
         private readonly HttpClient _httpClient;
         private string _accessToken;
+        private bool _needRefresh = false;
 
         public AzureMLClient(HttpClient httpClient,
             IEncryptionUtils encryptionUtils, 
@@ -43,6 +40,14 @@ namespace Luna.Routing.Clients.MLServiceClients
             this._cache = new AzureMLCache();
             task = this.RefreshAccessToken();
             task.Wait();
+        }
+
+        public bool NeedRefresh
+        {
+            get
+            {
+                return this._needRefresh;
+            }
         }
 
         /// <summary>
@@ -102,11 +107,13 @@ namespace Luna.Routing.Clients.MLServiceClients
 
             var response = await this._httpClient.SendAsync(request);
 
-            if (shouldRefreshCacheAndRetry && 
-                (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.Unauthorized))
+            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                _cache.RealTimeEndpoints.Remove(endpointName);
-                return await CallRealtimeEndpointInternal(operationName, input, versionProperties, headers, false);
+                if (shouldRefreshCacheAndRetry)
+                {
+                    _cache.RealTimeEndpoints.Remove(endpointName);
+                    return await CallRealtimeEndpointInternal(operationName, input, versionProperties, headers, false);
+                }
             }
 
             return response;
@@ -359,7 +366,7 @@ namespace Luna.Routing.Clients.MLServiceClients
 
         private async Task<string> GetArtifactUri(string runId, LunaRequestHeaders headers)
         {
-            var url = string.Format(@"https://{0}.api.azureml.ms/history/v1.0{1}/experiments/{2}/runs/{3}/artifacts/contentinfo?path=logs/azureml/executionlogs.txt",
+            var url = string.Format(@"https://{0}.api.azureml.ms/history/v1.0{1}/experiments/{2}/runs/{3}/artifacts/contentinfo?path=outputs/output.json",
                 this._config.Region,
                 this._config.ResourceId,
                 headers.SubscriptionId,
@@ -556,6 +563,12 @@ namespace Luna.Routing.Clients.MLServiceClients
                 }
 
                 return await SendRequestWithRetryAfterTokenRefresh(req, true);
+            }
+
+            // Reload the configuration if get NotFound or Unauthorized after refresh the token.
+            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                this._needRefresh = true;
             }
 
             return response;

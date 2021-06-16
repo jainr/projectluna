@@ -1,4 +1,4 @@
-﻿using Luna.Publish.PublicClient.Enums;
+﻿using Luna.Publish.Public.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -6,6 +6,123 @@ host: localhost:7071
 schemes:
   - http
 paths:
+  '/api/reviewsettings/webhooks/{name}':
+    put:
+      tags:
+        - Review Settings
+      summary: Create an automation webhook
+      operationId: putApiReviewsettingsWebhooksByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the webhook
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.AutomationWebhook'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.AutomationWebhook'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - Review Settings
+      summary: Update an automation webhook
+      operationId: patchApiReviewsettingsWebhooksByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the automation webhook
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.AutomationWebhook'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.AutomationWebhook'
+      security:
+        - x-functions-key: [ ]
+    delete:
+      tags:
+        - Review Settings
+      summary: Delete an automation webhook
+      operationId: deleteApiReviewsettingsWebhooksByName
+      parameters:
+        - in: path
+          name: name
+          description: Name of the automation webhook
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+    get:
+      tags:
+        - Review Settings
+      summary: Get an automation webhook
+      operationId: getApiReviewsettingsWebhooksByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the automation webhook
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.AutomationWebhook'
+      security:
+        - x-functions-key: [ ]
+  /api/reviewsettings/webhooks:
+    get:
+      tags:
+        - Application Review
+      summary: List automation webhooks
+      operationId: getApiReviewsettingsWebhooks
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Publish.Public.Client.AutomationWebhook'
+            example:
+              Name: responsible-ai-scan
+              Description: Check responsible AI
+              WebhookUrl: https://aka.ms/lunaresponsibleai
+              IsEnabled: true
+              CreatedTime: 
+              LastUpdatedTime: 
+      security:
+        - x-functions-key: [ ]
   '/api/marketplace/offers/{offerId}':
     put:
       tags:
@@ -27,12 +144,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
       security:
         - x-functions-key: [ ]
     patch:
@@ -55,12 +172,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
       security:
         - x-functions-key: [ ]
     delete:
@@ -96,7 +213,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
       security:
         - x-functions-key: [ ]
   '/api/marketplace/offers/{offerId}/publish':
@@ -117,7 +234,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
       security:
         - x-functions-key: [ ]
   /api/marketplace/offers:
@@ -134,7 +251,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer'
+              $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
             example:
               MarketplaceOfferId: myoffer
               DisplayName: My Offer
@@ -173,12 +290,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
       security:
         - x-functions-key: [ ]
     patch:
@@ -206,12 +323,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
       security:
         - x-functions-key: [ ]
     delete:
@@ -257,7 +374,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
       security:
         - x-functions-key: [ ]
   '/api/marketplace/offers/{offerId}/plans':
@@ -280,7 +397,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+              $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
             example:
               MarketplaceOfferId: myoffer
               MarketplacePlanId: myplan
@@ -306,7 +423,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplication'
+              $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplication'
       security:
         - x-functions-key: [ ]
   '/api/applicationss/{name}/masterkeys':
@@ -327,15 +444,15 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationMasterKeys'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationMasterKeys'
       security:
         - x-functions-key: [ ]
-  '/api/applicationss/{name}':
+  '/api/applications/{name}':
     get:
       tags:
         - Application
       summary: Get a Luna application
-      operationId: getApiApplicationssByName
+      operationId: getApiApplicationsByName
       produces:
         - application/json
       parameters:
@@ -348,10 +465,9 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplication'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplication'
       security:
         - x-functions-key: [ ]
-  '/api/applications/{name}':
     put:
       tags:
         - Application
@@ -372,12 +488,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationProp'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationProp'
       security:
         - x-functions-key: [ ]
     patch:
@@ -400,12 +516,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationProp'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationProp'
       security:
         - x-functions-key: [ ]
     delete:
@@ -447,7 +563,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationMasterKeys'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationMasterKeys'
       security:
         - x-functions-key: [ ]
   '/api/applications/{name}/publish':
@@ -493,12 +609,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.BaseLunaAPIProp'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.BaseLunaAPIProp'
       security:
         - x-functions-key: [ ]
     patch:
@@ -526,12 +642,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.BaseLunaAPIProp'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.BaseLunaAPIProp'
       security:
         - x-functions-key: [ ]
     delete:
@@ -586,12 +702,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.BaseAPIVersionProp'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.BaseAPIVersionProp'
       security:
         - x-functions-key: [ ]
     patch:
@@ -624,12 +740,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.BaseAPIVersionProp'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.BaseAPIVersionProp'
       security:
         - x-functions-key: [ ]
     delete:
@@ -659,7 +775,36 @@ paths:
       security:
         - x-functions-key: [ ]
 definitions:
-  Luna.Publish.Public.Client.DataContract.AzureMarketplaceOffer:
+  Luna.Publish.Public.Client.AutomationWebhook:
+    required:
+      - Name
+      - Description
+      - WebhookUrl
+      - IsEnabled
+    type: object
+    properties:
+      Name:
+        type: string
+      Description:
+        type: string
+      WebhookUrl:
+        type: string
+      IsEnabled:
+        type: boolean
+      CreatedTime:
+        format: date-time
+        type: string
+      LastUpdatedTime:
+        format: date-time
+        type: string
+    example:
+      Name: responsible-ai-scan
+      Description: Check responsible AI
+      WebhookUrl: https://aka.ms/lunaresponsibleai
+      IsEnabled: true
+      CreatedTime: 
+      LastUpdatedTime: 
+  Luna.Publish.Public.Client.AzureMarketplaceOffer:
     required:
       - MarketplaceOfferId
       - DisplayName
@@ -688,7 +833,7 @@ definitions:
       Plans:
         type: array
         items:
-          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan'
+          $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
     example:
       MarketplaceOfferId: myoffer
       DisplayName: My Offer
@@ -699,7 +844,7 @@ definitions:
       DeletedTime: 
       IsManualActivation: true
       Plans: [ ]
-  Luna.Publish.Public.Client.DataContract.AzureMarketplacePlan:
+  Luna.Publish.Public.Client.AzureMarketplacePlan:
     required:
       - MarketplaceOfferId
       - MarketplacePlanId
@@ -733,7 +878,7 @@ definitions:
       ManagementKitDownloadUrlSecretName: 
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
       LastUpdatedTime: '0001-01-01T00:00:00.0000000-08:00'
-  Luna.Publish.Public.Client.DataContract.LunaApplication:
+  Luna.Publish.Public.Client.LunaApplication:
     required:
       - Name
       - Status
@@ -745,12 +890,12 @@ definitions:
       Status:
         type: string
       Properties:
-        $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationProp'
+        $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationProp'
       APIs:
         type: array
         items:
-          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaAPI'
-  Luna.Publish.Public.Client.DataContract.LunaApplicationProp:
+          $ref: '#/definitions/Luna.Publish.Public.Client.LunaAPI'
+  Luna.Publish.Public.Client.LunaApplicationProp:
     required:
       - DisplayName
       - Description
@@ -775,7 +920,7 @@ definitions:
       Tags:
         type: array
         items:
-          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.LunaApplicationTag'
+          $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationTag'
       CreatedBy:
         type: string
       PrimaryMasterKeySecretName:
@@ -795,25 +940,25 @@ definitions:
       CreatedBy: 
       PrimaryMasterKeySecretName: 
       SecondaryMasterKeySecretName: 
-  Luna.Publish.Public.Client.DataContract.LunaApplicationTag:
+  Luna.Publish.Public.Client.LunaApplicationTag:
     type: object
     properties:
       Key:
         type: string
       Value:
         type: string
-  Luna.Publish.Public.Client.DataContract.LunaAPI:
+  Luna.Publish.Public.Client.LunaAPI:
     type: object
     properties:
       Name:
         type: string
       Properties:
-        $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp'
+        $ref: '#/definitions/Luna.Publish.Public.Client.BaseLunaAPIProp'
       Versions:
         type: array
         items:
-          $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.APIVersion'
-  Luna.Publish.Public.Client.DataContract.BaseLunaAPIProp:
+          $ref: '#/definitions/Luna.Publish.Public.Client.APIVersion'
+  Luna.Publish.Public.Client.BaseLunaAPIProp:
     required:
       - DisplayName
       - Type
@@ -833,14 +978,14 @@ definitions:
       Type: Pipeline
       Description: Sentiment analysis API
       AdvancedSettings: 
-  Luna.Publish.Public.Client.DataContract.APIVersion:
+  Luna.Publish.Public.Client.APIVersion:
     type: object
     properties:
       Name:
         type: string
       Properties:
-        $ref: '#/definitions/Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp'
-  Luna.Publish.Public.Client.DataContract.BaseAPIVersionProp:
+        $ref: '#/definitions/Luna.Publish.Public.Client.BaseAPIVersionProp'
+  Luna.Publish.Public.Client.BaseAPIVersionProp:
     required:
       - Type
       - Description
@@ -856,7 +1001,7 @@ definitions:
       Type: AzureML
       Description: API version from Azure ML workspace
       AdvancedSettings: 
-  Luna.Publish.Public.Client.DataContract.LunaApplicationMasterKeys:
+  Luna.Publish.Public.Client.LunaApplicationMasterKeys:
     required:
       - PrimaryMasterKey
       - SecondaryMasterKey

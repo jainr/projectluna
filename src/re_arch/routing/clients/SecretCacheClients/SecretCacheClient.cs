@@ -1,5 +1,5 @@
-﻿using Luna.Common.Utils.Azure.AzureKeyvaultUtils;
-using Luna.Routing.Data.Entities;
+﻿using Luna.Common.Utils;
+using Luna.Routing.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Routing.Clients.SecretCacheClients
+namespace Luna.Routing.Clients
 {
     public class SecretItemCache
     {

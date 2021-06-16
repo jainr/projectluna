@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.PubSub.Utils
+namespace Luna.PubSub.Clients
 {
     public class AzureStorageConfiguration
     {

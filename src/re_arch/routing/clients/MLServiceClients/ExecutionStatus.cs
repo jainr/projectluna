@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Routing.Clients.MLServiceClients
+namespace Luna.Routing.Clients
 {
     public class ExecutionStatus
     {

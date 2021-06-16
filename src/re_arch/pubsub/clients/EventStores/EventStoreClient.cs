@@ -1,7 +1,5 @@
-﻿using Luna.Common.LoggingUtils;
-using Luna.Common.Utils.LoggingUtils.Enums;
-using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.PubSub.PublicClient;
+﻿using Luna.Common.Utils;
+using Luna.PubSub.Public.Client;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -9,7 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.PubSub.Utils
+namespace Luna.PubSub.Clients
 {
     public class EventStoreClient : IEventStoreClient
     {

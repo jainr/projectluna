@@ -1,11 +1,7 @@
-﻿using Luna.Publish.Public.Client.DataContract;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Luna.Publish.Public.Client;
 using System.Threading.Tasks;
 
-namespace Luna.Publish.Clients.HttpRequestParser
+namespace Luna.Publish.Clients
 {
     public interface IHttpRequestParser
     {

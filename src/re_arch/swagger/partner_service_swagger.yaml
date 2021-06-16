@@ -112,6 +112,62 @@ paths:
             $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
       security:
         - x-functions-key: [ ]
+    patch:
+      tags:
+        - Partner service
+      summary: Update a partner service
+      operationId: patchApiPartnerServicesByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
+      security:
+        - x-functions-key: [ ]
+    put:
+      tags:
+        - Partner service
+      summary: Add a partner service
+      operationId: putApiPartnerServicesByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the partner service
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Partner.Public.Client.BasePartnerServiceConfiguration'
+      security:
+        - x-functions-key: [ ]
   /api/partnerServices:
     get:
       tags:
@@ -173,7 +229,6 @@ definitions:
       - DisplayName
       - Description
       - Type
-      - Tags
     type: object
     properties:
       DisplayName:
@@ -184,6 +239,11 @@ definitions:
         type: string
       Tags:
         type: string
+    example:
+      DisplayName: My Azure ML workspace
+      Description: Azure ML workspace
+      Type: AzureML
+      Tags: ''
 securityDefinitions:
   x-functions-key:
     type: apiKey

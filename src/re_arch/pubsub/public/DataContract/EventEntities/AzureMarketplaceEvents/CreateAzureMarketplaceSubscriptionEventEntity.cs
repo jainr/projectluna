@@ -1,9 +1,8 @@
-﻿using Luna.PubSub.PublicClient;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.PubSub.Public.Client.DataContract
+namespace Luna.PubSub.Public.Client
 {
     public class CreateAzureMarketplaceSubscriptionEventEntity : AzureMarketplaceSubscriptionEventEntity
     {

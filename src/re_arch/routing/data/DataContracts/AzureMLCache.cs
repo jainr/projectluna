@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security;
 
-namespace Luna.Routing.Data.DataContracts
+namespace Luna.Routing.Data
 {
     public class AzureMLRealtimeEndpointCache
     {

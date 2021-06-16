@@ -1,9 +1,8 @@
-﻿using Luna.Publish.Data.DataContracts.Events;
-using Luna.Publish.Data.Entities;
-using Luna.Publish.Public.Client.DataContract;
+﻿using Luna.Publish.Data;
+using Luna.Publish.Public.Client;
 using System.Collections.Generic;
 
-namespace Luna.Publish.Clients.EventProcessor
+namespace Luna.Publish.Clients
 {
     public interface IPublishingEventProcessor
     {

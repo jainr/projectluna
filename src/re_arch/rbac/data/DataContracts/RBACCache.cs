@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Luna.RBAC.Data.DataContracts
+namespace Luna.RBAC.Data
 {
     /// <summary>
     /// The class defines RBAC ownership

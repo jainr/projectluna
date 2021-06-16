@@ -1,19 +1,13 @@
-﻿using Luna.Common.Utils.LoggingUtils.Exceptions;
-using Luna.Publish.Data.DataContracts.Events;
-using Luna.Publish.Data.DataContracts.Events.LunaAPIEvents;
-using Luna.Publish.Data.DataContracts.Events.LunaAPIVersionEvents;
-using Luna.Publish.Data.DataContracts.Events.LunaApplicationEvents;
-using Luna.Publish.Data.Entities;
-using Luna.Publish.Data.Enums;
-using Luna.Publish.Public.Client.DataContract;
-using Luna.Publish.PublicClient.Enums;
+﻿using Luna.Common.Utils;
+using Luna.Publish.Data;
+using Luna.Publish.Public.Client;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Publish.Clients.EventProcessor
+namespace Luna.Publish.Clients
 {
     public class PublishingEventProcessor : IPublishingEventProcessor
     {
