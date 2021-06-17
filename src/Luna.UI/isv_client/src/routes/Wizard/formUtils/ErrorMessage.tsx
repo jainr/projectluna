@@ -1,7 +1,7 @@
 export const ErrorMessage = {
-    operationName :"A operation name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 1 and 128.",
-    applicationName :"A application name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 1 and 128.",
-    apiName :"A api name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 1 and 128.",
+    operationName :"A operation name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 4 and 128.",
+    applicationName :"A application name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 4 and 128.",
+    apiName :"A api name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 4 and 128.",
     apiVersion :"A api version must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 1 and 128.",
     applicationDisplayName :"A api display name must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 1 and 128.",
     publisher :"A publisher must consist only of lowercase letters, numbers and hyphens, start with a lowercase letter and the length must between 1 and 128.",
