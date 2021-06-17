@@ -471,5 +471,114 @@ namespace Luna.Gallery.Public.Client
 
             return result;
         }
+
+        /// <summary>
+        /// Create a application publisher
+        /// </summary>
+        /// <param name="name">Name of the application publisher</param>
+        /// <param name="publisher">The application publisher</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The publisher created</returns>
+        public async Task<ApplicationPublisher> CreateApplicationPublisherAsync(string name,
+            ApplicationPublisher publisher,
+            LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"applicationpublishers/{name}");
+
+            var content = JsonConvert.SerializeObject(publisher);
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Put, uri, content, headers);
+
+            var result = JsonConvert.DeserializeObject<ApplicationPublisher>(await response.Content.ReadAsStringAsync());
+
+            return result;
+        }
+
+        /// <summary>
+        /// Update a application publisher
+        /// </summary>
+        /// <param name="name">Name of the application publisher</param>
+        /// <param name="publisher">The application publisher</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The publisher updated</returns>
+        public async Task<ApplicationPublisher> UpdateApplicationPublisherAsync(string name,
+            ApplicationPublisher publisher,
+            LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"applicationpublishers/{name}");
+
+            var content = JsonConvert.SerializeObject(publisher);
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Patch, uri, content, headers);
+
+            var result = JsonConvert.DeserializeObject<ApplicationPublisher>(await response.Content.ReadAsStringAsync());
+
+            return result;
+        }
+
+        /// <summary>
+        /// Get a application publisher
+        /// </summary>
+        /// <param name="name">Name of the application publisher</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The publisher</returns>
+        public async Task<ApplicationPublisher> GetApplicationPublisherAsync(string name,
+            LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"applicationpublishers/{name}");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            var result = JsonConvert.DeserializeObject<ApplicationPublisher>(await response.Content.ReadAsStringAsync());
+
+            return result;
+        }
+
+        /// <summary>
+        /// List application publishers
+        /// </summary>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The publishers</returns>
+        public async Task<List<ApplicationPublisher>> ListApplicationPublishersAsync(LunaRequestHeaders headers, string type = null)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var requestUrl = this._config.ServiceBaseUrl + $"applicationpublishers";
+            if (!string.IsNullOrEmpty(type))
+            {
+                requestUrl = requestUrl + $"?{GalleryServiceQueryParametersConstants.PUBLISHER_TYPE_PARAM_NAME}={type}";
+            }
+
+            var uri = new Uri(requestUrl);
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            var result = JsonConvert.DeserializeObject<List<ApplicationPublisher>>(await response.Content.ReadAsStringAsync());
+
+            return result;
+        }
+
+        /// <summary>
+        /// Delete a application publisher
+        /// </summary>
+        /// <param name="name">Name of the application publisher</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns></returns>
+        public async Task DeleteApplicationPublisherAsync(string name,
+            LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"applicationpublishers/{name}");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Delete, uri, null, headers);
+
+            return;
+        }
     }
 }

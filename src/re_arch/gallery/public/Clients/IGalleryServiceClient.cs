@@ -190,5 +190,53 @@ namespace Luna.Gallery.Public.Client
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer parameters</returns>
         Task<List<MarketplaceOfferParameter>> GetOfferParametersAsync(string offerId, LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Create a application publisher
+        /// </summary>
+        /// <param name="name">Name of the application publisher</param>
+        /// <param name="publisher">The application publisher</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The publisher created</returns>
+        Task<ApplicationPublisher> CreateApplicationPublisherAsync(string name,
+            ApplicationPublisher publisher,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Update a application publisher
+        /// </summary>
+        /// <param name="name">Name of the application publisher</param>
+        /// <param name="publisher">The application publisher</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The publisher updated</returns>
+        Task<ApplicationPublisher> UpdateApplicationPublisherAsync(string name,
+            ApplicationPublisher publisher,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Get a application publisher
+        /// </summary>
+        /// <param name="name">Name of the application publisher</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The publisher</returns>
+        Task<ApplicationPublisher> GetApplicationPublisherAsync(string name,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// List application publishers
+        /// </summary>
+        /// <param name="headers">The Luna request headers</param>
+        /// <param name="type">The type of the publisher</param>
+        /// <returns>The publishers</returns>
+        Task<List<ApplicationPublisher>> ListApplicationPublishersAsync(LunaRequestHeaders headers, string type = null);
+
+        /// <summary>
+        /// Delete a application publisher
+        /// </summary>
+        /// <param name="name">Name of the application publisher</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns></returns>
+        Task DeleteApplicationPublisherAsync(string name,
+            LunaRequestHeaders headers);
     }
 }

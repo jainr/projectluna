@@ -16,6 +16,8 @@ namespace Luna.Common.Utils
 
         public const string MARKETPLACE_SUBCRIPTION_PARAMETERS = "prm-";
 
+        public const string PUBLISHER_KEY = "pub-";
+
         public static string GetNamePrefix(string name)
         {
             if (name.Contains("-"))

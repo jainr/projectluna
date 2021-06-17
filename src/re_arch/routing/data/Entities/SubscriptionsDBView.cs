@@ -15,5 +15,7 @@ namespace Luna.Routing.Data
 
         public string SecondaryKeySecretName { get; set; }
 
+        public string ApplicationName { get; set; }
+
     }
 }

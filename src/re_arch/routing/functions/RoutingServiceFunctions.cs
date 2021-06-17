@@ -633,7 +633,8 @@ namespace Luna.Routing.Functions
                 {
                     var secretName = _secretCacheClient.SecretCache.SubscriptionKeys[lunaHeaders.LunaSubscriptionKey].SecretName;
                     var sub = await _dbContext.Subscriptions.
-                        Where(x => x.PrimaryKeySecretName == secretName || x.SecondaryKeySecretName == secretName).
+                        Where(x => (x.PrimaryKeySecretName == secretName || x.SecondaryKeySecretName == secretName) &&
+                        x.ApplicationName == apiVersion.ApplicationName).
                         SingleOrDefaultAsync();
 
                     if (sub == null)

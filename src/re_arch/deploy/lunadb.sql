@@ -53,7 +53,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [publish].[AutomationWebhooks](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
-	[name] [nvarchar](50) NOT NULL,
+	[name] [nvarchar](128) NOT NULL,
 	[description] [nvarchar](1024) NOT NULL,
 	[webhookUrl] [nvarchar](1024) NOT NULL,
 	[isEnabled] [bit] NOT NULL,
@@ -284,6 +284,30 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
+/****** Object:  Table [gallery].[ApplicationPublishers]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [gallery].[ApplicationPublishers](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](128) NOT NULL,
+	[type] [nvarchar](64) NOT NULL,
+	[displayName] [nvarchar](128) NOT NULL,
+	[description] [nvarchar](1024) NOT NULL,
+	[endpointUrl] [nvarchar](1024) NOT NULL,
+	[websiteUrl] [nvarchar](1024) NOT NULL,
+	[isEnabled] [bit] NOT NULL,
+	[publisherKeySecretName] [nvarchar](64) NOT NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+	[lastUpdatedTime] [datetime2](7) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 /****** Object:  Table [gallery].[PublishedLunaAppliations]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
@@ -406,7 +430,7 @@ GO
 
 CREATE VIEW [routing].[Subscriptions]
 AS
-SELECT SubscriptionId, PrimaryKeySecretName, SecondaryKeySecretName, Status
+SELECT SubscriptionId, ApplicationName, PrimaryKeySecretName, SecondaryKeySecretName, Status
 FROM   gallery.LunaApplicationSubscriptions
 WHERE  (Status = N'Subscribed')
 GO

@@ -46,6 +46,7 @@ foreach ($service in $services) {
 	dotnet clean --configuration Release /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary
 	dotnet publish --configuration Release /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary
 
+	Remove-Item -Path $zipFilePath -Force
 	Compress-Archive -Path .\bin\Release\netcoreapp3.1\publish\* -DestinationPath $zipFilePath -Force
 	
 	pop-location

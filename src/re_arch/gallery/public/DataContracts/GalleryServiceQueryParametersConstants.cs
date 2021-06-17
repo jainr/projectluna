@@ -14,5 +14,6 @@ namespace Luna.Gallery.Public.Client
         public const string SUBCRIPTION_KEY_NAME_PARAM_NAME = "key-name";
         public const string SUBCRIPTION_PRIMARY_KEY_VALUE = "PrimaryKey";
         public const string SUBCRIPTION_SECONDARY_KEY_VALUE = "SecondaryKey";
+        public const string PUBLISHER_TYPE_PARAM_NAME = "type";
     }
 }

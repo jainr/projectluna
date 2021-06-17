@@ -1078,7 +1078,7 @@ paths:
         - http-bearer: [ ]
     patch:
       tags:
-        - Partner Service - deprecated)
+        - Partner Service - deprecated
       summary: Update Azure ML workspace as a partner service
       operationId: patchApiManagePartnerservicesAzuremlByName
       consumes:
@@ -1507,6 +1507,132 @@ paths:
             $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscriptionNotes'
       security:
         - http-bearer: [ ]
+  '/api/gallery/applicationpublishers/{name}':
+    put:
+      tags:
+        - ML Gallery
+      summary: Register a publisher
+      operationId: putApiGalleryApplicationpublishersByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the webhook
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.ApplicationPublisher'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.ApplicationPublisher'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - ML Gallery
+      summary: Update a publisher
+      operationId: patchApiGalleryApplicationpublishersByName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the webhook
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Request contract
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.ApplicationPublisher'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.ApplicationPublisher'
+      security:
+        - x-functions-key: [ ]
+    delete:
+      tags:
+        - ML Gallery
+      summary: Delete a publisher
+      operationId: deleteApiGalleryApplicationpublishersByName
+      parameters:
+        - in: path
+          name: name
+          description: Name of the webhook
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+    get:
+      tags:
+        - ML Gallery
+      summary: Get a publisher
+      operationId: getApiGalleryApplicationpublishersByName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: name
+          description: Name of the webhook
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.ApplicationPublisher'
+      security:
+        - x-functions-key: [ ]
+  /api/gallery/applicationpublishers:
+    get:
+      tags:
+        - ML Gallery
+      summary: List publishers
+      operationId: getApiGalleryApplicationpublishers
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: type
+          description: Type of the publisher
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Gallery.Public.Client.ApplicationPublisher'
+            example:
+              Name: ace
+              DisplayName: ACE team
+              Type: Internal
+              Description: Azure Customer Engineering Team
+              EndpointUrl: https://aka.ms/aceendpoint
+              WebsiteUrl: https://aka.ms/acewebsite
+              IsEnabled: true
+              PublisherKey: publisher-key
+              CreatedTime: 
+              LastUpdatedTime: 
+      security:
+        - x-functions-key: [ ]
   '/api/reviewsettings/webhooks/{name}':
     put:
       tags:
@@ -2244,6 +2370,48 @@ definitions:
         type: string
     example:
       Notes: this is my subscription
+  Luna.Gallery.Public.Client.ApplicationPublisher:
+    required:
+      - Name
+      - DisplayName
+      - Type
+      - Description
+      - IsEnabled
+    type: object
+    properties:
+      Name:
+        type: string
+      DisplayName:
+        type: string
+      Type:
+        type: string
+      Description:
+        type: string
+      EndpointUrl:
+        type: string
+      WebsiteUrl:
+        type: string
+      IsEnabled:
+        type: boolean
+      PublisherKey:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+      LastUpdatedTime:
+        format: date-time
+        type: string
+    example:
+      Name: ace
+      DisplayName: ACE team
+      Type: Internal
+      Description: Azure Customer Engineering Team
+      EndpointUrl: https://aka.ms/aceendpoint
+      WebsiteUrl: https://aka.ms/acewebsite
+      IsEnabled: true
+      PublisherKey: publisher-key
+      CreatedTime: 
+      LastUpdatedTime: 
   Luna.Publish.Public.Client.AutomationWebhook:
     required:
       - Name

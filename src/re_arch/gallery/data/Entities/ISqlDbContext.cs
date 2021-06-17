@@ -22,6 +22,8 @@ namespace Luna.Gallery.Data
 
         DbSet<PublishedAzureMarketplacePlanDB> PublishedAzureMarketplacePlans { get; set; }
 
+        DbSet<ApplicationPublisherDB> ApplicationPublishers { get; set; }
+
         /// <summary>
         /// Save the changes to database
         /// </summary>

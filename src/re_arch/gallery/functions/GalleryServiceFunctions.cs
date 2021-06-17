@@ -190,6 +190,372 @@ namespace Luna.Gallery.Functions
             }
         }
 
+        #region Applicaton Publishers
+
+        /// <summary>
+        /// Register a publisher
+        /// </summary>
+        /// <group>Applicaton Publisher</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/applicationpublishers/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the webhook</param>
+        /// <param name="req" in="body">
+        ///     <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateApplicationPublisher")]
+        public async Task<IActionResult> CreateApplicationPublisher(
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "applicationpublishers/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateApplicationPublisher));
+
+                try
+                {
+                    if (await _dbContext.ApplicationPublishers.AnyAsync(x => x.Name == name))
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.APP_PUBLISHER_ALREADY_EXIST, name));
+                    }
+
+                    var publisher = await HttpUtils.DeserializeRequestBodyAsync<ApplicationPublisher>(req);
+
+                    if (!name.Equals(publisher.Name))
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.APP_PUBLISHER_NAME_DOES_NOT_MATCH, name, publisher.Name),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    var publisherDb = new ApplicationPublisherDB(publisher);
+
+                    publisherDb.PublisherKeySecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.PUBLISHER_KEY);
+                    await _keyVaultUtils.SetSecretAsync(publisherDb.PublisherKeySecretName, publisher.PublisherKey);
+
+                    _dbContext.ApplicationPublishers.Add(publisherDb);
+                    await _dbContext._SaveChangesAsync();
+
+                    return new OkObjectResult(publisherDb.ToApplicationPublisher(publisher.PublisherKey));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateApplicationPublisher));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Update a publisher
+        /// </summary>
+        /// <group>Applicaton Publisher</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/applicationpublishers/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the webhook</param>
+        /// <param name="req" in="body">
+        ///     <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdateApplicationPublisher")]
+        public async Task<IActionResult> UpdateApplicationPublisher(
+            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "applicationpublishers/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdateApplicationPublisher));
+
+                try
+                {
+                    var publisherDb = await _dbContext.ApplicationPublishers.SingleOrDefaultAsync(
+                        x => x.Name == name);
+
+                    if (publisherDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.APP_PUBLISHER_DOES_NOT_EXIST, name));
+                    }
+
+                    var publisher = await HttpUtils.DeserializeRequestBodyAsync<ApplicationPublisher>(req);
+
+                    if (!name.Equals(publisher.Name))
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.APP_PUBLISHER_NAME_DOES_NOT_MATCH, name, publisher.Name),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    if (!publisher.Type.Equals(publisherDb.Type))
+                    {
+                        throw new LunaConflictUserException(string.Format(ErrorMessages.CAN_NOT_UPDATE_PUBLISHER_TYPE, publisherDb.Type));
+                    }
+
+                    publisherDb.Update(publisher);
+
+                    using (var transaction = await _dbContext.BeginTransactionAsync())
+                    {
+                        await _keyVaultUtils.SetSecretAsync(publisherDb.PublisherKeySecretName, publisher.PublisherKey);
+
+                        _dbContext.ApplicationPublishers.Update(publisherDb);
+                        await _dbContext._SaveChangesAsync();
+
+                        transaction.Commit();
+                    }
+
+                    return new OkObjectResult(publisherDb.ToApplicationPublisher(publisher.PublisherKey));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.UpdateApplicationPublisher));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete a publisher
+        /// </summary>
+        /// <group>Applicaton Publisher</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/applicationpublishers/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the webhook</param>
+        /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("DeleteApplicationPublisher")]
+        public async Task<IActionResult> DeleteApplicationPublisher(
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "applicationpublishers/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.DeleteApplicationPublisher));
+
+                try
+                {
+                    var publisherDb = await _dbContext.ApplicationPublishers.SingleOrDefaultAsync(
+                        x => x.Name == name);
+
+                    if (publisherDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.APP_PUBLISHER_DOES_NOT_EXIST, name));
+                    }
+                    var secretName = publisherDb.PublisherKeySecretName;
+                    _dbContext.ApplicationPublishers.Remove(publisherDb);
+                    await _dbContext._SaveChangesAsync();
+
+                    await _keyVaultUtils.DeleteSecretAsync(secretName);
+
+                    return new NoContentResult();
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.DeleteApplicationPublisher));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get a publisher
+        /// </summary>
+        /// <group>Applicaton Publisher</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/applicationpublishers/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the webhook</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetApplicationPublisher")]
+        public async Task<IActionResult> GetApplicationPublisher(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "applicationpublishers/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetApplicationPublisher));
+
+                try
+                {
+                    var publisherDb = await _dbContext.ApplicationPublishers.SingleOrDefaultAsync(
+                        x => x.Name == name);
+
+                    if (publisherDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.APP_PUBLISHER_DOES_NOT_EXIST, name));
+                    }
+
+                    var key = await _keyVaultUtils.GetSecretAsync(publisherDb.PublisherKeySecretName);
+
+                    return new OkObjectResult(publisherDb.ToApplicationPublisher(key));
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetApplicationPublisher));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// List publishers
+        /// </summary>
+        /// <group>Applicaton Publisher</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/applicationpublishers</url>
+        /// <param name="type" required="false" cref="string" in="query">Type of the publisher</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListApplicationPublishers")]
+        public async Task<IActionResult> ListApplicationPublishers(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "applicationpublishers")] HttpRequest req)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListApplicationPublishers));
+
+                try
+                {
+                    if (req.Query.ContainsKey(GalleryServiceQueryParametersConstants.PUBLISHER_TYPE_PARAM_NAME))
+                    {
+                        var type = req.Query[GalleryServiceQueryParametersConstants.PUBLISHER_TYPE_PARAM_NAME].ToString();
+                        var publishers = await _dbContext.ApplicationPublishers.
+                            Where(x => x.Type == type).
+                            Select(x => x.ToApplicationPublisher("")).
+                            ToListAsync();
+
+                        return new OkObjectResult(publishers);
+                    }
+                    else
+                    {
+                        var publishers = await _dbContext.ApplicationPublishers.
+                            Select(x => x.ToApplicationPublisher("")).
+                            ToListAsync();
+
+                        return new OkObjectResult(publishers);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListApplicationPublishers));
+                }
+            }
+        }
+        #endregion
+
         #region published application operations
         /// <summary>
         /// List published applications

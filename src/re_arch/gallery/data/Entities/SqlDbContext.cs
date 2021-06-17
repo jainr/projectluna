@@ -32,6 +32,8 @@ namespace Luna.Gallery.Data
         public DbSet<AzureMarketplaceSubscriptionDB> AzureMarketplaceSubscriptions { get; set; }
         public DbSet<PublishedAzureMarketplacePlanDB> PublishedAzureMarketplacePlans { get; set; }
 
+        public DbSet<ApplicationPublisherDB> ApplicationPublishers { get; set; }
+
         /// <summary>
         /// Save changes to database
         /// </summary>

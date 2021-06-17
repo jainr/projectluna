@@ -2780,7 +2780,7 @@ namespace Luna.Gateway.Functions
         /// <summary>
         /// Update Azure ML workspace as a partner service
         /// </summary>
-        /// <group>Partner Service - deprecated)</group>
+        /// <group>Partner Service - deprecated</group>
         /// <verb>PATCH</verb>
         /// <url>http://localhost:7071/api/manage/partnerservices/azureml/{name}</url>
         /// <param name="name" required="true" cref="string" in="path">Name of the partner service</param>
@@ -3797,6 +3797,324 @@ namespace Luna.Gateway.Functions
                 }
             }
         }
+
+        /// <summary>
+        /// Register a publisher
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/gallery/applicationpublishers/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the webhook</param>
+        /// <param name="req" in="body">
+        ///     <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateApplicationPublisher")]
+        public async Task<IActionResult> CreateApplicationPublisher(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "gallery/applicationpublishers/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateApplicationPublisher));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"applicationpublishers", null, lunaHeaders))
+                    {
+                        var publisher = await HttpUtils.DeserializeRequestBodyAsync<ApplicationPublisher>(req);
+
+                        var result = await _galleryServiceClient.CreateApplicationPublisherAsync(name, publisher, lunaHeaders);
+
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateApplicationPublisher));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Update a publisher
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/gallery/applicationpublishers/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the webhook</param>
+        /// <param name="req" in="body">
+        ///     <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdateApplicationPublisher")]
+        public async Task<IActionResult> UpdateApplicationPublisher(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "gallery/applicationpublishers/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateApplicationPublisher));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"applicationpublishers", null, lunaHeaders))
+                    {
+                        var publisher = await HttpUtils.DeserializeRequestBodyAsync<ApplicationPublisher>(req);
+
+                        var result = await _galleryServiceClient.UpdateApplicationPublisherAsync(name, publisher, lunaHeaders);
+
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateApplicationPublisher));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete a publisher
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/gallery/applicationpublishers/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the webhook</param>
+        /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("DeleteApplicationPublisher")]
+        public async Task<IActionResult> DeleteApplicationPublisher(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "gallery/applicationpublishers/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateApplicationPublisher));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"applicationpublishers", null, lunaHeaders))
+                    {
+
+                        await _galleryServiceClient.DeleteApplicationPublisherAsync(name, lunaHeaders);
+
+                        return new NoContentResult();
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateApplicationPublisher));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get a publisher
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/gallery/applicationpublishers/{name}</url>
+        /// <param name="name" required="true" cref="string" in="path">Name of the webhook</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetApplicationPublisher")]
+        public async Task<IActionResult> GetApplicationPublisher(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "gallery/applicationpublishers/{name}")] HttpRequest req,
+            string name)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetApplicationPublisher));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"applicationpublishers", null, lunaHeaders))
+                    {
+                        var result = await _galleryServiceClient.GetApplicationPublisherAsync(name, lunaHeaders);
+
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetApplicationPublisher));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List publishers
+        /// </summary>
+        /// <group>ML Gallery</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/gallery/applicationpublishers</url>
+        /// <param name="type" required="false" cref="string" in="query">Type of the publisher</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="ApplicationPublisher"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="ApplicationPublisher.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of application publisher
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListApplicationPublishers")]
+        public async Task<IActionResult> ListApplicationPublishers(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "gallery/applicationpublishers")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListApplicationPublishers));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"applicationpublishers", null, lunaHeaders))
+                    {
+                        string type = null;
+                        if (req.Query.ContainsKey(GalleryServiceQueryParametersConstants.PUBLISHER_TYPE_PARAM_NAME))
+                        {
+                            type = req.Query[GalleryServiceQueryParametersConstants.PUBLISHER_TYPE_PARAM_NAME].ToString();
+                        }
+
+                        var result = await _galleryServiceClient.ListApplicationPublishersAsync(lunaHeaders, type);
+
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListApplicationPublishers));
+                }
+            }
+        }
         #endregion
 
         #region Review Settings
@@ -3858,7 +4176,7 @@ namespace Luna.Gateway.Functions
                         var result = await _publishServiceClient.CreateAutomationWebhookAsync(name, webhook, lunaHeaders);
 
                         return new OkObjectResult(result);
-                                            }
+                    }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
                 }
