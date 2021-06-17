@@ -15,7 +15,7 @@ const Footer: React.FunctionComponent = () => {
       verticalAlign={"center"}
       styles={{
         root: {
-          backgroundColor: `${footerBackgroundColor}`,
+          backgroundColor: 'transparent',
           height:'auto'
         }
       }}

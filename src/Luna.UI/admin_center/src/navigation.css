@@ -1,0 +1,79 @@
+/*
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the MIT License.
+*/
+
+nav {
+    width: 274px;
+    background-color: white;
+    padding: 20px;
+    height: 100%;
+    left: 0;    
+    position: fixed;
+    text-rendering: optimizeLegibility;
+    text-align: left;
+}
+
+nav ul {
+    list-style: none;
+    padding-left: 0;
+    font-weight: 500;
+    font-size: 16px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+nav ul li {
+    cursor: pointer;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    padding: 10px;
+    position: relative;
+    transform: translateZ(0);
+}
+
+nav > ul > li:hover {
+    background: url('backgroundColor.gif') no-repeat;
+    background-size: 274px 48px;
+    animation: 500ms ease-in-out slideIn;
+}
+nav > ul > li:hover a {
+    color: #054691;
+}
+
+nav > ul > li a {
+    display: block;
+}
+nav > ul > li.active {
+    background: #3376CD;
+    background-size: 274px 48px;
+}
+nav > ul > li.active a {
+    color: white;
+}
+nav ul ul {
+    list-style: none;
+    padding-left: 20px;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 19px;
+}
+
+nav a > i {
+    margin-right: 8px;
+    position: relative;
+    top: 2px;
+}
+
+nav a {
+    color: #323130;
+    text-decoration: none;
+}
+
+nav ul ul a:hover {
+    color: #646464;
+    text-decoration: underline;
+}
+
+@keyframes slideIn {
+    0% { background-size: 30px 48px; }
+    100% { background-size: 274px 48px; }
+}
