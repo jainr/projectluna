@@ -9,7 +9,6 @@ import FooterLinks from '../FooterLinks/FooterLinks';
 import { Stack, Text, Link, Image, StackItem, TextField, ImageFit, Panel, DefaultButton, PrimaryButton, Separator, Dropdown, IDropdownOption, Dialog, DialogType, IModalProps, IDialogContentProps, DialogFooter, Pivot, PivotItem, Label, IconButton } from '@fluentui/react';
 import { PanelStyles } from '../../helpers/PanelStyles';
 import { getTheme } from '@fluentui/react';
-import { GetInternalOffers } from './GetInternalOffers';
 import { SharedColors } from '@uifabric/fluent-theme';
 import { GetMarketplaceOffers } from './GetMarketplaceOffers';
 import { useBoolean } from '@uifabric/react-hooks';
@@ -20,6 +19,8 @@ import { getTypeParameterOwner } from 'typescript';
 import { PromptState } from 'msal/lib-commonjs/utils/Constants';
 import { withRouter } from "react-router-dom";
 import { useHistory, useLocation } from 'react-router';
+import { GetApplicationDetails } from './GetApplicationDetails';
+import {IApplication} from './IApplication';
 
 const theme = getTheme();
 
@@ -37,73 +38,109 @@ const AIServiceDetails = () => {
   const [aPIVersionOptions, setAPIVersionOptions] = React.useState<IDropdownOption[]>([]);
   const [operationOptions, setOperationOptions] = React.useState<IDropdownOption[]>([]);
   const [isExpand, setIsExpand] = React.useState(true);
+  const [applicationDetail, setApplicationDetail] = React.useState<{}>();
+  const [selectedValues, setSelectedValues] = React.useState<ISelectedItems>();
 
-  const [newSubscription, setNewSubscription] = React.useState<ISubscription>({
-    OfferDisplayName: '',
-    OfferName: '',
-    PlanName: '',
-    Name: '',
-    SubscriptionId: '',
-    Owner: ''
+  const [applicationData, setApplicationData] = React.useState<IApplication>({
+    UniqueName: "",
+    DisplayName: "",
+    Description: "",
+    LogoImageUrl: "",
+    DocumentationUrl: "",
+    Publisher: "",
+    Tags: [],
+    Details: {}
   });
+
   const loadLanguagesList = () => {
    
     languageOptions.push({"key":"Python","text":"REST API - Python"});
     setLanguageOptions(languageOptions);
   }
 
-  const loadAPIList = () => {
+  const loadAPIList = (applicationData:IApplication) => {
    
-    aPIOptions.push({"key":"French","text":"French"});
+    // aPIOptions.push({"key":"French","text":"French"});
+    applicationData.Details.apIs?.forEach((api: any )  => 
+      aPIOptions.push({"key" : api.name, 'text': api.name }) 
+    );    
     setAPIOptions(aPIOptions);
   }
 
-  const loadAPIVersionList = () => {
-   
-    aPIVersionOptions.push({"key":"summarize","text":"summarize"});
-    setAPIVersionOptions(aPIVersionOptions);
+  const loadAPIVersionList = (selectedAPI: string) => {
+    var apiObj = applicationData.Details.apIs?.find(obj => {
+      return obj.name === selectedAPI
+    })
+    let apiVersionOptions: IDropdownOption[] = [];
+    apiObj?.versions?.forEach((version: any )  => 
+    apiVersionOptions.push({"key" : version.name, 'text': version.name }) 
+    );    
+    setAPIVersionOptions(apiVersionOptions);
   }
 
-  const loadOperationList = () => {
-   
-    operationOptions.push({"key":"V2.2","text":"V2.2"});
-    setOperationOptions(operationOptions);
+  const loadOperationList = (selectedAPI: string, selectedVersion: string) => {
+    var apiObj = applicationData.Details.apIs?.find(obj => {
+      return obj.name === selectedAPI
+    })
+    var versionObj = apiObj?.versions.find(obj => {
+      return obj.name === selectedVersion
+    });
+
+    let apiVersionOperationOptions: IDropdownOption[] = [];
+    versionObj?.operations?.forEach((operation: any )  => 
+    apiVersionOperationOptions.push({"key" : operation, 'text': operation }) 
+    );    
+    setOperationOptions(apiVersionOperationOptions);
   }
 
   const ExpandCollapseClick = () => {
     setIsExpand(!isExpand);
   }
+
+  const getApplicationDetails = () => 
+  {
+    fetch(`${window.BASE_URL}/gallery/applications/lunanlp`, {
+      mode: "cors",
+      method: "GET",
+      headers: {         
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Luna-User-Id': 'test-admin',
+          'Host': 'lunatest-gateway.azurewebsites.net'         
+      },
+  })
+  .then(response => response.json())
+  .then(_data => { setApplicationData(_data); loadAPIList(_data);});
+    
+  }
   React.useEffect(() => {
-      loadLanguagesList();     
-      loadAPIList();
-      loadAPIVersionList();
-      loadOperationList();
+      getApplicationDetails();
+      loadLanguagesList();          
   }, []);
 
   return (
     <div className="AIServices">
       <div style={PanelStyles}>
+      <Text block variant={'xLargePlus'}>AI Service: Text Summarization</Text>
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
           <StackItem>
-            {/* <Text block variant={'xLargePlus'}>Machine Learning Gallery</Text> */}
-            <Text block variant={'xLargePlus'}>AI Service: Text Summarization</Text>
-            <Text block variant={'xLarge'} style={{marginTop: '10px', color: 'grey' }}>Publisher: ACE Team</Text>
+            <Text block variant={'medium'} style={{marginTop: '10px', color: 'grey' }}>Publisher: ACE Team</Text>
             <div style={{paddingRight: '10px', borderRight: '1px solid black'}}>
-              <Text block variant={'xLarge'} style={{marginTop: '20px', fontWeight: 'bold' }}>Description</Text>
-              <Text block variant={'large'} style={{marginTop: '5px' }}>Summarize text documents and articles using machine learning. This model helps you create summary from meeting notes, news and other articles…</Text>
-              <Text block variant={'xLarge'} style={{marginTop: '20px', fontWeight: 'bold', marginBottom: '20px' }}>Tags</Text>
+              <Text block variant={'medium'} style={{marginTop: '20px', fontWeight: 'bold' }}>Description</Text>
+              <Text block variant={'medium'} style={{marginTop: '5px' }}>Summarize text documents and articles using machine learning. This model helps you create summary from meeting notes, news and other articles…</Text>
+              <Text block variant={'medium'} style={{marginTop: '20px', fontWeight: 'bold', marginBottom: '20px' }}>Tags</Text>
               <div style={{display: 'flex', 'flexDirection': 'row'}}>
-                <Text block variant={'xLarge'} style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '5px 30px', borderRadius: '5px' }}>SaaS</Text>
-                <Text block variant={'xLarge'} style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '5px 30px', borderRadius: '5px' }}>NLP</Text>
-                <Text block variant={'xLarge'} style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '5px 30px', borderRadius: '5px' }}>Publisher: ACE Team</Text>
+                <div  style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px',width:'15%' }}>SaaS</div>
+                <div  style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px',width:'15%' }}>NLP</div>
+                <div style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '5px 5px', borderRadius: '5px',width:'140px' }}>Publisher: ACE Team</div>
               </div>
-              <Text block variant={'xLarge'} style={{marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
-              <Text block variant={'mediumPlus'} style={{marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer'}}>+ Subscribe Now</Text>
+              <Text block variant={'medium'} style={{marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
+              <Text block variant={'medium'} style={{marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer'}}>+ Subscribe Now</Text>
             </div>
           </StackItem>
           <StackItem>
             <StackItem>
-              <div style={{width:'600px', height:'370px'}}>
+              <div style={{width:'700px', height:'370px'}}>
                 <Pivot>
                   <PivotItem headerText={"Sample Code"} >
                     <div style={{display:'flex'}} >
@@ -124,6 +161,15 @@ const AIServiceDetails = () => {
                               <Dropdown options={aPIOptions}
                                 placeholder={"Select an API"}
                                 style={{margin:'10px', width:'170px'}}
+                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                                  setSelectedValues({
+                                    application: "",
+                                    api: option?.text!,
+                                    version: "",
+                                    operation: "",
+                                  });
+                                  loadAPIVersionList(option?.text!);                                  
+                                }}
                               />                       
                               </td>
                               <td>
@@ -133,6 +179,15 @@ const AIServiceDetails = () => {
                               <Dropdown options={aPIVersionOptions}
                                 placeholder={"Select an API Version"}
                                 style={{margin:'10px', width:'170px'}}
+                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                                  setSelectedValues({
+                                    application: "",
+                                    api: selectedValues?.api!,
+                                    version: option?.text!,
+                                    operation: "",
+                                  });
+                                  loadOperationList(selectedValues?.api!,option?.text!);                                  
+                                }}
                               />                       
                               </td>
                             </tr>
@@ -151,10 +206,10 @@ const AIServiceDetails = () => {
                     </div>
                     <div style={{ ...isExpand ? { display: 'block' } : { display: 'none' }, margin:'10px'  }}> Advance Settings <IconButton iconProps={{ iconName: 'ChevronDownMed' }} title="Expand" ariaLabel="Expand" onClick={ExpandCollapseClick} />
                     </div>
-                    <div style={{textAlign:'right'}}>
+                    <div style={{textAlign:'right',width:'80%'}}>
                       <a href="https://aka.ms/lunasynapsenotebook" target="new"><u>Open in Synapse Notebook</u></a>
                     </div>
-                    <div style={{margin:'10px',boxShadow:'0px 0px 10px 4px #888888'}}>  
+                    <div style={{margin:'10px',boxShadow:'0px 0px 10px 4px #888888',width:'80%'}}>  
                   <SyntaxHighlighter language="typescript" style={vs}>
                       {mytext}
                   </SyntaxHighlighter>
@@ -194,4 +249,10 @@ const AIServiceDetails = () => {
   );
 }
 
+interface ISelectedItems {
+  application: string;
+  api: string;
+  version: string;
+  operation: string;
+}
 export default AIServiceDetails;

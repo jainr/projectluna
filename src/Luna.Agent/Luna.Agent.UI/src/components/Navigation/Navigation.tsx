@@ -20,10 +20,10 @@ function Navigation() {
   return (
     <nav className="Navigation">
         <ul>
-            <li className="nav-item"><a href="/#/aiservices" onClick={setActive}><Icon iconName="Shop" /> Machine Learning Gallery</a></li>
-            <li className="nav-item"><a href="/#/" onClick={setActive}><Icon iconName="BulletedList" /> My Subscriptions</a></li>
-            <li className="nav-item"><a href="/#/datasources" onClick={setActive}><Icon iconName="DataManagementSettings" /> Data Sources</a></li>
-            <li className="nav-item"><a href="/#/tasks" onClick={setActive}><Icon iconName="Settings" /> Feature Store</a></li>
+            <li className="nav-item"><a href="/aiservices" onClick={setActive}><Icon iconName="Shop" /> Machine Learning Gallery</a></li>
+            <li className="nav-item"><a href="/" onClick={setActive}><Icon iconName="BulletedList" /> My Subscriptions</a></li>
+            <li className="nav-item"><a href="/datasources" onClick={setActive}><Icon iconName="DataManagementSettings" /> Data Sources</a></li>
+            <li className="nav-item"><a href="/tasks" onClick={setActive}><Icon iconName="Settings" /> Feature Store</a></li>
         </ul>
     </nav>
   );
