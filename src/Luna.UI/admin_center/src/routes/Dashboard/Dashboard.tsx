@@ -19,6 +19,9 @@ import { useGlobalContext } from "../../shared/components/GlobalProvider";
 import { toast } from "react-toastify";
 import { handleSubmissionErrorsForForm } from "../../shared/formUtils/utils";
 import { DialogBox } from '../../shared/components/Dialog';
+import { ISupportCasesModel } from '../../models';
+import { initialSupportCaseList } from '../Support/formUtils/SupportFormUtils';
+import SupportService from '../../services/SupportService';
 
 const Dashboard: React.FunctionComponent = () => {
 
@@ -29,11 +32,68 @@ const Dashboard: React.FunctionComponent = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [formError, setFormError] = useState<string | null>(null);
   const [loadingData, setLoadingData] = useState<boolean>(true);
+  const [loadingActiveCaseData, setLoadingActiveCaseData] = useState<boolean>(true);
+  const [activeCaseData, setActiveCaseData] = useState<ISupportCasesModel[]>([]);
 
-  useEffect(() => {
-    setLoadingData(true);
+  useEffect(() => {    
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadstaticdata();
+    // getSupportActiveCaseData();
   }, []);
+
+  const loadstaticdata = async () => {
+    setLoadingActiveCaseData(true);
+    setActiveCaseData(initialSupportCaseList);
+    setLoadingActiveCaseData(false);    
+  }
+
+  const getSupportActiveCaseData = async () => {
+
+    setLoadingActiveCaseData(true);
+    const results = await SupportService.supportCaseList();
+    if (results && !results.hasErrors && results.value)
+      setActiveCaseData(results.value);
+    else {
+      setActiveCaseData([]);
+      if (results.hasErrors) {
+        // TODO: display errors
+        alert(results.errors.join(', '));
+      }
+    }
+    setLoadingActiveCaseData(false);
+  }
+
+  const SupportCase = ({ activeCase }) => {
+    if (!activeCase || activeCase.length === 0) {
+      return <tr>
+        <td colSpan={4}><span>No Data</span></td>
+      </tr>;
+    } else {
+      return (
+        activeCase.map((value: ISupportCasesModel, idx) => {
+          return (
+            <tr key={idx}>
+              <td>
+                <span style={{ width: 200 }} className="acolor"><a href="">{value.title}</a></span>
+              </td>
+              <td>
+                <span style={{ width: 200 }}>{value.createdBy}</span>
+              </td>
+              <td>
+                <span style={{ width: 200 }}>{value.createdTime}</span>
+              </td>
+              <td>
+                <span style={{ width: 200 }}>{value.lastUpdatedTime}</span>
+              </td>
+              <td>
+                <span style={{ width: 200 }} className="acolor"> <a href="">{value.icmTicket}</a></span>
+              </td>
+            </tr>
+          );
+        })
+      );
+    }
+  }
 
   return (
     <Stack
@@ -74,7 +134,7 @@ const Dashboard: React.FunctionComponent = () => {
                 <span>Active <br></br>Installation</span> <br></br>
               </div>              
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="deleteicon" />
+                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="Arrowicon" />
               </div>
             </div>
             <div className="dashboardcard bgclrblue floatLeft">
@@ -83,7 +143,7 @@ const Dashboard: React.FunctionComponent = () => {
                 <span>New Installation in<br></br> Past 30 days</span> <br></br>
               </div>              
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="NavigateForwardIcon" className="deleteicon" />
+                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="Arrowicon" />
               </div>
 
             </div>
@@ -93,7 +153,7 @@ const Dashboard: React.FunctionComponent = () => {
                 <span>Customer  churn in<br></br> past 30 days</span> <br></br>
               </div>
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="NavigateForwardIcon" className="deleteicon" />
+                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="Arrowicon" />
               </div>
             </div>
           </div>
@@ -120,7 +180,7 @@ const Dashboard: React.FunctionComponent = () => {
             </tr>
           </thead>
           <tbody>
-            {loadingData ?
+            {loadingActiveCaseData ?
               (
                 <tr>
                   <td colSpan={4} align={"center"}>
@@ -130,7 +190,9 @@ const Dashboard: React.FunctionComponent = () => {
                   </td>
                 </tr>
               )
-              : null}
+              : 
+              <SupportCase activeCase={activeCaseData} />
+              }
           </tbody>
         </table>
       </Stack>

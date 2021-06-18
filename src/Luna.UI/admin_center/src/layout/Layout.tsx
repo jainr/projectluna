@@ -6,7 +6,7 @@ import { useLocation } from "react-router";
 import Content from './Content';
 import GlobalErrorController from './GlobalErrorController';
 import GlobalProcessingController from './GlobalProcessingController';
-
+import Footer from './Footer';
 
 export interface LayoutHelperMenuItem {
   title: string;
@@ -73,22 +73,11 @@ const Layout: React.FunctionComponent = (props) => {
   return (
     <React.Fragment>
       <Header />
-      <ErrorBoundary generateError={() => <NotFound title={"Error"} message={"An unknown error has occurred"} statusCode={500} />}>
-        
-        {(noVersionActive) && <div>{children}</div>}
-
-        {/* {(listViewActive) && (
-          <Content>
-            {children}
-          </Content>
-        )} */}
-        <Content>
-            {children}
-          </Content>
-               
-
-        {/* This must be the last content wrapper */}        
-      </ErrorBoundary>
+      <Content>
+        {children}
+      </Content>
+      <Footer />
+      {/* This must be the last content wrapper */}
       {/* Handle global errors */}
       <GlobalErrorController />
       <GlobalProcessingController />
