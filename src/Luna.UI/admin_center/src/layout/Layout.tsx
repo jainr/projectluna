@@ -73,21 +73,11 @@ const Layout: React.FunctionComponent = (props) => {
   return (
     <React.Fragment>
       <Header />
-      <ErrorBoundary generateError={() => <NotFound title={"Error"} message={"An unknown error has occurred"} statusCode={500} />}>
-
-        {(noVersionActive) && <div>{children}</div>}
-
-        {/* {(listViewActive) && (
-          <Content>
-            {children}
-          </Content>
-        )} */}
-        <Content>          
-            {children}          
-        </Content>
-        <Footer />
-        {/* This must be the last content wrapper */}
-      </ErrorBoundary>
+      <Content>
+        {children}
+      </Content>
+      <Footer />
+      {/* This must be the last content wrapper */}
       {/* Handle global errors */}
       <GlobalErrorController />
       <GlobalProcessingController />

@@ -19,3 +19,7 @@ export const Support = loadable(() => import('./Support/Support'), {
   LoadingComponent: Loading
 });
 
+export const Settings = loadable(() => import('./Settings/Settings'), {
+  LoadingComponent: Loading
+});
+

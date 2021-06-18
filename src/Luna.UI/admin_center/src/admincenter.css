@@ -1,3 +1,6 @@
+html, body {
+  background-color: #F5F5F7;
+}
 .floatLeft {
   float: left;
 }
@@ -30,23 +33,9 @@
 }
 .footerclass {
   width: 100% !important;
-  background-color: transparent;
+  background-color: transparent;  
 }
-.background {
-  background-color: #f1f1f1;
-}
-.innerbackground {
-  background-color: #fff;
-}
-.admincentercontent {
-  /* height: calc(96% - 57px) !important; */
-  height: 96% !important;
-}
-.abovenav {
-}
-.abovenav .ms-FocusZone {
-  height: 96%;
-}
+
 
 .footerclass li a {
   color: gray;
@@ -69,4 +58,22 @@
 .acolor a
 {
   color: rgb(86 166 234);
+}
+main
+{
+  display: flex;
+  margin-left: 324px;  
+}
+main > div {
+  flex: 1 1;
+  overflow-y: auto;
+  margin: 20px;
+}
+.contentarea
+{  
+  margin-top: 1%;
+  box-shadow: rgba(0, 0, 0, 0.133) 0px 3.2px 7.2px 0px, rgba(0, 0, 0, 0.11) 0px 0.6px 1.8px 0px; 
+  background-color: white; 
+  padding: 20px 20px 50px;
+  height: 700px;
 }

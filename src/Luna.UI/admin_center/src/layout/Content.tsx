@@ -2,7 +2,7 @@ import React from 'react';
 import { Stack, Nav, INavLink, FontIcon } from 'office-ui-fabric-react';
 import { useHistory, useLocation } from 'react-router';
 import { WebRoute } from "../shared/constants/routes";
-
+import Navigation from './Navigation';
 
 const Content: React.FunctionComponent = (props) => {
 
@@ -69,69 +69,14 @@ const Content: React.FunctionComponent = (props) => {
   }
 
   return (
-    <Stack
-      horizontal={true}      
-      className={"admincentercontent"}
-      styles={{
-        root: {
-          height: 'calc(100% - 57px)'
-        }
-      }}
-    >
-      <Stack className={"abovenav"}>
-
-      <div className={"collapsearrow"}>
-      <FontIcon iconName="DoubleChevronLeft8" className="Arrowicon" />
-      </div>
-      <Nav
-        selectedKey={selectedMenuItemKey}
-        selectedAriaLabel="Selected"
-
-        styles={{
-          navItems: {
-            margin: 0
-          },
-          root: {
-            width: 207,
-            height: '96%',
-            boxSizing: 'border-box',
-            border: '1px solid #eee',
-            overflowY: 'auto',
-          }
-        }}
-        groups={[
-          {
-            links: navLinks
-          }
-        ]}
-      />
-      </Stack>
-      <Stack
-        horizontal={true}
-        className={"background"}
-        styles={{
-          root: {
-            flexGrow: 1,
-            height: '100%',
-            padding: 32
-          }
-        }}
-      >
-        <Stack
-          horizontal={true}
-          className={"innerbackground"}
-          styles={{
-            root: {
-              flexGrow: 1,
-              height: '100%',
-              padding: 32
-            }
-          }}
-        >
+    <React.Fragment>
+      <main>
+        <Navigation />
+        <div className="contentarea">
           {children}
-        </Stack>
-      </Stack>
-    </Stack>
+        </div>
+      </main>
+    </React.Fragment>
   );
 };
 
