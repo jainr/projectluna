@@ -14,7 +14,7 @@ import {
   IAMLComputeClusterModel,
   IProductDetailsModel,
   IPartnerServiceModel,
-  IAutomationWebhookModel
+  IAutomationWebhookModel,
   IPermissionsModel
 } from "../models";
 import {v4 as uuid} from "uuid";
