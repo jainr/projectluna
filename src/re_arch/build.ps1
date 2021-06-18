@@ -181,6 +181,7 @@ if ($publishLocalSettings) {
 	
 	$provisionServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
 	$provisionServiceConfig.Values | add-member -name "AzureWebJobsStorage" -value $storageConnectionString -MemberType NoteProperty
+	$provisionServiceConfig.Values | add-member -name "ROUTING_SERVICE_BASE_URL" -value $routingFxUrl -MemberType NoteProperty
 	$provisionServiceConfig.Values | add-member -name "PUBSUB_SERVICE_BASE_URL" -value $pubsubFxUrl -MemberType NoteProperty
 	$provisionServiceConfig.Values | add-member -name "PUBSUB_SERVICE_KEY" -value $pubsubFxKey -MemberType NoteProperty	
 	$provisionServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty	

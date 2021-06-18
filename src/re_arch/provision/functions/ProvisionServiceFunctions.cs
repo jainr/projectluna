@@ -1,17 +1,18 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using Luna.Common.Utils;
+using Luna.Provision.Clients;
+using Luna.Provision.Data;
+using Luna.Publish.Public.Client;
+using Luna.PubSub.Public.Client;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Luna.Common.Utils;
-using Luna.PubSub.Public.Client;
-using Luna.Provision.Data;
+using System.Threading.Tasks;
 
 namespace Luna.Provision.Functions
 {
@@ -26,16 +27,19 @@ namespace Luna.Provision.Functions
         private readonly ILogger<ProvisionServiceFunctions> _logger;
         private readonly IPubSubServiceClient _pubSubClient;
         private readonly IAzureKeyVaultUtils _keyVaultUtils;
+        private readonly ISwaggerClient _swaggerClient;
 
         public ProvisionServiceFunctions(ISqlDbContext dbContext, 
             ILogger<ProvisionServiceFunctions> logger, 
             IAzureKeyVaultUtils keyVaultUtils,
-            IPubSubServiceClient pubSubClient)
+            IPubSubServiceClient pubSubClient,
+            ISwaggerClient swaggerClient)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(dbContext));
             this._pubSubClient = pubSubClient ?? throw new ArgumentNullException(nameof(pubSubClient));
             this._keyVaultUtils = keyVaultUtils ?? throw new ArgumentNullException(nameof(keyVaultUtils));
+            this._swaggerClient = swaggerClient ?? throw new ArgumentNullException(nameof(swaggerClient));
         }
 
         [FunctionName("ProcessApplicationEvents")]
@@ -52,6 +56,49 @@ namespace Luna.Provision.Functions
                 new LunaRequestHeaders(),
                 eventsAfter: lastAppliedEventId);
 
+            foreach (var ev in events)
+            {
+                if (ev.EventType.Equals(LunaEventType.PUBLISH_APPLICATION_EVENT))
+                {
+                    LunaApplication app = JsonConvert.DeserializeObject<LunaApplication>(ev.EventContent, new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.All
+                    });
+
+                    var swaggerContent = await this._swaggerClient.GenerateSwaggerAsync(app);
+
+                    var swaggerDb = new LunaApplicationSwaggerDB()
+                    {
+                        ApplicationName = ev.PartitionKey,
+                        SwaggerContent = swaggerContent,
+                        SwaggerEventId = ev.EventSequenceId,
+                        LastAppliedEventId = ev.EventSequenceId,
+                        IsEnabled = true,
+                        CreatedTime = DateTime.UtcNow
+                    };
+
+                    this._dbContext.LunaApplicationSwaggers.Add(swaggerDb);
+                    await this._dbContext._SaveChangesAsync();
+                }
+                else
+                {
+                    var appName = ev.PartitionKey;
+                    var isDeleted = ev.EventType.Equals(LunaEventType.DELETE_APPLICATION_EVENT);
+
+                    var swaggerDb = await this._dbContext.LunaApplicationSwaggers.
+                        Where(x => x.ApplicationName == appName).
+                        OrderByDescending(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+
+                    if (swaggerDb != null)
+                    {
+                        swaggerDb.IsEnabled = !isDeleted;
+                        swaggerDb.LastAppliedEventId = ev.EventSequenceId;
+
+                        this._dbContext.LunaApplicationSwaggers.Update(swaggerDb);
+                        await this._dbContext._SaveChangesAsync();
+                    }
+                }
+            }
         }
 
         [FunctionName("ProcessSubscriptionEvents")]

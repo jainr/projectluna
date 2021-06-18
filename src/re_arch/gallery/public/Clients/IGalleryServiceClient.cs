@@ -31,7 +31,7 @@ namespace Luna.Gallery.Public.Client
         /// <param name="appName">The application name</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The Luna application swagger</returns>
-        Task<LunaApplicationSwagger> GetLunaApplicationSwagger(string appName, LunaRequestHeaders headers);
+        Task<object> GetLunaApplicationSwagger(string appName, LunaRequestHeaders headers);
 
         /// <summary>
         /// Get recommended Luna application based on current application

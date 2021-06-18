@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -78,7 +79,7 @@ namespace Luna.Gallery.Public.Client
         /// <param name="appName">The application name</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The Luna application swagger</returns>
-        public async Task<LunaApplicationSwagger> GetLunaApplicationSwagger(string appName, LunaRequestHeaders headers)
+        public async Task<object> GetLunaApplicationSwagger(string appName, LunaRequestHeaders headers)
         {
             ValidationUtils.ValidateObjectId(appName, nameof(appName));
 
@@ -88,9 +89,7 @@ namespace Luna.Gallery.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            var swagger =
-                JsonConvert.DeserializeObject<LunaApplicationSwagger>(
-                    await response.Content.ReadAsStringAsync());
+            var swagger = JObject.Parse(await response.Content.ReadAsStringAsync());
 
             return swagger;
         }

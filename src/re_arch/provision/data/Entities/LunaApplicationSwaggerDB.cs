@@ -13,14 +13,15 @@ namespace Luna.Provision.Data
 
         public string ApplicationName { get; set; }
 
-        public string DisplayName { get; set; }
+        public string SwaggerContent { get; set; }
+
+        public long SwaggerEventId { get; set; }
 
         public long LastAppliedEventId { get; set; }
 
+        public bool IsEnabled { get; set; }
+
         public DateTime CreatedTime { get; set; }
-
-        public DateTime LastUpdatedTime { get; set; }
-
 
     }
 }

@@ -13,6 +13,9 @@ GO
 /****** Object:  Schema [gallery]    Script Date: 4/29/2021 11:07:14 AM ******/
 CREATE SCHEMA [gallery]
 GO
+/****** Object:  Schema [provision]    Script Date: 4/29/2021 11:07:14 AM ******/
+CREATE SCHEMA [provision]
+GO
 /****** Object:  Table [partner].[PartnerServices]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
@@ -419,6 +422,40 @@ PRIMARY KEY CLUSTERED
 	[SubscriptionId] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
+GO
+
+/****** Object:  Table [provision].[LunaApplicationSwaggers]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [provision].[LunaApplicationSwaggers](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[ApplicationName] [nvarchar](128) NOT NULL,
+	[SwaggerContent] [nvarchar](max) NOT NULL,
+	[SwaggerEventId] [bigint] NULL,
+	[LastAppliedEventId] [bigint] NULL,
+	[IsEnabled] [bit] NOT NULL,
+	[CreatedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  View [gallery].[LunaApplicationSwaggers]    Script Date: 6/17/2021 3:12:40 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE VIEW [gallery].[LunaApplicationSwaggers]
+AS
+SELECT   Id,SwaggerEventId, SwaggerContent, ApplicationName
+FROM     provision.LunaApplicationSwaggers
+WHERE   (IsEnabled = 1)
 GO
 
 /****** Object:  View [routing].[Subscriptions]    Script Date: 5/17/2021 9:18:23 AM ******/

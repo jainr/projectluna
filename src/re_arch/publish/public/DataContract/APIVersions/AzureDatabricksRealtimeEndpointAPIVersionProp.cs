@@ -9,6 +9,8 @@ namespace Luna.Publish.Public.Client
         public string OperationName { get; set; }
 
         public string EndpointVersion { get; set; }
+
+        public string Description { get; set; }
     }
 
     public class AzureDatabricksRealtimeEndpointAPIVersionProp : RealtimeEndpointAPIVersionProp

@@ -2,7 +2,7 @@
   "profiles": {
     "swagger": {
       "commandName": "Project",
-      "commandLineArgs": "-s gateway"
+      "commandLineArgs": "-s gallery"
     }
   }
 }

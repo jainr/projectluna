@@ -7,6 +7,8 @@ namespace Luna.Publish.Public.Client
         public string EndpointName { get; set; }
 
         public string OperationName { get; set; }
+
+        public string Description { get; set; }
     }
 
     public class AzureMLRealtimeEndpointAPIVersionProp : RealtimeEndpointAPIVersionProp

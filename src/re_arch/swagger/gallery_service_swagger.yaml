@@ -219,8 +219,6 @@ paths:
         - Application
       summary: Get swagger in JSON format for a published Luna application
       operationId: getApiApplicationsByNameSwagger
-      produces:
-        - application/json
       parameters:
         - in: path
           name: name
@@ -230,8 +228,6 @@ paths:
       responses:
         '200':
           description: Success
-          schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationDetails'
       security:
         - x-functions-key: [ ]
   '/api/applications/{appName}/subscriptions/{subscriptionName}':

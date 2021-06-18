@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\pubsub\public\pubsub_public_client.csproj" />
+    <ProjectReference Include="..\clients\provision_clients.csproj" />
     <ProjectReference Include="..\data\provision_data.csproj" />
   </ItemGroup>
   <ItemGroup>

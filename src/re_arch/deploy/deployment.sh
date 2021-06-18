@@ -397,6 +397,7 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --resource-group $resourceGroupName \
   --settings "SQL_CONNECTION_STRING=${sqlConnectionSring}" \
              "KEY_VAULT_NAME=${keyVaultName}" \
+			 "ROUTING_SERVICE_BASE_URL=${routingFxUrl}" \
 			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
 			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"
 

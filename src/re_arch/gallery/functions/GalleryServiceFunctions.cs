@@ -16,6 +16,7 @@ using Luna.Gallery.Data;
 using Luna.Publish.Public.Client;
 using Luna.Gallery.Public.Client;
 using Luna.Gallery.Clients;
+using Newtonsoft.Json.Linq;
 
 namespace Luna.Gallery.Functions
 {
@@ -739,15 +740,6 @@ namespace Luna.Gallery.Functions
         /// <param name="name" required="true" cref="string" in="path">Name of Luna application</param>
         /// <param name="req">Http request</param>
         /// <response code="200">
-        ///     <see cref="LunaApplicationDetails"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="LunaApplicationDetails.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of published Luna application
-        ///         </summary>
-        ///     </example>
         ///     Success
         /// </response>
         /// <security type="apiKey" name="x-functions-key">
@@ -768,15 +760,19 @@ namespace Luna.Gallery.Functions
 
                 try
                 {
-                    var appDb = await _dbContext.PublishedLunaAppliations.
-                        Where(x => x.UniqueName == name && x.IsEnabled).FirstOrDefaultAsync();
+                    var swagger = await _dbContext.
+                        LunaApplicationSwaggers.
+                        OrderByDescending(x => x.SwaggerEventId).
+                        FirstOrDefaultAsync();
 
-                    if (appDb == null)
+                    if (swagger == null)
                     {
                         throw new LunaNotFoundUserException(string.Format(ErrorMessages.APPLICATION_DOES_NOT_EXIST, name));
                     }
 
-                    return new OkObjectResult(appDb.ToPublishedLunaApplication().Details);
+                    var parsedContent = JObject.Parse(swagger.SwaggerContent);
+
+                    return new OkObjectResult(parsedContent);
                 }
                 catch (Exception ex)
                 {

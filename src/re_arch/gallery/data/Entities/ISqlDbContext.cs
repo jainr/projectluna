@@ -24,6 +24,8 @@ namespace Luna.Gallery.Data
 
         DbSet<ApplicationPublisherDB> ApplicationPublishers { get; set; }
 
+        DbSet<LunaApplicationSwaggerDBView> LunaApplicationSwaggers { get; set; }
+
         /// <summary>
         /// Save the changes to database
         /// </summary>

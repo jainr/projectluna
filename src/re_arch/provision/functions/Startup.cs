@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Luna.Common.Utils;
 using Luna.PubSub.Public.Client;
 using Luna.Provision.Data;
+using Luna.Provision.Clients;
 
 [assembly: FunctionsStartup(typeof(Luna.Provision.Functions.Startup))]
 
@@ -34,6 +35,7 @@ namespace Luna.Provision.Functions
                 });
 
             builder.Services.AddSingleton<IPubSubServiceClient, PubSubServiceClient>();
+            builder.Services.AddSingleton<ISwaggerClient, SwaggerClient>();
 
             string connectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING");
             
