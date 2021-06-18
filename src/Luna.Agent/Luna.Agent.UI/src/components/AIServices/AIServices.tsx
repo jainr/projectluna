@@ -192,14 +192,7 @@ const AIServices = () => {
         </Stack>
         </div>
         <br />
-        <div style={{height:'500px'}}>
-          <p>
-        <SyntaxHighlighter language="typescript" style={vs}>
-        {mytext}
-           </SyntaxHighlighter>
-           </p>
-        </div>
-
+        
       <div style={PanelStyles}>
         <p style={{ display: offerData && offerData.length >= 1 ? "none" : "block" }}>
             <Text variant={'medium'}>Loading Available Offers...</Text>
