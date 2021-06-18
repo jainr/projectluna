@@ -6,7 +6,7 @@ import './App.css';
 import SiteHeader from './components/SiteHeader/SiteHeader';
 import Navigation from './components/Navigation/Navigation';
 import withAuthProvider, { AuthComponentProps } from './AuthProvider';
-import { HashRouter as Router, Route } from 'react-router-dom';
+import { BrowserRouter, Router, Route, Switch } from 'react-router-dom';
 import Home from './components/Home/Home';
 import AIServices from './components/AIServices/AIServices';
 import AIServiceDetails from './components/AIServices/AIServiceDetails';
@@ -78,15 +78,16 @@ class App extends React.Component<AuthComponentProps, IAppState> {
           <div className="contentarea">
             {
               this.props.isAuthenticated &&
-              <Router hashType="slash">
+              
+                <BrowserRouter >
                 <Route path="/aiservices" component={AIServices} />
                 <Route path="/" exact component={Home} />
                 <Route path="/datasources" component={DataSources} />
                 <Route path="/tasks" component={Tasks} />
                 <Route path="/settings" component={Settings} />
                 <Route path="/details/:id?" component={SubscriptionDetail} />
-                <Route path="/servicedetails" component={AIServiceDetails} />
-              </Router>
+                <Route path="/servicedetails" component={AIServiceDetails} />                   
+          </BrowserRouter>
             }
           </div>
         </main>
