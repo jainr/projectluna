@@ -13,11 +13,13 @@ import {
   PivotItem,
   PrimaryButton,
   Stack,
-  TextField
+  TextField,
+  Dropdown,
+  IDropdownOption
 } from 'office-ui-fabric-react';
 import FormLabel from "../../shared/components/FormLabel";
 import { Formik } from "formik";
-import { IAMLWorkSpaceModel, IAutomationWebhookModel, IGitRepoModel, IPartnerServiceModel } from "../../models";
+import { IAMLWorkSpaceModel, IAutomationWebhookModel, IGitRepoModel, IPartnerServiceModel, IPermissionsModel } from "../../models";
 import { Loading } from "../../shared/components/Loading";
 import { useGlobalContext } from "../../shared/components/GlobalProvider";
 import { toast } from "react-toastify";
@@ -41,6 +43,12 @@ import {
   initialAutomationWebhookFormValues,
   initialAutomationWebhookValues,
 } from '../Products/formUtils/AutomationWebhookUtils';
+import {
+  permissionsFormValidationSchema,
+  IPermissionsFormValues,
+  initialPermissionsFormValues,
+  initialPermissionsValues
+} from '../Products/formUtils/PermissionsUtils'
 import { Hub } from "aws-amplify";
 import ProductService from "../../services/ProductService";
 import { handleSubmissionErrorsForForm } from "../../shared/formUtils/utils";
@@ -80,6 +88,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   let [partnerServiceList, setPartnerServiceList] = useState<IPartnerServiceModel[]>();
   let [automationWebhookList, setAutomationWebhookList] = useState<IAutomationWebhookModel[]>();
   let [workSpace, setWorkSpace] = useState<IAMLWorkSpaceFormValues>(initialAMLWorkSpaceFormValues);
+  let [permissionsList, setPermissionsList] = useState<IPermissionsModel[]>();
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let [workSpaceDeleteIndex, setworkSpaceDeleteIndex] = useState<number>(0);
@@ -102,6 +111,10 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
 
   const [partnerServiceDialogVisible, setPartnerServiceDialogVisible] = useState<boolean>(false);
   const [loadingPartnerService, setLoadingPartnerService] = useState<boolean>(false);
+  const [newUserDialogVisible, setNewUserDialogVisible] = useState<boolean>(false);
+  const [loadingPermissions, setLoadingPermissions] = useState<boolean>(false);
+  const [roleList, setRoleList] = useState<IDropdownOption[]>([]);
+  let [permissions, setPermissions] = useState<IPermissionsFormValues>(initialPermissionsFormValues);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const globalContext = useGlobalContext();
@@ -187,6 +200,48 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     })
     setTypeList([...typeList]);
   }
+
+  const getPermissionsList = async () => {
+    setLoadingPermissions(true);
+    const results = await ProductService.getPermissions();
+    results.value = [
+      {userId: 'Lindsey Allen', role: 'Administrator', clientId: '123', createdDate:'04/22/2021'}, 
+      {userId: 'Xiaochen Wu', role: 'Publisher', clientId: '456', createdDate:'04/22/2021'},
+      {userId: 'Sophie Hu', role: 'Reviewer', clientId: '789', createdDate:'04/22/2021'},
+    ]
+    results.success = true;
+    if (results && results.value && results.success) {
+      setPermissionsList(results.value);
+      setLoadingPermissions(false);
+    } else
+      toast.error('Failed to load Permissions');
+  }
+
+  const getRoles = async () => {
+    let roleList: IDropdownOption[] = [{
+      key: '',
+      text: ''
+    }];
+
+    roleList[0].text="Select Role";
+    roleList.push({
+      key: "Administrator",
+      text: "Administrator"
+    });
+    roleList.push({
+      key: "Publisher",
+      text: "Publisher"
+    });
+    roleList.push({
+      key: "Reviewer",
+      text: "Reviewer"
+    });
+    setRoleList([...roleList]);
+  }
+  
+  const getPermissionsFormErrorString = (touched, errors, property: string) => {
+    return touched.permissions && errors.permissions && touched.permissions[property] && errors.permissions[property] ? errors.permissions[property] : '';
+  };
 
   const getFormErrorString = (touched, errors, property: string) => {
     return touched.aMLWorkSpace && errors.aMLWorkSpace && touched.aMLWorkSpace[property] && errors.aMLWorkSpace[property] ? errors.aMLWorkSpace[property] : '';
@@ -289,6 +344,10 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     setAutomationWebhookDialogVisible(true);
   }
 
+  const OpenNewUserServiceDialog = () => {
+    setNewUserDialogVisible(true);
+  }
+
   const CloseWorkSpaceDialog = () => {
     setWorkSpaceDialogVisible(false);
   }
@@ -301,6 +360,10 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     setAutomationWebhookDialogVisible(false);
   }
 
+  const CloseNewUserServiceDialog = () => {
+    setNewUserDialogVisible(false);
+  }
+
   useEffect(() => {
 
     getWorkSpaceList();
@@ -308,6 +371,8 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     getPartnerServiceList();
     getAutomationWebhookList();
     getTypes();
+    getPermissionsList();
+    getRoles();
 
     Hub.listen('AMLWorkspaceNewDialog', (data) => {
       OpenNewWorkSpaceDialog();
@@ -470,6 +535,39 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     }
   }
 
+  const PermissionsList = ({ permissions, role }) => {
+    if(!permissions || permissions.length === 0) {
+      return <tr>
+      <td colSpan={4}><span>No Permissions</span></td>
+    </tr>;
+    } else {
+      return (
+        permissions.filter(p => p.role === role).map((value: IPermissionsModel, idx) => {
+          return (
+            <tr key={idx}>
+            <td>
+              <span>{value.userId}</span>
+            </td>
+            <td>
+              <span>{value.createdDate}</span>
+            </td>
+            <td>
+              <Stack
+                verticalAlign="center"
+                horizontalAlign={"space-evenly"}
+                gap={15}
+                horizontal={true}
+              >
+              <FontIcon iconName="Cancel" className="deleteicon" onClick={() => {}} />
+              </Stack>
+            </td>
+          </tr>
+          )
+        })
+      )
+    }
+  }
+
   const CloseAMLDeleteDialog = () => {
     setAMLDeleteDialog(false);
   }
@@ -477,9 +575,96 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   return (
     <React.Fragment>
     <React.Fragment>
+      <h1>Settings</h1>
     <Pivot aria-label="Basic Pivot Example" style={{textAlign:'left'}}>
       <PivotItem headerText="Permissions">
-        <Label>Pivot #1</Label>
+      <PrimaryButton style={{marginTop: '20px', marginLeft: '15px'}} text={"New User"} onClick={() => {
+                  OpenNewUserServiceDialog() }} /> 
+        <Label style={{marginTop: '20px', marginLeft: '15px', fontSize: '20px'}}>Administrators</Label>
+      <table className="noborder offer" style={{margin: 10}} cellPadding={5} cellSpacing={0}>
+          <thead>
+            <tr>             
+              <th style={{width: 600}}>
+                <FormLabel title={"Name"} />
+              </th>
+              <th style={{width: 200}}>
+                <FormLabel title={"Created Date"} />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {loadingPermissions ?
+              (
+                <tr>
+                  <td colSpan={4} align={"center"}>
+                    <Stack verticalAlign={"center"} horizontalAlign={"center"} horizontal={true}>
+                      <Loading />
+                    </Stack>
+                  </td>
+                </tr>
+              )
+              :
+              <PermissionsList permissions={permissionsList} role="Administrator" />
+            }
+          </tbody>
+        </table>
+
+        <Label style={{marginTop: '20px', marginLeft: '15px', fontSize: '20px'}}>Publishers</Label>
+      <table className="noborder offer" style={{margin: 10}} cellPadding={5} cellSpacing={0}>
+          <thead>
+            <tr>             
+              <th style={{width: 600}}>
+                <FormLabel title={"Name"} />
+              </th>
+              <th style={{width: 200}}>
+                <FormLabel title={"Created Date"} />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {loadingPermissions ?
+              (
+                <tr>
+                  <td colSpan={4} align={"center"}>
+                    <Stack verticalAlign={"center"} horizontalAlign={"center"} horizontal={true}>
+                      <Loading />
+                    </Stack>
+                  </td>
+                </tr>
+              )
+              :
+              <PermissionsList permissions={permissionsList} role="Publisher"/>
+            }
+          </tbody>
+        </table>
+        <Label style={{marginTop: '20px', marginLeft: '15px', fontSize: '20px'}}>Reviewers</Label>
+      <table className="noborder offer" style={{margin: 10}} cellPadding={5} cellSpacing={0}>
+          <thead>
+            <tr>             
+              <th style={{width: 600}}>
+                <FormLabel title={"Name"} />
+              </th>
+              <th style={{width: 200}}>
+                <FormLabel title={"Created Date"} />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {loadingPermissions ?
+              (
+                <tr>
+                  <td colSpan={4} align={"center"}>
+                    <Stack verticalAlign={"center"} horizontalAlign={"center"} horizontal={true}>
+                      <Loading />
+                    </Stack>
+                  </td>
+                </tr>
+              )
+              :
+              <PermissionsList permissions={permissionsList} role="Reviewer"/>
+            }
+          </tbody>
+        </table>
       </PivotItem>
       <PivotItem headerText="Partner Service" >       
         <table className="noborder offer" style={{margin: 10}} cellPadding={5} cellSpacing={0}>
@@ -1158,6 +1343,94 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
         </Formik>
       </Dialog>
 
+      <Dialog
+        hidden={!newUserDialogVisible}
+        onDismiss={CloseNewUserServiceDialog}
+        dialogContentProps={{
+          styles: {
+            subText: {
+              paddingTop: 0
+            },
+            title: {}
+          },
+          type: DialogType.normal,
+          title: 'Add new user'
+        }}
+        modalProps={{
+          isBlocking: true,
+          isDarkOverlay: true,
+          styles: {
+            main: {
+              minWidth: '35% !important',
+
+            }
+          }
+        }}
+      >
+          <Formik
+          initialValues={permissions}
+          validationSchema={permissionsFormValidationSchema}
+          enableReinitialize={true}
+          validateOnBlur={true}
+          onSubmit={async (values, { setSubmitting, setErrors }) => { 
+            CloseNewUserServiceDialog();
+          }}
+          >
+          {({ handleChange, values, handleBlur, touched, errors, handleSubmit, submitForm, setFieldValue }) => (
+            <table className="offer" style={{ width: '100%' }}>
+            <tbody>
+              <tr>
+                <td>
+                  <React.Fragment>
+                    <FormLabel title={"User id:"} />                                         
+                  </React.Fragment>
+                </td>
+                <td>
+                <TextField
+                          name={'permissions.userId'}
+                          value={values.permissions.userId}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          errorMessage={getFormErrorString(touched, errors, 'userId')}
+                          placeholder={'User Id'}
+                          className="txtFormField wdth_100_per"/>
+                  </td>
+                </tr>
+                <tr>
+                <td>
+                  <React.Fragment>
+                    <FormLabel title={"Role:"} />                                         
+                  </React.Fragment>
+                </td>
+                <td>
+                <Dropdown   options={roleList} 
+                            id={`Role`}
+                            onBlur={handleBlur}
+                            placeHolder="Choose a Role"
+                            errorMessage={getPermissionsFormErrorString(touched, errors, 'type')}
+                            defaultSelectedKey=""/> 
+                  </td>
+                </tr>
+                <tr>
+                  <td colSpan={2}>
+                    <DialogFooter>
+                      <Stack horizontal={true} gap={15} style={{ width: '100%' }}>                        
+                        <div style={{ flexGrow: 1 }}></div>
+                        <PrimaryButton type="submit" id="btnsubmit" className="mar-right-2_Per"
+                          text="Add" onClick={submitForm} />
+                        <AlternateButton
+                          onClick={CloseNewUserServiceDialog}
+                          text="Cancel" className="mar-right-2_Per" />
+                      </Stack>
+                    </DialogFooter>
+                  </td>
+                </tr>
+                </tbody>
+                </table>
+          )}
+          </Formik>
+      </Dialog>
+        
       <DialogBox keyindex='DeploymentVersionmodal' dialogVisible={AMLDeleteDialog}
         title="Delete AML Workspace" subText="" isDarkOverlay={true} className="" cancelButtonText="Cancel"
         submitButtonText="Submit" maxwidth={500}

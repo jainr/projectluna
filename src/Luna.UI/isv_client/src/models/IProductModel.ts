@@ -117,6 +117,12 @@ export interface IGitRepoModel extends IBaseModel{
   personalAccessToken: string;
 }
 
+export interface IPermissionsModel extends IBaseModel{
+  userId: string;
+  role: string;
+  createdDate: string;
+}
+
 export interface ISourceModel {  
   displayName:string;
   id:string;
