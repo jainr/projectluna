@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Icon } from '@fluentui/react';
 import '../../src/navigation.css';
 import { useHistory } from 'react-router';
@@ -22,13 +22,20 @@ const Navigation: React.FunctionComponent = () => {
         }
         history.push(route);
     }
-    const menuIconClick = () => {
+    const menuIconClick = () => {        
         //condition checking to change state from true to false and vice versa
         menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
+        let maintag = document.getElementsByClassName("main")[0] as HTMLElement;
+        menuCollapse == true ? maintag.style.marginLeft = '12%' : maintag.style.marginLeft = '8%';
     };
 
+    useEffect(() => {                    
+        let maintag = document.getElementsByClassName("main")[0] as HTMLElement;
+         menuCollapse == true ? maintag.style.marginLeft = '8%' : maintag.style.marginLeft = '12%';
+      }, []);
+
     return (
-        <React.Fragment>            
+        <React.Fragment>
             <nav className="Navigation" id="Navigation">
                 <ProSidebar collapsed={menuCollapse}>
                     <SidebarHeader>
@@ -54,7 +61,7 @@ const Navigation: React.FunctionComponent = () => {
                                 <li className="nav-item"><a onClick={(event) => setActive('Reports', event)}><Icon iconName="BarChartVertical" /><span>Reports</span></a></li>
                                 <li className="nav-item"><a onClick={(event) => setActive('Supports', event)}><Icon iconName="Settings" /><span>Supports</span></a></li>
                                 <li className="nav-item"><a onClick={(event) => setActive('Settings', event)}><Icon iconName="Settings" /><span>Settings</span></a></li>
-                            </ul>                           
+                            </ul>
                         }
                         {/* <Menu>
                             <MenuItem icon={<FaHome />}>Home</MenuItem>
