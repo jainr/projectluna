@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
 import { Icon } from '@fluentui/react';
 import '../../src/navigation.css';
-import { Link } from 'office-ui-fabric-react';
-import { Redirect } from 'react-router-dom';
-import { WebRoute } from '../shared/constants/routes';
-import { useHistory, useLocation } from 'react-router';
-import { ProSidebar, Menu, MenuItem, SidebarHeader, SidebarFooter, SidebarContent } from "react-pro-sidebar";
-import { FaHome, FaRegChartBar } from "react-icons/fa";
-import { FiSettings } from "react-icons/fi";
-import { BiSupport } from "react-icons/bi";
+import { useHistory } from 'react-router';
+import { ProSidebar, SidebarHeader, SidebarContent } from "react-pro-sidebar";
 
 const Navigation: React.FunctionComponent = () => {
 
@@ -34,22 +28,7 @@ const Navigation: React.FunctionComponent = () => {
     };
 
     return (
-        <React.Fragment>
-            {/* <nav className="Navigation">
-                <div className={"collapsearrow"} onClick={menuIconClick}>                                        
-                    {menuCollapse ? (
-                        <Icon iconName="DoubleChevronRight8" className="Arrowicon"  /> 
-                    ) : (
-                        <Icon iconName="DoubleChevronLeft8" className="Arrowicon"  /> 
-                    )}
-                </div>
-                <ul>
-                    <li className="nav-item"><a onClick={(event) => setActive('Dashboard', event)}><Icon iconName="Home" /> Home</a></li>
-                    <li className="nav-item"><a onClick={(event) => setActive('Reports', event)}><Icon iconName="BarChartVertical" />Reports</a></li>
-                    <li className="nav-item"><a onClick={(event) => setActive('Supports', event)}><Icon iconName="Settings" />Supports</a></li>
-                    <li className="nav-item"><a onClick={(event) => setActive('Settings', event)}><Icon iconName="Settings" />Settings</a></li>
-                </ul>
-            </nav> */}
+        <React.Fragment>            
             <nav className="Navigation" id="Navigation">
                 <ProSidebar collapsed={menuCollapse}>
                     <SidebarHeader>
@@ -71,10 +50,10 @@ const Navigation: React.FunctionComponent = () => {
                             </ul>
                             :
                             <ul>
-                                <li className="nav-item"><a onClick={(event) => setActive('Dashboard', event)}><Icon iconName="Home" /> Home</a></li>
-                                <li className="nav-item"><a onClick={(event) => setActive('Reports', event)}><Icon iconName="BarChartVertical" />Reports</a></li>
-                                <li className="nav-item"><a onClick={(event) => setActive('Supports', event)}><Icon iconName="Settings" />Supports</a></li>
-                                <li className="nav-item"><a onClick={(event) => setActive('Settings', event)}><Icon iconName="Settings" />Settings</a></li>
+                                <li className="nav-item"><a onClick={(event) => setActive('Dashboard', event)}><Icon iconName="Home" /> <span> Home</span></a></li>
+                                <li className="nav-item"><a onClick={(event) => setActive('Reports', event)}><Icon iconName="BarChartVertical" /><span>Reports</span></a></li>
+                                <li className="nav-item"><a onClick={(event) => setActive('Supports', event)}><Icon iconName="Settings" /><span>Supports</span></a></li>
+                                <li className="nav-item"><a onClick={(event) => setActive('Settings', event)}><Icon iconName="Settings" /><span>Settings</span></a></li>
                             </ul>                           
                         }
                         {/* <Menu>
