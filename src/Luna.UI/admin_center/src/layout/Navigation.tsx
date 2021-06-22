@@ -27,6 +27,9 @@ const Navigation: React.FunctionComponent = () => {
         menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
         let maintag = document.getElementsByClassName("main")[0] as HTMLElement;
         menuCollapse == true ? maintag.style.marginLeft = '12%' : maintag.style.marginLeft = '8%';
+        
+        let NavigationDiv = document.getElementsByClassName("Navigation")[0] as HTMLElement;
+        menuCollapse == true ?NavigationDiv.classList.add('wdth10per'):NavigationDiv.classList.remove('wdth10per');
     };
 
     useEffect(() => {                    
@@ -36,7 +39,7 @@ const Navigation: React.FunctionComponent = () => {
 
     return (
         <React.Fragment>
-            <nav className="Navigation" id="Navigation">
+            <nav className="Navigation wdth10per" id="Navigation">
                 <ProSidebar collapsed={menuCollapse}>
                     <SidebarHeader>
                         <div className={"collapsearrow"} onClick={menuIconClick}>

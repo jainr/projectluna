@@ -166,6 +166,10 @@ nav a > span {
   #Navigation .logo {
     padding: 20px;
   }
+  .wdth10per
+  {
+    width: 10%;
+  }
   
   @media only screen and (max-width: 720px) {
     html {
