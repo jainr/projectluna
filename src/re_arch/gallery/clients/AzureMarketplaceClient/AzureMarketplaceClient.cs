@@ -69,6 +69,7 @@ namespace Luna.Gallery.Clients
             }
             else if (response.StatusCode == HttpStatusCode.BadRequest)
             {
+                var content = await response.Content.ReadAsStringAsync();
                 throw new LunaBadRequestUserException(ErrorMessages.INVALID_MARKETPLACE_TOKEN, UserErrorCode.InvalidInput);
             }
 
@@ -175,9 +176,17 @@ namespace Luna.Gallery.Clients
             LunaRequestHeaders headers,
             Dictionary<string, string> additionalHeaders = null)
         {
-            var request = BuildRequest(HttpMethod.Delete, requestUri, null, headers);
+            var request = BuildRequest(method, requestUri, content, headers);
             request.Headers.Add(REQUEST_ID_HEADER_NAME, headers.TraceId);
-            request.Headers.Add(REQUEST_ID_HEADER_NAME, headers.TraceId);
+            request.Headers.Add(CORRALATION_ID_HEADER_NAME, headers.TraceId);
+
+            if (additionalHeaders != null)
+            {
+                foreach (var key in additionalHeaders.Keys)
+                {
+                    request.Headers.Add(key, additionalHeaders[key]);
+                }
+            }
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
 

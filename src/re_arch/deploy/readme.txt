@@ -12,7 +12,8 @@
   -x <aad-application-secret> \
   -a <admin-aad-object-id> \
   -u <admin-user-display-name> \
-  -w <y if created new azure service, configure only otherwise>
+  -w <y if created new azure service, configure only otherwise> \
+  -m <y if use managed identity>
 
 3. Import the Postman collection (management_test.json)
 

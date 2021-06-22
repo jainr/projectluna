@@ -15,17 +15,19 @@ namespace Luna.Publish.Data
 
         DbSet<ApplicationSnapshotDB> ApplicationSnapshots { get; set; }
 
-        DbSet<PublishingEventDB> PublishingEvents { get; set; }
+        DbSet<ApplicationEventDB> ApplicationEvents { get; set; }
+
+        DbSet<MarketplaceOfferSnapshotDB> MarketplaceOfferSnapshots { get; set; }
+
+        DbSet<MarketplaceOfferEventDB> MarketplaceOfferEvents { get; set; }
+
+        DbSet<MarketplaceOfferDB> MarketplaceOffers { get; set; }
 
         DbSet<LunaApplicationDB> LunaApplications { get; set; }
 
         DbSet<LunaAPIDB> LunaAPIs { get; set; }
 
         DbSet<LunaAPIVersionDB> LunaAPIVersions { get; set; }
-
-        DbSet<AzureMarketplaceOfferDB> AzureMarketplaceOffers { get; set; }
-
-        DbSet<AzureMarketplacePlanDB> AzureMarketplacePlans { get; set; }
 
         DbSet<AutomationWebhookDB> AutomationWebhooks { get; set; }
 

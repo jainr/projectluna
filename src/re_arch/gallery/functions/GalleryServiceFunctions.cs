@@ -92,10 +92,10 @@ namespace Luna.Gallery.Functions
             {
                 if (ev.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
                 {
-                    var offer = JsonConvert.DeserializeObject<AzureMarketplaceOffer>(ev.EventContent);
+                    var offer = JsonConvert.DeserializeObject<MarketplaceOffer>(ev.EventContent);
 
                     var currentPlans = await _dbContext.PublishedAzureMarketplacePlans.
-                        Where(x => x.IsEnabled && x.MarketplaceOfferId == offer.MarketplaceOfferId).
+                        Where(x => x.IsEnabled && x.MarketplaceOfferId == offer.OfferId).
                         ToListAsync();
 
                     foreach(var currentPlan in currentPlans)
@@ -108,17 +108,27 @@ namespace Luna.Gallery.Functions
 
                     foreach(var plan in offer.Plans)
                     {
-                        newPlans.Add(new PublishedAzureMarketplacePlanDB()
+                        var newPlan = new PublishedAzureMarketplacePlanDB()
                         {
-                            MarketplaceOfferId = offer.MarketplaceOfferId,
-                            MarketplacePlanId = plan.MarketplacePlanId,
-                            OfferDisplayName = offer.DisplayName,
-                            OfferDescription = offer.Description,
-                            IsLocalDeployment = plan.IsLocalDeployment,
+                            MarketplaceOfferId = offer.OfferId,
+                            MarketplacePlanId = plan.PlanId,
+                            OfferDisplayName = offer.Properties.DisplayName,
+                            OfferDescription = offer.Properties.DisplayName,
+                            Mode = plan.Properties.Mode,
                             LastAppliedEventId = ev.EventSequenceId,
                             IsEnabled = true,
-                            ManagementKitDownloadUrlSecretName = plan.ManagementKitDownloadUrlSecretName
+                        };
+
+                        List<MarketplaceParameter> parameters = new List<MarketplaceParameter>();
+                        parameters.AddRange(offer.Parameters);
+                        parameters.AddRange(plan.Parameters);
+
+                        newPlan.Parameters = JsonConvert.SerializeObject(parameters, new JsonSerializerSettings()
+                        {
+                            TypeNameHandling = TypeNameHandling.All
                         });
+
+                        newPlans.Add(newPlan);
                     }
 
                     using (var transaction = await _dbContext.BeginTransactionAsync())
@@ -150,6 +160,7 @@ namespace Luna.Gallery.Functions
                     foreach (var currentPlan in currentPlans)
                     {
                         currentPlan.IsEnabled = false;
+                        currentPlan.LastAppliedEventId = ev.EventSequenceId;
                     }
 
                     if (currentPlans.Count > 0)
@@ -1453,19 +1464,20 @@ namespace Luna.Gallery.Functions
         #region azure marketplace
 
         /// <summary>
-        /// Get offer parameters
+        /// Get parameters
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/offerparameters</url>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}/parameters</url>
         /// <param name="offerId" required="true" cref="string" in="path">The offer ID</param>
+        /// <param name="planId" required="true" cref="string" in="path">The plan ID</param>
         /// <param name="req">Http request</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
-        ///     where T is <see cref="MarketplaceOfferParameter"/>
+        ///     where T is <see cref="MarketplaceParameter"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="MarketplaceOfferParameter.example"/>
+        ///             <see cref="MarketplaceParameter.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of a marketplace subscription
@@ -1478,84 +1490,33 @@ namespace Luna.Gallery.Functions
         ///     <in>header</in>
         /// </security>
         /// <returns></returns>
-        [FunctionName("GetMarketplaceOfferParameters")]
-        public async Task<IActionResult> GetMarketplaceOfferParameters(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/offers/{offerId}/offerparameters")]
+        [FunctionName("GetMarketplaceParameters")]
+        public async Task<IActionResult> GetMarketplaceParameters(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/offers/{offerId}/plans/{planId}/parameters")]
             HttpRequest req,
-            string offerId)
+            string offerId,
+            string planId)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.GetMarketplaceOfferParameters));
+                _logger.LogMethodBegin(nameof(this.GetMarketplaceParameters));
 
                 try
                 {
-                    if (!await _dbContext.PublishedAzureMarketplacePlans.AnyAsync(x => x.IsEnabled && x.MarketplaceOfferId == offerId))
+                    var plan = await _dbContext.PublishedAzureMarketplacePlans.
+                        SingleOrDefaultAsync(x => x.IsEnabled && x.MarketplaceOfferId == offerId && x.MarketplacePlanId == planId);
+
+                    if (plan == null)
                     {
                         throw new LunaNotFoundUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                            string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, planId, offerId));
                     }
-                    List<MarketplaceOfferParameter> parameters = new List<MarketplaceOfferParameter>();
-                    parameters.Add(new MarketplaceOfferParameter()
+
+                    var parameters = JsonConvert.
+                        DeserializeObject<List<MarketplaceParameter>>(plan.Parameters, new JsonSerializerSettings()
                     {
-                        ParameterName = "tenantid",
-                        DisplayName = "Tenant ID",
-
-                        Description = "The tenant id for your Azure subscription.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = false
-                    });
-
-                    parameters.Add(new MarketplaceOfferParameter()
-                    {
-                        ParameterName = "subscriptionid",
-                        DisplayName = "Subscription ID",
-
-                        Description = "The id for your Azure subscription.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = false
-                    });
-
-                    parameters.Add(new MarketplaceOfferParameter()
-                    {
-                        ParameterName = "resourcegroupname",
-                        DisplayName = "Resource Group Name",
-
-                        Description = "The resource group name where the Azure resources are deployed in.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = false
-                    });
-
-                    parameters.Add(new MarketplaceOfferParameter()
-                    {
-                        ParameterName = "uniquename",
-                        DisplayName = "Unique Name",
-
-                        Description = "A unique name for your service.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = false
-                    });
-
-                    parameters.Add(new MarketplaceOfferParameter()
-                    {
-                        ParameterName = "region",
-                        DisplayName = "Region",
-
-                        Description = "The Azure region where the Azure resources are deployed in.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = true,
-                        ValueList = "westus;eastus;westeurope"
-                    });
-
-                    parameters.Add(new MarketplaceOfferParameter()
-                    {
-                        ParameterName = "accesstoken",
-                        DisplayName = "Access Token",
-
-                        Description = "The access token to access your Azure subscription.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = false
+                        TypeNameHandling = TypeNameHandling.Auto
                     });
 
                     return new OkObjectResult(parameters);
@@ -1566,7 +1527,7 @@ namespace Luna.Gallery.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.GetMarketplaceOfferParameters));
+                    _logger.LogMethodEnd(nameof(this.GetMarketplaceParameters));
                 }
             }
         }
@@ -1672,6 +1633,20 @@ namespace Luna.Gallery.Functions
                 try
                 {
                     var subscription = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceSubscription>(req);
+
+                    if (subscription.Id != subscriptionId)
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_SUB_ID_DOES_NOT_MATCH, subscriptionId, subscription.Id),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    if (await _dbContext.AzureMarketplaceSubscriptions.AnyAsync(x => x.SubscriptionId == subscriptionId))
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_SUBSCIRPTION_ALREADY_EXIST, subscriptionId));
+                    }
+
                     if (string.IsNullOrEmpty(subscription.Token))
                     {
                         throw new LunaBadRequestUserException(ErrorMessages.INVALID_MARKETPLACE_TOKEN, UserErrorCode.InvalidToken);
@@ -1688,11 +1663,30 @@ namespace Luna.Gallery.Functions
                         throw new LunaBadRequestUserException(ErrorMessages.INVALID_MARKETPLACE_TOKEN, UserErrorCode.InvalidToken);
                     }
 
-                    if (await _dbContext.PublishedAzureMarketplacePlans.AnyAsync(x => x.IsEnabled &&
-                        x.MarketplaceOfferId == subscription.OfferId && x.MarketplacePlanId == subscription.PlanId))
+                    var plan = await _dbContext.PublishedAzureMarketplacePlans.SingleOrDefaultAsync(x => x.IsEnabled &&
+                        x.MarketplaceOfferId == subscription.OfferId && x.MarketplacePlanId == subscription.PlanId);
+
+                    if (plan == null)
                     {
                         throw new LunaNotFoundUserException(
                             string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, subscription.PlanId, subscription.OfferId));
+                    }
+
+                    var requiredParameters = JsonConvert.
+                        DeserializeObject<List<MarketplaceParameter>>(plan.Parameters, new JsonSerializerSettings()
+                        {
+                            TypeNameHandling = TypeNameHandling.Auto
+                        });
+
+                    foreach (var param in requiredParameters)
+                    {
+                        if (param.IsRequired && !subscription.InputParameters.Any(x => x.Name == param.ParameterName))
+                        {
+                            throw new LunaBadRequestUserException(
+                                string.Format(ErrorMessages.REQUIRED_PARAMETER_NOT_PROVIDED, param.ParameterName), 
+                                UserErrorCode.ParameterNotProvided,
+                                target: param.ParameterName);
+                        }
                     }
 
                     var subDb = new AzureMarketplaceSubscriptionDB(subscription, lunaHeaders.UserId);

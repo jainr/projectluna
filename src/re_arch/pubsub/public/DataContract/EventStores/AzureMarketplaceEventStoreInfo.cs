@@ -32,7 +32,7 @@ namespace Luna.PubSub.Public.Client
                 SubscriberFunctionName = "processazuremarketplaceevents",
                 ExcludedEventTypes = new List<string>(new string[]
                 {
-                    LunaEventType.ACTIVATE_AZURE_MARKETPLACE_SUBSCRIPTION
+                    LunaEventType.CREATE_AZURE_MARKETPLACE_SUBSCRIPTION
                 })
             });
         }

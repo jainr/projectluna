@@ -117,6 +117,22 @@ namespace Luna.Provision.Functions
 
         }
 
+        [FunctionName("ProcessAzureMarketplaceEvents")]
+        public async Task ProcessAzureMarketplaceEvents([QueueTrigger("provision-processazuremarketplaceevents")] string myQueueItem)
+        {
+            // Get the last applied event id
+            // If there's no record in the database, it will return the default value of long type 0
+            var lastAppliedEventId = await _dbContext.LunaApplicationSwaggers.
+                OrderByDescending(x => x.LastAppliedEventId).
+                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+
+            var events = await _pubSubClient.ListEventsAsync(
+                LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
+                new LunaRequestHeaders(),
+                eventsAfter: 0);
+
+        }
+
         /// <summary>
         /// Test endpoint
         /// </summary>

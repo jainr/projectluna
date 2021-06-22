@@ -1,4 +1,5 @@
 ﻿using Luna.Common.Utils;
+using Luna.Publish.Public.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -449,24 +450,32 @@ namespace Luna.Gallery.Public.Client
         }
 
         /// <summary>
-        /// Get parameters for the specified offer
+        /// Get parameters for the specified offer and plan
         /// </summary>
         /// <param name="offerId">The offer id</param>
+        /// <param name="planId">The plan id</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer parameters</returns>
-        public async Task<List<MarketplaceOfferParameter>> GetOfferParametersAsync(string offerId, LunaRequestHeaders headers)
+        public async Task<List<MarketplaceParameter>> GetMarketplaceParametersAsync(
+            string offerId, 
+            string planId,
+            LunaRequestHeaders headers)
         {
             ValidationUtils.ValidateStringValueLength(offerId, 
                 ValidationUtils.AZURE_MARKETPLACE_OBJECT_STRING_MAX_LENGTH, 
                 nameof(offerId));
 
+            ValidationUtils.ValidateStringValueLength(offerId,
+                ValidationUtils.AZURE_MARKETPLACE_OBJECT_STRING_MAX_LENGTH,
+                nameof(planId));
+
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
-                $"marketplace/offers/{offerId}/offerparameters");
+                $"marketplace/offers/{offerId}/plans/{planId}/parameters");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            var result = JsonConvert.DeserializeObject<List<MarketplaceOfferParameter>>(await response.Content.ReadAsStringAsync());
+            var result = JsonConvert.DeserializeObject<List<MarketplaceParameter>>(await response.Content.ReadAsStringAsync());
 
             return result;
         }

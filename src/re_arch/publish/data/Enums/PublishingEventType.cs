@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Luna.Publish.Data
 {
-    public enum PublishingEventType
+    public enum LunaAppEventType
     {
         CreateLunaApplication,
         UpdateLunaApplication,
@@ -16,5 +16,13 @@ namespace Luna.Publish.Data
         CreateLunaAPIVersion,
         UpdateLunaAPIVersion,
         DeleteLunaAPIVersion
+    }
+
+    public enum MarketplaceOfferEventType
+    {
+        CreateMarketplaceOfferFromTemplate,
+        UpdateMarketplaceOfferFromTemplate,
+        DeleteMarketplaceOffer,
+        PublishMarketplaceOffer
     }
 }

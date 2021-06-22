@@ -510,38 +510,6 @@ paths:
             $ref: '#/definitions/Luna.Gallery.Public.Client.LunaApplicationSubscriptionOwner'
       security:
         - x-functions-key: [ ]
-  '/api/marketplace/offers/{offerId}/offerparameters':
-    get:
-      tags:
-        - Azure Marketplace
-      summary: Get offer parameters
-      operationId: getApiMarketplaceOffersByOfferIdOfferparameters
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: offerId
-          description: The offer ID
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceOfferParameter'
-            example:
-              ParameterName: region
-              DisplayName: Region
-              Description: The Azure region where resources are deployed to.
-              ValueType: string
-              FromList: true
-              ValueList: westus;eastus
-              Maximum: 0
-              Minimum: 0
-      security:
-        - x-functions-key: [ ]
   /api/marketplace/subscriptions/resolveToken:
     post:
       tags:
@@ -814,36 +782,6 @@ definitions:
     example:
       PrimaryKey: 3cbeda43ef6b4dc0b61220fbb2f7dda4
       SecondaryKey: fc7cfaab23b0494aa53f178f7fbc720c
-  Luna.Gallery.Public.Client.MarketplaceOfferParameter:
-    required:
-      - ParameterName
-      - DisplayName
-      - Description
-      - ValueType
-      - FromList
-      - ValueList
-      - Maximum
-      - Minimum
-    type: object
-    properties:
-      ParameterName:
-        type: string
-      DisplayName:
-        type: string
-      Description:
-        type: string
-      ValueType:
-        type: string
-      FromList:
-        type: boolean
-      ValueList:
-        type: string
-      Maximum:
-        format: int32
-        type: integer
-      Minimum:
-        format: int32
-        type: integer
   Luna.Gallery.Public.Client.MarketplaceSubscription:
     required:
       - Id

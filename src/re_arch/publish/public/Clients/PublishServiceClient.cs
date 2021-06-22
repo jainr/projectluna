@@ -370,6 +370,27 @@ namespace Luna.Publish.Public.Client
         }
 
         /// <summary>
+        /// Create or update Azure marketplace offer from template
+        /// </summary>
+        /// <param name="name">Name of the offer</param>
+        /// <param name="template">The offer template</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The offer created</returns>
+        public async Task<MarketplaceOffer> CreateOrUpdateMarketplaceOfferFromTemplateAsync(string name,
+            string template,
+            LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateStringValueLength(name, ValidationUtils.AZURE_MARKETPLACE_OBJECT_STRING_MAX_LENGTH, nameof(name));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"marketplace/offers/{name}/template");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Post, uri, template, headers);
+
+            return await GetResponseObject<MarketplaceOffer>(response);
+        }
+
+        /// <summary>
         /// Create an Azure marketplace offer
         /// </summary>
         /// <param name="name">Name of the offer</param>
@@ -421,7 +442,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">Name of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer created</returns>
-        public async Task<AzureMarketplaceOffer> PublishMarketplaceOfferAsync(string name,
+        public async Task PublishMarketplaceOfferAsync(string name,
             LunaRequestHeaders headers)
         {
             ValidationUtils.ValidateStringValueLength(name, ValidationUtils.AZURE_MARKETPLACE_OBJECT_STRING_MAX_LENGTH, nameof(name));
@@ -431,7 +452,7 @@ namespace Luna.Publish.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Post, uri, null, headers);
 
-            return await GetResponseObject<AzureMarketplaceOffer>(response);
+            return;
         }
 
         /// <summary>
@@ -545,7 +566,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">Name of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer</returns>
-        public async Task<AzureMarketplaceOffer> GetMarketplaceOfferAsync(string name,
+        public async Task<MarketplaceOffer> GetMarketplaceOfferAsync(string name,
             LunaRequestHeaders headers)
         {
             ValidationUtils.ValidateStringValueLength(name, ValidationUtils.AZURE_MARKETPLACE_OBJECT_STRING_MAX_LENGTH, nameof(name));
@@ -555,7 +576,7 @@ namespace Luna.Publish.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            return await GetResponseObject<AzureMarketplaceOffer>(response);
+            return await GetResponseObject<MarketplaceOffer>(response);
         }
 
         /// <summary>
@@ -563,14 +584,14 @@ namespace Luna.Publish.Public.Client
         /// </summary>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer</returns>
-        public async Task<List<AzureMarketplaceOffer>> ListMarketplaceOffersAsync(LunaRequestHeaders headers)
+        public async Task<List<MarketplaceOffer>> ListMarketplaceOffersAsync(LunaRequestHeaders headers)
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"marketplace/offers");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            return await GetResponseObject<List<AzureMarketplaceOffer>>(response);
+            return await GetResponseObject<List<MarketplaceOffer>>(response);
         }
 
         /// Get a plan in Azure marketplace offer

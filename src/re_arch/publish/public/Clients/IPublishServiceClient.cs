@@ -180,6 +180,17 @@ namespace Luna.Publish.Public.Client
             LunaRequestHeaders headers);
 
         /// <summary>
+        /// Create or update Azure marketplace offer from template
+        /// </summary>
+        /// <param name="name">Name of the offer</param>
+        /// <param name="template">The offer template</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The offer created</returns>
+        Task<MarketplaceOffer> CreateOrUpdateMarketplaceOfferFromTemplateAsync(string name,
+            string template,
+            LunaRequestHeaders headers);
+
+        /// <summary>
         /// Create an Azure marketplace offer
         /// </summary>
         /// <param name="name">Name of the offer</param>
@@ -207,7 +218,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">Name of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer created</returns>
-        Task<AzureMarketplaceOffer> PublishMarketplaceOfferAsync(string name,
+        Task PublishMarketplaceOfferAsync(string name,
             LunaRequestHeaders headers);
 
         /// <summary>
@@ -216,7 +227,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">Name of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer</returns>
-        Task<AzureMarketplaceOffer> GetMarketplaceOfferAsync(string name,
+        Task<MarketplaceOffer> GetMarketplaceOfferAsync(string name,
             LunaRequestHeaders headers);
 
         /// <summary>
@@ -224,7 +235,7 @@ namespace Luna.Publish.Public.Client
         /// </summary>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer</returns>
-        Task<List<AzureMarketplaceOffer>> ListMarketplaceOffersAsync(LunaRequestHeaders headers);
+        Task<List<MarketplaceOffer>> ListMarketplaceOffersAsync(LunaRequestHeaders headers);
 
         /// <summary>
         /// Delete an Azure marketplace offer

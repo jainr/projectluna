@@ -203,10 +203,13 @@ namespace Luna.Routing.Functions
                             input,
                             versionProp,
                             lunaHeaders.GetPassThroughHeaders());
-
+                        var content = await response.Content.ReadAsStringAsync();
+                        // workaround the escape string issue from AML
+                        //content = content.Replace("\\\"", "\"");
+                        //content = content.Substring(1, content.Length - 2);
                         result = new ContentResult()
                         {
-                            Content = await response.Content.ReadAsStringAsync(),
+                            Content = content,
                             ContentType = response.Content.Headers.ContentType.MediaType,
                             StatusCode = (int)response.StatusCode
                         };
