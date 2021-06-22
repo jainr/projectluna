@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fluentui/react": "^7.147.1",
+    "@fortawesome/fontawesome-svg-core": "^1.2.35",
+    "@fortawesome/free-solid-svg-icons": "^5.15.3",
+    "@fortawesome/react-fontawesome": "^0.1.14",
     "@loadable/component": "^5.10.3",
     "@types/node": "12.12.5",
     "@types/react": "16.9.11",
@@ -19,16 +23,18 @@
     "react-confirm-alert": "^2.6.1",
     "react-copy-to-clipboard": "^5.0.2",
     "react-dom": "^16.13.1",
+    "react-fontawesome": "^1.7.1",
     "react-html-parser": "^2.0.2",
+    "react-icons": "^4.2.0",
     "react-moment": "^0.9.7",
+    "react-pro-sidebar": "^0.6.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "^3.4.1",
     "react-storage-hooks": "^3.0.3",
     "react-toastify": "^5.5.0",
     "typescript": "3.6.4",
     "uuid": "^3.3.3",
-    "yup": "^0.27.0",
-    "@fluentui/react": "^7.147.1"
+    "yup": "^0.27.0"
   },
   "devDependencies": {
     "@types/react-adal": "^0.5.0",

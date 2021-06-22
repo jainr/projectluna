@@ -22,6 +22,8 @@ import { DialogBox } from '../../shared/components/Dialog';
 import { ISupportCasesModel } from '../../models';
 import { initialSupportCaseList } from '../Support/formUtils/SupportFormUtils';
 import SupportService from '../../services/SupportService';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowAltCircleRight } from '@fortawesome/free-solid-svg-icons'
 
 const Dashboard: React.FunctionComponent = () => {
 
@@ -134,7 +136,9 @@ const Dashboard: React.FunctionComponent = () => {
                 <span>Active <br></br>Installation</span> <br></br>
               </div>              
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="Arrowicon" />
+                <span className="fnt10">Go to details</span>&nbsp;&nbsp;
+                {/* <FontIcon iconName="Edit" className="Arrowicon" /> */}
+                <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"}/>
               </div>
             </div>
             <div className="dashboardcard bgclrblue floatLeft">
@@ -143,7 +147,8 @@ const Dashboard: React.FunctionComponent = () => {
                 <span>New Installation in<br></br> Past 30 days</span> <br></br>
               </div>              
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="Arrowicon" />
+                <span className="fnt10">Go to details</span>&nbsp;&nbsp;
+                <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"}/>
               </div>
 
             </div>
@@ -153,7 +158,8 @@ const Dashboard: React.FunctionComponent = () => {
                 <span>Customer  churn in<br></br> past 30 days</span> <br></br>
               </div>
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;<FontIcon iconName="Edit" className="Arrowicon" />
+                <span className="fnt10">Go to details</span>&nbsp;&nbsp;
+                <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"}/>
               </div>
             </div>
           </div>

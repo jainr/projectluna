@@ -70,7 +70,7 @@ const Content: React.FunctionComponent = (props) => {
 
   return (
     <React.Fragment>
-      <main>
+      <main className="main">
         <Navigation />
         <div className="contentarea">
           {children}
