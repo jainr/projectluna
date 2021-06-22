@@ -26,7 +26,7 @@ const Navigation: React.FunctionComponent = () => {
         //condition checking to change state from true to false and vice versa
         menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
         let maintag = document.getElementsByClassName("main")[0] as HTMLElement;
-        menuCollapse == true ? maintag.style.marginLeft = '12%' : maintag.style.marginLeft = '8%';
+        menuCollapse == true ? maintag.style.marginLeft = '15%' : maintag.style.marginLeft = '8%';
         
         let NavigationDiv = document.getElementsByClassName("Navigation")[0] as HTMLElement;
         menuCollapse == true ?NavigationDiv.classList.add('wdth10per'):NavigationDiv.classList.remove('wdth10per');
@@ -34,7 +34,7 @@ const Navigation: React.FunctionComponent = () => {
 
     useEffect(() => {                    
         let maintag = document.getElementsByClassName("main")[0] as HTMLElement;
-         menuCollapse == true ? maintag.style.marginLeft = '8%' : maintag.style.marginLeft = '12%';
+         menuCollapse == true ? maintag.style.marginLeft = '8%' : maintag.style.marginLeft = '15%';
       }, []);
 
     return (
