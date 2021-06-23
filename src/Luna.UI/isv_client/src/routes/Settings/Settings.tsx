@@ -82,7 +82,7 @@ export const SettingList: React.FunctionComponent<ISettingsListProps> = (props) 
   let [gitRepoList, setGitRepoList] = useState<IGitRepoModel[]>();
   let [partnerServiceList, setPartnerServiceList] = useState<IPartnerServiceModel[]>();
   let [automationWebhookList, setAutomationWebhookList] = useState<IAutomationWebhookModel[]>();  
-  let [permissionsList, setPermissionsList] = useState<IPermissionsModel[]>();
+  let [permissionsList, setPermissionsList] = useState<IPermissionsModel[]>([]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let [workSpaceDeleteIndex, setworkSpaceDeleteIndex] = useState<number>(0);  
@@ -425,7 +425,7 @@ export const SettingList: React.FunctionComponent<ISettingsListProps> = (props) 
     }
   }
 
-  const DeletePermission = async (values, index) => {
+  const DeletePermission = async (values:IPermissionsModel, index) => {
     
     globalContext.showProcessing();
 
@@ -434,7 +434,8 @@ export const SettingList: React.FunctionComponent<ISettingsListProps> = (props) 
     //   toast.error(formError)
     //   globalContext.hideProcessing();
     //   return;
-    // }    
+    // }        
+    setPermissionsList(permissionsList.filter(x=>x.userId!=values.userId));
     globalContext.hideProcessing();
     toast.success("Success!");    
   }
@@ -1034,6 +1035,15 @@ export const SettingList: React.FunctionComponent<ISettingsListProps> = (props) 
             //   globalContext.hideProcessing();
             //   return;
             // }
+
+            permissionsList.push(
+              {
+                clientId:'',
+                createdDate: new Date().getDate().toLocaleString(),                
+                userId:values.permissions.userId,
+                role:values.permissions.role
+              });
+            setPermissionsList(permissionsList);
 
             setSubmitting(false);
             globalContext.hideProcessing();
