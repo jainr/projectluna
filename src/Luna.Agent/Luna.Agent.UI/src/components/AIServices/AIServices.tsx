@@ -6,7 +6,7 @@ import SyntaxHighlighter from "react-syntax-highlighter";
 import { vs } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import mytext from './SampleCode';
 import FooterLinks from '../FooterLinks/FooterLinks';
-import { Stack, Text, Link, Image, StackItem, TextField, ImageFit, Panel, DefaultButton, PrimaryButton, Separator, Dropdown, IDropdownOption, Dialog, DialogType, IModalProps, IDialogContentProps, DialogFooter } from '@fluentui/react';
+import { Stack, Text, Link, Image, StackItem, TextField, ImageFit, Panel, DefaultButton, PrimaryButton, Separator, Dropdown, IDropdownOption, Dialog, DialogType, IModalProps, IDialogContentProps, DialogFooter, IconButton } from '@fluentui/react';
 import { PanelStyles } from '../../helpers/PanelStyles';
 import { getTheme } from '@fluentui/react';
 import { GetInternalOffers } from './GetInternalOffers';
@@ -190,7 +190,42 @@ const AIServices = () => {
             ></TextField>
           </StackItem>
         </Stack>
-        </div>
+        <Stack>
+          <hr style={{width:"100%" }} />
+      <Text block variant={'xLarge'} >My ML Applications</Text>
+      <Text block variant={'medium'} style={{color:'grey',fontWeight: 600, marginTop:'10px' }}> Oops! You don’t own any application yet! Choose an application below to start with.
+      </Text>
+      <Text block variant={'xLarge'} style={{marginTop:'10px' }}>Applications from internal publishers</Text>
+      <div style={{display:'inline-flex'}}>
+      <div style={{width:'250px',height:'200px',padding:'5px',border:'1px solid', boxShadow: '2px 2px 8px 3px #888888', marginTop:'10px'}}>
+        <IconButton style={{ color: SharedColors.blue10}}
+          iconProps={{ iconName: "TestBeakerSolid" }} size={30} />
+          <Text block variant={'xLarge'}>Missing Data Imputation</Text>
+          <p>
+            Impute means data from your dataset with selected features.
+          </p>
+          <p>
+            <Text block variant={"small"}>Publisher: Microsoft Research</Text>
+          </p>
+          <hr style={{width:"100%", color:'grey' }}/>
+          Saas | Tabular data
+      </div>
+      <div style={{width:'250px',height:'200px',padding:'5px',border:'1px solid', boxShadow: '2px 2px 8px 3px #888888', marginTop:'10px',marginLeft: '25px'}}>
+        <IconButton style={{ color: SharedColors.blue10}}
+          iconProps={{ iconName: "TestBeakerSolid" }} size={30} />
+          <Text block variant={'xLarge'}>Text Summerization</Text>
+          <p>
+            Summerize text documents and articles using machine learning.
+          </p>
+          <p>
+            <Text block variant={"small"}>Publisher: ACE Team</Text>
+          </p>
+          <hr style={{width:"100%", color:'grey' }}/>
+          Saas 
+      </div>
+      </div>
+      </Stack>
+      </div>
         <br />
         
       <div style={PanelStyles}>
@@ -355,7 +390,7 @@ const AIServices = () => {
               )}
           </Stack>
       </div>
-      <FooterLinks />
+      <FooterLinks />     
     </div>
   );
 }
