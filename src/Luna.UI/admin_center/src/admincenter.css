@@ -1,28 +1,83 @@
+html, body {
+  background-color: #F5F5F7;
+}
 .floatLeft {
   float: left;
 }
-.bgclrblue{
+.bgclrblue {
   background-color: #4876ca;
 }
-.bgclrred{
-  background-color: #C00000;
+.bgclrred {
+  background-color: #c00000;
 }
 .dashboardcard {
   color: #fff;
   margin-right: 1%;
-  min-height: 130px;
+  min-height: 170px;
+  width: 20%;
 }
-.fnt10
-{
+.fnt10 {
   font-size: 12px;
 }
-.cardtext
-{
+.cardtext {
   padding: 25px;
   padding-bottom: 0px;
+  padding-top: 0px;
 }
- .txticon
- {
+.txticon {
   text-align: right;
   padding-bottom: 10px;
- }
+  margin-right: 5%;
+}
+.Arrowicon {
+  padding-right: 5%;
+}
+.footerclass {
+  width: 100% !important;
+  background-color: transparent;  
+}
+
+
+.footerclass li a {
+  color: gray;
+}
+.footerclass li {
+  float: left;
+  list-style: none;
+  margin-right: 8px;
+  padding: 4px;
+}
+.footerclass .sperator
+{
+  color: gray;
+  font-weight: bold;
+}
+.collapsearrow{
+  text-align: right;
+  cursor: pointer;
+}
+.acolor a
+{
+  color: rgb(86 166 234);
+}
+main
+{
+  display: flex;
+}
+main > div {
+  flex: 1 1;
+  overflow-y: auto;
+  margin: 20px;
+}
+.contentarea
+{
+  box-shadow: rgba(0, 0, 0, 0.133) 0px 3.2px 7.2px 0px, rgba(0, 0, 0, 0.11) 0px 0.6px 1.8px 0px; 
+  background-color: white; 
+  padding: 20px 20px 50px;
+  
+}
+.dashboardarrowIcon
+{
+  font-size: 30px;
+  margin-bottom: -2%;
+}

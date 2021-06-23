@@ -4,7 +4,7 @@ import { ObjectSchema } from "yup";
 import { ISubscriptionsPostModel, ISubscriptionsModel, ISubscriptionsWarnings } from "../../../models";
 import { IWizardModel } from "../../../models/IWizardModel";
 import { ErrorMessage } from "../../Wizard/formUtils/ErrorMessage";
-import { httpURLRegExp, opetarionNameRegExp } from "../../Products/formUtils/RegExp";
+import { httpURLRegExp, opetarionNameRegExp, versionNameRegExp } from "../../Products/formUtils/RegExp";
 
 export interface IWizardFormValues {
   wizard: IWizardModel;
@@ -37,7 +37,7 @@ const wizardFormValidator: ObjectSchema<IWizardModel> = yup.object().shape(
       message: ErrorMessage.apiName,
       excludeEmptyString: true
     }),
-  apiVersion: yup.string().matches(opetarionNameRegExp,
+  apiVersion: yup.string().matches(versionNameRegExp,
     {
       message: ErrorMessage.apiVersion,
       excludeEmptyString: true

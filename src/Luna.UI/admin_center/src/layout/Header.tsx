@@ -29,7 +29,7 @@ const Header: React.FunctionComponent = () => {
       styles={{
         root: {
           backgroundColor: `${headerBackgroundColor}`,
-          height:57
+          height:48
         }
       }}
     >
@@ -44,10 +44,10 @@ const Header: React.FunctionComponent = () => {
           }
         }}
       >        
-        <Image src={logo} onClick={() => {history.push(WebRoute.Home)}} style={{cursor: 'pointer',height: '57px' }} />
+        <Image src={logo} onClick={() => {history.push(WebRoute.Home)}} style={{cursor: 'pointer'}} />
       </Stack>
       
-      <span className={'isv_title'} style={{textAlign:"left",marginLeft:27,flexGrow:1,fontWeight:'bold'}}>
+      <span className={'isv_title'} style={{textAlign:"left",flexGrow:1,fontWeight:'bold'}}>
         {isvName}
       </span>
       <div>

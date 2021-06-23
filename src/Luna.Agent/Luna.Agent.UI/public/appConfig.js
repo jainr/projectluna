@@ -1,5 +1,6 @@
-var BASE_URL = "https://localhost:44334/api"
+// var BASE_URL = "https://localhost:44334/api"
 //var BASE_URL = "https://lunaaitest-apiapp.azurewebsites.net/api";
+var BASE_URL = "https://lunatest-gateway.azurewebsites.net/api";
 var HEADER_HEX_COLOR = "#3376CD";
 var SITE_TITLE = "Luna Machine Learning Gallery";
 var MSAL_CONFIG = {
