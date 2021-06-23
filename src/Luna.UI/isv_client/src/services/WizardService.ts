@@ -14,5 +14,32 @@ export default class WizardService extends ServiceBase {
 
         return result;
     }
+
+    public static async serviceList(option): Promise<Result<any>> {
+        var result = await this.requestJson<any>({
+            url: `/manage/partnerServices?type=`+option,
+            method: "GET"            
+        });
+
+        return result;
+    }
+
+    public static async componentTypeList(): Promise<Result<any>> {
+        var result = await this.requestJson<any>({
+            url: `/manage/partnerservices/metadata/AzureML/mlcomponenttypes`,
+            method: "GET"            
+        });
+
+        return result;
+    }
+
+    public static async componentList(option): Promise<Result<any>> {
+        var result = await this.requestJson<any>({
+            url: `/manage/partnerservices/amlworkspace/mlcomponents/`+option,
+            method: "GET"            
+        });
+
+        return result;
+    }
 }
 
