@@ -7,6 +7,7 @@ import {initialWizardFormValues, IWizardFormValues, wizardFormValidationSchema }
 import { useGlobalContext } from '../shared/components/GlobalProvider';
 import { toast } from 'react-toastify';
 import adalContext from '../adalConfig';
+import WizardService from '../services/WizardService'
 import ProductService from '../services/ProductService';
 import { handleSubmissionErrorsForForm } from '../shared/formUtils/utils';
 import { Hub } from 'aws-amplify';
@@ -25,8 +26,8 @@ const WizardContent: React.FunctionComponent = (props) => {
   const [serviceList, setServiceList] = useState<IDropdownOption[]>([]);
   const [mLComponentTypeList, setMLComponentTypeList] = useState<IDropdownOption[]>([]);
   const [MLComponentList, setMLComponentList] = useState<IDropdownOption[]>([]);
-  const [sourceServiceTypeList, setSourceServiceTypeList] = useState<IDropdownOption[]>([]);
-  const [sourceServiceList, setSourceServiceList] = useState<IDropdownOption[]>([]);
+  // const [sourceServiceTypeList, setSourceServiceTypeList] = useState<IDropdownOption[]>([]);
+  // const [sourceServiceList, setSourceServiceList] = useState<IDropdownOption[]>([]);
   const [computeServiceTypeList, setComputeServiceTypeList] = useState<IDropdownOption[]>([]);
   const [computeServiceList, setComputeServiceList] = useState<IDropdownOption[]>([]);
   const [formState, setFormState] = useState<IWizardFormValues>(initialWizardFormValues);
@@ -45,99 +46,74 @@ const WizardContent: React.FunctionComponent = (props) => {
   // const { values, handleChange, handleBlur, touched, errors, handleSubmit, setFieldValue } = useFormikContext<IWizardFormValues>(); // formikProps
   const getServiceTypes = async () => {
 
-    let serviceTypeList: IDropdownOption[] = [{
-      key: '',
-      text: ''
-    }];
-    // let PlanResponse = await PlansService.list(offername);
-    // if (PlanResponse.value && PlanResponse.success) {
-    //   var Plans = PlanResponse.value;
-    //   Plans.map((item, index) => {
-    //     return (
-    //       planList.push(
-    //         {
-    //           key: item.planName,
-    //           text: item.planName
-    //         })
-    //     )
-    //   })
-    // }
-    serviceTypeList.push(
-      {
-        key: "AML Workspaces",
-        text: "AML Workspaces"
+    let serviceTypeList: IDropdownOption[] = [];
+    let serviceTypeResponse = await WizardService.serviceTypesList();
+    if (serviceTypeResponse.value && serviceTypeResponse.success) {
+      var serviceTypes = serviceTypeResponse.value;
+      serviceTypes.map((item, index) => {
+        return (
+          serviceTypeList.push(
+            {
+              key: item.Id,
+              text: item.DisplayName
+            })
+        )
       })
-      serviceTypeList.push(
-        {
-          key: "GitHub",
-          text: "GitHub"
-        })
+    }    
     setServiceTypeList([...serviceTypeList]);
   }
 
-  const getServices = async () => {
-
-    let serviceList: IDropdownOption[] = [{
-      key: '',
-      text: ''
-    }];
-    serviceList.push(
-      {
-        key: "MyAMLWorkspaces",
-        text: "My AML Workspaces"
+  const getServices = async (option: string) => {
+    let serviceList: IDropdownOption[] = [];
+    let servicesResponse = await WizardService.serviceList(option);
+    if (servicesResponse.value && servicesResponse.success) {
+      var services = servicesResponse.value;
+      services.map((item, index) => {
+        return (
+          serviceList.push(
+            {
+              key: item.UniqueName,
+              text: item.DisplayName
+            })
+        )
       })
+    }
     setServiceList([...serviceList]);
-  }
-  const getSourceServiceType = async () => {
-
-    let sourceServiceTypeList: IDropdownOption[] = [{
-      key: '',
-      text: ''
-    }];
-    sourceServiceTypeList.push(
-      {
-        key: "GitHub",
-        text: "GitHub"
-      })
-    setSourceServiceTypeList([...sourceServiceTypeList]);
-  }
-  const getSourceService = async () => {
-
-    let sourceServiceList: IDropdownOption[] = [{
-      key: '',
-      text: ''
-    }];
-    sourceServiceList.push(
-      {
-        key: "MyGitRepo",
-        text: "My Git Repo"
-      })
-    setSourceServiceList([...sourceServiceList]);
   }
   const getMLComponentType = async () => {
 
-    let mLComponentTypeList: IDropdownOption[] = [{
-      key: '',
-      text: ''
-    }];
-    mLComponentTypeList.push(
-      {
-        key: "Published Realtime Endpoints",
-        text: "Published Realtime Endpoints"
+    let mLComponentTypeList: IDropdownOption[] = [];
+    let componentTypeResponse = await WizardService.componentTypeList();
+    if (componentTypeResponse.value && componentTypeResponse.success) {
+      var componentTypes = componentTypeResponse.value;
+      componentTypes.map((item, index) => {
+        return (
+          mLComponentTypeList.push(
+            {
+              key: item.Id,
+              text: item.DisplayName
+            })
+        )
       })
+    }
     setMLComponentTypeList([...mLComponentTypeList]);
   }
-  const getMLComponent = async () => {
-
-    let mLComponentList: IDropdownOption[] = [{
-      key: '',
-      text: ''
-    }];
-    mLComponentList.push(
-      {
-        key: "FakeNewsDetection",
-        text: "Fake News Detection"
+  const getMLComponent = async (option: string) => {
+    let mLComponentList: IDropdownOption[] = [];
+    let componentResponse = await WizardService.componentList(option);
+    if (componentResponse.value && componentResponse.success) {
+      var components = componentResponse.value;
+      components.map((item, index) => {
+        return (
+          mLComponentList.push(
+            {
+              key: item.Id,
+              text: item.Name
+            })
+        )
       })
+    }
+    
     setMLComponentList([...mLComponentList]);
   }
   const getComputeServiceType = async () => {
@@ -183,11 +159,6 @@ const WizardContent: React.FunctionComponent = (props) => {
   
   useEffect(() => {
     getServiceTypes();
-    getServices();
-    getSourceServiceType();
-    getSourceService();
-    getMLComponentType();
-    getMLComponent();
     getComputeServiceType();
     getComputeService();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -212,15 +183,7 @@ const WizardContent: React.FunctionComponent = (props) => {
   const selectOnChange = (fieldKey: string, setFieldValue, event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) => {
     if (option) {
       let key = (option.key as string);
-      setFieldValue(fieldKey, key, true); 
-      if(key === 'GitHub')       
-      {
-        setGitHubSelected(true);
-      }   
-      else
-      {
-        setGitHubSelected(false);
-      }
+      setFieldValue(fieldKey, key, true);                 
     }
   };
   const getFormErrorString = (touched, errors, property: string) => {
@@ -274,23 +237,55 @@ const WizardContent: React.FunctionComponent = (props) => {
                 <h3>Step 1: Choose machine learning service or code repo</h3>
                 <label>Tell us where are your machine learning components(models,endpoints,project...)</label>
                 <table>
-                  <tr>
-                    <td >
+                  <tr style={{height:'50px'}}>
+                    <td>
                       Source Service Type:
                         </td>
                     <td>
-                      <Dropdown style={{ width: '220px' }} 
+                      <Dropdown style={{ width: '250px' }} 
                       id={`wizard.sourceServiceType`}                                                            
                       options={serviceTypeList}                        
                       placeHolder="Select Service Type"
                       defaultSelectedKey={values.wizard.sourceServiceType}
                       onBlur={handleBlur} 
                       onChange={(event, option, index) => {
-                        selectOnChange(`wizard.sourceServiceType`, setFieldValue, event, option, index);}}      
+                        // selectOnChange(`wizard.sourceServiceType`, setFieldValue, event, option, index);
+                        if (option) {
+                          let key = (option.key as string);
+                          setFieldValue(`wizard.sourceServiceType`, key, true);     
+                          if(key === 'GitHub')
+                          {
+                            setGitHubSelected(true);                          
+                          }
+                          else
+                          {
+                            setGitHubSelected(false); 
+                            getMLComponentType();     
+                          }
+                          getServices(key);      
+                        }
+                      }}      
                       errorMessage={getFormErrorString(touched, errors, 'sourceServiceType')} />
                     </td>
+                    <td rowSpan={6}>
+                      <Stack>
+                        <div style={{ width: '350px', background: '#d3d3d3', height: '250px', marginLeft: '25px' }}>
+                          <p />
+                          <p />
+                          <p />
+                          <div style={{ padding: '10px' }}><IconButton iconProps={{ iconName: 'Lightbulb' }} />Tips:
+                            <ul>
+                              <li><p>Don’t see your machine learning service or Git repo? Click on “Register New” to register your services.</p></li>
+                              <li><p>Learn more about how to register a partner service.</p></li></ul></div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                      <AlternateButton style={{ margin: '20px' }}>Cancel</AlternateButton>
+                      <PrimaryButton style={{ margin: '20px' }} onClick={onNextButtonClick}>Next</PrimaryButton>
+                    </div>
+                      </Stack>
+                    </td>
                   </tr>
-                  <tr>
+                  <tr style={{height:'50px'}}>
                     <td>
                       Source Service:
                         </td>
@@ -302,12 +297,14 @@ const WizardContent: React.FunctionComponent = (props) => {
                       defaultSelectedKey={values.wizard.sourceService} 
                       onBlur={handleBlur}      
                       onChange={(event, option, index) => {
-                        selectOnChange(`wizard.sourceService`, setFieldValue, event, option, index);}}      
+                        selectOnChange(`wizard.sourceService`, setFieldValue, event, option, index);                        
+                      }
+                      }      
                       errorMessage={getFormErrorString(touched, errors, 'sourceService')}
                       />
                     </td>
                   </tr>
-                  <tr>
+                  <tr style={{height:'50px'}}>
                     <td>
 
                     </td>
@@ -317,7 +314,7 @@ const WizardContent: React.FunctionComponent = (props) => {
                       }}>Register New</a>
                     </td>
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <td>
 
                     </td>
@@ -337,8 +334,8 @@ const WizardContent: React.FunctionComponent = (props) => {
                         </div>
                       </Stack>
                     </td>
-                  </tr>
-                  <tr>
+                  </tr> */}
+                  {/* <tr>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -346,7 +343,10 @@ const WizardContent: React.FunctionComponent = (props) => {
                       <AlternateButton style={{ margin: '20px' }}>Cancel</AlternateButton>
                       <PrimaryButton style={{ margin: '20px' }} onClick={onNextButtonClick}>Next</PrimaryButton>
                     </td>
-                  </tr>
+                  </tr> */}    
+                  <tr></tr>
+                  <tr></tr>
+                  <tr></tr>
                 </table>
               </PivotItem>
               <PivotItem headerText="2. Machine Learning Components" itemKey="1">
@@ -354,24 +354,51 @@ const WizardContent: React.FunctionComponent = (props) => {
                 <label>Tell us where are your machine learning components (models,endpoints,project...) you want to publish as API applications.</label>
                 <table>
                   <tbody>
-                  <tr style={{ ...!isGitHubSelected ? { display: 'table-row' } : { display: 'none' } }}>
+                  <tr style={{ ...!isGitHubSelected ? { display: 'table-row' } : { display: 'none' },height:'50px' }}>
                     <td>
                       ML Component Type:
                         </td>
                     <td>
                       <Dropdown 
                       id={`wizard.mLComponentType`}
-                      style={{ width: '220px' }} 
+                      style={{ width: '250px' }} 
                       options={mLComponentTypeList} 
-                      placeHolder="Select Service Type"
+                      placeHolder="Select ML Component Type"
                       defaultSelectedKey={values.wizard.mLComponentType}
                       onBlur={handleBlur}      
                       onChange={(event, option, index) => {
-                        selectOnChange(`wizard.mLComponentType`, setFieldValue, event, option, index);}}      
+                        selectOnChange(`wizard.mLComponentType`, setFieldValue, event, option, index);
+                        if(option)
+                        {
+                          let key = (option.key as string);
+                          getMLComponent(key);
+                        }
+                        
+                        
+                      }}      
                       errorMessage={getFormErrorString(touched, errors, 'mLComponentType')} />
                     </td>
+                    <td rowSpan={6}>
+                      <Stack>
+                        <div style={{ width: '350px', background: '#d3d3d3', height: '250px',marginLeft: '25px' }}>
+                          <p />
+                          <p />
+                          <p />
+                          <div style={{ padding: '10px' }}>
+                            <IconButton iconProps={{ iconName: 'Lightbulb' }} /> Tips:
+                            <ul>
+                              <li><p>This will be a part of the URL when user calling the API service.</p></li>
+                              <li><p>Allows only lowercase characters, numbers and hyphen, start with lowercase characters and 128 characters max.</p></li></ul></div>
+                        </div>
+                      </Stack>
+                      <div style={{ textAlign: 'right' }}>
+                      <AlternateButton style={{ margin: '20px' }}>Cancel</AlternateButton>
+                      <PrimaryButton style={{ margin: '20px' }} onClick={onBackButtonClick}>Back</PrimaryButton>
+                      <PrimaryButton style={{ margin: '20px' }} onClick={onNextButtonClick}>Next</PrimaryButton>
+                    </div>
+                    </td>
                   </tr>                  
-                  <tr style={{ ...!isGitHubSelected ? { display: 'table-row' } : { display: 'none' } }}>
+                  <tr style={{ ...!isGitHubSelected ? { display: 'table-row' } : { display: 'none' },height:'50px'}}>
                     <td>
                       ML Component:
                         </td>
@@ -379,7 +406,7 @@ const WizardContent: React.FunctionComponent = (props) => {
                       <Dropdown 
                       id={`wizard.mLComponent`}
                       options={MLComponentList} 
-                      placeHolder="Select Service"
+                      placeHolder="Select ML Component"
                       defaultSelectedKey={values.wizard.mLComponent} 
                       onBlur={handleBlur}    
                       onChange={(event, option, index) => {
@@ -387,7 +414,7 @@ const WizardContent: React.FunctionComponent = (props) => {
                       errorMessage={getFormErrorString(touched, errors, 'mLComponent')}/>
                     </td>
                   </tr>
-                  <tr style={{ ...!isGitHubSelected ? { display: 'table-row' } : { display: 'none' } }}>
+                  <tr style={{ ...!isGitHubSelected ? { display: 'table-row' } : { display: 'none' },height:'50px' }}>
                     <td>
                       Operation Name:
                         </td>
@@ -401,7 +428,7 @@ const WizardContent: React.FunctionComponent = (props) => {
                       errorMessage={getFormErrorString(touched, errors, 'operationName')} />
                     </td>
                   </tr>                  
-                  <tr style={{ ...isGitHubSelected ? { display: 'table-row' } : { display: 'none' } }}>
+                  <tr style={{ ...isGitHubSelected ? { display: 'table-row' } : { display: 'none' },height:'50px' }}>
                     <td>
                     Branch or Commit Hash:
                         </td>
@@ -414,8 +441,27 @@ const WizardContent: React.FunctionComponent = (props) => {
                       onBlur={handleBlur}
                       errorMessage={getFormErrorString(touched, errors, 'branchOrCommitHash')} />
                     </td>
+                    <td rowSpan={6}>
+                      <Stack>
+                        <div style={{ width: '350px', background: '#d3d3d3', height: '250px',marginLeft: '25px' }}>
+                          <p />
+                          <p />
+                          <p />
+                          <div style={{ padding: '10px' }}>
+                            <IconButton iconProps={{ iconName: 'Lightbulb' }} /> Tips:
+                            <ul>
+                              <li><p>This will be a part of the URL when user calling the API service.</p></li>
+                              <li><p>Allows only lowercase characters, numbers and hyphen, start with lowercase characters and 128 characters max.</p></li></ul></div>
+                        </div>
+                      </Stack>
+                      <div style={{ textAlign: 'right' }}>
+                      <AlternateButton style={{ margin: '20px' }}>Cancel</AlternateButton>
+                      <PrimaryButton style={{ margin: '20px' }} onClick={onBackButtonClick}>Back</PrimaryButton>
+                      <PrimaryButton style={{ margin: '20px' }} onClick={onNextButtonClick}>Next</PrimaryButton>
+                    </div>
+                    </td>
                   </tr> 
-                  <tr style={{ ...isGitHubSelected ? { display: 'table-row' } : { display: 'none' } }}>
+                  <tr style={{ ...isGitHubSelected ? { display: 'table-row' } : { display: 'none' },height:'50px' }}>
                     <td>
                     Execution Config File:
                         </td>
@@ -429,14 +475,14 @@ const WizardContent: React.FunctionComponent = (props) => {
                       errorMessage={getFormErrorString(touched, errors, 'executionConfigFile')} />
                     </td>
                   </tr> 
-                  <tr style={{ ...isGitHubSelected ? { display: 'table-row' } : { display: 'none' } }}>
+                  <tr style={{ ...isGitHubSelected ? { display: 'table-row' } : { display: 'none' },height:'50px' }}>
                     <td>
                     Compute Service Type:
                         </td>
                     <td>
                       <Dropdown 
                       id={`wizard.computeServiceType`}
-                      style={{ width: '220px' }} 
+                      style={{ width: '250px' }} 
                       options={computeServiceTypeList} 
                       placeHolder="Select Compute Service Type"
                       defaultSelectedKey={values.wizard.computeServiceType}
@@ -446,14 +492,14 @@ const WizardContent: React.FunctionComponent = (props) => {
                       errorMessage={getFormErrorString(touched, errors, 'computeServiceType')} />
                     </td>
                   </tr> 
-                  <tr style={{ ...isGitHubSelected ? { display: 'table-row' } : { display: 'none' } }}>
+                  <tr style={{ ...isGitHubSelected ? { display: 'table-row' } : { display: 'none' },height:'50px' }}>
                     <td>
                     Compute Service:
                         </td>
                     <td>
                       <Dropdown 
                       id={`wizard.computeService`}
-                      style={{ width: '220px' }} 
+                      style={{ width: '250px' }} 
                       options={computeServiceList} 
                       placeHolder="Select Compute Service"
                       defaultSelectedKey={values.wizard.computeService}
@@ -463,7 +509,7 @@ const WizardContent: React.FunctionComponent = (props) => {
                       errorMessage={getFormErrorString(touched, errors, 'computeService')} />
                     </td>
                   </tr> 
-                  <tr>
+                  {/* <tr>
                     <td>
 
                     </td>
@@ -484,8 +530,8 @@ const WizardContent: React.FunctionComponent = (props) => {
                         </div>
                       </Stack>
                     </td>
-                  </tr>
-                  <tr>
+                  </tr> */}
+                  {/* <tr>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -494,7 +540,10 @@ const WizardContent: React.FunctionComponent = (props) => {
                       <PrimaryButton style={{ margin: '20px' }} onClick={onBackButtonClick}>Back</PrimaryButton>
                       <PrimaryButton style={{ margin: '20px' }} onClick={onNextButtonClick}>Next</PrimaryButton>
                     </td>
-                  </tr>   
+                  </tr>    */}
+                  <tr></tr>
+                  <tr></tr>
+                  <tr></tr>
                   </tbody>              
                 </table>
               </PivotItem>
@@ -515,6 +564,18 @@ const WizardContent: React.FunctionComponent = (props) => {
                       onChange={handleChange}
                       onBlur={handleBlur}
                       errorMessage={getFormErrorString(touched, errors, 'applicationDisplayName')} />
+                    </td>
+                    <td rowSpan={6}>
+                      <Stack>
+                        <div style={{ width: '350px', background: '#d3d3d3', height: '250px', marginLeft: '25px' }}>
+                          <p />
+                          <p />
+                          <p />
+                          <div style={{ padding: '10px' }}><IconButton iconProps={{ iconName: 'Lightbulb' }} />Tips:
+                            <ul>
+                              <li><p>A descriptive name will help user to understand what your application is for. For example: Text Analysis, Sales Forecasting.</p></li>                              </ul></div>
+                        </div>
+                      </Stack>
                     </td>
                   </tr>
                   <tr>
@@ -623,7 +684,7 @@ const WizardContent: React.FunctionComponent = (props) => {
                   {/* </div> */}
                   <tr style={{ ...isExpand ? { display: 'table-row' } : { display: 'none' } }}> Advance Settings <IconButton iconProps={{ iconName: 'ChevronDownMed' }} title="Expand" ariaLabel="Expand" onClick={ExpandCollapseClick} />
                   </tr>
-                  <tr>
+                  {/* <tr>
                     <td>
 
                     </td>
@@ -642,17 +703,21 @@ const WizardContent: React.FunctionComponent = (props) => {
                         </div>
                       </Stack>
                     </td>
-                  </tr>
+                  </tr> */}                 
+                  <tr></tr>
+                  <tr></tr>
+                  <tr></tr>
                   <tr>
                     <td></td>
-                    <td style={{display:'inline-flex'}}>
+                    {/* <td></td> */}
+                    <td colSpan={2} style={{textAlign:'right'}}>
                     <AlternateButton style={{ margin: '20px' }}>Cancel</AlternateButton>
                       <PrimaryButton style={{ margin: '20px' }} onClick={onBackButtonClick}>Back</PrimaryButton>
-                    </td>
-                    <td colSpan={2} style={{ textAlign: 'left' }}>
+                    {/* </td>
+                    <td style={{ textAlign: 'left' }}> */}
                       
                       <PrimaryButton text={"Create"} style={{ margin: '20px' }} onClick={submitForm}></PrimaryButton>
-                      <PrimaryButton text={"Create & Publish"} style={{ margin: '20px' }} onClick={submitForm}></PrimaryButton>
+                      <PrimaryButton text={"Create & Publish"} style={{ margin: '20px',marginRight:'0px' }} onClick={submitForm}></PrimaryButton>
                     </td>
                   </tr>
                 </table>

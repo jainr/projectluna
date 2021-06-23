@@ -20,28 +20,28 @@ const wizardFormValidator: ObjectSchema<IWizardModel> = yup.object().shape(
     {
       message: ErrorMessage.operationName,
       excludeEmptyString: true
-    }),
+    }).required("Operation Name is required"),
     // .max(128,"The Operation Name is too long. Must be no more than 128 characters"),
   applicationDisplayName: yup.string().matches(opetarionNameRegExp,
     {
       message: ErrorMessage.applicationDisplayName,
       excludeEmptyString: true
-    }),
+    }).required("Application Display Name is required"),
   applicationName: yup.string().matches(opetarionNameRegExp,
     {
       message: ErrorMessage.applicationName,
       excludeEmptyString: true
-    }),
+    }).required("Application Name is required"),
   apiName: yup.string().matches(opetarionNameRegExp,
     {
       message: ErrorMessage.apiName,
       excludeEmptyString: true
-    }),
+    }).required("API Name is required"),
   apiVersion: yup.string().matches(versionNameRegExp,
     {
       message: ErrorMessage.apiVersion,
       excludeEmptyString: true
-    }),
+    }).required("Version is required"),
   applicationDescription: yup.string(),
   logoImageURL: yup.string().matches(httpURLRegExp,
     {

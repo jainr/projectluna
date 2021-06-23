@@ -55,7 +55,9 @@ export abstract class ServiceBase {
 
     var token = await ServiceBase.getTokenWithRetry();
     
-    const headers = { Authorization: `Bearer ${token}`,Host: window.Configs.HOST,'Luna-User-Id':window.Configs.LUNA_USER_ID };
+
+    const headers = { Authorization: `Bearer ${token}`, Host: window.Configs.HOST, "Luna-User-Id": window.Configs.LUNA_USER_ID };
+
 
     var axiosRequestConfig: AxiosRequestConfig;
     axiosRequestConfig = {
