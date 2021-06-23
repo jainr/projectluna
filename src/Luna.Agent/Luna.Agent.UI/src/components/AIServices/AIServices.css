@@ -24,3 +24,9 @@
      overflow: hidden;
      text-overflow: ellipsis;
  }
+ .divWidth25{
+width: 25%;
+ }
+ .divWidth75{
+    width: 75%;
+     }
