@@ -21,6 +21,7 @@ import { withRouter } from "react-router-dom";
 import { useHistory, useLocation } from 'react-router';
 import { GetApplicationDetails } from './GetApplicationDetails';
 import {IApplication} from './IApplication';
+import {IApplicationSubscription} from './IApplicationSubscription';
 
 const theme = getTheme();
 
@@ -29,6 +30,7 @@ const AIServiceDetails = () => {
   const [offerData, setOfferData] = React.useState<any[]>();
   const [initOffferData, setInitOfferData] = React.useState<any[]>();
   const [isOpen, { setTrue: openPanel, setFalse: dismissPanel }] = useBoolean(false);
+  const [isNewOpen, { setTrue: openNewPanel, setFalse: dismissNewPanel }] = useBoolean(false);
   const [isNewSubSuccessful, setIsNewSubSuccessful] = React.useState(false);
   const [isDataLoading, setIsDataLoading] = React.useState(true);
   const [planOptions, setPlanOptions] = React.useState<IDropdownOption[]>([]);
@@ -40,6 +42,7 @@ const AIServiceDetails = () => {
   const [isExpand, setIsExpand] = React.useState(true);
   const [applicationDetail, setApplicationDetail] = React.useState<{}>();
   const [selectedValues, setSelectedValues] = React.useState<ISelectedItems>();
+  const [loadingSubscription, setLoadingSubscription] = React.useState<boolean>(true);
 
   const [applicationData, setApplicationData] = React.useState<IApplication>({
     UniqueName: "",
@@ -51,6 +54,8 @@ const AIServiceDetails = () => {
     Tags: [],
     Details: {}
   });
+
+  const [applicationSubscriptions, setApplicationSubscriptions] = React.useState<IApplicationSubscription[]>([]);
 
   const loadLanguagesList = () => {
    
@@ -113,9 +118,49 @@ const AIServiceDetails = () => {
   .then(_data => { setApplicationData(_data); loadAPIList(_data);});
     
   }
+  const loadTabData = (item : PivotItem) => 
+  {
+    if(item.props.itemKey==='My Subscriptions')
+    {
+      // getApplicationSubscriptions();
+    }
+  }
+  const getApplicationSubscriptions = () => 
+  {
+  
+  //   fetch(`${window.BASE_URL}/gallery/applications/lunanlp/subscriptions`, {
+  //     mode: "cors",
+  //     method: "GET",
+  //     headers: {         
+  //         'Accept': 'application/json',
+  //         'Content-Type': 'application/json',
+  //         'Luna-User-Id': 'test-admin',
+  //         'Host': 'lunatest-gateway.azurewebsites.net'         
+  //     },
+  // })
+  // .then(response => response.json())
+  // .then(_data => { setApplicationSubscriptions(_data)});
+  const data ={
+    subscriptionId: '123',
+    baseUrl: "lcjnadlcnadljc",
+    createdTime: "22-06-2021",
+    primaryKey: "kackbcleleakc",
+    secondaryKey: "acbkcdicbdkbc",
+    notes: "notes",
+    subscriptionName: "mysub",
+    owner: [{
+      userId: '1',
+      userName: 'User'
+    }]
+  }
+  // setApplicationSubscriptions(data);
+  applicationSubscriptions.push(data); 
+  }
+
   React.useEffect(() => {
       getApplicationDetails();
-      loadLanguagesList();          
+      loadLanguagesList();     
+      getApplicationSubscriptions();     
   }, []);
 
   return (
@@ -123,7 +168,7 @@ const AIServiceDetails = () => {
       <div style={PanelStyles}>
       <Text block variant={'xLargePlus'}>AI Service: Text Summarization</Text>
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
-          <StackItem>
+          <StackItem className="divWidth25">
             <Text block variant={'medium'} style={{marginTop: '10px', color: 'grey' }}>Publisher: ACE Team</Text>
             <div style={{paddingRight: '10px', borderRight: '1px solid black'}}>
               <Text block variant={'medium'} style={{marginTop: '20px', fontWeight: 'bold' }}>Description</Text>
@@ -138,11 +183,11 @@ const AIServiceDetails = () => {
               <Text block variant={'medium'} style={{marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer'}}>+ Subscribe Now</Text>
             </div>
           </StackItem>
-          <StackItem>
+          <StackItem className="divWidth75">
             <StackItem>
               <div style={{width:'700px', height:'370px'}}>
-                <Pivot>
-                  <PivotItem headerText={"Sample Code"} >
+                <Pivot onLinkClick={(item?: PivotItem) => loadTabData(item!)}>
+                  <PivotItem headerText={"Sample Code"} itemKey={"Sample Code"}>
                     <div style={{display:'flex'}} >
                     <Label style={{margin:'10px'}}>Language:</Label>
                       <Dropdown options={languageOptions}
@@ -179,6 +224,7 @@ const AIServiceDetails = () => {
                               <Dropdown options={aPIVersionOptions}
                                 placeholder={"Select an API Version"}
                                 style={{margin:'10px', width:'170px'}}
+                                selectedKey={selectedValues?.version}
                                 onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
                                   setSelectedValues({
                                     application: "",
@@ -199,6 +245,15 @@ const AIServiceDetails = () => {
                               <Dropdown options={operationOptions}
                                 placeholder={"Select an Operation"}
                                 style={{margin:'10px', width:'170px'}}
+                                selectedKey={selectedValues?.operation}
+                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                                  setSelectedValues({
+                                    application: "",
+                                    api: selectedValues?.api!,
+                                    version: selectedValues?.version!,
+                                    operation: option?.text!,
+                                  });
+                                }}
                               />                       
                               </td>
                             </tr>
@@ -219,21 +274,57 @@ const AIServiceDetails = () => {
                     <Text>Swagger</Text><IconButton text="Swagger" iconProps={{iconName:"OpenInNewWindow"}} target=""  /> <br />
                   </div>
                   </PivotItem>
-                  <PivotItem headerText={"My Subscriptions"} >
+                  <PivotItem headerText={"My Subscriptions"} itemKey={"My Subscriptions"}>
+                  <React.Fragment>
+                  <div style={{margin:'10px' }}>
+                  <table style={{ width: '90%',borderCollapse:'collapse'}}>
+                    <thead>
+                        <tr style={{borderBottom:'1px solid black',borderTop:'1px solid black'}}>
+                            <th style={{width:'30%',padding:0}}>
+                                <Label title={"Subscription Name"} > Subscription Name</Label> 
+                            </th>
+                            <th style={{width:'50%',padding:0}}>
+                                <Label title={"Subscription Id"} >Subscription Id</Label>
+                            </th>
+                            <th style={{width:'20%%',padding:0}}>
+                                <Label title={"Created Date"} >Created Date</Label>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {
+                            applicationSubscriptions?.map((values, idx) => {
+                                return (
+                                    <tr key={idx} style={{lineHeight:'30px',textAlign: 'center'}}>
+                                        <td>
+                                            <Link onClick={openPanel} >{values.subscriptionName}</Link>
+                                        </td>
+                                        <td>
+                                            {values.subscriptionId}
+                                        </td>
+                                        <td>
+                                            {values.createdTime}
+                                        </td>
+                                    </tr>
+                                )
+                            })
+                        }
+                    </tbody>
+                    </table>
+                    </div>
+                    </React.Fragment>
+                </PivotItem>
+                <PivotItem headerText={"Swagger"} itemKey={"Swagger"} >
 
                 </PivotItem>
-                <PivotItem headerText={"Swagger"} >
+                <PivotItem headerText={"Recommendations"}  itemKey={"Recommendations"}>
 
                 </PivotItem>
-                <PivotItem headerText={"Recommendations"} >
-
-                </PivotItem>
-                <PivotItem headerText={"Reviews"} >
+                <PivotItem headerText={"Reviews"} itemKey={"Reviews"}>
 
                 </PivotItem>
                 </Pivot>
               </div>
-            {/* <Text block variant={'xLargePlus'}>AI Service: Text Summarization</Text>            */}
              </StackItem>           
           </StackItem>
         </Stack>
@@ -245,6 +336,26 @@ const AIServiceDetails = () => {
            </p>
         </div>
       <FooterLinks />
+      <Panel
+        headerText="Sample panel"
+        isOpen={isOpen}
+        onDismiss={dismissPanel}
+        // You MUST provide this prop! Otherwise screen readers will just say "button" with no label.
+        closeButtonAriaLabel="Close"
+      >
+        <p>Content goes here.</p>
+        <Link >Open more panel</Link>
+      </Panel>
+      <Panel
+        headerText="Sample panel"
+        isOpen={isNewOpen}
+        onDismiss={dismissNewPanel}
+        // You MUST provide this prop! Otherwise screen readers will just say "button" with no label.
+        closeButtonAriaLabel="Close"
+      >
+        <p>Content goes here.</p>
+        <Link onClick={openNewPanel}>Open more panel</Link>
+      </Panel>
     </div>
   );
 }
