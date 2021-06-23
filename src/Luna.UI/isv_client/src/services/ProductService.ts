@@ -382,14 +382,6 @@ export default class ProductService extends ServiceBase {
 
     return result;
   }
-
-  public static async getPermissions(): Promise<Result<IPermissionsModel[]>> {
-    var result = await this.requestJson<IPermissionsModel[]>({
-      url: `/permissions/`,
-      method: "GET"
-    });
-
-    return result;
-  }
+  
   //#endregion
 }

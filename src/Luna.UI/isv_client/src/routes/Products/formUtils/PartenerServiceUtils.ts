@@ -38,7 +38,7 @@ const PartnerServiceValidator: ObjectSchema<IPartnerServiceModel> = yup.object()
       clinetSecrets: yup.string().required('Clinet Secrets is required'),
     resourceId: yup.string().required('Resource id is required'),
     registeredTime: yup.string(),
-    type:  yup.string(),
+    type:  yup.string().required('Type is required'),
     partnerServiceName: yup.string()
       .matches(objectIdNameRegExp,
         {
