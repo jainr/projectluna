@@ -6,8 +6,6 @@
 nav {
     /* width: 274px; */
     background-color: white;
-    padding: 20px;
-    height: 100%;
     left: 0;    
     /* position: fixed; */
     text-rendering: optimizeLegibility;
@@ -89,11 +87,11 @@ nav a > span {
 /*Hamburger Menu CSS*/
 
 #Navigation {
-    position: absolute;
-    /* width: 10%; */
+    /* position: absolute;
+    width: 10%; */
   }
   #Navigation .pro-sidebar {
-    height: 100vh;
+    height: calc(100vh - 93px);
   }
   #Navigation .closemenu {
     color: #000;

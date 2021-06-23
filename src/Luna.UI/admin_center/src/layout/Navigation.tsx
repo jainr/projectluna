@@ -9,14 +9,14 @@ const Navigation: React.FunctionComponent = () => {
     const history = useHistory();
     const [menuCollapse, setMenuCollapse] = useState(false)
 
-    const setActive = (route: string, event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    const setActive = (route: string, event: React.MouseEvent<HTMLElement, MouseEvent>) => {
         for (const key in document.getElementsByClassName('nav-item')) {
             if (Object.prototype.hasOwnProperty.call(document.getElementsByClassName('nav-item'), key)) {
                 const liElement = document.getElementsByClassName('nav-item')[key] as HTMLLIElement;
                 liElement.classList.remove('active');
             }
         }
-        let p = event.currentTarget.parentElement;
+        let p = event.currentTarget;
         if (p) {
             p.classList.add('active');
         }
@@ -25,8 +25,6 @@ const Navigation: React.FunctionComponent = () => {
     const menuIconClick = () => {        
         //condition checking to change state from true to false and vice versa
         menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
-        let maintag = document.getElementsByClassName("main")[0] as HTMLElement;
-        menuCollapse == true ? maintag.style.marginLeft = '15%' : maintag.style.marginLeft = '8%';
         
         let NavigationDiv = document.getElementsByClassName("Navigation")[0] as HTMLElement;
         menuCollapse == true ?NavigationDiv.classList.add('wdth10per'):NavigationDiv.classList.remove('wdth10per');
@@ -34,7 +32,7 @@ const Navigation: React.FunctionComponent = () => {
 
     useEffect(() => {                    
         let maintag = document.getElementsByClassName("main")[0] as HTMLElement;
-         menuCollapse == true ? maintag.style.marginLeft = '8%' : maintag.style.marginLeft = '15%';
+         //menuCollapse == true ? maintag.style.marginLeft = '8%' : maintag.style.marginLeft = '15%';
       }, []);
 
     return (
@@ -53,17 +51,17 @@ const Navigation: React.FunctionComponent = () => {
                     <SidebarContent>
                         {menuCollapse ?
                             <ul>
-                                <li className="nav-item"><a onClick={(event) => setActive('Dashboard', event)}><Icon iconName="Home" /></a></li>
-                                <li className="nav-item"><a onClick={(event) => setActive('Reports', event)}><Icon iconName="BarChartVertical" /></a></li>
-                                <li className="nav-item"><a onClick={(event) => setActive('Supports', event)}><Icon iconName="Settings" /></a></li>
-                                <li className="nav-item"><a onClick={(event) => setActive('Settings', event)}><Icon iconName="Settings" /></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Dashboard', event)}><a><Icon iconName="Home" /></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Supports', event)}><a><Icon iconName="Settings" /></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Settings', event)}><a><Icon iconName="Settings" /></a></li>
                             </ul>
                             :
                             <ul>
-                                <li className="nav-item"><a onClick={(event) => setActive('Dashboard', event)}><Icon iconName="Home" /> <span> Home</span></a></li>
-                                <li className="nav-item"><a onClick={(event) => setActive('Reports', event)}><Icon iconName="BarChartVertical" /><span>Reports</span></a></li>
-                                <li className="nav-item"><a onClick={(event) => setActive('Supports', event)}><Icon iconName="Settings" /><span>Supports</span></a></li>
-                                <li className="nav-item"><a onClick={(event) => setActive('Settings', event)}><Icon iconName="Settings" /><span>Settings</span></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Dashboard', event)}><a><Icon iconName="Home" /> <span> Home</span></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /><span>Reports</span></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Supports', event)}><a ><Icon iconName="Settings" /><span>Supports</span></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Settings', event)}><a><Icon iconName="Settings" /><span>Settings</span></a></li>
                             </ul>
                         }
                         {/* <Menu>

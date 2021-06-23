@@ -63,8 +63,6 @@ html, body {
 main
 {
   display: flex;
-  /* margin-left: 324px;   */
-  margin-left: 8%;
 }
 main > div {
   flex: 1 1;
@@ -72,12 +70,11 @@ main > div {
   margin: 20px;
 }
 .contentarea
-{  
-  margin-top: 1%;
+{
   box-shadow: rgba(0, 0, 0, 0.133) 0px 3.2px 7.2px 0px, rgba(0, 0, 0, 0.11) 0px 0.6px 1.8px 0px; 
   background-color: white; 
   padding: 20px 20px 50px;
-  height: 700px;
+  
 }
 .dashboardarrowIcon
 {
