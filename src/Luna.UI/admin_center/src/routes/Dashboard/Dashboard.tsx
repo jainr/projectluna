@@ -102,7 +102,7 @@ const Dashboard: React.FunctionComponent = () => {
       verticalAlign="start"
       horizontal={false}
       styles={{
-        root: {
+        root: { 
           width: '100%',
           height: '100%',
           textAlign: 'left',
