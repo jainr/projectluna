@@ -7,6 +7,7 @@ import {initialWizardFormValues, IWizardFormValues, wizardFormValidationSchema }
 import { useGlobalContext } from '../shared/components/GlobalProvider';
 import { toast } from 'react-toastify';
 import adalContext from '../adalConfig';
+import WizardService from '../services/WizardService'
 // import { useGlobalContext } from "../../shared/components/GlobalProvider";
 
 
@@ -36,33 +37,20 @@ const WizardContent: React.FunctionComponent = (props) => {
   // const { values, handleChange, handleBlur, touched, errors, handleSubmit, setFieldValue } = useFormikContext<IWizardFormValues>(); // formikProps
   const getServiceTypes = async () => {
 
-    let serviceTypeList: IDropdownOption[] = [{
-      key: '',
-      text: ''
-    }];
-    // let PlanResponse = await PlansService.list(offername);
-    // if (PlanResponse.value && PlanResponse.success) {
-    //   var Plans = PlanResponse.value;
-    //   Plans.map((item, index) => {
-    //     return (
-    //       planList.push(
-    //         {
-    //           key: item.planName,
-    //           text: item.planName
-    //         })
-    //     )
-    //   })
-    // }
-    serviceTypeList.push(
-      {
-        key: "AML Workspaces",
-        text: "AML Workspaces"
+    let serviceTypeList: IDropdownOption[] = [];
+    let serviceTypeResponse = await WizardService.serviceTypesList();
+    if (serviceTypeResponse.value && serviceTypeResponse.success) {
+      var serviceTypes = serviceTypeResponse.value;
+      serviceTypes.map((item, index) => {
+        return (
+          serviceTypeList.push(
+            {
+              key: item.Id,
+              text: item.DisplayName
+            })
+        )
       })
-      serviceTypeList.push(
-        {
-          key: "GitHub",
-          text: "GitHub"
-        })
+    }    
     setServiceTypeList([...serviceTypeList]);
   }
 
