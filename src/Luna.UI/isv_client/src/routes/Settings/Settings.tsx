@@ -17,18 +17,16 @@ import {
 } from 'office-ui-fabric-react';
 import FormLabel from "../../shared/components/FormLabel";
 import { Formik } from "formik";
-import { IAMLWorkSpaceModel, IAutomationWebhookModel, IGitRepoModel, IPartnerServiceModel, IPermissionsModel } from "../../models";
+import { IAutomationWebhookModel, IGitRepoModel, IPartnerServiceModel, IPermissionsModel } from "../../models";
 import { Loading } from "../../shared/components/Loading";
 import { useGlobalContext } from "../../shared/components/GlobalProvider";
 import { toast } from "react-toastify";
 import AlternateButton from '../../shared/components/AlternateButton';
-import {
-  aMLWorkSpaceFormValidationSchema,
-  IAMLWorkSpaceFormValues,
-  initialAMLWorkSpaceFormValues,
-  initialAMLWorkSpaceValues,
-  deleteAMLWorkSpaceValidator,
-} from '../Products/formUtils/AMLWorkSpaceUtils';
+// import {  
+//   IAMLWorkSpaceFormValues,
+//   initialAMLWorkSpaceFormValues,
+//   initialAMLWorkSpaceValues,  
+// } from '../Products/formUtils/AMLWorkSpaceUtils';
 import {
   partnerServiceFormValidationSchema,
   IPartnerServiceFormValues,
@@ -48,9 +46,9 @@ import {
   initialPermissionsValues
 } from '../Products/formUtils/PermissionsUtils'
 import { Hub } from "aws-amplify";
-import ProductService from "../../services/ProductService";
+import SettingService from "../../services/SettingsService";
 import { handleSubmissionErrorsForForm } from "../../shared/formUtils/utils";
-import { ProductMessages } from '../../shared/constants/infomessages';
+import { SettingsMessages } from '../../shared/constants/infomessages';
 import { DialogBox } from '../../shared/components/Dialog';
 
 const Settings: React.FunctionComponent = () => {
@@ -72,33 +70,25 @@ const Settings: React.FunctionComponent = () => {
       }}
       gap={15}
     >
-      <AMLWorkSpaceList />
+      <SettingList />
     </Stack>
   );
 };
 
-export type IAMLWorkSpaceListProps = {}
-export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> = (props) => {
+export type ISettingsListProps = {}
+export const SettingList: React.FunctionComponent<ISettingsListProps> = (props) => {
   //const { values, handleChange, handleBlur, touched, errors, handleSubmit, submitForm, dirty } = useFormikContext<IAMLWorkSpaceListProps>(); // formikProps
   //const { } = props;
-  let [workSpaceList, setWorkSpaceList] = useState<IAMLWorkSpaceModel[]>();
   let [gitRepoList, setGitRepoList] = useState<IGitRepoModel[]>();
   let [partnerServiceList, setPartnerServiceList] = useState<IPartnerServiceModel[]>();
-  let [automationWebhookList, setAutomationWebhookList] = useState<IAutomationWebhookModel[]>();
-  let [workSpace, setWorkSpace] = useState<IAMLWorkSpaceFormValues>(initialAMLWorkSpaceFormValues);
+  let [automationWebhookList, setAutomationWebhookList] = useState<IAutomationWebhookModel[]>();  
   let [permissionsList, setPermissionsList] = useState<IPermissionsModel[]>();
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let [workSpaceDeleteIndex, setworkSpaceDeleteIndex] = useState<number>(0);
-  const [loadingWorkSpace, setLoadingWorkSpace] = useState<boolean>(false);
+  let [workSpaceDeleteIndex, setworkSpaceDeleteIndex] = useState<number>(0);  
   const [loadingGitRepo, setLoadingGitRepo] = useState<boolean>(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [workSpaceDialogVisible, setWorkSpaceDialogVisible] = useState<boolean>(false);
-  const [isDisplayDeleteButton, setDisplayDeleteButton] = useState<boolean>(true);
+  const [formError, setFormError] = useState<string | null>(null);  
   const [isEdit, setisEdit] = useState<boolean>(true);
-
-  const [AMLDeleteDialog, setAMLDeleteDialog] = useState<boolean>(false);
-  const [selectedAML, setSelectedAML] = useState<IAMLWorkSpaceModel>(initialAMLWorkSpaceValues);
 
   const [automationWebhookDialogVisible, setAutomationWebhookDialogVisible] = useState<boolean>(false);
   const [loadingAutomationWebhook, setLoadingAutomationWebhook] = useState<boolean>(false);
@@ -117,25 +107,10 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const globalContext = useGlobalContext();
 
-  const getWorkSpaceList = async () => {
-
-    setLoadingWorkSpace(true);
-    const results = await ProductService.getAmlWorkSpaceList();
-    if (results && results.value && results.success) {
-      setWorkSpaceList(results.value);
-      //   if (results.value.length > 4)
-      //     body.style.height = 'auto';
-      // }
-      //setworkSpaceList(initialAMLWorkSpaceList);
-      setLoadingWorkSpace(false);
-    } else
-      toast.error('Failed to load AML Workspaces');
-  }
-  
   const getGitRepoList = async () => {
 
     setLoadingGitRepo(true);
-    const results = await ProductService.getGitRepoList();
+    const results = await SettingService.getGitRepoList();
     if (results && results.value && results.success) {
       setGitRepoList(results.value);
       setLoadingGitRepo(false);
@@ -146,7 +121,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   const getPartnerServiceList = async () => {
 
     setLoadingPartnerService(true);
-    const results = await ProductService.getPartnerServicesList();
+    const results = await SettingService.getPartnerServicesList();
     results.value = [{type:'Azure Synopsis',resourceId:'123',tenantId:'456',clientId:'789',clinetSecrets:'123456789',partnerServiceName:'ABC',createdDate:'02//05/2021'}]
     results.success= true;
     if (results && results.value && results.success) {
@@ -159,7 +134,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   const getAutomationWebhookList = async () => {
 
     setLoadingAutomationWebhook(true);
-    const results = await ProductService.getAutomationWebhooksList();
+    const results = await SettingService.getAutomationWebhooksList();
     results.value = [{name:'Azure Synopsis',webhookURL:'/webhooks/Mywebhook', enabled:true,createdDate:'02//05/2021',clientId:'123'}]
     results.success= true;
     if (results && results.value && results.success) {
@@ -201,7 +176,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
 
   const getPermissionsList = async () => {
     setLoadingPermissions(true);
-    const results = await ProductService.getPermissions();
+    const results = await SettingService.getPermissions();
     results.value = [
       {userId: 'Lindsey Allen', role: 'Administrator', clientId: '123', createdDate:'04/22/2021'}, 
       {userId: 'Xiaochen Wu', role: 'Publisher', clientId: '456', createdDate:'04/22/2021'},
@@ -238,7 +213,9 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   }
   
   const getPermissionsFormErrorString = (touched, errors, property: string) => {
-    return touched.permissions && errors.permissions && touched.permissions[property] && errors.permissions[property] ? errors.permissions[property] : '';
+    debugger
+    var retobj =  touched.permissions && errors.permissions && touched.permissions[property] && errors.permissions[property] ? errors.permissions[property] : '';
+    return retobj;
   };
 
   const getFormErrorString = (touched, errors, property: string) => {
@@ -253,30 +230,10 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     return touched.automationWebhook && errors.automationWebhook && touched.automationWebhook[property] && errors.automationWebhook[property] ? errors.automationWebhook[property] : '';
   };
 
-  const getDeleteAMLErrorString = (touched, errors, property: string) => {
-    return (touched.selectedWorkspaceName && errors.selectedWorkspaceName && touched[property] && errors[property]) ? errors[property] : '';
-  };
-
-  const editWorkSpace = async (workspaceName: string, idx: number) => {
-
-    //let editedWorkspace = initialAMLWorkSpaceList.filter(a => a.workspaceName === Id)[0];
-    let editedWorkspace = await ProductService.getAmlWorkSpaceByName(workspaceName);
-    if (editedWorkspace && editedWorkspace.value && editedWorkspace.success) {
-      setWorkSpace({ aMLWorkSpace: editedWorkspace.value });
-      setworkSpaceDeleteIndex(idx);
-    } else
-      toast.error('Failed to load AML Workspaces');
-
-    setisEdit(true);
-    setDisplayDeleteButton(true);
-    OpenWorkSpaceDialog();
-    //history.push(WebRoute.ModifyProductInfo.replace(':productName', productName));
-  };
-
   const editPartnerService = async (partnerServiceName: string, idx: number) => {
 
     //let editedWorkspace = initialAMLWorkSpaceList.filter(a => a.workspaceName === Id)[0];
-    let editPartnerService = await ProductService.getPartnerServiceByName(partnerServiceName);
+    let editPartnerService = await SettingService.getPartnerServiceByName(partnerServiceName);
     if (editPartnerService && editPartnerService.value && editPartnerService.success) {
       setPartnerService({ partnerService : editPartnerService.value });
       // setworkSpaceDeleteIndex(idx);
@@ -292,7 +249,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   const editAutomationWebhook = async (automationWebhookName: string, idx: number) => {
 
     //let editedWorkspace = initialAMLWorkSpaceList.filter(a => a.workspaceName === Id)[0];
-    let editAutomationWebhook = await ProductService.getAutomationWebhookByName(automationWebhookName);
+    let editAutomationWebhook = await SettingService.getAutomationWebhookByName(automationWebhookName);
     if (editAutomationWebhook && editAutomationWebhook.value && editAutomationWebhook.success) {
       setAutomationWebhook({ automationWebhook : editAutomationWebhook.value });
       // setworkSpaceDeleteIndex(idx);
@@ -304,26 +261,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     OpenAutomationWebhookDialog();
     //history.push(WebRoute.ModifyProductInfo.replace(':productName', productName));
   };
-
-  const deleteWorkSpace = async (aMLWorkSpaceModelSelected: IAMLWorkSpaceModel) => {
-
-    setSelectedAML(aMLWorkSpaceModelSelected);
-    setAMLDeleteDialog(true);
-
-  };
-
-  const OpenNewWorkSpaceDialog = () => {
-
-    setWorkSpace(initialAMLWorkSpaceFormValues);
-    setisEdit(false);
-    setDisplayDeleteButton(false);
-    OpenWorkSpaceDialog();
-  }
-
-  const OpenWorkSpaceDialog = () => {
-    setWorkSpaceDialogVisible(true);
-  }
-
+  
   const OpenPartnerServiceDialog = () => {
     setPartnerServiceDialogVisible(true);
   }
@@ -346,10 +284,6 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     setNewUserDialogVisible(true);
   }
 
-  const CloseWorkSpaceDialog = () => {
-    setWorkSpaceDialogVisible(false);
-  }
-
   const ClosePartnerServiceDialog = () => {
     setPartnerServiceDialogVisible(false);
   }
@@ -363,8 +297,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
   }
 
   useEffect(() => {
-
-    getWorkSpaceList();
+    
     getGitRepoList();
     getPartnerServiceList();
     getAutomationWebhookList();
@@ -372,49 +305,8 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     getPermissionsList();
     getRoles();
 
-    Hub.listen('AMLWorkspaceNewDialog', (data) => {
-      OpenNewWorkSpaceDialog();
-    })
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const WorkSpaceList = ({ amlWorkSpace }) => {
-    if (!amlWorkSpace || amlWorkSpace.length === 0) {
-      return <tr>
-        <td colSpan={4}><span>No AML Workspaces</span></td>
-      </tr>;
-    } else {
-      return (
-        amlWorkSpace.map((value: IAMLWorkSpaceModel, idx) => {
-          return (
-            <tr key={idx}>
-              <td>
-                <span>{value.workspaceName}</span>
-              </td>
-              <td>
-                <span>{value.resourceId}</span>
-              </td>
-              <td>
-                <Stack
-                  verticalAlign="center"
-                  horizontalAlign={"space-evenly"}
-                  gap={15}
-                  horizontal={true}
-                >
-                  <FontIcon iconName="Edit" className="deleteicon" onClick={() => {
-                    editWorkSpace(value.workspaceName, idx)
-                  }} />
-                  {/* <FontIcon iconName="Cancel" className="deleteicon" onClick={() => { deleteWorkSpace(value) }} /> */}
-                </Stack>
-              </td>
-            </tr>
-          );
-        })
-      );
-
-    }
-  }
 
   const AutomationWebhooksList = ({ automationWebhook }) => {
     if (!automationWebhook || automationWebhook.length === 0) {
@@ -533,6 +425,20 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     }
   }
 
+  const DeletePermission = async (values, index) => {
+    
+    globalContext.showProcessing();
+
+    // var DeletePermissionResult = await SettingService.deletePermission(values);
+    // if (handleSubmissionErrorsForForm(null, null, setFormError, 'delete permission', DeletePermissionResult)) {
+    //   toast.error(formError)
+    //   globalContext.hideProcessing();
+    //   return;
+    // }    
+    globalContext.hideProcessing();
+    toast.success("Success!");    
+  }
+
   const PermissionsList = ({ permissions, role }) => {
     if(!permissions || permissions.length === 0) {
       return <tr>
@@ -556,7 +462,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 gap={15}
                 horizontal={true}
               >
-              <FontIcon iconName="Cancel" className="deleteicon" onClick={() => {}} />
+              <FontIcon iconName="Cancel" className="deleteicon" onClick={() => {DeletePermission(value,idx)}} />
               </Stack>
             </td>
           </tr>
@@ -566,9 +472,12 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
     }
   }
 
-  const CloseAMLDeleteDialog = () => {
-    setAMLDeleteDialog(false);
-  }
+  const selectOnChange = (fieldKey: string, setFieldValue, event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption, index?: number) => {
+    if (option) {
+      let key = (option.key as string);      
+      setFieldValue(fieldKey, key, true);
+    }
+  };
 
   return (
     <React.Fragment>
@@ -748,264 +657,6 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
       </PivotItem>
     </Pivot>
     </React.Fragment>
-      <React.Fragment>
-        <h3 style={{ textAlign: 'left', fontWeight: 'normal', marginTop: 0, marginBottom: 20, width: '100%' }}>AML
-          Workspaces</h3>
-        <table className="noborder offer" cellPadding={5} cellSpacing={0}>
-          <thead>
-            <tr>
-              <th style={{ width: 200 }}>
-                <FormLabel title={"WorkSpace Name"} />
-              </th>
-              <th style={{ width: 300 }}>
-                <FormLabel title={"Resource Id"} />
-              </th>
-              <th style={{ width: 100 }}>
-                <FormLabel title={"Operations"} />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {loadingWorkSpace ?
-              (
-                <tr>
-                  <td colSpan={4} align={"center"}>
-                    <Stack verticalAlign={"center"} horizontalAlign={"center"} horizontal={true}>
-                      <Loading />
-                    </Stack>
-                  </td>
-                </tr>
-              )
-              :
-              <WorkSpaceList amlWorkSpace={workSpaceList} />
-            }
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colSpan={3} style={{ paddingTop: '1%' }}>
-                <PrimaryButton text={"Register New WorkSpace"} onClick={() => {
-                  OpenNewWorkSpaceDialog()
-                }} />
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </React.Fragment>
-
-      <React.Fragment>
-        <h3 style={{ textAlign: 'left', fontWeight: 'normal', marginTop: 0, marginBottom: 20, width: '100%' }}>Git Repos</h3>
-        <table className="noborder offer" cellPadding={5} cellSpacing={0}>
-          <thead>
-            <tr>
-              <th style={{ width: 200 }}>
-                <FormLabel title={"Git Repo Name"} />
-              </th>
-              <th style={{ width: 300 }}>
-                <FormLabel title={"HTTP URL"} />
-              </th>
-              <th style={{ width: 100 }}>
-                <FormLabel title={"Operations"} />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {loadingGitRepo ?
-              (
-                <tr>
-                  <td colSpan={4} align={"center"}>
-                    <Stack verticalAlign={"center"} horizontalAlign={"center"} horizontal={true}>
-                      <Loading />
-                    </Stack>
-                  </td>
-                </tr>
-              )
-              :
-              <GitRepoList gitRepo={gitRepoList} />
-            }
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colSpan={3} style={{ paddingTop: '1%' }}>
-                <PrimaryButton text={"Register New Git repo"} onClick={() => {
-                  //OpenNewWorkSpaceDialog()
-                }} />
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </React.Fragment>
-
-      <Dialog
-        hidden={!workSpaceDialogVisible}
-        onDismiss={CloseWorkSpaceDialog}
-        dialogContentProps={{
-          styles: {
-            subText: {
-              paddingTop: 0
-            },
-            title: {}
-
-          },
-          type: DialogType.normal,
-          title: 'Register AML WorkSpace'
-        }}
-        modalProps={{
-          isBlocking: true,
-          isDarkOverlay: true,
-          styles: {
-            main: {
-              minWidth: '35% !important',
-
-            }
-          }
-        }}
-      >
-        <Formik
-          initialValues={workSpace}
-          validationSchema={aMLWorkSpaceFormValidationSchema}
-          enableReinitialize={true}
-          validateOnBlur={true}
-          onSubmit={async (values, { setSubmitting, setErrors }) => {
-
-            setFormError(null);
-            setSubmitting(true);
-            globalContext.showProcessing();
-
-            //TODO: PUT THIS BACK IN
-            var createWorkSpaceResult = await ProductService.createOrUpdateWorkSpace(values.aMLWorkSpace);
-            if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'aMLWorkSpace', createWorkSpaceResult)) {
-              toast.error(formError);
-              globalContext.hideProcessing();
-              return;
-            }
-
-            setSubmitting(false);
-
-            await getWorkSpaceList();
-            await getGitRepoList();
-            globalContext.hideProcessing();
-            toast.success("Success!");
-            setisEdit(true);
-            setDisplayDeleteButton(true);
-
-            Hub.dispatch(
-              'AMLWorkspaceCreated',
-              {
-                event: 'WorkspaceCreated',
-                data: true,
-                message: ''
-              });
-
-            CloseWorkSpaceDialog();
-          }}
-        >
-          {({ handleChange, values, handleBlur, touched, errors, handleSubmit, submitForm, setFieldValue }) => (
-            <table className="offer" style={{ width: '100%' }}>
-              <tbody>
-                <tr>
-                  <td>
-                    <React.Fragment>
-                      <FormLabel title={"Workspace Name:"} toolTip={ProductMessages.AMLWorkSpace.WorkspaceName} />
-                      <TextField
-                        name={'aMLWorkSpace.workspaceName'}
-                        value={values.aMLWorkSpace.workspaceName}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        errorMessage={getFormErrorString(touched, errors, 'workspaceName')}
-                        placeholder={'Workspace Name'}
-                        className="txtFormField wdth_100_per" disabled={isEdit} max={50} />
-                    </React.Fragment>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <React.Fragment>
-                      <FormLabel title={"Resource Id:"} toolTip={ProductMessages.AMLWorkSpace.ResourceId} />
-                      <TextField
-                        name={'aMLWorkSpace.resourceId'}
-                        value={values.aMLWorkSpace.resourceId}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        errorMessage={getFormErrorString(touched, errors, 'resourceId')}
-                        placeholder={'Resource Id'}
-                        className="txtFormField wdth_100_per" />
-                    </React.Fragment>
-
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <React.Fragment>
-                      <FormLabel title={"Tenant Id:"} toolTip={ProductMessages.AMLWorkSpace.AADTenantId} />
-                      <TextField
-                        name={'aMLWorkSpace.aadTenantId'}
-                        value={values.aMLWorkSpace.aadTenantId}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        errorMessage={getFormErrorString(touched, errors, 'aadTenantId')}
-                        placeholder={'AAD Tenant Id'}
-                        className="txtFormField wdth_100_per" />
-                    </React.Fragment>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <React.Fragment>
-                      <FormLabel title={"AAD Application Id:"} toolTip={ProductMessages.AMLWorkSpace.AADApplicationId} />
-                      <TextField
-                        name={'aMLWorkSpace.aadApplicationId'}
-                        value={values.aMLWorkSpace.aadApplicationId}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        errorMessage={getFormErrorString(touched, errors, 'aadApplicationId')}
-                        placeholder={'AAD Application Id'}
-                        className="txtFormField wdth_100_per" />
-                    </React.Fragment>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <React.Fragment>
-                      <FormLabel title={"AADApplication Secret:"} toolTip={ProductMessages.AMLWorkSpace.AADApplicationSecret} />
-                      <TextField
-                        name={'aMLWorkSpace.aadApplicationSecrets'}
-                        value={values.aMLWorkSpace.aadApplicationSecrets}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        type={'password'}
-                        errorMessage={getFormErrorString(touched, errors, 'aadApplicationSecrets')}
-                        placeholder={'AAD Application Secret'}
-                        className="txtFormField wdth_100_per" />
-                    </React.Fragment>
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan={2}>
-                    <DialogFooter>
-                      <Stack horizontal={true} gap={15} style={{ width: '100%' }}>
-                        {isDisplayDeleteButton &&
-                          <DefaultButton type="button" id="btnsubmit" className="addbutton"
-                            onClick={() => {
-                              deleteWorkSpace(workSpace.aMLWorkSpace)
-                            }}>
-                            <FontIcon iconName="Cancel" className="deleteicon" /> Delete
-                      </DefaultButton>
-                        }
-                        <div style={{ flexGrow: 1 }}></div>
-                        <AlternateButton
-                          onClick={CloseWorkSpaceDialog}
-                          text="Cancel" className="mar-right-2_Per" />
-                        <PrimaryButton type="submit" id="btnsubmit" className="mar-right-2_Per"
-                          text={isDisplayDeleteButton ? "Update" : "Create"} onClick={submitForm} />
-                      </Stack>
-                    </DialogFooter>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          )}
-        </Formik>
-      </Dialog>
 
       <Dialog
         hidden={!partnerServiceDialogVisible}
@@ -1044,7 +695,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
             // globalContext.showProcessing();
 
             // //TODO: PUT THIS BACK IN
-            // var createWorkSpaceResult = await ProductService.createOrUpdateWorkSpace(values.aMLWorkSpace);
+            // var createWorkSpaceResult = await SettingService.createOrUpdateWorkSpace(values.aMLWorkSpace);
             // if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'aMLWorkSpace', createWorkSpaceResult)) {
             //   toast.error(formError);
             //   globalContext.hideProcessing();
@@ -1077,24 +728,24 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 <tr>
                   <td>
                     <React.Fragment>
-                      <FormLabel title={"Type:"} toolTip={ProductMessages.AMLWorkSpace.WorkspaceName} />                                         
+                      <FormLabel title={"Type:"} toolTip={SettingsMessages.partnerService.Type} />                                         
                     </React.Fragment>
                   </td>
                   <td>
-                  <Dropdown options={typeList} id={`Type`}
+                  <Dropdown options={typeList} id={`partnerService.type`}
                             onBlur={handleBlur}
                             placeHolder="Choose a Type"
                             errorMessage={getPartnerServiceFormErrorString(touched, errors, 'type')}
-                            // onChange={(event, option, index) => {
-                            //   selectOnChange(`Type`, setFieldValue, event, option, index);
-                            // }} 
+                            onChange={(event, option, index) => {
+                              selectOnChange(`partnerService.type`, setFieldValue, event, option, index);
+                            }} 
                             defaultSelectedKey=""/>                   
                   </td>
                 </tr>
                 <tr>
                   <td>
                     <React.Fragment>
-                      <FormLabel title={"Resource Id:"} toolTip={ProductMessages.AMLWorkSpace.ResourceId} />                     
+                      <FormLabel title={"Resource Id:"} toolTip={SettingsMessages.partnerService.ResourceId} />                     
                     </React.Fragment>
 
                   </td>
@@ -1112,7 +763,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 <tr>
                   <td>
                     <React.Fragment>
-                      <FormLabel title={"Tenant Id:"} toolTip={ProductMessages.AMLWorkSpace.AADTenantId} />                      
+                      <FormLabel title={"Tenant Id:"} toolTip={SettingsMessages.partnerService.TenantId} />                      
                     </React.Fragment>
                   </td>
                   <td>
@@ -1129,7 +780,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 <tr>
                   <td>
                     <React.Fragment>
-                      <FormLabel title={"Client Id:"} toolTip={ProductMessages.AMLWorkSpace.AADApplicationId} />                     
+                      <FormLabel title={"Client Id:"} toolTip={SettingsMessages.partnerService.ClientId} />                     
                     </React.Fragment>
                   </td>
                   <td>
@@ -1146,7 +797,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 <tr>
                   <td>
                     <React.Fragment>
-                      <FormLabel title={"Client Secret:"} toolTip={ProductMessages.AMLWorkSpace.AADApplicationSecret} />                      
+                      <FormLabel title={"Client Secret:"} toolTip={SettingsMessages.partnerService.ClientSecret} />                      
                     </React.Fragment>
                   </td>
                   <td>
@@ -1164,7 +815,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 <tr>
                   <td>
                     <React.Fragment>
-                      <FormLabel title={"Name:"} toolTip={ProductMessages.AMLWorkSpace.AADApplicationSecret} />                      
+                      <FormLabel title={"Name:"} toolTip={SettingsMessages.partnerService.partnerServiceName} />                      
                     </React.Fragment>
                   </td>
                   <td>
@@ -1238,7 +889,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
             // globalContext.showProcessing();
 
             // //TODO: PUT THIS BACK IN
-            // var createWorkSpaceResult = await ProductService.createOrUpdateWorkSpace(values.aMLWorkSpace);
+            // var createWorkSpaceResult = await SettingService.createOrUpdateWorkSpace(values.aMLWorkSpace);
             // if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'aMLWorkSpace', createWorkSpaceResult)) {
             //   toast.error(formError);
             //   globalContext.hideProcessing();
@@ -1271,7 +922,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 <tr>
                   <td>
                     <React.Fragment>
-                      <FormLabel title={"Name:"} toolTip={ProductMessages.AMLWorkSpace.WorkspaceName} />                                         
+                      <FormLabel title={"Name:"} toolTip={SettingsMessages.automation.Name} />                                         
                     </React.Fragment>
                   </td>
                   <td>
@@ -1289,7 +940,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 <tr>
                   <td>
                     <React.Fragment>
-                      <FormLabel title={"Webhook URL:"} toolTip={ProductMessages.AMLWorkSpace.ResourceId} />                     
+                      <FormLabel title={"Webhook URL:"} toolTip={SettingsMessages.automation.WebhookURL} />                     
                     </React.Fragment>
 
                   </td>
@@ -1307,7 +958,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 <tr>
                   <td>
                     <React.Fragment>
-                      <FormLabel title={"Enabled:"} toolTip={ProductMessages.AMLWorkSpace.ResourceId} />                     
+                      <FormLabel title={"Enabled:"} toolTip={SettingsMessages.automation.Enabled} />                     
                     </React.Fragment>
 
                   </td>
@@ -1370,7 +1021,24 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
           validationSchema={permissionsFormValidationSchema}
           enableReinitialize={true}
           validateOnBlur={true}
-          onSubmit={async (values, { setSubmitting, setErrors }) => { 
+          onSubmit={async (values, { setSubmitting, setErrors }) => {
+            
+            setFormError(null);
+            setSubmitting(true);
+
+            globalContext.showProcessing();
+
+            // var CreatePermissionResult = await SettingService.createPermissions(values.permissions);
+            // if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'permission', CreatePermissionResult)) {
+            //   toast.error(formError)
+            //   globalContext.hideProcessing();
+            //   return;
+            // }
+
+            setSubmitting(false);
+            globalContext.hideProcessing();
+            toast.success("Success!");
+
             CloseNewUserServiceDialog();
           }}
           >
@@ -1389,7 +1057,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                           value={values.permissions.userId}
                           onChange={handleChange}
                           onBlur={handleBlur}
-                          errorMessage={getFormErrorString(touched, errors, 'userId')}
+                          errorMessage={getPermissionsFormErrorString(touched, errors, 'userId')}
                           placeholder={'User Id'}
                           className="txtFormField wdth_100_per"/>
                   </td>
@@ -1402,10 +1070,13 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
                 </td>
                 <td>
                 <Dropdown   options={roleList} 
-                            id={`Role`}
+                            id={`permissions.role`}
                             onBlur={handleBlur}
+                            onChange={(event, option, index) => {
+                              selectOnChange(`permissions.role`, setFieldValue, event, option, index)
+                            }}
                             placeHolder="Choose a Role"
-                            errorMessage={getPermissionsFormErrorString(touched, errors, 'type')}
+                            errorMessage={getPermissionsFormErrorString(touched, errors, 'role')}
                             defaultSelectedKey=""/> 
                   </td>
                 </tr>
@@ -1428,84 +1099,7 @@ export const AMLWorkSpaceList: React.FunctionComponent<IAMLWorkSpaceListProps> =
           )}
           </Formik>
       </Dialog>
-        
-      <DialogBox keyindex='DeploymentVersionmodal' dialogVisible={AMLDeleteDialog}
-        title="Delete AML Workspace" subText="" isDarkOverlay={true} className="" cancelButtonText="Cancel"
-        submitButtonText="Submit" maxwidth={500}
-        cancelonClick={() => {
-          CloseAMLDeleteDialog();
-        }}
-        submitonClick={() => {
-          const btnsubmit = document.getElementById('btnAMLDelete') as HTMLButtonElement;
-          btnsubmit.click();
-        }}
-        children={
-          <React.Fragment>
-            <Formik
-              initialValues={selectedAML}
-              validationSchema={deleteAMLWorkSpaceValidator}
-              enableReinitialize={true}
-              validateOnBlur={true}
-              onSubmit={async (values, { setSubmitting, setErrors }) => {
-
-                globalContext.showProcessing();
-                var workspaceResult = await ProductService.deleteWorkSpace(selectedAML.workspaceName);
-
-                if (handleSubmissionErrorsForForm((item) => {
-                }, (item) => {
-                }, setFormError, 'aMLWorkSpace', workspaceResult)) {
-                  toast.error(formError);
-                  globalContext.hideProcessing();
-                  return;
-                }
-
-                await getWorkSpaceList();
-                await getGitRepoList();
-                globalContext.hideProcessing();
-                toast.success("AML Workspace Deleted Successfully!");
-
-                CloseAMLDeleteDialog();
-                CloseWorkSpaceDialog();
-              }}
-            >
-              {({ handleChange, values, handleBlur, touched, errors, handleSubmit }) => (
-                <form autoComplete={"off"} onSubmit={handleSubmit}>
-                  <input type="hidden" name={'aMLWorkSpace.workspaceName'} value={values.workspaceName} />
-                  <table>
-                    <tbody>
-                      <tr>
-                        <td colSpan={2}>
-                          <span> Are you sure you want to delete the AML workspace?</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td colSpan={2}>
-                          {
-                            <React.Fragment>
-                              <span>Type the workspace name</span>
-                              <br />
-                              <TextField
-                                name={'selectedWorkspaceName'}
-                                value={values.selectedWorkspaceName}
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                errorMessage={getDeleteAMLErrorString(touched, errors, 'selectedWorkspaceName')}
-                                placeholder={'WorkSpace Name'}
-                                className="txtFormField" />
-                            </React.Fragment>
-                          }
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <div style={{ display: 'none' }}>
-                    <PrimaryButton type="submit" id="btnAMLDelete" text="Save" />
-                  </div>
-                </form>
-              )}
-            </Formik>
-          </React.Fragment>
-        } />
+            
     </React.Fragment>
   );
 }

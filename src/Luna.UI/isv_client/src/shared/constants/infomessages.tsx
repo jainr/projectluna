@@ -88,3 +88,20 @@ export const ProductMessages =
         SuspendwebhookURL: window.Configs.API_ENDPOINT + 'apisubscriptions/suspend?SubscriptionId={}',
     }
 }
+
+export const SettingsMessages =
+{
+    partnerService: {
+        Type:'',
+        ResourceId:'',
+        TenantId:'',
+        ClientId:'',
+        ClientSecret:'',
+        partnerServiceName:''
+    },
+    automation: {
+        Name:'',
+        WebhookURL:'',
+        Enabled:''        
+    },    
+}

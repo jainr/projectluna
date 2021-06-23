@@ -60,7 +60,7 @@ const Navigation: React.FunctionComponent = () => {
                             <ul>
                                 <li className="nav-item" onClick={(event) => setActive('Dashboard', event)}><a><Icon iconName="Home" /> <span> Home</span></a></li>
                                 <li className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /><span>Reports</span></a></li>                                
-                                <li className="nav-item" onClick={(event) => setActive('Supports', event)}><a><img src="/Icons/userheadset.svg" className="userheadsetIcon" /><span style={{lineHeight:'45px'}}>Supports</span></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Supports', event)}><a><img src="/Icons/userheadset.svg" className="userheadsetIcon" /><span style={{lineHeight:'45px'}}>Support</span></a></li>
                                 <li className="nav-item" onClick={(event) => setActive('Settings', event)}><a><Icon iconName="Settings" /><span>Settings</span></a></li>
                             </ul>
                         }
