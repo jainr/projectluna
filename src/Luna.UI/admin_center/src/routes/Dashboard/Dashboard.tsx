@@ -132,7 +132,7 @@ const Dashboard: React.FunctionComponent = () => {
           <div style={{ width: '100%' }}>
             <div className="dashboardcard bgclrblue floatLeft">
               <div className="cardtext">
-                <h2>15</h2> <br></br>
+                <h2>15</h2> 
                 <span>Active <br></br>Installation</span> <br></br>
               </div>              
               <div className="txticon">
@@ -143,7 +143,7 @@ const Dashboard: React.FunctionComponent = () => {
             </div>
             <div className="dashboardcard bgclrblue floatLeft">
               <div className="cardtext">
-                <h2>12</h2> <br></br>
+                <h2>12</h2> 
                 <span>New Installation in<br></br> Past 30 days</span> <br></br>
               </div>              
               <div className="txticon">
@@ -154,7 +154,7 @@ const Dashboard: React.FunctionComponent = () => {
             </div>
             <div className="dashboardcard bgclrred floatLeft">
               <div className="cardtext">
-                <h2>1</h2> <br></br>
+                <h2>1</h2>
                 <span>Customer  churn in<br></br> past 30 days</span> <br></br>
               </div>
               <div className="txticon">

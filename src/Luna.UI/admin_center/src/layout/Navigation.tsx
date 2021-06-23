@@ -22,18 +22,18 @@ const Navigation: React.FunctionComponent = () => {
         }
         history.push(route);
     }
-    const menuIconClick = () => {        
+    const menuIconClick = () => {
         //condition checking to change state from true to false and vice versa
         menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
-        
+
         let NavigationDiv = document.getElementsByClassName("Navigation")[0] as HTMLElement;
-        menuCollapse == true ?NavigationDiv.classList.add('wdth10per'):NavigationDiv.classList.remove('wdth10per');
+        menuCollapse == true ? NavigationDiv.classList.add('wdth10per') : NavigationDiv.classList.remove('wdth10per');        
     };
 
-    useEffect(() => {                    
+    useEffect(() => {
         let maintag = document.getElementsByClassName("main")[0] as HTMLElement;
-         //menuCollapse == true ? maintag.style.marginLeft = '8%' : maintag.style.marginLeft = '15%';
-      }, []);
+        //menuCollapse == true ? maintag.style.marginLeft = '8%' : maintag.style.marginLeft = '15%';
+    }, []);
 
     return (
         <React.Fragment>
@@ -52,15 +52,15 @@ const Navigation: React.FunctionComponent = () => {
                         {menuCollapse ?
                             <ul>
                                 <li className="nav-item" onClick={(event) => setActive('Dashboard', event)}><a><Icon iconName="Home" /></a></li>
-                                <li className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /></a></li>
-                                <li className="nav-item" onClick={(event) => setActive('Supports', event)}><a><Icon iconName="Settings" /></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /></a></li>                                
+                                <li className="nav-item" onClick={(event) => setActive('Supports', event)}><a><img src="/Icons/userheadset.svg" className="userheadsetIconclose" /></a></li>
                                 <li className="nav-item" onClick={(event) => setActive('Settings', event)}><a><Icon iconName="Settings" /></a></li>
                             </ul>
                             :
                             <ul>
                                 <li className="nav-item" onClick={(event) => setActive('Dashboard', event)}><a><Icon iconName="Home" /> <span> Home</span></a></li>
-                                <li className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /><span>Reports</span></a></li>
-                                <li className="nav-item" onClick={(event) => setActive('Supports', event)}><a ><Icon iconName="Settings" /><span>Supports</span></a></li>
+                                <li className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /><span>Reports</span></a></li>                                
+                                <li className="nav-item" onClick={(event) => setActive('Supports', event)}><a><img src="/Icons/userheadset.svg" className="userheadsetIcon" /><span style={{lineHeight:'45px'}}>Supports</span></a></li>
                                 <li className="nav-item" onClick={(event) => setActive('Settings', event)}><a><Icon iconName="Settings" /><span>Settings</span></a></li>
                             </ul>
                         }

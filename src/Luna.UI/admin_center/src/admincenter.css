@@ -13,8 +13,9 @@ html, body {
 .dashboardcard {
   color: #fff;
   margin-right: 1%;
-  min-height: 170px;
-  width: 20%;
+  min-height: 155px;
+  /* width: 12%; */
+  width: 200px;
 }
 .fnt10 {
   font-size: 12px;

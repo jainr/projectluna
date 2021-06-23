@@ -174,3 +174,13 @@ nav a > span {
       overflow: hidden;
     }
   }
+  .userheadsetIcon
+  {
+    width: 25%;
+    float: left;
+    margin-left: -5%;
+  }
+  .userheadsetIconclose
+  {    
+    margin-left: -18%;
+  }  
