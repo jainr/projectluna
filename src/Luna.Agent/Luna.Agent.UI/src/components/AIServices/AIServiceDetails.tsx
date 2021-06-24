@@ -20,8 +20,10 @@ import { PromptState } from 'msal/lib-commonjs/utils/Constants';
 import { withRouter } from "react-router-dom";
 import { useHistory, useLocation } from 'react-router';
 import { GetApplicationDetails } from './GetApplicationDetails';
-import {IApplication} from './IApplication';
-import {IApplicationSubscription} from './IApplicationSubscription';
+import { IApplication } from './IApplication';
+import { IApplicationSubscription } from './IApplicationSubscription';
+import SwaggerUI from "swagger-ui-react"
+import "swagger-ui-react/swagger-ui.css"
 
 const theme = getTheme();
 
@@ -56,19 +58,20 @@ const AIServiceDetails = () => {
   });
 
   const [applicationSubscriptions, setApplicationSubscriptions] = React.useState<IApplicationSubscription[]>([]);
+  const [swaggerUrl, setSwaggerUrl] = React.useState<string>();
 
   const loadLanguagesList = () => {
-   
-    languageOptions.push({"key":"Python","text":"REST API - Python"});
+
+    languageOptions.push({ "key": "Python", "text": "REST API - Python" });
     setLanguageOptions(languageOptions);
   }
 
-  const loadAPIList = (applicationData:IApplication) => {
-   
+  const loadAPIList = (applicationData: IApplication) => {
+
     // aPIOptions.push({"key":"French","text":"French"});
-    applicationData.Details.apIs?.forEach((api: any )  => 
-      aPIOptions.push({"key" : api.name, 'text': api.name }) 
-    );    
+    applicationData.Details.apIs?.forEach((api: any) =>
+      aPIOptions.push({ "key": api.name, 'text': api.name })
+    );
     setAPIOptions(aPIOptions);
   }
 
@@ -77,9 +80,9 @@ const AIServiceDetails = () => {
       return obj.name === selectedAPI
     })
     let apiVersionOptions: IDropdownOption[] = [];
-    apiObj?.versions?.forEach((version: any )  => 
-    apiVersionOptions.push({"key" : version.name, 'text': version.name }) 
-    );    
+    apiObj?.versions?.forEach((version: any) =>
+      apiVersionOptions.push({ "key": version.name, 'text': version.name })
+    );
     setAPIVersionOptions(apiVersionOptions);
   }
 
@@ -92,9 +95,9 @@ const AIServiceDetails = () => {
     });
 
     let apiVersionOperationOptions: IDropdownOption[] = [];
-    versionObj?.operations?.forEach((operation: any )  => 
-    apiVersionOperationOptions.push({"key" : operation, 'text': operation }) 
-    );    
+    versionObj?.operations?.forEach((operation: any) =>
+      apiVersionOperationOptions.push({ "key": operation, 'text': operation })
+    );
     setOperationOptions(apiVersionOperationOptions);
   }
 
@@ -102,239 +105,255 @@ const AIServiceDetails = () => {
     setIsExpand(!isExpand);
   }
 
-  const getApplicationDetails = () => 
-  {
+  const getApplicationDetails = () => {
     fetch(`${window.BASE_URL}/gallery/applications/lunanlp`, {
       mode: "cors",
       method: "GET",
-      headers: {         
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Luna-User-Id': 'test-admin',
-          'Host': 'lunatest-gateway.azurewebsites.net'         
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Luna-User-Id': 'test-admin',
+        'Host': 'lunatest-gateway.azurewebsites.net'
       },
-  })
-  .then(response => response.json())
-  .then(_data => { setApplicationData(_data); loadAPIList(_data);});
-    
+    })
+      .then(response => response.json())
+      .then(_data => { setApplicationData(_data); loadAPIList(_data); });
+
   }
-  const loadTabData = (item : PivotItem) => 
-  {
-    if(item.props.itemKey==='My Subscriptions')
-    {
+  const loadTabData = (item: PivotItem) => {
+    if (item.props.itemKey === 'My Subscriptions') {
       // getApplicationSubscriptions();
     }
   }
-  const getApplicationSubscriptions = () => 
-  {
-  
-  //   fetch(`${window.BASE_URL}/gallery/applications/lunanlp/subscriptions`, {
-  //     mode: "cors",
-  //     method: "GET",
-  //     headers: {         
-  //         'Accept': 'application/json',
-  //         'Content-Type': 'application/json',
-  //         'Luna-User-Id': 'test-admin',
-  //         'Host': 'lunatest-gateway.azurewebsites.net'         
-  //     },
-  // })
-  // .then(response => response.json())
-  // .then(_data => { setApplicationSubscriptions(_data)});
-  const data ={
-    subscriptionId: '123',
-    baseUrl: "lcjnadlcnadljc",
-    createdTime: "22-06-2021",
-    primaryKey: "kackbcleleakc",
-    secondaryKey: "acbkcdicbdkbc",
-    notes: "notes",
-    subscriptionName: "mysub",
-    owner: [{
-      userId: '1',
-      userName: 'User'
-    }]
+  const getApplicationSubscriptions = () => {
+
+    //   fetch(`${window.BASE_URL}/gallery/applications/lunanlp/subscriptions`, {
+    //     mode: "cors",
+    //     method: "GET",
+    //     headers: {         
+    //         'Accept': 'application/json',
+    //         'Content-Type': 'application/json',
+    //         'Luna-User-Id': 'test-admin',
+    //         'Host': 'lunatest-gateway.azurewebsites.net'         
+    //     },
+    // })
+    // .then(response => response.json())
+    // .then(_data => { setApplicationSubscriptions(_data)});
+    const data = {
+      subscriptionId: '123',
+      baseUrl: "lcjnadlcnadljc",
+      createdTime: "22-06-2021",
+      primaryKey: "kackbcleleakc",
+      secondaryKey: "acbkcdicbdkbc",
+      notes: "notes",
+      subscriptionName: "mysub",
+      owner: [{
+        userId: '1',
+        userName: 'User'
+      }]
+    }
+    // setApplicationSubscriptions(data);
+    applicationSubscriptions.push(data);
   }
-  // setApplicationSubscriptions(data);
-  applicationSubscriptions.push(data); 
+
+  const loadSwaggerData = () => {
+    fetch(`${window.BASE_URL}/gallery/applications/lunanlp/swagger`, {
+      mode: "cors",
+      method: "GET",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Luna-User-Id': 'test-admin',
+        'Host': 'lunatest-gateway.azurewebsites.net'
+      },
+    })
+      .then(response => response.json())
+      .then(async _data => {
+        console.log(JSON.stringify(_data));
+        setSwaggerUrl(JSON.stringify(_data));
+      });
   }
 
   React.useEffect(() => {
-      getApplicationDetails();
-      loadLanguagesList();     
-      getApplicationSubscriptions();     
+    getApplicationDetails();
+    loadLanguagesList();
+    getApplicationSubscriptions();
+    loadSwaggerData();
   }, []);
 
   return (
     <div className="AIServices">
       <div style={PanelStyles}>
-      <Text block variant={'xLargePlus'}>AI Service: Text Summarization</Text>
+        <Text block variant={'xLargePlus'}>AI Service: Text Summarization</Text>
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
           <StackItem className="divWidth25">
-            <Text block variant={'medium'} style={{marginTop: '10px', color: 'grey' }}>Publisher: ACE Team</Text>
-            <div style={{paddingRight: '10px', borderRight: '1px solid black'}}>
-              <Text block variant={'medium'} style={{marginTop: '20px', fontWeight: 'bold' }}>Description</Text>
-              <Text block variant={'medium'} style={{marginTop: '5px' }}>Summarize text documents and articles using machine learning. This model helps you create summary from meeting notes, news and other articles…</Text>
-              <Text block variant={'medium'} style={{marginTop: '20px', fontWeight: 'bold', marginBottom: '20px' }}>Tags</Text>
-              <div style={{display: 'flex', 'flexDirection': 'row'}}>
-                <div  style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px',width:'15%' }}>SaaS</div>
-                <div  style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px',width:'15%' }}>NLP</div>
-                <div style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '5px 5px', borderRadius: '5px',width:'140px' }}>Publisher: ACE Team</div>
+            <Text block variant={'medium'} style={{ marginTop: '10px', color: 'grey' }}>Publisher: ACE Team</Text>
+            <div style={{ paddingRight: '10px', borderRight: '1px solid black' }}>
+              <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>Description</Text>
+              <Text block variant={'medium'} style={{ marginTop: '5px' }}>Summarize text documents and articles using machine learning. This model helps you create summary from meeting notes, news and other articles…</Text>
+              <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold', marginBottom: '20px' }}>Tags</Text>
+              <div style={{ display: 'flex', 'flexDirection': 'row' }}>
+                <div style={{ fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px', width: '15%' }}>SaaS</div>
+                <div style={{ fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px', width: '15%' }}>NLP</div>
+                <div style={{ fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '5px 5px', borderRadius: '5px', width: '140px' }}>Publisher: ACE Team</div>
               </div>
-              <Text block variant={'medium'} style={{marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
-              <Text block variant={'medium'} style={{marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer'}}>+ Subscribe Now</Text>
+              <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
+              <Text block variant={'medium'} style={{ marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer' }}>+ Subscribe Now</Text>
             </div>
           </StackItem>
           <StackItem className="divWidth75">
             <StackItem>
-              <div style={{width:'700px', height:'370px'}}>
+              <div style={{ width: '700px', height: '370px' }}>
                 <Pivot onLinkClick={(item?: PivotItem) => loadTabData(item!)}>
                   <PivotItem headerText={"Sample Code"} itemKey={"Sample Code"}>
-                    <div style={{display:'flex'}} >
-                    <Label style={{margin:'10px'}}>Language:</Label>
+                    <div style={{ display: 'flex' }} >
+                      <Label style={{ margin: '10px' }}>Language:</Label>
                       <Dropdown options={languageOptions}
-                      placeholder={"Select a Language"}
-                      style={{margin:'10px'}}
-                      />                                          
-                    </div>                    
-                    <div style={{ ...isExpand ? { display: 'none' } : { display: 'block' }, margin:'10px' }}>
-                          Advance Settings <IconButton iconProps={{ iconName: 'ChevronUpMed' }} title="Collapse" ariaLabel="Collapse" onClick={ExpandCollapseClick} /> 
-                          <table style={{margin:'10px' }}>
-                            <tr>
-                              <td>
-                              <Label>API:</Label>
-                              </td>
-                              <td>
-                              <Dropdown options={aPIOptions}
-                                placeholder={"Select an API"}
-                                style={{margin:'10px', width:'170px'}}
-                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
-                                  setSelectedValues({
-                                    application: "",
-                                    api: option?.text!,
-                                    version: "",
-                                    operation: "",
-                                  });
-                                  loadAPIVersionList(option?.text!);                                  
-                                }}
-                              />                       
-                              </td>
-                              <td>
-                                <Label>API Version:</Label>
-                              </td>
-                              <td>
-                              <Dropdown options={aPIVersionOptions}
-                                placeholder={"Select an API Version"}
-                                style={{margin:'10px', width:'170px'}}
-                                selectedKey={selectedValues?.version}
-                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
-                                  setSelectedValues({
-                                    application: "",
-                                    api: selectedValues?.api!,
-                                    version: option?.text!,
-                                    operation: "",
-                                  });
-                                  loadOperationList(selectedValues?.api!,option?.text!);                                  
-                                }}
-                              />                       
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <Label>Operation:</Label>
-                              </td>
-                              <td>
-                              <Dropdown options={operationOptions}
-                                placeholder={"Select an Operation"}
-                                style={{margin:'10px', width:'170px'}}
-                                selectedKey={selectedValues?.operation}
-                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
-                                  setSelectedValues({
-                                    application: "",
-                                    api: selectedValues?.api!,
-                                    version: selectedValues?.version!,
-                                    operation: option?.text!,
-                                  });
-                                }}
-                              />                       
-                              </td>
-                            </tr>
-                          </table>
+                        placeholder={"Select a Language"}
+                        style={{ margin: '10px' }}
+                      />
                     </div>
-                    <div style={{ ...isExpand ? { display: 'block' } : { display: 'none' }, margin:'10px'  }}> Advance Settings <IconButton iconProps={{ iconName: 'ChevronDownMed' }} title="Expand" ariaLabel="Expand" onClick={ExpandCollapseClick} />
+                    <div style={{ ...isExpand ? { display: 'none' } : { display: 'block' }, margin: '10px' }}>
+                      Advance Settings <IconButton iconProps={{ iconName: 'ChevronUpMed' }} title="Collapse" ariaLabel="Collapse" onClick={ExpandCollapseClick} />
+                      <table style={{ margin: '10px' }}>
+                        <tr>
+                          <td>
+                            <Label>API:</Label>
+                          </td>
+                          <td>
+                            <Dropdown options={aPIOptions}
+                              placeholder={"Select an API"}
+                              style={{ margin: '10px', width: '170px' }}
+                              onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                                setSelectedValues({
+                                  application: "",
+                                  api: option?.text!,
+                                  version: "",
+                                  operation: "",
+                                });
+                                loadAPIVersionList(option?.text!);
+                              }}
+                            />
+                          </td>
+                          <td>
+                            <Label>API Version:</Label>
+                          </td>
+                          <td>
+                            <Dropdown options={aPIVersionOptions}
+                              placeholder={"Select an API Version"}
+                              style={{ margin: '10px', width: '170px' }}
+                              selectedKey={selectedValues?.version}
+                              onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                                setSelectedValues({
+                                  application: "",
+                                  api: selectedValues?.api!,
+                                  version: option?.text!,
+                                  operation: "",
+                                });
+                                loadOperationList(selectedValues?.api!, option?.text!);
+                              }}
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <Label>Operation:</Label>
+                          </td>
+                          <td>
+                            <Dropdown options={operationOptions}
+                              placeholder={"Select an Operation"}
+                              style={{ margin: '10px', width: '170px' }}
+                              selectedKey={selectedValues?.operation}
+                              onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                                setSelectedValues({
+                                  application: "",
+                                  api: selectedValues?.api!,
+                                  version: selectedValues?.version!,
+                                  operation: option?.text!,
+                                });
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      </table>
                     </div>
-                    <div style={{textAlign:'right',width:'80%'}}>
+                    <div style={{ ...isExpand ? { display: 'block' } : { display: 'none' }, margin: '10px' }}> Advance Settings <IconButton iconProps={{ iconName: 'ChevronDownMed' }} title="Expand" ariaLabel="Expand" onClick={ExpandCollapseClick} />
+                    </div>
+                    <div style={{ textAlign: 'right', width: '80%' }}>
                       <a href="https://aka.ms/lunasynapsenotebook" target="new"><u>Open in Synapse Notebook</u></a>
                     </div>
-                    <div style={{margin:'10px',boxShadow:'0px 0px 10px 4px #888888',width:'80%'}}>  
-                  <SyntaxHighlighter language="typescript" style={vs}>
-                      {mytext}
-                  </SyntaxHighlighter>
-                  </div>
-                  <div style={{color:'blue',margin:'10px'}}>
-                    <Text>More Sample Code</Text><IconButton text="More Sample Code" iconProps={{iconName:"OpenInNewWindow"}} target=""  /><br />
-                    <Text>Swagger</Text><IconButton text="Swagger" iconProps={{iconName:"OpenInNewWindow"}} target=""  /> <br />
-                  </div>
+                    <div style={{ margin: '10px', boxShadow: '0px 0px 10px 4px #888888', width: '80%' }}>
+                      <SyntaxHighlighter language="typescript" style={vs}>
+                        {mytext}
+                      </SyntaxHighlighter>
+                    </div>
+                    <div style={{ color: 'blue', margin: '10px' }}>
+                      <Text>More Sample Code</Text><IconButton text="More Sample Code" iconProps={{ iconName: "OpenInNewWindow" }} target="" /><br />
+                      <Text>Swagger</Text><IconButton text="Swagger" iconProps={{ iconName: "OpenInNewWindow" }} target="" /> <br />
+                    </div>
                   </PivotItem>
                   <PivotItem headerText={"My Subscriptions"} itemKey={"My Subscriptions"}>
-                  <React.Fragment>
-                  <div style={{margin:'10px' }}>
-                  <table style={{ width: '90%',borderCollapse:'collapse'}}>
-                    <thead>
-                        <tr style={{borderBottom:'1px solid black',borderTop:'1px solid black'}}>
-                            <th style={{width:'30%',padding:0}}>
-                                <Label title={"Subscription Name"} > Subscription Name</Label> 
-                            </th>
-                            <th style={{width:'50%',padding:0}}>
+                    <React.Fragment>
+                      <div style={{ margin: '10px' }}>
+                        <table style={{ width: '90%', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid black', borderTop: '1px solid black' }}>
+                              <th style={{ width: '30%', padding: 0 }}>
+                                <Label title={"Subscription Name"} > Subscription Name</Label>
+                              </th>
+                              <th style={{ width: '50%', padding: 0 }}>
                                 <Label title={"Subscription Id"} >Subscription Id</Label>
-                            </th>
-                            <th style={{width:'20%%',padding:0}}>
+                              </th>
+                              <th style={{ width: '20%%', padding: 0 }}>
                                 <Label title={"Created Date"} >Created Date</Label>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            applicationSubscriptions?.map((values, idx) => {
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {
+                              applicationSubscriptions?.map((values, idx) => {
                                 return (
-                                    <tr key={idx} style={{lineHeight:'30px',textAlign: 'center'}}>
-                                        <td>
-                                            <Link onClick={openPanel} >{values.subscriptionName}</Link>
-                                        </td>
-                                        <td>
-                                            {values.subscriptionId}
-                                        </td>
-                                        <td>
-                                            {values.createdTime}
-                                        </td>
-                                    </tr>
+                                  <tr key={idx} style={{ lineHeight: '30px', textAlign: 'center' }}>
+                                    <td>
+                                      <Link onClick={openPanel} >{values.subscriptionName}</Link>
+                                    </td>
+                                    <td>
+                                      {values.subscriptionId}
+                                    </td>
+                                    <td>
+                                      {values.createdTime}
+                                    </td>
+                                  </tr>
                                 )
-                            })
-                        }
-                    </tbody>
-                    </table>
-                    </div>
+                              })
+                            }
+                          </tbody>
+                        </table>
+                      </div>
                     </React.Fragment>
-                </PivotItem>
-                <PivotItem headerText={"Swagger"} itemKey={"Swagger"} >
+                  </PivotItem>
+                  <PivotItem headerText={"Swagger"} itemKey={"Swagger"} >
+                    {/* <SwaggerUI url={swaggerUrl} /> */}
+                    <SwaggerUI url='swagger.json' />
+                  </PivotItem>
+                  <PivotItem headerText={"Recommendations"} itemKey={"Recommendations"}>
 
-                </PivotItem>
-                <PivotItem headerText={"Recommendations"}  itemKey={"Recommendations"}>
+                  </PivotItem>
+                  <PivotItem headerText={"Reviews"} itemKey={"Reviews"}>
 
-                </PivotItem>
-                <PivotItem headerText={"Reviews"} itemKey={"Reviews"}>
-
-                </PivotItem>
+                  </PivotItem>
                 </Pivot>
               </div>
-             </StackItem>           
+            </StackItem>
           </StackItem>
         </Stack>
-        </div>
-        <br />
-        <div style={{height:'500px'}}>
-          <p>
-      
-           </p>
-        </div>
+      </div>
+      <br />
+      <div style={{ height: '500px' }}>
+        <p>
+
+        </p>
+      </div>
       <FooterLinks />
       <Panel
         headerText="Sample panel"
