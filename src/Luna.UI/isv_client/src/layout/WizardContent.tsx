@@ -37,6 +37,8 @@ const WizardContent: React.FunctionComponent = (props) => {
   const [workSpaceDialogVisible, setWorkSpaceDialogVisible] = useState<boolean>(false);
   let [workSpace, setWorkSpace] = useState<IAMLWorkSpaceFormValues>(initialAMLWorkSpaceFormValues);
   const [formError, setFormError] = useState<string | null>(null);
+  const [applicationName, setApplicationName] = useState<string | null>(null);
+  const [buttonType, setButtonType] = useState<string >('create');
 
   let userName = "";  
   var response = adalContext.AuthContext.getCachedUser();
@@ -194,6 +196,11 @@ const WizardContent: React.FunctionComponent = (props) => {
     return touched.aMLWorkSpace && errors.aMLWorkSpace && touched.aMLWorkSpace[property] && errors.aMLWorkSpace[property] ? errors.aMLWorkSpace[property] : '';
   };
 
+  const  publishApp = async  (appName: string) => 
+  {
+    var publishAppResult = await WizardService.publishApplication(appName!) ;
+  }
+
   return (
     <Stack
       verticalAlign="start"
@@ -222,13 +229,42 @@ const WizardContent: React.FunctionComponent = (props) => {
             validationSchema={wizardFormValidationSchema}
             enableReinitialize={true}
             validateOnBlur={true}
-            onSubmit={async (values, { setSubmitting, setErrors }) => {    
-              toast.success("Success!");         
+            onSubmit={async (values, { setSubmitting, setErrors}) => {                
+              setFormError(null);
+              setSubmitting(true);
+              
+              globalContext.showProcessing();
+
+              values.wizard.publisher=userName;
+              setApplicationName(values.wizard.applicationName);
+              var applicationResult = await WizardService.createApplication(values.wizard);
+              console.log(applicationResult.errors);
+              if (handleSubmissionErrorsForForm(setErrors, setSubmitting, setFormError, 'wizard', applicationResult)) {
+                // setFormError(applicationResult.errors[0].message);
+                toast.error(applicationResult.errors[0].message);
+                globalContext.hideProcessing();
+                return;
+              }
+              if(applicationResult.success && applicationResult.value)
+              {
+                var apiResult = await WizardService.createAPI(values.wizard);
+                if(apiResult.success && apiResult.value)
+                {
+                  var apiVersionResult = await WizardService.createAPIVersion(values.wizard);
+                }
+              }
+              if(buttonType === 'create&publish')
+              {
+                publishApp(values.wizard.applicationName);
+              }
+             
+              setSubmitting(false);
+              globalContext.hideProcessing();
+              toast.success("Success!");  
+              history.push(`/Products`);
             }}
           >
-        {({ handleChange, values, handleBlur, touched, errors, handleSubmit, submitForm, setFieldValue }) => (
-        // <form style={{ width: '100%' }} autoComplete={"off"} onSubmit={handleSubmit}>
-        // <DisplayErrors errors={errors} />
+        {({ handleChange, values, handleBlur, touched, errors, handleSubmit, submitForm, setFieldValue }) => (       
         <React.Fragment>
           <Stack>
             <h1>Luna Application Wizard</h1>
@@ -509,38 +545,6 @@ const WizardContent: React.FunctionComponent = (props) => {
                       errorMessage={getFormErrorString(touched, errors, 'computeService')} />
                     </td>
                   </tr> 
-                  {/* <tr>
-                    <td>
-
-                    </td>
-                    <td>
-
-                    </td>
-                    <td colSpan={2}>
-                      <Stack>
-                        <div style={{ width: '350px', background: '#d3d3d3', height: '250px', marginTop: '-115px', marginLeft: '25px' }}>
-                          <p />
-                          <p />
-                          <p />
-                          <div style={{ padding: '10px' }}>
-                            <IconButton iconProps={{ iconName: 'Lightbulb' }} /> Tips:
-                            <ul>
-                              <li><p>This will be a part of the URL when user calling the API service.</p></li>
-                              <li><p>Allows only lowercase characters, numbers and hyphen, start with lowercase characters and 128 characters max.</p></li></ul></div>
-                        </div>
-                      </Stack>
-                    </td>
-                  </tr> */}
-                  {/* <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td style={{ textAlign: 'right' }}>
-                      <AlternateButton style={{ margin: '20px' }}>Cancel</AlternateButton>
-                      <PrimaryButton style={{ margin: '20px' }} onClick={onBackButtonClick}>Back</PrimaryButton>
-                      <PrimaryButton style={{ margin: '20px' }} onClick={onNextButtonClick}>Next</PrimaryButton>
-                    </td>
-                  </tr>    */}
                   <tr></tr>
                   <tr></tr>
                   <tr></tr>
@@ -680,44 +684,24 @@ const WizardContent: React.FunctionComponent = (props) => {
                       onBlur={handleBlur}
                       errorMessage={getFormErrorString(touched, errors, 'publisher')} />
                       </td>
-                    </tr>
-                  {/* </div> */}
+                    </tr>                  
                   <tr style={{ ...isExpand ? { display: 'table-row' } : { display: 'none' } }}> Advance Settings <IconButton iconProps={{ iconName: 'ChevronDownMed' }} title="Expand" ariaLabel="Expand" onClick={ExpandCollapseClick} />
-                  </tr>
-                  {/* <tr>
-                    <td>
-
-                    </td>
-                    <td>
-
-                    </td>
-                    <td colSpan={2}>
-                      <Stack>
-                        <div style={{ width: '350px', background: '#d3d3d3', height: '250px', marginTop: '-175px', marginLeft: '25px' }}>
-                          <p />
-                          <p />
-                          <p />
-                          <div style={{ padding: '10px' }}><IconButton iconProps={{ iconName: 'Lightbulb' }} />Tips:
-                            <ul>
-                              <li><p>A descriptive name will help user to understand what your application is for. For example: Text Analysis, Sales Forecasting.</p></li>                              </ul></div>
-                        </div>
-                      </Stack>
-                    </td>
-                  </tr> */}                 
+                  </tr>                                
                   <tr></tr>
                   <tr></tr>
                   <tr></tr>
                   <tr>
-                    <td></td>
-                    {/* <td></td> */}
+                    <td></td>                    
                     <td colSpan={2} style={{textAlign:'right'}}>
                     <AlternateButton style={{ margin: '20px' }}>Cancel</AlternateButton>
-                      <PrimaryButton style={{ margin: '20px' }} onClick={onBackButtonClick}>Back</PrimaryButton>
-                    {/* </td>
-                    <td style={{ textAlign: 'left' }}> */}
-                      
+                      <PrimaryButton style={{ margin: '20px' }} onClick={onBackButtonClick}>Back</PrimaryButton>                                          
                       <PrimaryButton text={"Create"} style={{ margin: '20px' }} onClick={submitForm}></PrimaryButton>
-                      <PrimaryButton text={"Create & Publish"} style={{ margin: '20px',marginRight:'0px' }} onClick={submitForm}></PrimaryButton>
+                      <PrimaryButton text={"Create & Publish"} style={{ margin: '20px',marginRight:'0px' }} 
+                      onClick={() => {
+                        setButtonType('create&publish');
+                        submitForm()
+                      }}
+                        ></PrimaryButton>
                     </td>
                   </tr>
                 </table>
