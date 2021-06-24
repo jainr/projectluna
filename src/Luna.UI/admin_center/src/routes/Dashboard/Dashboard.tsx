@@ -37,7 +37,7 @@ const Dashboard: React.FunctionComponent = () => {
   const [loadingActiveCaseData, setLoadingActiveCaseData] = useState<boolean>(true);
   const [activeCaseData, setActiveCaseData] = useState<ISupportCasesModel[]>([]);
 
-  useEffect(() => {    
+  useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     loadstaticdata();
     // getSupportActiveCaseData();
@@ -46,7 +46,7 @@ const Dashboard: React.FunctionComponent = () => {
   const loadstaticdata = async () => {
     setLoadingActiveCaseData(true);
     setActiveCaseData(initialSupportCaseList);
-    setLoadingActiveCaseData(false);    
+    setLoadingActiveCaseData(false);
   }
 
   const getSupportActiveCaseData = async () => {
@@ -102,7 +102,7 @@ const Dashboard: React.FunctionComponent = () => {
       verticalAlign="start"
       horizontal={false}
       styles={{
-        root: { 
+        root: {
           width: '100%',
           height: '100%',
           textAlign: 'left',
@@ -131,35 +131,35 @@ const Dashboard: React.FunctionComponent = () => {
           <h1>Luna Management Center</h1>
           <div style={{ width: '100%' }}>
             <div className="dashboardcard bgclrblue floatLeft">
+              <h1>15</h1>
               <div className="cardtext">
-                <h2>15</h2> 
                 <span>Active <br></br>Installation</span> <br></br>
-              </div>              
+              </div>
               <div className="txticon">
                 <span className="fnt10">Go to details</span>&nbsp;&nbsp;
                 {/* <FontIcon iconName="Edit" className="Arrowicon" /> */}
-                <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"}/>
+                <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"} />
               </div>
             </div>
             <div className="dashboardcard bgclrblue floatLeft">
+              <h1 style={{paddingLeft:'8%'}}>2</h1>
               <div className="cardtext">
-                <h2>12</h2> 
                 <span>New Installation in<br></br> Past 30 days</span> <br></br>
-              </div>              
+              </div>
               <div className="txticon">
                 <span className="fnt10">Go to details</span>&nbsp;&nbsp;
-                <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"}/>
+                <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"} />
               </div>
 
             </div>
             <div className="dashboardcard bgclrred floatLeft">
+              <h1>1</h1>
               <div className="cardtext">
-                <h2>1</h2>
                 <span>Customer  churn in<br></br> past 30 days</span> <br></br>
               </div>
               <div className="txticon">
                 <span className="fnt10">Go to details</span>&nbsp;&nbsp;
-                <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"}/>
+                <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"} />
               </div>
             </div>
           </div>
@@ -173,7 +173,7 @@ const Dashboard: React.FunctionComponent = () => {
               //position:'absolute'
             }
           }}
-        ><h3>Outstanding Support Cases &nbsp;&nbsp; <a href="#" style={{fontSize:14,fontWeight: 'normal'}}>{"See all support cases"}</a></h3></Stack>
+        ><h3>Outstanding Support Cases &nbsp;&nbsp; <a href="#" style={{ fontSize: 14, fontWeight: 'normal' }}>{"See all support cases"}</a></h3></Stack>
 
         <table className="noborder offergrid" style={{ marginTop: 20, width: '100%' }} cellPadding={5} cellSpacing={0}>
           <thead>
@@ -196,9 +196,9 @@ const Dashboard: React.FunctionComponent = () => {
                   </td>
                 </tr>
               )
-              : 
+              :
               <SupportCase activeCase={activeCaseData} />
-              }
+            }
           </tbody>
         </table>
       </Stack>

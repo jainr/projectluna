@@ -9,6 +9,12 @@ const Navigation: React.FunctionComponent = () => {
     const history = useHistory();
     const [menuCollapse, setMenuCollapse] = useState(false)
 
+    useEffect(() => {    
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        let dashboard = document.getElementsByClassName("nav-item")[0] as HTMLElement;        
+        dashboard.classList.add('active');
+      }, []);
+
     const setActive = (route: string, event: React.MouseEvent<HTMLElement, MouseEvent>) => {
         for (const key in document.getElementsByClassName('nav-item')) {
             if (Object.prototype.hasOwnProperty.call(document.getElementsByClassName('nav-item'), key)) {
