@@ -57,9 +57,13 @@ const AIServiceDetails = () => {
     Details: {}
   });
 
+  sessionStorage.setItem('selectedApplication','lunanlp');
+
   const [applicationSubscriptions, setApplicationSubscriptions] = React.useState<IApplicationSubscription[]>([]);
   const [swaggerUrl, setSwaggerUrl] = React.useState<string>();
 
+  const [selectedApplication, setselectedApplication] = React.useState<string | null>(sessionStorage.getItem('selectedApplication'));
+  
   const loadLanguagesList = () => {
 
     languageOptions.push({ "key": "Python", "text": "REST API - Python" });
@@ -106,7 +110,7 @@ const AIServiceDetails = () => {
   }
 
   const getApplicationDetails = () => {
-    fetch(`${window.BASE_URL}/gallery/applications/lunanlp`, {
+    fetch(`${window.BASE_URL}/gallery/applications/${selectedApplication}`, {
       mode: "cors",
       method: "GET",
       headers: {
@@ -157,7 +161,7 @@ const AIServiceDetails = () => {
   }
 
   const loadSwaggerData = () => {
-    fetch(`${window.BASE_URL}/gallery/applications/lunanlp/swagger`, {
+    fetch(`${window.BASE_URL}/gallery/applications/${selectedApplication}/swagger`, {
       mode: "cors",
       method: "GET",
       headers: {
@@ -169,12 +173,11 @@ const AIServiceDetails = () => {
     })
       .then(response => response.json())
       .then(async _data => {
-        console.log(JSON.stringify(_data));
-        setSwaggerUrl(JSON.stringify(_data));
+        setSwaggerUrl(_data);
       });
   }
 
-  React.useEffect(() => {
+  React.useEffect(() => {    
     getApplicationDetails();
     loadLanguagesList();
     getApplicationSubscriptions();
@@ -333,8 +336,7 @@ const AIServiceDetails = () => {
                     </React.Fragment>
                   </PivotItem>
                   <PivotItem headerText={"Swagger"} itemKey={"Swagger"} >
-                    {/* <SwaggerUI url={swaggerUrl} /> */}
-                    <SwaggerUI url='swagger.json' />
+                    <SwaggerUI spec={swaggerUrl} />                    
                   </PivotItem>
                   <PivotItem headerText={"Recommendations"} itemKey={"Recommendations"}>
 
@@ -347,13 +349,7 @@ const AIServiceDetails = () => {
             </StackItem>
           </StackItem>
         </Stack>
-      </div>
-      <br />
-      <div style={{ height: '500px' }}>
-        <p>
-
-        </p>
-      </div>
+      </div>            
       <FooterLinks />
       <Panel
         headerText="Sample panel"
