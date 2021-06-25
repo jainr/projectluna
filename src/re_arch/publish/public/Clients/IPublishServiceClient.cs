@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Luna.Common.Utils;
+using Newtonsoft.Json.Linq;
 
 namespace Luna.Publish.Public.Client
 {
@@ -227,7 +228,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">Name of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer</returns>
-        Task<MarketplaceOffer> GetMarketplaceOfferAsync(string name,
+        Task<JObject> GetMarketplaceOfferAsync(string name,
             LunaRequestHeaders headers);
 
         /// <summary>

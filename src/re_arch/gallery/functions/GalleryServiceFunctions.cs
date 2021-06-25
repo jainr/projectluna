@@ -116,6 +116,7 @@ namespace Luna.Gallery.Functions
                             OfferDescription = offer.Properties.DisplayName,
                             Mode = plan.Properties.Mode,
                             LastAppliedEventId = ev.EventSequenceId,
+                            CreatedByEventId = ev.EventSequenceId,
                             IsEnabled = true,
                         };
 
@@ -1689,7 +1690,17 @@ namespace Luna.Gallery.Functions
                         }
                     }
 
-                    var subDb = new AzureMarketplaceSubscriptionDB(subscription, lunaHeaders.UserId);
+                    if (plan.Mode == MarketplacePlanMode.IaaS.ToString())
+                    {
+                        if (!JumpboxParameterConstants.VerifyJumpboxParameterNames(subscription.InputParameters.Select(x => x.Name).ToList()))
+                        {
+                            throw new LunaBadRequestUserException(
+                                string.Format(ErrorMessages.REQUIRED_PARAMETER_NOT_PROVIDED, "jumpbox"),
+                                UserErrorCode.ParameterNotProvided);
+                        }
+                    }
+
+                    var subDb = new AzureMarketplaceSubscriptionDB(subscription, lunaHeaders.UserId, plan.CreatedByEventId);
 
                     subDb.ParameterSecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.MARKETPLACE_SUBCRIPTION_PARAMETERS);
 
@@ -1704,7 +1715,7 @@ namespace Luna.Gallery.Functions
                         await _pubSubClient.PublishEventAsync(
                             LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
                             new CreateAzureMarketplaceSubscriptionEventEntity(subscriptionId, 
-                            JsonConvert.SerializeObject(subDb)),
+                            JsonConvert.SerializeObject(subDb.ToMarketplaceSubscriptionInternal())),
                             lunaHeaders);
 
                         transaction.Commit();

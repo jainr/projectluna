@@ -45,7 +45,10 @@ namespace Luna.Publish.Public.Client
         [JsonProperty(PropertyName = "Parameters", Required = Required.Always)]
         public List<MarketplaceParameter> Parameters { get; set; }
 
-        [JsonProperty(PropertyName = "ProvisioningSteps", Required = Required.Always)]
+        [JsonProperty(PropertyName = "ProvisioningSteps", Required = Required.Default)]
         public List<MarketplaceProvisioningStep> ProvisioningSteps { get; set; }
+
+        [JsonProperty(PropertyName = "ProvisioningStepsSecretName", Required = Required.Default)]
+        public string ProvisioningStepsSecretName { get; set; }
     }
 }

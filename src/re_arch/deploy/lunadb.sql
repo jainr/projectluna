@@ -479,6 +479,7 @@ CREATE TABLE [gallery].[AzureMarketplaceSubscriptions](
 	[SaaSSubscriptionStatus] [nvarchar](64) NOT NULL,
 	[OfferId] [nvarchar](50) NOT NULL,
 	[PlanId] [nvarchar](50) NOT NULL,
+	[PlanCreatedByEventId] [bigint] NOT NULL,
 	[Publisher] [nvarchar](128) NOT NULL,
 	[ParameterSecretName] [nvarchar](64) NOT NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
@@ -488,6 +489,39 @@ CREATE TABLE [gallery].[AzureMarketplaceSubscriptions](
 PRIMARY KEY CLUSTERED 
 (
 	[SubscriptionId] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [provision].[MarketplaceSubProvisionJobs]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE provision.[MarketplaceSubProvisionJobs](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[SubscriptionId] [uniqueidentifier] NOT NULL,
+	[OfferId] [nvarchar](50) NOT NULL,
+	[PlanId] [nvarchar](50) NOT NULL,
+	[PlanCreatedByEventId] [bigint] NOT NULL,
+	[Mode] [nvarchar](64) NOT NULL,
+	[Status] [nvarchar](64) NOT NULL,
+	[EventType] [nvarchar](64) NOT NULL,
+	[ProvisioningStepIndex] [int] NOT NULL,
+	[IsSynchronizedStep] [bit] NOT NULL,
+	[ProvisioningStepStatus] [nvarchar](64) NOT NULL,
+	[ParametersSecretName] [nvarchar](64) NOT NULL,
+	[ProvisionStepsSecretName] [nvarchar](64) NOT NULL,
+	[IsActive] [bit] NOT NULL,
+	[retryCount] [int] NOT NULL,
+	[lastErrorMessage] [nvarchar](1024) NOT NULL,
+	[CreatedByEventId] [bigint] NOT NULL,
+	[CreatedTime] [datetime2](7) NOT NULL,
+	[LastUpdatedTime] [datetime2](7) NOT NULL,
+	[CompletedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
@@ -505,6 +539,27 @@ CREATE TABLE [provision].[LunaApplicationSwaggers](
 	[LastAppliedEventId] [bigint] NULL,
 	[IsEnabled] [bit] NOT NULL,
 	[CreatedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [provision].[MarketplacePlans]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [provision].[MarketplacePlans](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[offerId] [nvarchar](50) NOT NULL,
+	[planId] [nvarchar](50) NOT NULL,
+	[parameters] [nvarchar](max) NOT NULL,
+	[mode] [nvarchar](64) NOT NULL,
+	[properties] [nvarchar](max) NOT NULL,
+	[provisioningStepsSecretName] [nvarchar](64) NOT NULL,
+	[createdByEventId] [bigint] NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[id] ASC

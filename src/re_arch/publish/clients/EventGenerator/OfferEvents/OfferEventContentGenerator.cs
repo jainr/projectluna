@@ -1,15 +1,27 @@
-﻿using Luna.Publish.Data;
+﻿using Luna.Common.Utils;
+using Luna.Publish.Data;
 using Luna.Publish.Public.Client;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Luna.Publish.Clients
 {
     public class OfferEventContentGenerator : IOfferEventContentGenerator
     {
+        private IAzureKeyVaultUtils _keyVaultUtils;
+        private ILogger<OfferEventContentGenerator> _logger;
+
+        public OfferEventContentGenerator(IAzureKeyVaultUtils keyVaultUtils, ILogger<OfferEventContentGenerator> logger)
+        {
+            this._keyVaultUtils = keyVaultUtils ?? throw new ArgumentNullException(nameof(keyVaultUtils));
+            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         /// <summary>
         /// Generate create marketplace offer event and convert to JSON string
         /// </summary>
@@ -28,10 +40,10 @@ namespace Luna.Publish.Clients
         /// </summary>
         /// <param name="template">The offer template</param>
         /// <returns>The event content JSON string</returns>
-        public string GenerateCreateMarketplaceOfferFromTemplateEventContent(
+        public async Task<string> GenerateCreateMarketplaceOfferFromTemplateEventContentAsync(
             string template)
         {
-            var offer = ParseMarketplaceOfferFromTemplate(template);
+            var offer = await ParseMarketplaceOfferFromTemplate(template);
 
             var ev = new CreateMarketplaceOfferFromTemplateEvent()
             {
@@ -51,10 +63,10 @@ namespace Luna.Publish.Clients
         /// </summary>
         /// <param name="template">The offer template</param>
         /// <returns>The event content JSON string</returns>
-        public string GenerateUpdateMarketplaceOfferFromTemplateEventContent(
+        public async Task<string> GenerateUpdateMarketplaceOfferFromTemplateEventContentAsync(
             string template)
         {
-            var offer = ParseMarketplaceOfferFromTemplate(template);
+            var offer = await ParseMarketplaceOfferFromTemplate(template);
 
             var ev = new UpdateMarketplaceOfferFromTemplateEvent()
             {
@@ -69,13 +81,13 @@ namespace Luna.Publish.Clients
             return content;
         }
 
-        private MarketplaceOffer ParseMarketplaceOfferFromTemplate(string template)
+        private async Task<MarketplaceOffer> ParseMarketplaceOfferFromTemplate(string template)
         {
             MarketplaceOffer offer = JsonConvert.DeserializeObject<MarketplaceOffer>(template);
 
             if (offer.ProvisioningSteps.Count > 0)
             {
-                offer.ProvisioningSteps = new List<MarketplaceProvisioningStep>();
+                var provisioningSteps = new List<MarketplaceProvisioningStep>();
                 var rawOffer = JObject.Parse(template);
 
                 if (rawOffer.ContainsKey("ProvisioningSteps"))
@@ -97,7 +109,7 @@ namespace Luna.Publish.Clients
 
                         if (stepProp != null)
                         {
-                            offer.ProvisioningSteps.Add(new MarketplaceProvisioningStep
+                            provisioningSteps.Add(new MarketplaceProvisioningStep
                             {
                                 Name = step["Name"].ToString(),
                                 Type = step["Type"].ToString(),
@@ -107,6 +119,13 @@ namespace Luna.Publish.Clients
 
                     }
                 }
+                offer.ProvisioningStepsSecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.PROVISIONING_STEPS);
+                var content = JsonConvert.SerializeObject(provisioningSteps, new JsonSerializerSettings()
+                {
+                    TypeNameHandling = TypeNameHandling.All
+                });
+
+                await this._keyVaultUtils.SetSecretAsync(offer.ProvisioningStepsSecretName, content);
             }
 
             return offer;

@@ -474,14 +474,14 @@ namespace Luna.Publish.Functions
                         offerDb.LastUpdatedTime = DateTime.UtcNow;
 
                         offerEvent.EventType = MarketplaceOfferEventType.UpdateMarketplaceOfferFromTemplate.ToString();
-                        offerEvent.EventContent = _offerEventGenerator.
-                            GenerateUpdateMarketplaceOfferFromTemplateEventContent(requestCotent);
+                        offerEvent.EventContent = await _offerEventGenerator.
+                            GenerateUpdateMarketplaceOfferFromTemplateEventContentAsync(requestCotent);
                     }
                     else
                     {
                         offerEvent.EventType = MarketplaceOfferEventType.CreateMarketplaceOfferFromTemplate.ToString();
-                        offerEvent.EventContent = _offerEventGenerator.
-                            GenerateCreateMarketplaceOfferFromTemplateEventContent(requestCotent);
+                        offerEvent.EventContent = await _offerEventGenerator.
+                            GenerateCreateMarketplaceOfferFromTemplateEventContentAsync(requestCotent);
 
                         isNewOffer = true;
                         snapshot = await this.CreateMarketplaceOfferSnapshotAsync(offerId,
@@ -899,6 +899,17 @@ namespace Luna.Publish.Functions
                         ToListAsync();
 
                     var offer = _offerEventProcessor.GetMarketplaceOffer(offerId, events, snapshot);
+
+                    if (!string.IsNullOrEmpty(offer.ProvisioningStepsSecretName))
+                    {
+                        var content = await this._keyVaultUtils.GetSecretAsync(offer.ProvisioningStepsSecretName);
+                        var steps = JsonConvert.DeserializeObject<List<MarketplaceProvisioningStep>>(content, new JsonSerializerSettings()
+                        {
+                            TypeNameHandling = TypeNameHandling.All
+                        });
+                        offer.ProvisioningSteps = steps;
+                        offer.ProvisioningStepsSecretName = null;
+                    }
 
                     return new OkObjectResult(offer);
                 }

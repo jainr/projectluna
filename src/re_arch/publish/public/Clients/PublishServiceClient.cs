@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Luna.Publish.Public.Client
 {
@@ -566,7 +567,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">Name of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer</returns>
-        public async Task<MarketplaceOffer> GetMarketplaceOfferAsync(string name,
+        public async Task<JObject> GetMarketplaceOfferAsync(string name,
             LunaRequestHeaders headers)
         {
             ValidationUtils.ValidateStringValueLength(name, ValidationUtils.AZURE_MARKETPLACE_OBJECT_STRING_MAX_LENGTH, nameof(name));
@@ -576,7 +577,7 @@ namespace Luna.Publish.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            return await GetResponseObject<MarketplaceOffer>(response);
+            return await GetResponseObject<JObject>(response);
         }
 
         /// <summary>
@@ -739,12 +740,12 @@ namespace Luna.Publish.Public.Client
             return;
         }
 
-        private async Task<T> GetResponseObject<T>(HttpResponseMessage response)
+        private async Task<T> GetResponseObject<T>(HttpResponseMessage response, TypeNameHandling typeNameHandling = TypeNameHandling.Auto)
         {
             var content = await response.Content.ReadAsStringAsync();
             var obj = JsonConvert.DeserializeObject<T>(content, new JsonSerializerSettings()
             {
-                TypeNameHandling = TypeNameHandling.Auto
+                TypeNameHandling = typeNameHandling
             });
 
             return obj;

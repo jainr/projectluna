@@ -26,7 +26,7 @@ namespace Luna.Publish.Clients
         /// </summary>
         /// <param name="template">The offer template</param>
         /// <returns>The event content JSON string</returns>
-        string GenerateCreateMarketplaceOfferFromTemplateEventContent(
+        Task<string> GenerateCreateMarketplaceOfferFromTemplateEventContentAsync(
             string template);
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace Luna.Publish.Clients
         /// </summary>
         /// <param name="template">The offer template</param>
         /// <returns>The event content JSON string</returns>
-        string GenerateUpdateMarketplaceOfferFromTemplateEventContent(
+        Task<string> GenerateUpdateMarketplaceOfferFromTemplateEventContentAsync(
             string template);
 
     }

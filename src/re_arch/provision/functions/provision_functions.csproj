@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.11" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\gallery\public\gallery_public_client.csproj" />
     <ProjectReference Include="..\..\pubsub\public\pubsub_public_client.csproj" />
     <ProjectReference Include="..\clients\provision_clients.csproj" />
     <ProjectReference Include="..\data\provision_data.csproj" />

@@ -1798,7 +1798,6 @@ definitions:
       - Properties
       - Plans
       - Parameters
-      - ProvisioningSteps
     type: object
     properties:
       OfferId:
@@ -1819,6 +1818,8 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Luna.Publish.Public.Client.MarketplaceProvisioningStep'
+      ProvisioningStepsSecretName:
+        type: string
   Luna.Publish.Public.Client.MarketplaceOfferProp:
     required:
       - DisplayName

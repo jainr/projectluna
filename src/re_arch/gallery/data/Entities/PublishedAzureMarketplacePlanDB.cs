@@ -24,6 +24,8 @@ namespace Luna.Gallery.Data
 
         public long LastAppliedEventId { get; set; }
 
+        public long CreatedByEventId { get; set; }
+
         public bool IsEnabled { get; set; }
     }
 }
