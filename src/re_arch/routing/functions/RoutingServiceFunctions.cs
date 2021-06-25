@@ -91,9 +91,11 @@ namespace Luna.Routing.Functions
                         Where(x => x.ApplicationName == ev.PartitionKey && x.IsEnabled).
                         Take(1).
                         SingleOrDefaultAsync();
-
-                    await _secretCacheClient.RefreshApplicationMasterKey(apiVersion.PrimaryMasterKeySecretName);
-                    await _secretCacheClient.RefreshApplicationMasterKey(apiVersion.SecondaryMasterKeySecretName);
+                    if (apiVersion != null)
+                    {
+                        await _secretCacheClient.RefreshApplicationMasterKey(apiVersion.PrimaryMasterKeySecretName);
+                        await _secretCacheClient.RefreshApplicationMasterKey(apiVersion.SecondaryMasterKeySecretName);
+                    }
                 }
             }
         }
