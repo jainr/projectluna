@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@fluentui/react';
 import '../../src/navigation.css';
-import { useHistory } from 'react-router';
+import { useHistory,useLocation} from 'react-router';
 import { ProSidebar, SidebarHeader, SidebarContent } from "react-pro-sidebar";
 
 const Navigation: React.FunctionComponent = () => {
 
     const history = useHistory();
     const [menuCollapse, setMenuCollapse] = useState(false)
+    const location = useLocation();
 
     const setActive = (route: string, event: React.MouseEvent<HTMLElement, MouseEvent>) => {
         for (const key in document.getElementsByClassName('nav-item')) {
@@ -22,16 +23,30 @@ const Navigation: React.FunctionComponent = () => {
         }
         history.push(route);
     }
+
+    const setActiveOnLoad = () => {        
+        for (const key in document.getElementsByClassName('nav-item')) {
+            if (Object.prototype.hasOwnProperty.call(document.getElementsByClassName('nav-item'), key)) {
+                const liElement = document.getElementsByClassName('nav-item')[key] as HTMLLIElement;
+                liElement.classList.remove('active');
+            }
+        }                
+        let selectedmenu = document.getElementById(location.pathname.replace(/^\/|\/$/g, '')) as HTMLElement;
+        if (selectedmenu) {
+            selectedmenu.classList.add('active');
+        }        
+    }
     const menuIconClick = () => {
         //condition checking to change state from true to false and vice versa
         menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
 
         let NavigationDiv = document.getElementsByClassName("Navigation")[0] as HTMLElement;
-        menuCollapse == true ? NavigationDiv.classList.add('wdth10per') : NavigationDiv.classList.remove('wdth10per');        
+        menuCollapse == true ? NavigationDiv.classList.add('wdth10per') : NavigationDiv.classList.remove('wdth10per');
     };
 
     useEffect(() => {
         let maintag = document.getElementsByClassName("main")[0] as HTMLElement;
+        setActiveOnLoad();
         //menuCollapse == true ? maintag.style.marginLeft = '8%' : maintag.style.marginLeft = '15%';
     }, []);
 
@@ -51,17 +66,17 @@ const Navigation: React.FunctionComponent = () => {
                     <SidebarContent>
                         {menuCollapse ?
                             <ul>
-                                <li className="nav-item" onClick={(event) => setActive('Dashboard', event)}><a><Icon iconName="Home" /></a></li>
-                                <li className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /></a></li>                                
-                                <li className="nav-item" onClick={(event) => setActive('Supports', event)}><a><img src="/Icons/userheadset.svg" className="userheadsetIconclose" /></a></li>
-                                <li className="nav-item" onClick={(event) => setActive('Settings', event)}><a><Icon iconName="Settings" /></a></li>
+                                <li id="Dashboard" className="nav-item" onClick={(event) => setActive('Dashboard', event)}><a><Icon iconName="Home" /></a></li>
+                                <li id="Reports" className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /></a></li>
+                                <li id="Supports" className="nav-item" onClick={(event) => setActive('Supports', event)}><a><img src="/Icons/userheadset.svg" className="userheadsetIconclose" /></a></li>
+                                <li id="Settings" className="nav-item" onClick={(event) => setActive('Settings', event)}><a><Icon iconName="Settings" /></a></li>
                             </ul>
                             :
                             <ul>
-                                <li className="nav-item" onClick={(event) => setActive('Dashboard', event)}><a><Icon iconName="Home" /> <span> Home</span></a></li>
-                                <li className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /><span>Reports</span></a></li>                                
-                                <li className="nav-item" onClick={(event) => setActive('Supports', event)}><a><img src="/Icons/userheadset.svg" className="userheadsetIcon" /><span style={{lineHeight:'45px'}}>Support</span></a></li>
-                                <li className="nav-item" onClick={(event) => setActive('Settings', event)}><a><Icon iconName="Settings" /><span>Settings</span></a></li>
+                                <li id="Dashboard" className="nav-item" onClick={(event) => setActive('Dashboard', event)}><a><Icon iconName="Home" /> <span> Home</span></a></li>
+                                <li id="Reports" className="nav-item" onClick={(event) => setActive('Reports', event)}><a><Icon iconName="BarChartVertical" /><span>Reports</span></a></li>
+                                <li id="Supports" className="nav-item" onClick={(event) => setActive('Supports', event)}><a><img src="/Icons/userheadset.svg" className="userheadsetIcon" /><span style={{ lineHeight: '45px' }}>Support</span></a></li>
+                                <li id="Settings" className="nav-item" onClick={(event) => setActive('Settings', event)}><a><Icon iconName="Settings" /><span>Settings</span></a></li>
                             </ul>
                         }
                         {/* <Menu>
