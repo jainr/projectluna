@@ -6,7 +6,7 @@ import SyntaxHighlighter from "react-syntax-highlighter";
 import { vs } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import mytext from './SampleCode';
 import FooterLinks from '../FooterLinks/FooterLinks';
-import { Stack, Text, Link, Image, StackItem, TextField, ImageFit, Panel, DefaultButton, PrimaryButton, Separator, Dropdown, IDropdownOption, Dialog, DialogType, IModalProps, IDialogContentProps, DialogFooter, Pivot, PivotItem, Label, IconButton } from '@fluentui/react';
+import { Stack, Text, Link, Image, StackItem, TextField, ImageFit, Panel, DefaultButton, PrimaryButton, Separator, Dropdown, IDropdownOption, Dialog, DialogType, IModalProps, IDialogContentProps, DialogFooter, Pivot, PivotItem, Label, IconButton, PanelType } from '@fluentui/react';
 import { PanelStyles } from '../../helpers/PanelStyles';
 import { getTheme } from '@fluentui/react';
 import { SharedColors } from '@uifabric/fluent-theme';
@@ -20,8 +20,9 @@ import { PromptState } from 'msal/lib-commonjs/utils/Constants';
 import { withRouter } from "react-router-dom";
 import { useHistory, useLocation } from 'react-router';
 import { GetApplicationDetails } from './GetApplicationDetails';
-import {IApplication} from './IApplication';
-import {IApplicationSubscription} from './IApplicationSubscription';
+import { IApplication } from './IApplication';
+import { IApplicationSubscription } from './IApplicationSubscription';
+import MySubscriptionDetails from './MySubscriptionDetails';
 
 const theme = getTheme();
 
@@ -30,7 +31,6 @@ const AIServiceDetails = () => {
   const [offerData, setOfferData] = React.useState<any[]>();
   const [initOffferData, setInitOfferData] = React.useState<any[]>();
   const [isOpen, { setTrue: openPanel, setFalse: dismissPanel }] = useBoolean(false);
-  const [isNewOpen, { setTrue: openNewPanel, setFalse: dismissNewPanel }] = useBoolean(false);
   const [isNewSubSuccessful, setIsNewSubSuccessful] = React.useState(false);
   const [isDataLoading, setIsDataLoading] = React.useState(true);
   const [planOptions, setPlanOptions] = React.useState<IDropdownOption[]>([]);
@@ -43,6 +43,8 @@ const AIServiceDetails = () => {
   const [applicationDetail, setApplicationDetail] = React.useState<{}>();
   const [selectedValues, setSelectedValues] = React.useState<ISelectedItems>();
   const [loadingSubscription, setLoadingSubscription] = React.useState<boolean>(true);
+  const [isOwnerPanelOpen, toggleOwnerPanel] = React.useState(false);
+  const [subscriptionData, setSubscriptionData] = React.useState<IApplicationSubscription>();
 
   const [applicationData, setApplicationData] = React.useState<IApplication>({
     UniqueName: "",
@@ -58,17 +60,15 @@ const AIServiceDetails = () => {
   const [applicationSubscriptions, setApplicationSubscriptions] = React.useState<IApplicationSubscription[]>([]);
 
   const loadLanguagesList = () => {
-   
-    languageOptions.push({"key":"Python","text":"REST API - Python"});
+
+    languageOptions.push({ "key": "Python", "text": "REST API - Python" });
     setLanguageOptions(languageOptions);
   }
 
-  const loadAPIList = (applicationData:IApplication) => {
-   
-    // aPIOptions.push({"key":"French","text":"French"});
-    applicationData.Details.apIs?.forEach((api: any )  => 
-      aPIOptions.push({"key" : api.name, 'text': api.name }) 
-    );    
+  const loadAPIList = (applicationData: IApplication) => {
+    applicationData.Details.apIs?.forEach((api: any) =>
+      aPIOptions.push({ "key": api.name, 'text': api.name })
+    );
     setAPIOptions(aPIOptions);
   }
 
@@ -77,9 +77,9 @@ const AIServiceDetails = () => {
       return obj.name === selectedAPI
     })
     let apiVersionOptions: IDropdownOption[] = [];
-    apiObj?.versions?.forEach((version: any )  => 
-    apiVersionOptions.push({"key" : version.name, 'text': version.name }) 
-    );    
+    apiObj?.versions?.forEach((version: any) =>
+      apiVersionOptions.push({ "key": version.name, 'text': version.name })
+    );
     setAPIVersionOptions(apiVersionOptions);
   }
 
@@ -92,9 +92,9 @@ const AIServiceDetails = () => {
     });
 
     let apiVersionOperationOptions: IDropdownOption[] = [];
-    versionObj?.operations?.forEach((operation: any )  => 
-    apiVersionOperationOptions.push({"key" : operation, 'text': operation }) 
-    );    
+    versionObj?.operations?.forEach((operation: any) =>
+      apiVersionOperationOptions.push({ "key": operation, 'text': operation })
+    );
     setOperationOptions(apiVersionOperationOptions);
   }
 
@@ -102,110 +102,128 @@ const AIServiceDetails = () => {
     setIsExpand(!isExpand);
   }
 
-  const getApplicationDetails = () => 
-  {
+  const onRenderFooterContent = React.useCallback(
+    () => (
+      <div style={{ textAlign: 'right' }}>
+        <DefaultButton onClick={dismissPanel}>Close</DefaultButton>
+      </div>
+    ),
+    [dismissPanel],
+  );
+
+  const getApplicationDetails = () => {
     fetch(`${window.BASE_URL}/gallery/applications/lunanlp`, {
       mode: "cors",
       method: "GET",
-      headers: {         
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Luna-User-Id': 'test-admin',
-          'Host': 'lunatest-gateway.azurewebsites.net'         
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Luna-User-Id': 'test-admin',
+        'Host': 'lunatest-gateway.azurewebsites.net'
       },
-  })
-  .then(response => response.json())
-  .then(_data => { setApplicationData(_data); loadAPIList(_data);});
-    
+    })
+      .then(response => response.json())
+      .then(_data => { setApplicationData(_data); loadAPIList(_data); });
+
   }
-  const loadTabData = (item : PivotItem) => 
-  {
-    if(item.props.itemKey==='My Subscriptions')
-    {
-      // getApplicationSubscriptions();
+  const loadTabData = (item: PivotItem) => {
+    if (item.props.itemKey === 'My Subscriptions') {
+      //  getApplicationSubscriptions();
     }
   }
-  const getApplicationSubscriptions = () => 
-  {
-  
-  //   fetch(`${window.BASE_URL}/gallery/applications/lunanlp/subscriptions`, {
-  //     mode: "cors",
-  //     method: "GET",
-  //     headers: {         
-  //         'Accept': 'application/json',
-  //         'Content-Type': 'application/json',
-  //         'Luna-User-Id': 'test-admin',
-  //         'Host': 'lunatest-gateway.azurewebsites.net'         
-  //     },
-  // })
-  // .then(response => response.json())
-  // .then(_data => { setApplicationSubscriptions(_data)});
-  const data ={
-    subscriptionId: '123',
-    baseUrl: "lcjnadlcnadljc",
-    createdTime: "22-06-2021",
-    primaryKey: "kackbcleleakc",
-    secondaryKey: "acbkcdicbdkbc",
-    notes: "notes",
-    subscriptionName: "mysub",
-    owner: [{
-      userId: '1',
-      userName: 'User'
-    }]
+
+  const togglePanel = (value: boolean) => {
+    toggleOwnerPanel(value);
   }
-  // setApplicationSubscriptions(data);
-  applicationSubscriptions.push(data); 
+
+  const setSelectedSubscription = (selectedSubscriptionName: string)=>
+  {
+    var subscriptionData = applicationSubscriptions.filter((e)=>e.SubscriptionName === selectedSubscriptionName);
+    setSubscriptionData(subscriptionData[0]);
+    openPanel();
+  }
+  const getApplicationSubscriptions = () => {
+
+    fetch(`${window.BASE_URL}/gallery/applications/lunanlp/subscriptions`, {
+      mode: "cors",
+      method: "GET",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Luna-User-Id': 'test-admin',
+        'Host': 'lunatest-gateway.azurewebsites.net'
+      },
+    })
+      .then(response => response.json())
+      .then(_data => { setApplicationSubscriptions(_data) });
+    // const data ={
+    //   subscriptionId: '123',
+    //   baseUrl: "lcjnadlcnadljc",
+    //   createdTime: "22-06-2021",
+    //   primaryKey: "kackbcleleakc",
+    //   secondaryKey: "acbkcdicbdkbc",
+    //   notes: "notes",
+    //   subscriptionName: "mysub",
+    //   owner: [{
+    //     userId: '1',
+    //     userName: 'User'
+    //   }]
+    // }
+    // setApplicationSubscriptions(data);
+    // applicationSubscriptions.push(data); 
+    // setApplicationSubscriptions(applicationSubscriptions);
   }
 
   React.useEffect(() => {
-      getApplicationDetails();
-      loadLanguagesList();     
-      getApplicationSubscriptions();     
+    getApplicationDetails();
+    loadLanguagesList();
+    getApplicationSubscriptions();
   }, []);
 
   return (
     <div className="AIServices">
       <div style={PanelStyles}>
-      <Text block variant={'xLargePlus'}>AI Service: Text Summarization</Text>
+        <Text block variant={'xLargePlus'}>AI Service: Text Summarization</Text>
         <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
           <StackItem className="divWidth25">
-            <Text block variant={'medium'} style={{marginTop: '10px', color: 'grey' }}>Publisher: ACE Team</Text>
-            <div style={{paddingRight: '10px', borderRight: '1px solid black'}}>
-              <Text block variant={'medium'} style={{marginTop: '20px', fontWeight: 'bold' }}>Description</Text>
-              <Text block variant={'medium'} style={{marginTop: '5px' }}>Summarize text documents and articles using machine learning. This model helps you create summary from meeting notes, news and other articles…</Text>
-              <Text block variant={'medium'} style={{marginTop: '20px', fontWeight: 'bold', marginBottom: '20px' }}>Tags</Text>
-              <div style={{display: 'flex', 'flexDirection': 'row'}}>
-                <div  style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px',width:'15%' }}>SaaS</div>
-                <div  style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px',width:'15%' }}>NLP</div>
-                <div style={{fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '5px 5px', borderRadius: '5px',width:'140px' }}>Publisher: ACE Team</div>
+            <Text block variant={'medium'} style={{ marginTop: '10px', color: 'grey' }}>Publisher: ACE Team</Text>
+            <div style={{ paddingRight: '10px', borderRight: '1px solid black' }}>
+              <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>Description</Text>
+              <Text block variant={'medium'} style={{ marginTop: '5px' }}>Summarize text documents and articles using machine learning. This model helps you create summary from meeting notes, news and other articles…</Text>
+              <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold', marginBottom: '20px' }}>Tags</Text>
+              <div style={{ display: 'flex', 'flexDirection': 'row' }}>
+                <div style={{ fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px', width: '15%' }}>SaaS</div>
+                <div style={{ fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px', width: '15%' }}>NLP</div>
+                <div style={{ fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '5px 5px', borderRadius: '5px', width: '140px' }}>Publisher: ACE Team</div>
               </div>
-              <Text block variant={'medium'} style={{marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
-              <Text block variant={'medium'} style={{marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer'}}>+ Subscribe Now</Text>
+              <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
+              <Text block variant={'medium'} style={{ marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer' }}>+ Subscribe Now</Text>
             </div>
           </StackItem>
           <StackItem className="divWidth75">
             <StackItem>
-              <div style={{width:'700px', height:'370px'}}>
+              <div style={{ width: '700px', height: '370px' }}>
                 <Pivot onLinkClick={(item?: PivotItem) => loadTabData(item!)}>
                   <PivotItem headerText={"Sample Code"} itemKey={"Sample Code"}>
-                    <div style={{display:'flex'}} >
-                    <Label style={{margin:'10px'}}>Language:</Label>
+                    <div style={{ display: 'flex' }} >
+                      <Label style={{ margin: '10px' }}>Language:</Label>
                       <Dropdown options={languageOptions}
-                      placeholder={"Select a Language"}
-                      style={{margin:'10px'}}
-                      />                                          
-                    </div>                    
-                    <div style={{ ...isExpand ? { display: 'none' } : { display: 'block' }, margin:'10px' }}>
-                          Advance Settings <IconButton iconProps={{ iconName: 'ChevronUpMed' }} title="Collapse" ariaLabel="Collapse" onClick={ExpandCollapseClick} /> 
-                          <table style={{margin:'10px' }}>
-                            <tr>
-                              <td>
+                        placeholder={"Select a Language"}
+                        style={{ margin: '10px' }}
+                      />
+                    </div>
+                    <div style={{ ...isExpand ? { display: 'none' } : { display: 'block' }, margin: '10px' }}>
+                      Advance Settings <IconButton iconProps={{ iconName: 'ChevronUpMed' }} title="Collapse" ariaLabel="Collapse" onClick={ExpandCollapseClick} />
+                      <table style={{ margin: '10px' }}>
+                        <tbody>
+                          <tr>
+                            <td>
                               <Label>API:</Label>
-                              </td>
-                              <td>
+                            </td>
+                            <td>
                               <Dropdown options={aPIOptions}
                                 placeholder={"Select an API"}
-                                style={{margin:'10px', width:'170px'}}
+                                style={{ margin: '10px', width: '170px' }}
                                 onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
                                   setSelectedValues({
                                     application: "",
@@ -213,17 +231,17 @@ const AIServiceDetails = () => {
                                     version: "",
                                     operation: "",
                                   });
-                                  loadAPIVersionList(option?.text!);                                  
+                                  loadAPIVersionList(option?.text!);
                                 }}
-                              />                       
-                              </td>
-                              <td>
-                                <Label>API Version:</Label>
-                              </td>
-                              <td>
+                              />
+                            </td>
+                            <td>
+                              <Label>API Version:</Label>
+                            </td>
+                            <td>
                               <Dropdown options={aPIVersionOptions}
                                 placeholder={"Select an API Version"}
-                                style={{margin:'10px', width:'170px'}}
+                                style={{ margin: '10px', width: '170px' }}
                                 selectedKey={selectedValues?.version}
                                 onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
                                   setSelectedValues({
@@ -232,19 +250,19 @@ const AIServiceDetails = () => {
                                     version: option?.text!,
                                     operation: "",
                                   });
-                                  loadOperationList(selectedValues?.api!,option?.text!);                                  
+                                  loadOperationList(selectedValues?.api!, option?.text!);
                                 }}
-                              />                       
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <Label>Operation:</Label>
-                              </td>
-                              <td>
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <Label>Operation:</Label>
+                            </td>
+                            <td>
                               <Dropdown options={operationOptions}
                                 placeholder={"Select an Operation"}
-                                style={{margin:'10px', width:'170px'}}
+                                style={{ margin: '10px', width: '170px' }}
                                 selectedKey={selectedValues?.operation}
                                 onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
                                   setSelectedValues({
@@ -254,107 +272,108 @@ const AIServiceDetails = () => {
                                     operation: option?.text!,
                                   });
                                 }}
-                              />                       
-                              </td>
-                            </tr>
-                          </table>
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
-                    <div style={{ ...isExpand ? { display: 'block' } : { display: 'none' }, margin:'10px'  }}> Advance Settings <IconButton iconProps={{ iconName: 'ChevronDownMed' }} title="Expand" ariaLabel="Expand" onClick={ExpandCollapseClick} />
+                    <div style={{ ...isExpand ? { display: 'block' } : { display: 'none' }, margin: '10px' }}> Advance Settings <IconButton iconProps={{ iconName: 'ChevronDownMed' }} title="Expand" ariaLabel="Expand" onClick={ExpandCollapseClick} />
                     </div>
-                    <div style={{textAlign:'right',width:'80%'}}>
+                    <div style={{ textAlign: 'right', width: '80%' }}>
                       <a href="https://aka.ms/lunasynapsenotebook" target="new"><u>Open in Synapse Notebook</u></a>
                     </div>
-                    <div style={{margin:'10px',boxShadow:'0px 0px 10px 4px #888888',width:'80%'}}>  
-                  <SyntaxHighlighter language="typescript" style={vs}>
-                      {mytext}
-                  </SyntaxHighlighter>
-                  </div>
-                  <div style={{color:'blue',margin:'10px'}}>
-                    <Text>More Sample Code</Text><IconButton text="More Sample Code" iconProps={{iconName:"OpenInNewWindow"}} target=""  /><br />
-                    <Text>Swagger</Text><IconButton text="Swagger" iconProps={{iconName:"OpenInNewWindow"}} target=""  /> <br />
-                  </div>
+                    <div style={{ margin: '10px', boxShadow: '0px 0px 10px 4px #888888', width: '80%' }}>
+                      <SyntaxHighlighter language="typescript" style={vs}>
+                        {mytext}
+                      </SyntaxHighlighter>
+                    </div>
+                    <div style={{ color: 'blue', margin: '10px' }}>
+                      <Text>More Sample Code</Text><IconButton text="More Sample Code" iconProps={{ iconName: "OpenInNewWindow" }} target="" /><br />
+                      <Text>Swagger</Text><IconButton text="Swagger" iconProps={{ iconName: "OpenInNewWindow" }} target="" /> <br />
+                    </div>
                   </PivotItem>
                   <PivotItem headerText={"My Subscriptions"} itemKey={"My Subscriptions"}>
-                  <React.Fragment>
-                  <div style={{margin:'10px' }}>
-                  <table style={{ width: '90%',borderCollapse:'collapse'}}>
-                    <thead>
-                        <tr style={{borderBottom:'1px solid black',borderTop:'1px solid black'}}>
-                            <th style={{width:'30%',padding:0}}>
-                                <Label title={"Subscription Name"} > Subscription Name</Label> 
-                            </th>
-                            <th style={{width:'50%',padding:0}}>
+                    <React.Fragment>
+                      <div style={{ margin: '10px' }}>
+                        <table style={{ width: '90%', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid black', borderTop: '1px solid black' }}>
+                              <th style={{ width: '30%', padding: 0 }}>
+                                <Label title={"Subscription Name"} > Subscription Name</Label>
+                              </th>
+                              <th style={{ width: '50%', padding: 0 }}>
                                 <Label title={"Subscription Id"} >Subscription Id</Label>
-                            </th>
-                            <th style={{width:'20%%',padding:0}}>
+                              </th>
+                              <th style={{ width: '20%%', padding: 0 }}>
                                 <Label title={"Created Date"} >Created Date</Label>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            applicationSubscriptions?.map((values, idx) => {
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {
+                              applicationSubscriptions?.map((values, idx) => {
                                 return (
-                                    <tr key={idx} style={{lineHeight:'30px',textAlign: 'center'}}>
-                                        <td>
-                                            <Link onClick={openPanel} >{values.subscriptionName}</Link>
-                                        </td>
-                                        <td>
-                                            {values.subscriptionId}
-                                        </td>
-                                        <td>
-                                            {values.createdTime}
-                                        </td>
-                                    </tr>
+                                  <tr key={idx} style={{ lineHeight: '30px', textAlign: 'center' }}>
+                                    <td>
+                                      <Link onClick={()=>setSelectedSubscription(values.SubscriptionName)} >{values.SubscriptionName}</Link>
+                                    </td>
+                                    <td>
+                                      {values.SubscriptionId}
+                                    </td>
+                                    <td>
+                                      {values.CreatedTime}
+                                    </td>
+                                  </tr>
                                 )
-                            })
-                        }
-                    </tbody>
-                    </table>
-                    </div>
+                              })
+                            }
+                          </tbody>
+                        </table>
+                      </div>
                     </React.Fragment>
-                </PivotItem>
-                <PivotItem headerText={"Swagger"} itemKey={"Swagger"} >
+                  </PivotItem>
+                  <PivotItem headerText={"Swagger"} itemKey={"Swagger"} >
 
-                </PivotItem>
-                <PivotItem headerText={"Recommendations"}  itemKey={"Recommendations"}>
+                  </PivotItem>
+                  <PivotItem headerText={"Recommendations"} itemKey={"Recommendations"}>
 
-                </PivotItem>
-                <PivotItem headerText={"Reviews"} itemKey={"Reviews"}>
+                  </PivotItem>
+                  <PivotItem headerText={"Reviews"} itemKey={"Reviews"}>
 
-                </PivotItem>
+                  </PivotItem>
                 </Pivot>
               </div>
-             </StackItem>           
+            </StackItem>
           </StackItem>
         </Stack>
-        </div>
-        <br />
-        <div style={{height:'500px'}}>
-          <p>
-      
-           </p>
-        </div>
+      </div>
+      <br />
       <FooterLinks />
       <Panel
-        headerText="Sample panel"
+        headerText="My Subscription"
         isOpen={isOpen}
         onDismiss={dismissPanel}
-        // You MUST provide this prop! Otherwise screen readers will just say "button" with no label.
         closeButtonAriaLabel="Close"
+        isFooterAtBottom={true}
+        onRenderFooterContent={onRenderFooterContent}
+        hasCloseButton={false}
+        // type={PanelType.custom}
+        // customWidth={"400px"}
+        isBlocking={false}
       >
-        <p>Content goes here.</p>
-        <Link >Open more panel</Link>
+        <MySubscriptionDetails toggle={togglePanel} subscription={subscriptionData} />
       </Panel>
       <Panel
         headerText="Sample panel"
-        isOpen={isNewOpen}
-        onDismiss={dismissNewPanel}
+        isOpen={isOwnerPanelOpen}
+        onDismiss={() => toggleOwnerPanel(false)}
         // You MUST provide this prop! Otherwise screen readers will just say "button" with no label.
         closeButtonAriaLabel="Close"
       >
         <p>Content goes here.</p>
-        <Link onClick={openNewPanel}>Open more panel</Link>
+        Second Panel
+        <DefaultButton onClick={() => { toggleOwnerPanel(false); openPanel() }}>Cancel</DefaultButton>
       </Panel>
     </div>
   );
