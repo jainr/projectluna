@@ -52,7 +52,9 @@ const AIServiceDetails = () => {
     DocumentationUrl: "",
     Publisher: "",
     Tags: [],
-    Details: {}
+    Details: {},
+    type:'',
+    isSubScribed:false
   });
 
   const [applicationSubscriptions, setApplicationSubscriptions] = React.useState<IApplicationSubscription[]>([]);
