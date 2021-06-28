@@ -2,6 +2,6 @@
 // Licensed under the MIT License.
 
 export interface ISubscriptionOwner {
-  userId: string,
-  userName: string
+  UserId: string,
+  UserName: string
 }

@@ -23,6 +23,7 @@ import { GetApplicationDetails } from './GetApplicationDetails';
 import { IApplication } from './IApplication';
 import { IApplicationSubscription } from './IApplicationSubscription';
 import MySubscriptionDetails from './MySubscriptionDetails';
+import MySubscriptionOwnersDetails from './MySubscriptionOwnersDetails';
 
 const theme = getTheme();
 
@@ -45,6 +46,8 @@ const AIServiceDetails = () => {
   const [loadingSubscription, setLoadingSubscription] = React.useState<boolean>(true);
   const [isOwnerPanelOpen, toggleOwnerPanel] = React.useState(false);
   const [subscriptionData, setSubscriptionData] = React.useState<IApplicationSubscription>();
+  const [hideAddNewSub, setHideAddNewSub] = React.useState(true);
+  const [subName,setSubName] = React.useState<string>('');
 
   const [applicationData, setApplicationData] = React.useState<IApplication>({
     UniqueName: "",
@@ -104,15 +107,18 @@ const AIServiceDetails = () => {
 
   const onRenderFooterContent = React.useCallback(
     () => (
-      <div style={{ textAlign: 'right' }}>
-        <DefaultButton onClick={dismissPanel}>Close</DefaultButton>
+      <Stack horizontal>
+      <PrimaryButton style={{ marginLeft:'100px' }} text="Save" ></PrimaryButton>      
+      <div style={{ marginLeft:'30px' }}>        
+        <DefaultButton onClick={() => { toggleOwnerPanel(false); openPanel() }}>Cancel</DefaultButton>     
       </div>
+      </Stack>            
     ),
     [dismissPanel],
   );
 
   const getApplicationDetails = () => {
-    fetch(`${window.BASE_URL}/gallery/applications/lunanlp`, {
+    fetch(`${window.BASE_URL}/gallery/applications/newapp`, {
       mode: "cors",
       method: "GET",
       headers: {
@@ -126,25 +132,50 @@ const AIServiceDetails = () => {
       .then(_data => { setApplicationData(_data); loadAPIList(_data); });
 
   }
+
+  const addSubscription = () => {
+    fetch(`${window.BASE_URL}/gallery/applications/newapp/subscriptions/`+ subName, {
+      mode: "cors",
+      method: "PUT",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Luna-User-Id': 'test-admin',
+        'Host': 'lunatest-gateway.azurewebsites.net'
+      },
+    })
+      .then(response => response.json())
+      .then(_data => getApplicationSubscriptions());      
+
+  }
   const loadTabData = (item: PivotItem) => {
     if (item.props.itemKey === 'My Subscriptions') {
       //  getApplicationSubscriptions();
     }
   }
 
+
   const togglePanel = (value: boolean) => {
     toggleOwnerPanel(value);
   }
 
+  const closePanel=()=>
+  {
+    dismissPanel();
+  }
   const setSelectedSubscription = (selectedSubscriptionName: string)=>
   {
     var subscriptionData = applicationSubscriptions.filter((e)=>e.SubscriptionName === selectedSubscriptionName);
     setSubscriptionData(subscriptionData[0]);
     openPanel();
   }
+
+  const setSubNameValue = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+    setSubName(newValue || '');
+}
   const getApplicationSubscriptions = () => {
 
-    fetch(`${window.BASE_URL}/gallery/applications/lunanlp/subscriptions`, {
+    fetch(`${window.BASE_URL}/gallery/applications/newapp/subscriptions`, {
       mode: "cors",
       method: "GET",
       headers: {
@@ -322,7 +353,7 @@ const AIServiceDetails = () => {
                                       {values.SubscriptionId}
                                     </td>
                                     <td>
-                                      {values.CreatedTime}
+                                      {values.CreatedTime.substr(0,10)}
                                     </td>
                                   </tr>
                                 )
@@ -330,6 +361,11 @@ const AIServiceDetails = () => {
                             }
                           </tbody>
                         </table>
+                        <Link onClick={()=> setHideAddNewSub(false)}>+ New</Link>
+                        <div style={{ display : hideAddNewSub ? 'none' : 'block', width:'250px',border:'1px solid black',padding:'10px'}}>                          
+                          <TextField label={"Subscription Name:"} value={subName} onChange={setSubNameValue}></TextField>
+                          <PrimaryButton style={{marginTop:'5px'}} onClick={()=>{addSubscription(); setSubName('')}}>Submit</PrimaryButton>
+                        </div>
                       </div>
                     </React.Fragment>
                   </PivotItem>
@@ -353,27 +389,26 @@ const AIServiceDetails = () => {
       <Panel
         headerText="My Subscription"
         isOpen={isOpen}
-        onDismiss={dismissPanel}
-        closeButtonAriaLabel="Close"
-        isFooterAtBottom={true}
-        onRenderFooterContent={onRenderFooterContent}
+        // onDismiss={dismissPanel}
+        // closeButtonAriaLabel="Close"
+        isFooterAtBottom={true}        
         hasCloseButton={false}
-        // type={PanelType.custom}
-        // customWidth={"400px"}
+        type={PanelType.custom}
+        customWidth={"400px"}
         isBlocking={false}
       >
-        <MySubscriptionDetails toggle={togglePanel} subscription={subscriptionData} />
+        <MySubscriptionDetails toggle={togglePanel} closePanel={closePanel} subscription={subscriptionData} />
       </Panel>
       <Panel
-        headerText="Sample panel"
+        headerText="Subscription Owners"
         isOpen={isOwnerPanelOpen}
         onDismiss={() => toggleOwnerPanel(false)}
-        // You MUST provide this prop! Otherwise screen readers will just say "button" with no label.
+        onRenderFooterContent={onRenderFooterContent}                            
         closeButtonAriaLabel="Close"
+        isFooterAtBottom={true}
+        hasCloseButton={false}
       >
-        <p>Content goes here.</p>
-        Second Panel
-        <DefaultButton onClick={() => { toggleOwnerPanel(false); openPanel() }}>Cancel</DefaultButton>
+        <MySubscriptionOwnersDetails subscription={subscriptionData} />        
       </Panel>
     </div>
   );
