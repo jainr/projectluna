@@ -138,11 +138,13 @@ class ScenarioTest(HttpUser):
         self._assert_success(response)
         print("Endpoint Results: " + str(response.content))
 
-        # 8.	Get application master key [GET]
+        # 8.	regenerate application master key [POST]
         uri = self.app_url + resource_name + "/regeneratemasterkeys?key-name=primaryKey"
         response = self.client.post(uri, headers=self.headerData, data=json.dumps(body))
         self._assert_success(response)
         masterKey = response.json()['PrimaryMasterKey']
+        
+        time.sleep(15)
         
         # # 7.	Call Realtime Endpoint with the new application master key[POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
