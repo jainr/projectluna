@@ -128,7 +128,7 @@ class ScenarioTest(HttpUser):
 
         # # Endpoint Tests
         # #############################################
-        time.sleep(15)
+        time.sleep(30)
 
         # # 7.	Call Realtime Endpoint [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
@@ -144,7 +144,7 @@ class ScenarioTest(HttpUser):
         self._assert_success(response)
         masterKey = response.json()['PrimaryMasterKey']
         
-        time.sleep(15)
+        time.sleep(30)
         
         # # 7.	Call Realtime Endpoint with the new application master key[POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
