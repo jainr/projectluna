@@ -26,9 +26,6 @@ namespace Luna.Publish.Public.Client
         [JsonProperty(PropertyName = "EntryScriptFileName", Required = Required.Always)]
         public string EntryScriptFileName { get; set; }
 
-        [JsonProperty(PropertyName = "ResultFileName", Required = Required.Always)]
-        public string ResultFileName { get; set; }
-
         [JsonProperty(PropertyName = "TimeoutInSeconds", Required = Required.Always)]
         public int TimeoutInSeconds { get; set; }
 

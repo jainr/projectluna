@@ -104,6 +104,9 @@ namespace Luna.Publish.Clients
                                 case MarketplaceProvisioningStepType.ARMTemplate:
                                     stepProp = JsonConvert.DeserializeObject<ARMTemplateProvisioningStepProp>(step["Properties"].ToString());
                                     break;
+                                case MarketplaceProvisioningStepType.Script:
+                                    stepProp = JsonConvert.DeserializeObject<ScriptProvisioningStepProp>(step["Properties"].ToString());
+                                    break;
                             }
                         }
 

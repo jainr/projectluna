@@ -1,4 +1,5 @@
 ﻿using Luna.Gallery.Public.Client;
+using Luna.Provision.Data;
 using Luna.Publish.Public.Client;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Luna.Provision.Clients
 {
-    public class ScriptProvisionStep : BaseProvisionStep, IAsyncProvisionStep
+    public class ScriptProvisionStepClient : BaseProvisionStepClient, IAsyncProvisionStepClient
     {
         private const string LOG_FILE_NAME = "log.txt";
         private const string ERROR_LOG_FILE_NAME = "error.txt";
@@ -19,10 +20,16 @@ namespace Luna.Provision.Clients
 
         public ScriptProvisioningStepProp Properties { get; set; }
 
+        public ScriptProvisionStepClient(ScriptProvisioningStepProp properties)
+        {
+            this.Properties = properties;
+        }
+
         public async Task<ProvisionStepExecutionResult> CheckExecutionStatusAsync(List<MarketplaceSubscriptionParameter> parameters)
         {
             var remoteUtils = GetSshUtils(parameters);
-            var content = remoteUtils.ReadFileContent(ERROR_LOG_FILE_NAME);
+            var working_dir = parameters.LastOrDefault(x => x.Name == WORKING_DIR_PARAM_NAME);
+            var content = remoteUtils.ReadFileContent($"{working_dir.Value}/{STATUS_FILE_NAME}");
             if (content.Equals(COMPLETED_STATUS_CONTENT, StringComparison.InvariantCultureIgnoreCase))
             {
                 return ProvisionStepExecutionResult.Completed;

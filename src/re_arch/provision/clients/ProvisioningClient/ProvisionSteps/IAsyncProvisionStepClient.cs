@@ -1,4 +1,5 @@
 ﻿using Luna.Gallery.Public.Client;
+using Luna.Provision.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Luna.Provision.Clients
 {
-    public interface IAsyncProvisionStep
+    public interface IAsyncProvisionStepClient
     {
         Task<List<MarketplaceSubscriptionParameter>> StartAsync(List<MarketplaceSubscriptionParameter> parameters);
 

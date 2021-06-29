@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Luna.Provision.Clients
 {
-    public abstract class BaseProvisionStep
+    public abstract class BaseProvisionStepClient
     {
         public bool IsSynchronized { get; set; }
 

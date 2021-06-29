@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Luna.Provision.Clients
 {
-    public interface ISyncProvisionStep
+    public interface ISyncProvisionStepClient
     {
         Task<List<MarketplaceSubscriptionParameter>> RunAsync(List<MarketplaceSubscriptionParameter> parameters);
 

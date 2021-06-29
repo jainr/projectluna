@@ -45,6 +45,8 @@ namespace Luna.Provision.Data
 
         public string LastErrorMessage { get; set; }
 
+        public string ProvisionSteps { get; set; }
+
         public DateTime CreatedTime { get; set; }
 
         public DateTime LastUpdatedTime { get; set; }

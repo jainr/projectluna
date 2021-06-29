@@ -31,6 +31,7 @@ namespace Luna.Provision.Clients
             var content = "";
             using (var client = new SshClient(this._host, this._userName, file))
             {
+                client.Connect();
                 var command = client.RunCommand($"cat {fileName}");
                 content = command.Result;
             }
@@ -54,6 +55,7 @@ namespace Luna.Provision.Clients
 
             using (var client = new SshClient(this._host, this._userName, file))
             {
+                client.Connect();
                 client.RunCommand($"rm -rf {directoryName}");
             }
 
@@ -81,8 +83,8 @@ namespace Luna.Provision.Clients
             {
                 client.Connect();
                 CreateWorkingDirectory(client, workingDir);
-                DowloadAndUnzipPackage(client, packageUrl);
-                ExecuteCommandInternal(client, scriptFileName, parameters, logFile, errorLogFile);
+                DowloadAndUnzipPackage(client, packageUrl, workingDir);
+                ExecuteCommandInternal(client, workingDir, scriptFileName, parameters, logFile, errorLogFile);
                 client.Disconnect();
             }
 
@@ -107,25 +109,26 @@ namespace Luna.Provision.Clients
 
         private void CreateWorkingDirectory(SshClient client, string directoryName)
         {
-            client.RunCommand($"mkdir -p {directoryName}");
-            client.RunCommand($"cd {directoryName}");
+            var result = client.RunCommand($"mkdir -p {directoryName}");
         }
 
-        private void DowloadAndUnzipPackage(SshClient client, string packageUrl)
+        private void DowloadAndUnzipPackage(SshClient client, string packageUrl, string workingDir)
         {
             var localPackageName = Guid.NewGuid().ToString("N") + ".zip";
-            client.RunCommand($"wget {packageUrl} -O {localPackageName}");
-            client.RunCommand($"unzip -o {localPackageName}");
+            var result = client.RunCommand($"cd {workingDir}; wget \"{packageUrl}\" -O {localPackageName}");
+            result = client.RunCommand("sudo apt-get install -y unzip");
+            result = client.RunCommand($"cd {workingDir}; unzip -o {localPackageName}");
         }
 
         private void ExecuteCommandInternal(SshClient client, 
+            string workingDir,
             string scriptFileName,
             List<MarketplaceSubscriptionParameter> parameters,
             string logFile,
             string errorLogFile)
         {
             StringBuilder result = new StringBuilder();
-            result.Append($"{scriptFileName} ");
+            result.Append($"cd {workingDir}; chmod u+r+x ./{scriptFileName}; ./{scriptFileName} ");
             foreach(var param in parameters)
             {
                 if (param.Type.Equals(MarketplaceParameterValueType.String.ToString()))
@@ -140,7 +143,8 @@ namespace Luna.Provision.Clients
 
             result.Append($"1>{logFile} 2>{errorLogFile} &");
 
-            client.RunCommand(result.ToString());
+            var execResult = client.RunCommand(result.ToString());
+
         }
     }
 }

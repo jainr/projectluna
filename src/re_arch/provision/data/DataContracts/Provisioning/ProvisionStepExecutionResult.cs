@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Luna.Provision.Clients
+namespace Luna.Provision.Data
 {    public enum ProvisionStepExecutionResult
     {
         Running,
