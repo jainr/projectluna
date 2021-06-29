@@ -30,7 +30,7 @@ class ScenarioTest(HttpUser):
 
     @task
     def create_and_call_realtime_endpoint(self):
-        resource_name = "test" + uuid.uuid1()
+        resource_name = "test" + str(uuid.uuid1())
 
         # Resource Creation Tests
         ##############################################
