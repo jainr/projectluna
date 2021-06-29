@@ -22,6 +22,7 @@ const MySubscriptionDetails = (props: any) => {
     const [hideDeleteSubscriptionDialog, setHideDeleteSubscriptionDialog] = React.useState(true);
     const [subName, setSubName] = React.useState<string>();
     const [isSubNameWrong, setSubNameWrong] = React.useState<boolean>(false);
+    const [selectedApplication, setselectedApplication] = React.useState<string | null>(sessionStorage.getItem('selectedApplication'));
 
     const labelId: string = 'dialogLabel';
     const subTextId: string = 'subTextLabel';
@@ -122,7 +123,7 @@ const MySubscriptionDetails = (props: any) => {
     const updateNotes = () => {
         var updatedNotes = { notes: subNotes };
         console.log(JSON.stringify(updatedNotes))
-        fetch(window.BASE_URL + '/gallery/applications/newapp/subscriptions/' + subscriptionDetail?.SubscriptionId + '/updatenotes', {
+        fetch(window.BASE_URL + '/gallery/applications/'+selectedApplication+'/subscriptions/' + subscriptionDetail?.SubscriptionId + '/updatenotes', {
             mode: "cors",
             method: "POST",
             headers: {
@@ -142,7 +143,7 @@ const MySubscriptionDetails = (props: any) => {
             });
     }
     const loadSubscriptionDetail = (subscriptionId: string) => {
-        fetch(window.BASE_URL + '/gallery/applications/newapp/subscriptions/' + subscriptionId, {
+        fetch(window.BASE_URL + '/gallery/applications/'+selectedApplication+'/subscriptions/' + subscriptionId, {
             mode: "cors",
             method: "GET",
             headers: {
@@ -162,7 +163,7 @@ const MySubscriptionDetails = (props: any) => {
     }
 
     const regenerateSubscriptionKey = (keyType: string) => {
-        fetch(window.BASE_URL + '/gallery/applications/newapp/subscriptions/' + props.subscription.SubscriptionId + '/regeneratekey?key-name=' + keyType, {
+        fetch(window.BASE_URL + '/gallery/applications/'+selectedApplication+'/subscriptions/' + props.subscription.SubscriptionId + '/regeneratekey?key-name=' + keyType, {
             mode: "cors",
             method: "POST",
             headers: {
@@ -181,7 +182,7 @@ const MySubscriptionDetails = (props: any) => {
 
     const deleteSubscriptionKey = () => {
         if (subName === subscriptionDetail?.SubscriptionName) {
-            fetch(window.BASE_URL + '/gallery/applications/newapp/subscriptions/' + subscriptionDetail?.SubscriptionName, {
+            fetch(window.BASE_URL + '/gallery/applications/'+selectedApplication+'/subscriptions/' + subscriptionDetail?.SubscriptionName, {
                 mode: "cors",
                 method: "DELETE",
                 headers: {
