@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-export interface ISubscriptionOwner {
-  UserId: string,
-  UserName: string
+export interface ISubscriptionKeys {
+  name: string;
+  description: string;
+  type: string;
 }

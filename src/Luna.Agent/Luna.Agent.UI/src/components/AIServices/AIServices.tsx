@@ -284,7 +284,7 @@ const AIServices = () => {
                               <p className="publisher">
                                 <Text block variant={"small"}>Publisher: {values.Publisher}</Text>
                               </p>
-                              <hr style={{ width: "100%", color: 'grey' }} />
+                              <hr className="seperator"/>
                               <div className="tags">
                                 {
                                   values.Tags.map((tagvalues: IApplicationTags, tagidx: any) => {
@@ -374,7 +374,7 @@ const AIServices = () => {
                               <p className="publisher">
                                 <Text block variant={"small"}>Publisher: {values.Publisher}</Text>
                               </p>
-                              <hr style={{ width: "100%", color: 'grey' }} />
+                              <hr className="seperator" />
                               <div className="tags">
                                 {
                                   values.Tags.map((tagvalues: IApplicationTags, tagidx: any) => {
@@ -468,7 +468,7 @@ const AIServices = () => {
                               <p className="publisher">
                                 <Text block variant={"small"}>Publisher: {values.Publisher}</Text>
                               </p>
-                              <hr style={{ width: "100%", color: 'grey' }} />
+                              <hr className="seperator"/>
                               <div className="tags">
                                 {
                                   values.Tags.map((tagvalues: IApplicationTags, tagidx: any) => {

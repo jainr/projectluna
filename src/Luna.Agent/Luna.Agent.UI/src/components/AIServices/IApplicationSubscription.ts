@@ -5,12 +5,12 @@ import { ISubscriptionOwner } from './ISubscriptionOwner';
 
 export interface IApplicationSubscription
 {
-  baseUrl: string,
-  createdTime: string,
-  primaryKey: string,
-  secondaryKey: string,
-  notes: string,
-  subscriptionId: string,
-  subscriptionName: string,
-  owner: ISubscriptionOwner[]
+  BaseUrl: string,
+  CreatedTime: string,
+  PrimaryKey: string,
+  SecondaryKey: string,
+  Notes: string,
+  SubscriptionId: string,
+  SubscriptionName: string,
+  Owners: ISubscriptionOwner[]
 }

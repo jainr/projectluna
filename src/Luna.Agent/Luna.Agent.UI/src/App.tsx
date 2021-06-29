@@ -81,7 +81,8 @@ class App extends React.Component<AuthComponentProps, IAppState> {
               
                 <BrowserRouter >
                 <Route path="/aiservices" component={AIServices} />
-                <Route path="/" exact component={Home} />
+                <Route path="/" exact component={AIServices} />
+                {/* <Route path="/" exact component={Home} /> */}
                 <Route path="/datasources" component={DataSources} />
                 <Route path="/tasks" component={Tasks} />
                 <Route path="/settings" component={Settings} />

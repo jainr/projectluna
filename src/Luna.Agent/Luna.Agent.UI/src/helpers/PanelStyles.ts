@@ -8,7 +8,8 @@ export const PanelStyles: React.CSSProperties = {
   backgroundColor: "white", 
 
   padding: "20px 20px 0px 20px",
-  height: '900px',
+  // height: '900px',
+  height: '790px',
   overflowY: 'auto',   
 
 }
