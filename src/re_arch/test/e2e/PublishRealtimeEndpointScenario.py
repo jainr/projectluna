@@ -1,6 +1,7 @@
 import json
 import time
 import uuid
+import os
 from locust import HttpUser, task, between
 from locust.user.wait_time import constant
 
@@ -18,7 +19,7 @@ class ScenarioTest(HttpUser):
         self.app_url = self.data['base_url'] + "/applications/"
         self.partnerServices_url = self.data['base_url'] + "/partnerServices/azureml/"
         self.routing_url = self.data['routing_host']
-        self.host_url = self.data['gateway_host']
+        self.host_url = os.getenv('gateway-url')
         self.tenant_id = self.data['tenant_id']
         self.aml_spn_client_id = self.data['aml_spn_client_id']
         self.aml_spn_client_secret = self.data['aml_spn_client_secret']
