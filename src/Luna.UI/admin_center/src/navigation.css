@@ -140,6 +140,10 @@ nav a > span {
     color: #054691;
 }
 
+#Navigation .pro-sidebar-inner .pro-sidebar-layout ul > li:hover img {
+  filter: none;
+}
+
   #Navigation .pro-sidebar-inner .pro-sidebar-layout ul .pro-inner-item {
     color: #000;
     margin: 10px 0px;
@@ -160,6 +164,9 @@ nav a > span {
   }
   #Navigation .pro-sidebar-inner .pro-sidebar-layout .active a {
     color: white;
+}
+#Navigation .pro-sidebar-inner .pro-sidebar-layout .active img {
+filter: invert(1);
 }
   #Navigation .logo {
     padding: 20px;
