@@ -12,5 +12,7 @@ export interface IApplication {
   DocumentationUrl: "",
   Publisher: "",
   Tags: IApplicationTags[],
-  Details: IApplicationDetails
+  Details: IApplicationDetails,
+  type: "",
+  isSubScribed: boolean
 }

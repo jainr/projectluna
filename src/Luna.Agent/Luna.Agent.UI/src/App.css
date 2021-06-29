@@ -21,3 +21,86 @@ main > div {
 main > div > div {
     margin: 20px;
 }
+
+/*Machine Learning Gallery*/
+.AIServices .title{
+    font-weight: 700;
+    font-size: 25px;
+    padding: 25px;
+    padding-left: 0;
+}
+.AIServices .section
+{
+    min-height: 230px;
+}
+.AIServices table
+{
+    margin-top: 2% !important;
+}
+.AIServices table th
+{
+    text-align: left;
+    border-bottom: 1px solid black;
+}
+.AIServices .choosedesigntype
+{
+    cursor: pointer;
+    float: right;
+    font-weight: normal;
+    font-size: 15px;
+    color: rgb(0, 120, 212);
+    text-decoration: underline;
+}
+.AIServices table tr td
+{
+    padding: 15px;
+}
+.AIServices table tr td a
+{
+    cursor: pointer;    
+    font-weight: normal;
+    font-size: 15px;
+    color: rgb(0, 120, 212);
+    text-decoration: underline;
+}
+.AIServices .appblock{
+    width: 250px;
+    height: 200px;
+    padding: 15px;
+    border: 1px solid;
+    box-shadow: 2px 2px 8px 3px #888888;
+    margin-Top: 10px;
+    cursor: pointer;
+    float: left;
+    margin-right: 1%;
+}
+.AIServices .appblock .heading 
+{
+font-weight: 700;
+}
+.AIServices .appblock .description
+{
+    font-weight: 700;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.AIServices .appblock .publisher,.AIServices .appblock .publisher span 
+{
+color: #a7a3a3;
+font-size:14px;
+font-weight: 500;
+}
+.AIServices .appblock .tags
+{
+    float: left;
+}
+.AIServices .appblock .subscribeddiv
+{
+    float: right;
+    color: #68bd2e;
+}
+.AIServices .appblock .subscribedtext
+{
+font-weight: 400;
+}
+/*Machine Learning Gallery*/

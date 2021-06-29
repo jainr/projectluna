@@ -24,6 +24,9 @@ import { IApplication } from './IApplication';
 import { IApplicationSubscription } from './IApplicationSubscription';
 import MySubscriptionDetails from './MySubscriptionDetails';
 import MySubscriptionOwnersDetails from './MySubscriptionOwnersDetails';
+import SwaggerUI from "swagger-ui-react";
+import "swagger-ui-react/swagger-ui.css";
+
 
 const theme = getTheme();
 
@@ -57,11 +60,18 @@ const AIServiceDetails = () => {
     DocumentationUrl: "",
     Publisher: "",
     Tags: [],
-    Details: {}
+    Details: {},
+    type:'',
+    isSubScribed:false
   });
 
-  const [applicationSubscriptions, setApplicationSubscriptions] = React.useState<IApplicationSubscription[]>([]);
+  sessionStorage.setItem('selectedApplication','lunanlp');
 
+  const [applicationSubscriptions, setApplicationSubscriptions] = React.useState<IApplicationSubscription[]>([]);
+  const [swaggerUrl, setSwaggerUrl] = React.useState<string>();
+
+  const [selectedApplication, setselectedApplication] = React.useState<string | null>(sessionStorage.getItem('selectedApplication'));
+  
   const loadLanguagesList = () => {
 
     languageOptions.push({ "key": "Python", "text": "REST API - Python" });
@@ -118,7 +128,7 @@ const AIServiceDetails = () => {
   );
 
   const getApplicationDetails = () => {
-    fetch(`${window.BASE_URL}/gallery/applications/newapp`, {
+    fetch(`${window.BASE_URL}/gallery/applications/${selectedApplication}`, {
       mode: "cors",
       method: "GET",
       headers: {
@@ -132,7 +142,6 @@ const AIServiceDetails = () => {
       .then(_data => { setApplicationData(_data); loadAPIList(_data); });
 
   }
-
   const addSubscription = () => {
     fetch(`${window.BASE_URL}/gallery/applications/newapp/subscriptions/`+ subName, {
       mode: "cors",
@@ -153,8 +162,6 @@ const AIServiceDetails = () => {
       //  getApplicationSubscriptions();
     }
   }
-
-
   const togglePanel = (value: boolean) => {
     toggleOwnerPanel(value);
   }
@@ -187,28 +194,29 @@ const AIServiceDetails = () => {
     })
       .then(response => response.json())
       .then(_data => { setApplicationSubscriptions(_data) });
-    // const data ={
-    //   subscriptionId: '123',
-    //   baseUrl: "lcjnadlcnadljc",
-    //   createdTime: "22-06-2021",
-    //   primaryKey: "kackbcleleakc",
-    //   secondaryKey: "acbkcdicbdkbc",
-    //   notes: "notes",
-    //   subscriptionName: "mysub",
-    //   owner: [{
-    //     userId: '1',
-    //     userName: 'User'
-    //   }]
-    // }
-    // setApplicationSubscriptions(data);
-    // applicationSubscriptions.push(data); 
-    // setApplicationSubscriptions(applicationSubscriptions);
   }
 
-  React.useEffect(() => {
+  const loadSwaggerData = () => {
+    fetch(`${window.BASE_URL}/gallery/applications/${selectedApplication}/swagger`, {
+      mode: "cors",
+      method: "GET",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Luna-User-Id': 'test-admin',
+        'Host': 'lunatest-gateway.azurewebsites.net'
+      },
+    })
+    .then(response => response.json())
+    .then(async _data => {setSwaggerUrl(_data);
+    });    
+  }
+
+  React.useEffect(() => {    
     getApplicationDetails();
     loadLanguagesList();
     getApplicationSubscriptions();
+    loadSwaggerData();
   }, []);
 
   return (
@@ -235,7 +243,7 @@ const AIServiceDetails = () => {
             <StackItem>
               <div style={{ width: '700px', height: '370px' }}>
                 <Pivot onLinkClick={(item?: PivotItem) => loadTabData(item!)}>
-                  <PivotItem headerText={"Sample Code"} itemKey={"Sample Code"}>
+                  <PivotItem headerText={"Sample Code"} itemKey={"SampleCode"}>
                     <div style={{ display: 'flex' }} >
                       <Label style={{ margin: '10px' }}>Language:</Label>
                       <Dropdown options={languageOptions}
@@ -324,7 +332,7 @@ const AIServiceDetails = () => {
                       <Text>Swagger</Text><IconButton text="Swagger" iconProps={{ iconName: "OpenInNewWindow" }} target="" /> <br />
                     </div>
                   </PivotItem>
-                  <PivotItem headerText={"My Subscriptions"} itemKey={"My Subscriptions"}>
+                  <PivotItem headerText={"My Subscriptions"} itemKey={"MySubscriptions"}>
                     <React.Fragment>
                       <div style={{ margin: '10px' }}>
                         <table style={{ width: '90%', borderCollapse: 'collapse' }}>
@@ -370,7 +378,7 @@ const AIServiceDetails = () => {
                     </React.Fragment>
                   </PivotItem>
                   <PivotItem headerText={"Swagger"} itemKey={"Swagger"} >
-
+                    <SwaggerUI spec={swaggerUrl} />                    
                   </PivotItem>
                   <PivotItem headerText={"Recommendations"} itemKey={"Recommendations"}>
 
@@ -388,9 +396,7 @@ const AIServiceDetails = () => {
       <FooterLinks />
       <Panel
         headerText="My Subscription"
-        isOpen={isOpen}
-        // onDismiss={dismissPanel}
-        // closeButtonAriaLabel="Close"
+        isOpen={isOpen}        
         isFooterAtBottom={true}        
         hasCloseButton={false}
         type={PanelType.custom}

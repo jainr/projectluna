@@ -5,7 +5,8 @@ html, body {
   float: left;
 }
 .bgclrblue {
-  background-color: #4876ca;
+  /* background-color: #4876ca; */
+  background-image: linear-gradient(to right top, #29529d, #315ba8, #3964b3, #406DC1, #4876ca);
 }
 .bgclrred {
   background-color: #c00000;
@@ -13,25 +14,33 @@ html, body {
 .dashboardcard {
   color: #fff;
   margin-right: 1%;
-  min-height: 155px;
+  min-height: 200px;
   /* width: 12%; */
   width: 200px;
+  box-shadow: rgb(27 26 26 / 78%) 0px 3.2px 7.2px 0px, rgb(39 39 39 / 43%) 0px 0.6px 1.8px 0px;
+}
+.dashboardcard h1 {
+  font-size: 50px;
+  margin: 0;  
+  padding-top: 10%;
+  padding-left: 5%;
 }
 .fnt10 {
   font-size: 12px;
+  cursor: pointer;
 }
-.cardtext {
-  padding: 25px;
+.cardtext {  
   padding-bottom: 0px;
-  padding-top: 0px;
+  padding-top: 5%;
+  padding-left: 16px;
 }
 .txticon {
   text-align: right;
-  padding-bottom: 10px;
+  padding-top: 23px;
   margin-right: 5%;
 }
 .Arrowicon {
-  padding-right: 5%;
+  padding-right: 5%;  
 }
 .footerclass {
   width: 100% !important;
@@ -81,4 +90,5 @@ main > div {
 {
   font-size: 30px;
   margin-bottom: -2%;
+  
 }
