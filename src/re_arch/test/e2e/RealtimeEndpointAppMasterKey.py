@@ -119,14 +119,12 @@ class ScenarioTest(HttpUser):
         # 5.	Publish Luna Application [POST]
         uri = self.app_url + resource_name + "/publish"
         self._assert_success(self.client.post(uri, headers=self.headerData, data=json.dumps(body)))
-
-        time.sleep(15)
-
-        # 6.	Create Subscription to Application [GET]
-        uri = self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/sub" + resource_name
-        response = self.client.put(uri, headers=self.headerData)
+        
+        # 6.	Get application master key [GET]
+        uri = self.app_url + resource_name + "/masterkeys"
+        response = self.client.get(uri, headers=self.headerData, data=json.dumps(body))
         self._assert_success(response)
-        subscriptionKey = response.json()['PrimaryKey']
+        masterKey = response.json()['PrimaryMasterKey']
 
         # # Endpoint Tests
         # #############################################
@@ -135,16 +133,27 @@ class ScenarioTest(HttpUser):
         # # 7.	Call Realtime Endpoint [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
         body = {"data":[[1,2,3,4,5,6,7,8,9,0,1,2,3]]}
-        endPointHeaderData = { "api-key": subscriptionKey }
+        endPointHeaderData = { "Luna-Application-Master-Key": masterKey }
         response = self.client.post(uri, headers=endPointHeaderData, data=json.dumps(body))
         self._assert_success(response)
         print("Endpoint Results: " + str(response.content))
 
+        # 8.	Get application master key [GET]
+        uri = self.app_url + resource_name + "/regeneratemasterkeys?key-name=primaryKey"
+        response = self.client.post(uri, headers=self.headerData, data=json.dumps(body))
+        self._assert_success(response)
+        masterKey = response.json()['PrimaryMasterKey']
+        
+        # # 7.	Call Realtime Endpoint with the new application master key[POST]
+        uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
+        body = {"data":[[1,2,3,4,5,6,7,8,9,0,1,2,3]]}
+        endPointHeaderData = { "Luna-Application-Master-Key": masterKey }
+        response = self.client.post(uri, headers=endPointHeaderData, data=json.dumps(body))
+        self._assert_success(response)
+        print("Endpoint Results: " + str(response.content))
+        
         # Cleanup Test Resources
         ##############################################
-
-        # 6b.	Delete Subscription [DELETE]
-        self._assert_success(self.client.delete(self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/sub" + resource_name, headers=self.headerData))
 
         # 4b.	Delete Luna API Version [DELETE]
         self._assert_success(self.client.delete(self.app_url + resource_name + "/apis/myapi/versions/v1", headers=self.headerData))
