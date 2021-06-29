@@ -1,5 +1,6 @@
 import json
 import time
+import uuid
 from locust import HttpUser, task, between
 from locust.user.wait_time import constant
 
@@ -29,7 +30,7 @@ class ScenarioTest(HttpUser):
 
     @task
     def create_and_call_realtime_endpoint(self):
-        resource_name = "testscenario0628"
+        resource_name = "test" + uuid.uuid1()
 
         # Resource Creation Tests
         ##############################################
