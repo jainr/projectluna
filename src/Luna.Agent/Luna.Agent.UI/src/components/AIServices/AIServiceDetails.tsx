@@ -54,7 +54,9 @@ const AIServiceDetails = () => {
     DocumentationUrl: "",
     Publisher: "",
     Tags: [],
-    Details: {}
+    Details: {},
+    type:'',
+    isSubScribed:false
   });
 
   sessionStorage.setItem('selectedApplication','lunanlp');
