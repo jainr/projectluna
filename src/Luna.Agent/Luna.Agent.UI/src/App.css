@@ -3,8 +3,9 @@
     Licensed under the MIT License.
 */
 
-html, body {
-    background-color: #F5F5F7;
+html,
+body {
+    background-color: #f5f5f7;
 }
 
 main {
@@ -23,27 +24,23 @@ main > div > div {
 }
 
 /*Machine Learning Gallery*/
-.AIServices .title{
+.AIServices .title {
     font-weight: 700;
     font-size: 25px;
     padding: 25px;
     padding-left: 0;
 }
-.AIServices .section
-{
+.AIServices .section {
     min-height: 230px;
 }
-.AIServices table
-{
+.AIServices table {
     margin-top: 2% !important;
 }
-.AIServices table th
-{
+.AIServices table th {
     text-align: left;
     border-bottom: 1px solid black;
 }
-.AIServices .choosedesigntype
-{
+.AIServices .choosedesigntype {
     cursor: pointer;
     float: right;
     font-weight: normal;
@@ -51,56 +48,81 @@ main > div > div {
     color: rgb(0, 120, 212);
     text-decoration: underline;
 }
-.AIServices table tr td
-{
+.AIServices table tr td {
     padding: 15px;
 }
-.AIServices table tr td a
-{
-    cursor: pointer;    
+.AIServices table tr td a {
+    cursor: pointer;
     font-weight: normal;
     font-size: 15px;
     color: rgb(0, 120, 212);
     text-decoration: underline;
 }
-.AIServices .appblock{
+.AIServices .appblock {
     width: 250px;
     height: 200px;
     padding: 15px;
-    border: 1px solid;
+    border: 1px solid #cac3c366;
     box-shadow: 2px 2px 8px 3px #888888;
-    margin-Top: 10px;
+    margin-top: 10px;
     cursor: pointer;
     float: left;
     margin-right: 1%;
 }
-.AIServices .appblock .heading 
-{
-font-weight: 700;
+.AIServices .appblock .heading {
+    font-weight: 700;
 }
-.AIServices .appblock .description
-{
+.AIServices .appblock .description {
     font-weight: 700;
     text-overflow: ellipsis;
     overflow: hidden;
+    min-height: 45px;
 }
-.AIServices .appblock .publisher,.AIServices .appblock .publisher span 
-{
-color: #a7a3a3;
-font-size:14px;
-font-weight: 500;
+.AIServices .appblock .publisher,
+.AIServices .appblock .publisher span {
+    color: #a7a3a3;
+    font-size: 14px;
+    font-weight: 500;
 }
-.AIServices .appblock .tags
-{
+.AIServices .appblock .tags {
     float: left;
 }
-.AIServices .appblock .subscribeddiv
-{
+.AIServices .appblock .subscribeddiv {
     float: right;
     color: #68bd2e;
 }
-.AIServices .appblock .subscribedtext
-{
-font-weight: 400;
+.AIServices .appblock .subscribedtext {
+    font-weight: 400;
+}
+.AIServices .appblock .seperator {
+    border: 1px solid #cac3c366;
+    width: 111%;
+    border: 1px solid #cac3c366;
+    margin-left: -6%;
 }
 /*Machine Learning Gallery*/
+
+/*Recommended*/
+
+.AIServices .Recommended .appblock {
+    box-shadow: none;
+    border: 1px solid #cac3c366;
+    cursor: unset;
+}
+.AIServices .Recommended .title {
+    font-weight: normal;
+    font-size: 19px;
+    padding: 25px;
+    padding-left: 0;
+    padding-top: 0;
+}
+.AIServices .Recommended .PanelStyles {
+    /* height: 800px !important; */
+    height: 685px !important;
+    box-shadow: none !important;
+}
+.AIServices .Recommended .appblock .publisher span
+{
+    font-weight: normal;
+}
+/*Recommended*/

@@ -73,3 +73,20 @@ export async function GetMySubscriptionByApplication(applicationName: string) {
     })
         .then(response => response.json())
 }
+
+export async function GetRecommendedApplication(applicationName: any) {
+    const bearerToken = 'Bearer ' + sessionStorage.getItem(`msal.${window.MSAL_CONFIG.appId}.idtoken`);
+
+    return await fetch(`${window.BASE_URL}/gallery/applications/${applicationName}/recommended`, {
+        mode: "cors",
+        method: "GET",
+        headers: {
+            'Luna-User-Id': `${LunaUserId}`,
+            'Host': 'lunatest-gateway.azurewebsites.net',
+            'Authorization': bearerToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => response.json())
+}
