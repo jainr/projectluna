@@ -65,7 +65,7 @@ const AIServiceDetails = () => {
     isSubScribed:false
   });
 
-  sessionStorage.setItem('selectedApplication','lunanlp');
+  // sessionStorage.setItem('selectedApplication','lunanlp');
 
   const [applicationSubscriptions, setApplicationSubscriptions] = React.useState<IApplicationSubscription[]>([]);
   const [swaggerUrl, setSwaggerUrl] = React.useState<string>();
@@ -117,9 +117,9 @@ const AIServiceDetails = () => {
 
   const onRenderFooterContent = React.useCallback(
     () => (
-      <Stack horizontal>
-      <PrimaryButton style={{ marginLeft:'100px' }} text="Save" ></PrimaryButton>      
-      <div style={{ marginLeft:'30px' }}>        
+      <Stack horizontal style={{display:'block',textAlign:'right'}}>
+      {/* <PrimaryButton style={{ marginLeft:'100px' }} text="Save" ></PrimaryButton>       */}
+      <div>        
         <DefaultButton onClick={() => { toggleOwnerPanel(false); openPanel() }}>Cancel</DefaultButton>     
       </div>
       </Stack>            
@@ -143,7 +143,7 @@ const AIServiceDetails = () => {
 
   }
   const addSubscription = () => {
-    fetch(`${window.BASE_URL}/gallery/applications/newapp/subscriptions/`+ subName, {
+    fetch(`${window.BASE_URL}/gallery/applications/${selectedApplication}/subscriptions/`+ subName, {
       mode: "cors",
       method: "PUT",
       headers: {
@@ -182,7 +182,7 @@ const AIServiceDetails = () => {
 }
   const getApplicationSubscriptions = () => {
 
-    fetch(`${window.BASE_URL}/gallery/applications/newapp/subscriptions`, {
+    fetch(`${window.BASE_URL}/gallery/applications/${selectedApplication}/subscriptions`, {
       mode: "cors",
       method: "GET",
       headers: {
@@ -401,7 +401,7 @@ const AIServiceDetails = () => {
         hasCloseButton={false}
         type={PanelType.custom}
         customWidth={"400px"}
-        isBlocking={false}
+        isBlocking={true}
       >
         <MySubscriptionDetails toggle={togglePanel} closePanel={closePanel} subscription={subscriptionData} />
       </Panel>
