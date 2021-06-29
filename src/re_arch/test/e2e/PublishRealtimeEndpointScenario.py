@@ -120,7 +120,7 @@ class ScenarioTest(HttpUser):
         uri = self.app_url + resource_name + "/publish"
         self._assert_success(self.client.post(uri, headers=self.headerData, data=json.dumps(body)))
 
-        time.sleep(4)
+        time.sleep(15)
 
         # 6.	Create Subscription to Application [GET]
         uri = self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/sub" + resource_name
@@ -130,7 +130,7 @@ class ScenarioTest(HttpUser):
 
         # # Endpoint Tests
         # #############################################
-        time.sleep(5)
+        time.sleep(15)
 
         # # 7.	Call Realtime Endpoint [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
