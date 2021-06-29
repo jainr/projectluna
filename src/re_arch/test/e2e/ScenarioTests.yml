@@ -1,0 +1,20 @@
+trigger:
+- api-testing
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: UsePythonVersion@0
+  displayName: 'Configuring Python'
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
+    architecture: 'x64'
+
+- script: pip install Locust  
+  displayName: 'Installing Locust'
+
+- script: locust -f src/Luna.Test/PublishRealtimeEndpointScenario.py --headless --users 1 --run-time 5s --stop-timeout 99 --exit-code-on-error 0
+  displayName: 'Publish Realtime Endpoint'
+  

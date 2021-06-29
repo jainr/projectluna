@@ -1,0 +1,12 @@
+{
+    "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+    "aml_spn_client_id": "f0d50d2d-7ff0-40e3-82cc-8c44b176c088",
+    "aml_spn_client_secret": "cZIjKBbUhvvuAZ4qIyOyewsWEWv6h6FUufz7+Ez2CBq+dmwnBvFm1RGNUMNtH4zzWVexGFgXelMvvQQCAB/yBA==luna",
+    "resourceId": "/subscriptions/a6c2a7cc-d67e-4a1a-b765-983f08c0423a/resourceGroups/xiwutest/providers/Microsoft.MachineLearningServices/workspaces/xiwutest",
+    "region": "westus2",
+    "luna_user_id": "test-admin",
+    "base_url": "/api/manage",
+    "application_owner_id": "43ebb35e-be1a-4dbf-92da-fb8a069d6a2c",
+    "gateway_host": "https://lunatest-gateway.azurewebsites.net",
+    "routing_host": "https://lunatest-routing.azurewebsites.net"
+}
