@@ -54,11 +54,7 @@ namespace Luna.Gateway.Functions
 
                 try
                 {
-                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
-                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"rbac", null, lunaHeaders))
-                    {
-                        return new OkObjectResult(req.Headers["X-MS-CLIENT-PRINCIPAL-NAME"].ToString());
-                    }
+                    return new OkObjectResult(req.Headers["X-MS-CLIENT-PRINCIPAL-NAME"].ToString());
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
                 }

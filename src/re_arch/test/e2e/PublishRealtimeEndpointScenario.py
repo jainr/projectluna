@@ -2,6 +2,7 @@ import json
 import time
 import uuid
 import os
+import requests
 from locust import HttpUser, task, between
 from locust.user.wait_time import constant
 
@@ -10,25 +11,45 @@ class ScenarioTest(HttpUser):
 
     with open("luna_locust_config.json", "r") as jsonfile: 
         data = json.load(jsonfile)
-    HttpUser.host = data['gateway_host']
+    HttpUser.host = os.environ['GATEWAY_URL']
     wait_time = constant(60)
     
     def on_start(self):
         self.service_name = "Create & Call API Endpoint Scenario"
 
-        self.app_url = self.data['base_url'] + "/applications/"
-        self.partnerServices_url = self.data['base_url'] + "/partnerServices/azureml/"
-        self.routing_url = self.data['routing_host']
-        print(os.environ['GATEWAY-URL'])
-        self.host_url = os.environ['GATEWAY-URL']
-        self.tenant_id = self.data['tenant_id']
-        self.aml_spn_client_id = self.data['aml_spn_client_id']
-        self.aml_spn_client_secret = self.data['aml_spn_client_secret']
-        self.resourceId = self.data['resourceId']
-        self.region = self.data['region']
-        self.luna_user_id = self.data['luna_user_id']
+        
+        self.app_url = "/api/manage/applications/"
+        self.partnerServices_url = "/api/manage/partnerServices/azureml/"
+        
+        self.routing_url = os.environ['ROUTING_URL']
+        self.host_url = os.environ['GATEWAY_URL']
+        self.tenant_id = os.environ['TENANT_ID']
+        self.aml_spn_client_id = os.environ['AML_SPN_CLIENT_ID']
+        self.aml_spn_client_secret = os.environ['AML_SPN_CLIENT_SECRET']
+        self.resourceId = os.environ['AML_RESOURCE_ID']
+        self.region = os.environ['AML_REGION']
+        self.admin_spn_client_id = os.environ['ADMIN_SPN_CLIENT_ID']
+        self.luna_app_client_id = os.environ['LUNA_APP_CLIENT_ID']
+        self.luna_app_client_secret = os.environ['ADMIN_SPN_CLIENT_SECRET']
+        
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": self.admin_spn_client_id,
+            "resource": self.luna_app_client_id,
+            "client_secret": self.luna_app_client_secret
+        }
+        
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        
+        url = "https://login.microsoftonline.com/" + self.tenant_id + "/oauth2/token"
+        
+        response = requests.post(url, data=data, headers=headers)
+        
+        result = response.json()
+        
+        access_token = result["access_token"]
 
-        self.headerData = { "Luna-User-Id": self.luna_user_id }
+        self.headerData = { "Authorization": "Bearer " + access_token }
 
     @task
     def create_and_call_realtime_endpoint(self):

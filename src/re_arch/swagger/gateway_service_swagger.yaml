@@ -2053,6 +2053,8 @@ definitions:
         type: string
       Value:
         type: string
+      IsSystemParametr:
+        type: boolean
   Luna.Publish.Public.Client.LunaApplicationMasterKeys:
     required:
       - PrimaryMasterKey
