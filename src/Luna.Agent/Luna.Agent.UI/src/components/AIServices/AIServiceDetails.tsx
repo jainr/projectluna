@@ -26,6 +26,7 @@ import MySubscriptionDetails from './MySubscriptionDetails';
 import MySubscriptionOwnersDetails from './MySubscriptionOwnersDetails';
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
+import Recommendation from './Recommendation'
 
 
 const theme = getTheme();
@@ -50,7 +51,7 @@ const AIServiceDetails = () => {
   const [isOwnerPanelOpen, toggleOwnerPanel] = React.useState(false);
   const [subscriptionData, setSubscriptionData] = React.useState<IApplicationSubscription>();
   const [hideAddNewSub, setHideAddNewSub] = React.useState(true);
-  const [subName,setSubName] = React.useState<string>('');
+  const [subName, setSubName] = React.useState<string>('');
 
   const [applicationData, setApplicationData] = React.useState<IApplication>({
     UniqueName: "",
@@ -61,17 +62,17 @@ const AIServiceDetails = () => {
     Publisher: "",
     Tags: [],
     Details: {},
-    type:'',
-    isSubScribed:false
+    type: '',
+    isSubScribed: false
   });
 
-  sessionStorage.setItem('selectedApplication','lunanlp');
+  sessionStorage.setItem('selectedApplication', 'lunanlp');
 
   const [applicationSubscriptions, setApplicationSubscriptions] = React.useState<IApplicationSubscription[]>([]);
   const [swaggerUrl, setSwaggerUrl] = React.useState<string>();
 
   const [selectedApplication, setselectedApplication] = React.useState<string | null>(sessionStorage.getItem('selectedApplication'));
-  
+
   const loadLanguagesList = () => {
 
     languageOptions.push({ "key": "Python", "text": "REST API - Python" });
@@ -118,11 +119,11 @@ const AIServiceDetails = () => {
   const onRenderFooterContent = React.useCallback(
     () => (
       <Stack horizontal>
-      <PrimaryButton style={{ marginLeft:'100px' }} text="Save" ></PrimaryButton>      
-      <div style={{ marginLeft:'30px' }}>        
-        <DefaultButton onClick={() => { toggleOwnerPanel(false); openPanel() }}>Cancel</DefaultButton>     
-      </div>
-      </Stack>            
+        <PrimaryButton style={{ marginLeft: '100px' }} text="Save" ></PrimaryButton>
+        <div style={{ marginLeft: '30px' }}>
+          <DefaultButton onClick={() => { toggleOwnerPanel(false); openPanel() }}>Cancel</DefaultButton>
+        </div>
+      </Stack>
     ),
     [dismissPanel],
   );
@@ -143,7 +144,7 @@ const AIServiceDetails = () => {
 
   }
   const addSubscription = () => {
-    fetch(`${window.BASE_URL}/gallery/applications/newapp/subscriptions/`+ subName, {
+    fetch(`${window.BASE_URL}/gallery/applications/newapp/subscriptions/` + subName, {
       mode: "cors",
       method: "PUT",
       headers: {
@@ -154,7 +155,7 @@ const AIServiceDetails = () => {
       },
     })
       .then(response => response.json())
-      .then(_data => getApplicationSubscriptions());      
+      .then(_data => getApplicationSubscriptions());
 
   }
   const loadTabData = (item: PivotItem) => {
@@ -166,20 +167,18 @@ const AIServiceDetails = () => {
     toggleOwnerPanel(value);
   }
 
-  const closePanel=()=>
-  {
+  const closePanel = () => {
     dismissPanel();
   }
-  const setSelectedSubscription = (selectedSubscriptionName: string)=>
-  {
-    var subscriptionData = applicationSubscriptions.filter((e)=>e.SubscriptionName === selectedSubscriptionName);
+  const setSelectedSubscription = (selectedSubscriptionName: string) => {
+    var subscriptionData = applicationSubscriptions.filter((e) => e.SubscriptionName === selectedSubscriptionName);
     setSubscriptionData(subscriptionData[0]);
     openPanel();
   }
 
   const setSubNameValue = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
     setSubName(newValue || '');
-}
+  }
   const getApplicationSubscriptions = () => {
 
     fetch(`${window.BASE_URL}/gallery/applications/newapp/subscriptions`, {
@@ -207,12 +206,13 @@ const AIServiceDetails = () => {
         'Host': 'lunatest-gateway.azurewebsites.net'
       },
     })
-    .then(response => response.json())
-    .then(async _data => {setSwaggerUrl(_data);
-    });    
+      .then(response => response.json())
+      .then(async _data => {
+        setSwaggerUrl(_data);
+      });
   }
 
-  React.useEffect(() => {    
+  React.useEffect(() => {
     getApplicationDetails();
     loadLanguagesList();
     getApplicationSubscriptions();
@@ -241,7 +241,7 @@ const AIServiceDetails = () => {
           </StackItem>
           <StackItem className="divWidth75">
             <StackItem>
-              <div style={{ width: '700px', height: '370px' }}>
+              <div style={{ width: '100%', height: '370px' }}>
                 <Pivot onLinkClick={(item?: PivotItem) => loadTabData(item!)}>
                   <PivotItem headerText={"Sample Code"} itemKey={"SampleCode"}>
                     <div style={{ display: 'flex' }} >
@@ -355,13 +355,13 @@ const AIServiceDetails = () => {
                                 return (
                                   <tr key={idx} style={{ lineHeight: '30px', textAlign: 'center' }}>
                                     <td>
-                                      <Link onClick={()=>setSelectedSubscription(values.SubscriptionName)} >{values.SubscriptionName}</Link>
+                                      <Link onClick={() => setSelectedSubscription(values.SubscriptionName)} >{values.SubscriptionName}</Link>
                                     </td>
                                     <td>
                                       {values.SubscriptionId}
                                     </td>
                                     <td>
-                                      {values.CreatedTime.substr(0,10)}
+                                      {values.CreatedTime.substr(0, 10)}
                                     </td>
                                   </tr>
                                 )
@@ -369,19 +369,19 @@ const AIServiceDetails = () => {
                             }
                           </tbody>
                         </table>
-                        <Link onClick={()=> setHideAddNewSub(false)}>+ New</Link>
-                        <div style={{ display : hideAddNewSub ? 'none' : 'block', width:'250px',border:'1px solid black',padding:'10px'}}>                          
+                        <Link onClick={() => setHideAddNewSub(false)}>+ New</Link>
+                        <div style={{ display: hideAddNewSub ? 'none' : 'block', width: '250px', border: '1px solid black', padding: '10px' }}>
                           <TextField label={"Subscription Name:"} value={subName} onChange={setSubNameValue}></TextField>
-                          <PrimaryButton style={{marginTop:'5px'}} onClick={()=>{addSubscription(); setSubName('')}}>Submit</PrimaryButton>
+                          <PrimaryButton style={{ marginTop: '5px' }} onClick={() => { addSubscription(); setSubName('') }}>Submit</PrimaryButton>
                         </div>
                       </div>
                     </React.Fragment>
                   </PivotItem>
                   <PivotItem headerText={"Swagger"} itemKey={"Swagger"} >
-                    <SwaggerUI spec={swaggerUrl} />                    
+                    <SwaggerUI spec={swaggerUrl} />
                   </PivotItem>
                   <PivotItem headerText={"Recommendations"} itemKey={"Recommendations"}>
-
+                    <Recommendation />
                   </PivotItem>
                   <PivotItem headerText={"Reviews"} itemKey={"Reviews"}>
 
@@ -396,8 +396,8 @@ const AIServiceDetails = () => {
       <FooterLinks />
       <Panel
         headerText="My Subscription"
-        isOpen={isOpen}        
-        isFooterAtBottom={true}        
+        isOpen={isOpen}
+        isFooterAtBottom={true}
         hasCloseButton={false}
         type={PanelType.custom}
         customWidth={"400px"}
@@ -409,12 +409,12 @@ const AIServiceDetails = () => {
         headerText="Subscription Owners"
         isOpen={isOwnerPanelOpen}
         onDismiss={() => toggleOwnerPanel(false)}
-        onRenderFooterContent={onRenderFooterContent}                            
+        onRenderFooterContent={onRenderFooterContent}
         closeButtonAriaLabel="Close"
         isFooterAtBottom={true}
         hasCloseButton={false}
       >
-        <MySubscriptionOwnersDetails subscription={subscriptionData} />        
+        <MySubscriptionOwnersDetails subscription={subscriptionData} />
       </Panel>
     </div>
   );
