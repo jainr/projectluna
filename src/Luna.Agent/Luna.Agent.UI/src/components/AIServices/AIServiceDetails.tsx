@@ -27,6 +27,7 @@ import MySubscriptionOwnersDetails from './MySubscriptionOwnersDetails';
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 import Recommendation from './Recommendation'
+import { IApplicationTags } from './IApplicationTags';
 
 
 const theme = getTheme();
@@ -70,6 +71,12 @@ const AIServiceDetails = () => {
   const [swaggerUrl, setSwaggerUrl] = React.useState<string>();
 
   const [selectedApplication, setselectedApplication] = React.useState<string | null>(sessionStorage.getItem('selectedApplication'));
+
+  let sa = sessionStorage.getItem('selectedApplicationObject') != null ? sessionStorage.getItem('selectedApplicationObject') : null
+  const [selectedApplicationObject, setselectedApplicationObject] = React.useState<IApplication>();
+  const [selectedApplicationObjectloading, setselectedApplicationObjectLoading] = React.useState<boolean>();
+
+  const [selectedTab, setSelectedTab] = React.useState<string>();
 
   const loadLanguagesList = () => {
 
@@ -116,12 +123,12 @@ const AIServiceDetails = () => {
 
   const onRenderFooterContent = React.useCallback(
     () => (
-      <Stack horizontal style={{display:'block',textAlign:'right'}}>
-      {/* <PrimaryButton style={{ marginLeft:'100px' }} text="Save" ></PrimaryButton>       */}
-      <div>        
-        <DefaultButton onClick={() => { toggleOwnerPanel(false); openPanel() }}>Cancel</DefaultButton>     
-      </div>
-      </Stack>            
+      <Stack horizontal style={{ display: 'block', textAlign: 'right' }}>
+        {/* <PrimaryButton style={{ marginLeft:'100px' }} text="Save" ></PrimaryButton>       */}
+        <div>
+          <DefaultButton onClick={() => { toggleOwnerPanel(false); openPanel() }}>Cancel</DefaultButton>
+        </div>
+      </Stack>
     ),
     [dismissPanel],
   );
@@ -142,7 +149,7 @@ const AIServiceDetails = () => {
 
   }
   const addSubscription = () => {
-    fetch(`${window.BASE_URL}/gallery/applications/${selectedApplication}/subscriptions/`+ subName, {
+    fetch(`${window.BASE_URL}/gallery/applications/${selectedApplication}/subscriptions/` + subName, {
       mode: "cors",
       method: "PUT",
       headers: {
@@ -160,6 +167,8 @@ const AIServiceDetails = () => {
     if (item.props.itemKey === 'My Subscriptions') {
       //  getApplicationSubscriptions();
     }
+    let selectedkey = item.props.itemKey ? item.props.itemKey.toString() : '';
+    setSelectedTab(selectedkey);
   }
   const togglePanel = (value: boolean) => {
     toggleOwnerPanel(value);
@@ -210,185 +219,235 @@ const AIServiceDetails = () => {
       });
   }
 
+  const reloadLeftSection = () => {    
+    let appdata = sessionStorage.getItem('selectedApplicationObject') != null ? sessionStorage.getItem('selectedApplicationObject') : null
+    if (appdata != null) {
+      setselectedApplicationObjectLoading(true);
+      let selectedApp = JSON.parse(appdata) as IApplication;
+      setselectedApplicationObject(selectedApp);
+      setselectedApplicationObjectLoading(false);
+    }
+  }
+
   React.useEffect(() => {
+    if (sa != null) {
+      setselectedApplicationObjectLoading(true);
+      let selectedApp = JSON.parse(sa) as IApplication;
+      setselectedApplicationObject(selectedApp);
+      setselectedApplicationObjectLoading(false);
+    }
+    setSelectedTab('SampleCode');
     getApplicationDetails();
     loadLanguagesList();
     getApplicationSubscriptions();
     loadSwaggerData();
   }, []);
 
+  const viewMySubscription = () => {
+    setSelectedTab('MySubscriptions');
+  }
+
+  const SelectSwaggerTab = () => {
+    setSelectedTab('Swagger');
+  }
+
   return (
     <div className="AIServices">
       <div style={PanelStyles}>
-        <Text block variant={'xLargePlus'}>AI Service: Text Summarization</Text>
-        <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
-          <StackItem className="divWidth25">
-            <Text block variant={'medium'} style={{ marginTop: '10px', color: 'grey' }}>Publisher: ACE Team</Text>
-            <div style={{ paddingRight: '10px', borderRight: '1px solid black' }}>
-              <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>Description</Text>
-              <Text block variant={'medium'} style={{ marginTop: '5px' }}>Summarize text documents and articles using machine learning. This model helps you create summary from meeting notes, news and other articles…</Text>
-              <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold', marginBottom: '20px' }}>Tags</Text>
-              <div style={{ display: 'flex', 'flexDirection': 'row' }}>
-                <div style={{ fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px', width: '15%' }}>SaaS</div>
-                <div style={{ fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px', width: '15%' }}>NLP</div>
-                <div style={{ fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '5px 5px', borderRadius: '5px', width: '140px' }}>Publisher: ACE Team</div>
-              </div>
-              <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
-              <Text block variant={'medium'} style={{ marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer' }}>+ Subscribe Now</Text>
-            </div>
-          </StackItem>
-          <StackItem className="divWidth75">
-            <StackItem>
-              <div style={{ width: '100%', height: '370px' }}>
-                <Pivot onLinkClick={(item?: PivotItem) => loadTabData(item!)}>
-                  <PivotItem headerText={"Sample Code"} itemKey={"SampleCode"}>
-                    <div style={{ display: 'flex' }} >
-                      <Label style={{ margin: '10px' }}>Language:</Label>
-                      <Dropdown options={languageOptions}
-                        placeholder={"Select a Language"}
-                        style={{ margin: '10px' }}
-                      />
-                    </div>
-                    <div style={{ ...isExpand ? { display: 'none' } : { display: 'block' }, margin: '10px' }}>
-                      Advance Settings <IconButton iconProps={{ iconName: 'ChevronUpMed' }} title="Collapse" ariaLabel="Collapse" onClick={ExpandCollapseClick} />
-                      <table style={{ margin: '10px' }}>
+        <StackItem className="divWidth25 leftsection">
+          <div className="contentsection">
+            {
+              selectedApplicationObjectloading ? 'loading...' :
+                <React.Fragment>
+                  <Text block variant={'xLargePlus'}>{selectedApplicationObject?.DisplayName}</Text>
+                  <Text block variant={'medium'} style={{ marginTop: '10px', color: 'grey' }}>Publisher: {selectedApplicationObject?.Publisher}</Text>
+
+                  <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>Description</Text>
+                  <Text block variant={'medium'} style={{ marginTop: '5px' }}>{selectedApplicationObject?.Description}</Text>
+                  <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold', marginBottom: '20px' }}>Tags</Text>
+                  <div style={{ display: 'flex', 'flexDirection': 'row' }}>
+                    {
+                      selectedApplicationObject?.Tags.map((tagvalues: IApplicationTags, tagidx: any) => {
+                        return (
+                          <div key={tagidx} style={{ fontWeight: 400, border: '1px solid black', marginRight: '10px', padding: '0px 5px', borderRadius: '5px' }}>{tagvalues.name}</div>
+                        )
+                      })
+                    }
+                  </div>
+                  {
+                    selectedApplicationObject?.isSubScribed ?
+                      <React.Fragment>
+                        <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
+                        <br />
+                        <Text block variant={'medium'} style={{ marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer' }}
+                          onClick={viewMySubscription}>View my subscriptions</Text>
+                      </React.Fragment>
+                      : <React.Fragment>
+                        <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
+                        <Text block variant={'medium'} style={{ marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer' }}>+ Subscribe Now</Text>
+                      </React.Fragment>
+                  }
+                </React.Fragment>
+            }
+          </div>
+          <div className="leftfooter">
+            <Text>Documentation</Text><IconButton text="Documentation" iconProps={{ iconName: "OpenInNewWindow" }} target="_blank" href={selectedApplicationObject?.DocumentationUrl} /><br />
+            <Text>About ACE team</Text><IconButton text="About ACE team" iconProps={{ iconName: "OpenInNewWindow" }} target="" /> <br />
+            <Text>About Luna.ai</Text><IconButton text="About Luna.ai" iconProps={{ iconName: "OpenInNewWindow" }} target="" /> <br />
+          </div>
+        </StackItem>
+        <StackItem className="divWidth75 rightsection">
+          <StackItem>
+            <div style={{ width: '100%', height: '770px' }}>
+              <Pivot onLinkClick={(item?: PivotItem) => loadTabData(item!)} selectedKey={selectedTab} className="pivottab">
+                <PivotItem headerText={"Sample Code"} itemKey={"SampleCode"}>
+                  <div style={{ display: 'flex' }} >
+                    <Label style={{ margin: '10px' }}>Language:</Label>
+                    <Dropdown options={languageOptions}
+                      placeholder={"Select a Language"}
+                      style={{ margin: '10px' }}
+                    />
+                  </div>
+                  <div style={{ ...isExpand ? { display: 'none' } : { display: 'block' }, margin: '10px' }}>
+                    Advance Settings <IconButton iconProps={{ iconName: 'ChevronUpMed' }} title="Collapse" ariaLabel="Collapse" onClick={ExpandCollapseClick} />
+                    <table style={{ margin: '10px' }}>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <Label>API:</Label>
+                          </td>
+                          <td>
+                            <Dropdown options={aPIOptions}
+                              placeholder={"Select an API"}
+                              style={{ margin: '10px', width: '170px' }}
+                              onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                                setSelectedValues({
+                                  application: "",
+                                  api: option?.text!,
+                                  version: "",
+                                  operation: "",
+                                });
+                                loadAPIVersionList(option?.text!);
+                              }}
+                            />
+                          </td>
+                          <td>
+                            <Label>API Version:</Label>
+                          </td>
+                          <td>
+                            <Dropdown options={aPIVersionOptions}
+                              placeholder={"Select an API Version"}
+                              style={{ margin: '10px', width: '170px' }}
+                              selectedKey={selectedValues?.version}
+                              onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                                setSelectedValues({
+                                  application: "",
+                                  api: selectedValues?.api!,
+                                  version: option?.text!,
+                                  operation: "",
+                                });
+                                loadOperationList(selectedValues?.api!, option?.text!);
+                              }}
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <Label>Operation:</Label>
+                          </td>
+                          <td>
+                            <Dropdown options={operationOptions}
+                              placeholder={"Select an Operation"}
+                              style={{ margin: '10px', width: '170px' }}
+                              selectedKey={selectedValues?.operation}
+                              onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
+                                setSelectedValues({
+                                  application: "",
+                                  api: selectedValues?.api!,
+                                  version: selectedValues?.version!,
+                                  operation: option?.text!,
+                                });
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div style={{ ...isExpand ? { display: 'block' } : { display: 'none' }, margin: '10px' }}> Advance Settings <IconButton iconProps={{ iconName: 'ChevronDownMed' }} title="Expand" ariaLabel="Expand" onClick={ExpandCollapseClick} />
+                  </div>
+                  <div style={{ textAlign: 'right', width: '80%' }}>
+                    <a href="https://aka.ms/lunasynapsenotebook" target="new"><u>Open in Synapse Notebook</u></a>
+                  </div>
+                  <div style={{ margin: '10px', boxShadow: '0px 0px 10px 4px #888888', width: '80%' }}>
+                    <SyntaxHighlighter language="typescript" style={vs}>
+                      {mytext}
+                    </SyntaxHighlighter>
+                  </div>
+                  <div style={{ color: 'blue', margin: '10px' }}>
+                    <Text>More Sample Code</Text><IconButton text="More Sample Code" iconProps={{ iconName: "OpenInNewWindow" }} target="" /><br />
+                    <Text>Swagger</Text><IconButton text="Swagger" iconProps={{ iconName: "OpenInNewWindow" }} target="" onClick={SelectSwaggerTab} /> <br />
+                  </div>
+                </PivotItem>
+                <PivotItem headerText={"My Subscriptions"} itemKey={"MySubscriptions"}>
+                  <React.Fragment>
+                    <div style={{ margin: '10px' }}>
+                      <table style={{ width: '90%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid black', borderTop: '1px solid black' }}>
+                            <th style={{ width: '30%', padding: 0 }}>
+                              <Label title={"Subscription Name"} > Subscription Name</Label>
+                            </th>
+                            <th style={{ width: '50%', padding: 0 }}>
+                              <Label title={"Subscription Id"} >Subscription Id</Label>
+                            </th>
+                            <th style={{ width: '20%%', padding: 0 }}>
+                              <Label title={"Created Date"} >Created Date</Label>
+                            </th>
+                          </tr>
+                        </thead>
                         <tbody>
-                          <tr>
-                            <td>
-                              <Label>API:</Label>
-                            </td>
-                            <td>
-                              <Dropdown options={aPIOptions}
-                                placeholder={"Select an API"}
-                                style={{ margin: '10px', width: '170px' }}
-                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
-                                  setSelectedValues({
-                                    application: "",
-                                    api: option?.text!,
-                                    version: "",
-                                    operation: "",
-                                  });
-                                  loadAPIVersionList(option?.text!);
-                                }}
-                              />
-                            </td>
-                            <td>
-                              <Label>API Version:</Label>
-                            </td>
-                            <td>
-                              <Dropdown options={aPIVersionOptions}
-                                placeholder={"Select an API Version"}
-                                style={{ margin: '10px', width: '170px' }}
-                                selectedKey={selectedValues?.version}
-                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
-                                  setSelectedValues({
-                                    application: "",
-                                    api: selectedValues?.api!,
-                                    version: option?.text!,
-                                    operation: "",
-                                  });
-                                  loadOperationList(selectedValues?.api!, option?.text!);
-                                }}
-                              />
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <Label>Operation:</Label>
-                            </td>
-                            <td>
-                              <Dropdown options={operationOptions}
-                                placeholder={"Select an Operation"}
-                                style={{ margin: '10px', width: '170px' }}
-                                selectedKey={selectedValues?.operation}
-                                onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
-                                  setSelectedValues({
-                                    application: "",
-                                    api: selectedValues?.api!,
-                                    version: selectedValues?.version!,
-                                    operation: option?.text!,
-                                  });
-                                }}
-                              />
-                            </td>
-                          </tr>
+                          {
+                            applicationSubscriptions?.map((values, idx) => {
+                              return (
+                                <tr key={idx} style={{ lineHeight: '30px', textAlign: 'center' }}>
+                                  <td>
+                                    <Link onClick={() => setSelectedSubscription(values.SubscriptionName)} >{values.SubscriptionName}</Link>
+                                  </td>
+                                  <td>
+                                    {values.SubscriptionId}
+                                  </td>
+                                  <td>
+                                    {values.CreatedTime.substr(0, 10)}
+                                  </td>
+                                </tr>
+                              )
+                            })
+                          }
                         </tbody>
                       </table>
-                    </div>
-                    <div style={{ ...isExpand ? { display: 'block' } : { display: 'none' }, margin: '10px' }}> Advance Settings <IconButton iconProps={{ iconName: 'ChevronDownMed' }} title="Expand" ariaLabel="Expand" onClick={ExpandCollapseClick} />
-                    </div>
-                    <div style={{ textAlign: 'right', width: '80%' }}>
-                      <a href="https://aka.ms/lunasynapsenotebook" target="new"><u>Open in Synapse Notebook</u></a>
-                    </div>
-                    <div style={{ margin: '10px', boxShadow: '0px 0px 10px 4px #888888', width: '80%' }}>
-                      <SyntaxHighlighter language="typescript" style={vs}>
-                        {mytext}
-                      </SyntaxHighlighter>
-                    </div>
-                    <div style={{ color: 'blue', margin: '10px' }}>
-                      <Text>More Sample Code</Text><IconButton text="More Sample Code" iconProps={{ iconName: "OpenInNewWindow" }} target="" /><br />
-                      <Text>Swagger</Text><IconButton text="Swagger" iconProps={{ iconName: "OpenInNewWindow" }} target="" /> <br />
-                    </div>
-                  </PivotItem>
-                  <PivotItem headerText={"My Subscriptions"} itemKey={"MySubscriptions"}>
-                    <React.Fragment>
-                      <div style={{ margin: '10px' }}>
-                        <table style={{ width: '90%', borderCollapse: 'collapse' }}>
-                          <thead>
-                            <tr style={{ borderBottom: '1px solid black', borderTop: '1px solid black' }}>
-                              <th style={{ width: '30%', padding: 0 }}>
-                                <Label title={"Subscription Name"} > Subscription Name</Label>
-                              </th>
-                              <th style={{ width: '50%', padding: 0 }}>
-                                <Label title={"Subscription Id"} >Subscription Id</Label>
-                              </th>
-                              <th style={{ width: '20%%', padding: 0 }}>
-                                <Label title={"Created Date"} >Created Date</Label>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {
-                              applicationSubscriptions?.map((values, idx) => {
-                                return (
-                                  <tr key={idx} style={{ lineHeight: '30px', textAlign: 'center' }}>
-                                    <td>
-                                      <Link onClick={() => setSelectedSubscription(values.SubscriptionName)} >{values.SubscriptionName}</Link>
-                                    </td>
-                                    <td>
-                                      {values.SubscriptionId}
-                                    </td>
-                                    <td>
-                                      {values.CreatedTime.substr(0, 10)}
-                                    </td>
-                                  </tr>
-                                )
-                              })
-                            }
-                          </tbody>
-                        </table>
-                        <Link onClick={() => setHideAddNewSub(false)}>+ New</Link>
-                        <div style={{ display: hideAddNewSub ? 'none' : 'block', width: '250px', border: '1px solid black', padding: '10px' }}>
-                          <TextField label={"Subscription Name:"} value={subName} onChange={setSubNameValue}></TextField>
-                          <PrimaryButton style={{ marginTop: '5px' }} onClick={() => { addSubscription(); setSubName('') }}>Submit</PrimaryButton>
-                        </div>
+                      <Link onClick={() => setHideAddNewSub(false)}>+ New</Link>
+                      <div style={{ display: hideAddNewSub ? 'none' : 'block', width: '250px', border: '1px solid black', padding: '10px' }}>
+                        <TextField label={"Subscription Name:"} value={subName} onChange={setSubNameValue}></TextField>
+                        <PrimaryButton style={{ marginTop: '5px' }} onClick={() => { addSubscription(); setSubName('') }}>Submit</PrimaryButton>
                       </div>
-                    </React.Fragment>
-                  </PivotItem>
-                  <PivotItem headerText={"Swagger"} itemKey={"Swagger"} >
-                    <SwaggerUI spec={swaggerUrl} />
-                  </PivotItem>
-                  <PivotItem headerText={"Recommendations"} itemKey={"Recommendations"}>
-                    <Recommendation />
-                  </PivotItem>
-                  <PivotItem headerText={"Reviews"} itemKey={"Reviews"}>
+                    </div>
+                  </React.Fragment>
+                </PivotItem>
+                <PivotItem headerText={"Swagger"} itemKey={"Swagger"} >
+                  <SwaggerUI spec={swaggerUrl} />
+                </PivotItem>
+                <PivotItem headerText={"Recommendations"} itemKey={"Recommendations"}>
+                  <Recommendation reloadLeftSection = {reloadLeftSection}/>
+                </PivotItem>
+                <PivotItem headerText={"Reviews"} itemKey={"Reviews"}>
 
-                  </PivotItem>
-                </Pivot>
-              </div>
-            </StackItem>
+                </PivotItem>
+              </Pivot>
+            </div>
           </StackItem>
-        </Stack>
+        </StackItem>
+
       </div>
       <br />
       <FooterLinks />
@@ -411,6 +470,8 @@ const AIServiceDetails = () => {
         closeButtonAriaLabel="Close"
         isFooterAtBottom={true}
         hasCloseButton={false}
+        type={PanelType.custom}
+        customWidth={"400px"}
       >
         <MySubscriptionOwnersDetails subscription={subscriptionData} />
       </Panel>

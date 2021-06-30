@@ -91,6 +91,7 @@ const AIServices = () => {
         let mysubbyapp = await GetMySubscriptionByApplication(element.UniqueName);
         if (mysubbyapp.length > 0) {
           element.type = 'MyApplication';
+          element.isSubScribed = true;
           myapps.push(element);
           allapps.push(element);
         }
@@ -109,14 +110,12 @@ const AIServices = () => {
       if (Object.prototype.hasOwnProperty.call(ipublisherApplications, key)) {
         const element = ipublisherApplications[key];
         element.type = 'PublisherApplication';
-        if(myapps.filter(x=>x.UniqueName== element.UniqueName).length>0)
-        {
-          element.isSubScribed = true;
-        }
+        element.isSubScribed = false;
         allapps.push(element);
         ipublisherapps.push(element);
       }
     }
+    ipublisherapps = ipublisherapps.filter(x => x.isSubScribed == false);
     setIsPublisherAppLoading(false);
     setpublisherApplication(ipublisherapps);
     /*Get Publisher Application ends*/
@@ -128,13 +127,10 @@ const AIServices = () => {
     for (const key in marketplaceApplications) {
       if (Object.prototype.hasOwnProperty.call(marketplaceApplications, key)) {
         const element = marketplaceApplications[key];
-        element.type = 'MarketPlaceApplication';     
-        if(myapps.filter(x=>x.UniqueName== element.UniqueName).length>0)
-        {
-          element.isSubScribed = true;
-        }   
-        allapps.push(element);
-        marketPlaceapps.push(element);
+        element.type = 'MarketPlaceApplication';
+        element.isSubScribed = false;
+        // allapps.push(element);
+        // marketPlaceapps.push(element);
       }
     }
     setMarketPlaceAppLoading(false)
@@ -146,44 +142,33 @@ const AIServices = () => {
 
   }
 
-  const searchFilter = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string | undefined) => {        
-    if (newValue && newValue.length > 3) {      
-      if (newValue) {
-        let MyApplication = allApplication?.filter(x => x.type.includes("MyApplication") && x.DisplayName.includes(newValue));
-        setMyApplication(MyApplication);
+  const searchFilter = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string | undefined) => {
+    if (newValue) {
+      let MyApplication = allApplication?.filter(x => x.type.includes("MyApplication") && x.DisplayName.toLowerCase().includes(newValue.toLowerCase()));
+      setMyApplication(MyApplication);
 
-        let PublisherApplication = allApplication?.filter(x => x.type.includes("PublisherApplication") && x.DisplayName.includes(newValue));
-        setpublisherApplication(PublisherApplication);
+      let PublisherApplication = allApplication?.filter(x => x.type.includes("PublisherApplication") && x.isSubScribed == false && x.DisplayName.toLowerCase().includes(newValue.toLowerCase()));
+      setpublisherApplication(PublisherApplication);
 
-        let MarketPlaceApplication = allApplication?.filter(x => x.type.includes("MarketPlaceApplication") && x.DisplayName.includes(newValue));
-        setMarketPlaceApplication(MarketPlaceApplication);
-      }
-      else {
-        let MyApplication = allApplication?.filter(x => x.type.includes("MyApplication"));
-        setMyApplication(MyApplication);
-
-        let PublisherApplication = allApplication?.filter(x => x.type.includes("PublisherApplication"));
-        setpublisherApplication(PublisherApplication);
-
-        let MarketPlaceApplication = allApplication?.filter(x => x.type.includes("MarketPlaceApplication"));
-        setMarketPlaceApplication(MarketPlaceApplication);
-      }
+      let MarketPlaceApplication = allApplication?.filter(x => x.type.includes("MarketPlaceApplication") && x.isSubScribed == false && x.DisplayName.toLowerCase().includes(newValue.toLowerCase()));
+      setMarketPlaceApplication(MarketPlaceApplication);
     }
     else {
       let MyApplication = allApplication?.filter(x => x.type.includes("MyApplication"));
       setMyApplication(MyApplication);
 
-      let PublisherApplication = allApplication?.filter(x => x.type.includes("PublisherApplication"));
+      let PublisherApplication = allApplication?.filter(x => x.type.includes("PublisherApplication") && x.isSubScribed == false);
       setpublisherApplication(PublisherApplication);
 
-      let MarketPlaceApplication = allApplication?.filter(x => x.type.includes("MarketPlaceApplication"));
+      let MarketPlaceApplication = allApplication?.filter(x => x.type.includes("MarketPlaceApplication") && x.isSubScribed == false);
       setMarketPlaceApplication(MarketPlaceApplication);
     }
     // setOfferData(filterByValue(initOffferData!, newValue!));
   }
 
-  const selectApplication = (selectedApp: string) => {
-    sessionStorage.setItem('selectedApplication', selectedApp);
+  const selectApplication = (selectedApp: IApplication) => {
+    sessionStorage.setItem('selectedApplication', selectedApp.UniqueName);
+    sessionStorage.setItem('selectedApplicationObject', JSON.stringify(selectedApp));
     history.push("servicedetails");
   }
 
@@ -246,7 +231,7 @@ const AIServices = () => {
                             return (
                               <tr>
                                 <td>
-                                  <a onClick={(event) => selectApplication(values.UniqueName)}>
+                                  <a onClick={(event) => selectApplication(values)}>
                                     {values.DisplayName}
                                   </a>
                                 </td>
@@ -274,9 +259,9 @@ const AIServices = () => {
                       myApplication && myApplication?.length > 0 ?
                         myApplication?.map((values: IApplication, idx: number) => {
                           return (
-                            <div className="appblock" key={idx} onClick={(event) => selectApplication(values.UniqueName)}>
+                            <div className="appblock" key={idx} onClick={(event) => selectApplication(values)}>
                               <IconButton style={{ color: SharedColors.blue10 }}
-                                iconProps={{ iconName: "TestBeakerSolid" }} size={30} />
+                                iconProps={{ iconName: "TestBeakerSolid" }} size={30} className="TestBeakericon" />
                               <Text block variant={'xLarge'} className="heading">{values.DisplayName}</Text>
                               <p className="description">
                                 {values.Description}
@@ -284,7 +269,7 @@ const AIServices = () => {
                               <p className="publisher">
                                 <Text block variant={"small"}>Publisher: {values.Publisher}</Text>
                               </p>
-                              <hr className="seperator"/>
+                              <hr className="seperator" />
                               <div className="tags">
                                 {
                                   values.Tags.map((tagvalues: IApplicationTags, tagidx: any) => {
@@ -336,7 +321,7 @@ const AIServices = () => {
                             return (
                               <tr>
                                 <td>
-                                  <a onClick={(event) => selectApplication(values.UniqueName)}>
+                                  <a onClick={(event) => selectApplication(values)}>
                                     {values.DisplayName}
                                   </a>
                                 </td>
@@ -364,9 +349,9 @@ const AIServices = () => {
                       publisherApplication && publisherApplication?.length > 0 ?
                         publisherApplication?.map((values: IApplication, idx: number) => {
                           return (
-                            <div className="appblock" key={idx} onClick={(event) => selectApplication(values.UniqueName)}>
+                            <div className="appblock" key={idx} onClick={(event) => selectApplication(values)}>
                               <IconButton style={{ color: SharedColors.blue10 }}
-                                iconProps={{ iconName: "TestBeakerSolid" }} size={30} />
+                                iconProps={{ iconName: "TestBeakerSolid" }} size={30} className="TestBeakericon" />
                               <Text block variant={'xLarge'} className="heading">{values.DisplayName}</Text>
                               <p className="description">
                                 {values.Description}
@@ -387,11 +372,11 @@ const AIServices = () => {
                               </div>
                               {
                                 values.isSubScribed ?
-                                <div className="subscribeddiv">
-                                <FontIcon aria-label="Compass" iconName="CircleFill" style={{ paddingTop: '3%' }} />
-                                <span className="subscribedtext"> Subcribed</span>
-                              </div>
-                                :null
+                                  <div className="subscribeddiv">
+                                    <FontIcon aria-label="Compass" iconName="CircleFill" style={{ paddingTop: '3%' }} />
+                                    <span className="subscribedtext"> Subcribed</span>
+                                  </div>
+                                  : null
                               }
                             </div>
                           )
@@ -403,7 +388,7 @@ const AIServices = () => {
               </React.Fragment>
           }
         </Stack>
-        <Stack className="section" style={{marginBottom:'5%'}}>
+        <Stack className="section" style={{ marginBottom: '5%' }}>
           <Text block variant={'xLarge'} className="title">Applications from Azure Marketplace
           </Text>
           {
@@ -430,7 +415,7 @@ const AIServices = () => {
                             return (
                               <tr>
                                 <td>
-                                  <a onClick={(event) => selectApplication(values.UniqueName)}>
+                                  <a onClick={(event) => selectApplication(values)}>
                                     {values.DisplayName}
                                   </a>
                                 </td>
@@ -458,9 +443,9 @@ const AIServices = () => {
                       marketPlaceApplication && marketPlaceApplication?.length > 0 ?
                         marketPlaceApplication?.map((values: IApplication, idx: number) => {
                           return (
-                            <div className="appblock" key={idx} onClick={(event) => selectApplication(values.UniqueName)}>
+                            <div className="appblock" key={idx} onClick={(event) => selectApplication(values)}>
                               <IconButton style={{ color: SharedColors.blue10 }}
-                                iconProps={{ iconName: "TestBeakerSolid" }} size={30} />
+                                iconProps={{ iconName: "TestBeakerSolid" }} size={30} className="TestBeakericon" />
                               <Text block variant={'xLarge'} className="heading">{values.DisplayName}</Text>
                               <p className="description">
                                 {values.Description}
@@ -468,7 +453,7 @@ const AIServices = () => {
                               <p className="publisher">
                                 <Text block variant={"small"}>Publisher: {values.Publisher}</Text>
                               </p>
-                              <hr className="seperator"/>
+                              <hr className="seperator" />
                               <div className="tags">
                                 {
                                   values.Tags.map((tagvalues: IApplicationTags, tagidx: any) => {
@@ -481,12 +466,12 @@ const AIServices = () => {
                               </div>
                               {
                                 values.isSubScribed ?
-                                <div className="subscribeddiv">
-                                <FontIcon aria-label="Compass" iconName="CircleFill" style={{ paddingTop: '3%' }} />
-                                <span className="subscribedtext"> Subcribed</span>
-                              </div>
-                                :null
-                              }                              
+                                  <div className="subscribeddiv">
+                                    <FontIcon aria-label="Compass" iconName="CircleFill" style={{ paddingTop: '3%' }} />
+                                    <span className="subscribedtext"> Subcribed</span>
+                                  </div>
+                                  : null
+                              }
                             </div>
                           )
                         })

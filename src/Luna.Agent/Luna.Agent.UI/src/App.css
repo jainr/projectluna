@@ -50,6 +50,8 @@ main > div > div {
 }
 .AIServices table tr td {
     padding: 15px;
+    padding-left: 0;
+    text-align: left;
 }
 .AIServices table tr td a {
     cursor: pointer;
@@ -72,8 +74,7 @@ main > div > div {
 .AIServices .appblock .heading {
     font-weight: 700;
 }
-.AIServices .appblock .description {
-    font-weight: 700;
+.AIServices .appblock .description {    
     text-overflow: ellipsis;
     overflow: hidden;
     min-height: 45px;
@@ -100,6 +101,28 @@ main > div > div {
     border: 1px solid #cac3c366;
     margin-left: -6%;
 }
+.AIServices .appblock .TestBeakericon i
+{
+    font-size: 30px;
+}
+.AIServices .leftsection
+{
+    float: left;
+    border-right: 1px solid black;
+    height: 100%;
+}
+.AIServices .leftsection .contentsection{
+    padding-bottom: 360px;
+    
+}
+.AIServices .rightsection
+{
+    float: right;
+}
+.AIServices .leftfooter
+{
+    color: blue;    
+}
 /*Machine Learning Gallery*/
 
 /*Recommended*/
@@ -107,7 +130,8 @@ main > div > div {
 .AIServices .Recommended .appblock {
     box-shadow: none;
     border: 1px solid #cac3c366;
-    cursor: unset;
+    cursor: pointer;
+    box-shadow: 2px 2px 8px 3px #888888;
 }
 .AIServices .Recommended .title {
     font-weight: normal;
@@ -118,11 +142,11 @@ main > div > div {
 }
 .AIServices .Recommended .PanelStyles {
     /* height: 800px !important; */
-    height: 685px !important;
+    height: 790px !important;
     box-shadow: none !important;
 }
-.AIServices .Recommended .appblock .publisher span
+.AIServices .Recommended .TestBeakericon i
 {
-    font-weight: normal;
+    font-size: 30px;
 }
 /*Recommended*/
