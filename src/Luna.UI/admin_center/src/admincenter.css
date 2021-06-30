@@ -13,31 +13,35 @@ html, body {
 }
 .dashboardcard {
   color: #fff;
-  margin-right: 1%;
+  margin-right: 20px;
   min-height: 200px;
+  display:flex;
+  flex-direction: column;
+  justify-content: space-between;
   /* width: 12%; */
   width: 200px;
   box-shadow: rgb(27 26 26 / 78%) 0px 3.2px 7.2px 0px, rgb(39 39 39 / 43%) 0px 0.6px 1.8px 0px;
 }
 .dashboardcard h1 {
   font-size: 50px;
-  margin: 0;  
-  padding-top: 10%;
-  padding-left: 5%;
+  margin: 0px 0px 0px 5px;
 }
 .fnt10 {
   font-size: 12px;
   cursor: pointer;
+  margin-right:10px;
 }
 .cardtext {  
   padding-bottom: 0px;
-  padding-top: 5%;
   padding-left: 16px;
 }
 .txticon {
+  display:flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+  align-items: center;
   text-align: right;
-  padding-top: 23px;
-  margin-right: 5%;
+  margin-right: 16px;
 }
 .Arrowicon {
   padding-right: 5%;  

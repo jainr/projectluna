@@ -133,10 +133,10 @@ const Dashboard: React.FunctionComponent = () => {
             <div className="dashboardcard bgclrblue floatLeft">
               <h1>15</h1>
               <div className="cardtext">
-                <span>Active <br></br>Installation</span> <br></br>
+                <span>Active <br/>Installation</span>
               </div>
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;
+                <span className="fnt10">Go to details</span>
                 {/* <FontIcon iconName="Edit" className="Arrowicon" /> */}
                 <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"} />
               </div>
@@ -144,10 +144,10 @@ const Dashboard: React.FunctionComponent = () => {
             <div className="dashboardcard bgclrblue floatLeft">
               <h1 style={{paddingLeft:'8%'}}>2</h1>
               <div className="cardtext">
-                <span>New Installation in<br></br> Past 30 days</span> <br></br>
+                <span>New Installation in<br></br> Past 30 days</span>
               </div>
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;
+                <span className="fnt10">Go to details</span>
                 <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"} />
               </div>
 
@@ -155,10 +155,10 @@ const Dashboard: React.FunctionComponent = () => {
             <div className="dashboardcard bgclrred floatLeft">
               <h1>1</h1>
               <div className="cardtext">
-                <span>Customer  churn in<br></br> past 30 days</span> <br></br>
+                <span>Customer  churn in<br></br> past 30 days</span>
               </div>
               <div className="txticon">
-                <span className="fnt10">Go to details</span>&nbsp;&nbsp;
+                <span className="fnt10">Go to details</span>
                 <FontAwesomeIcon icon={faArrowAltCircleRight} className={"dashboardarrowIcon"} />
               </div>
             </div>
