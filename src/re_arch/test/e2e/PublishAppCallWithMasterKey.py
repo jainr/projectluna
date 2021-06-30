@@ -72,6 +72,7 @@ class ScenarioTest(HttpUser):
         self._assert_success(self.client.put(uri, headers=self.headerData, data=json.dumps(body)))
         self._assert_success(self.client.patch(uri, headers=self.headerData, data=json.dumps(body)))
         self._assert_success(self.client.get(uri, headers=self.headerData))
+        self._assert_success(self.client.get(self.partnerServices_url, headers=self.headerData))
 
         # 2.	Create Luna Application [PUT]
         uri = self.app_url + resource_name
@@ -91,6 +92,7 @@ class ScenarioTest(HttpUser):
         self._assert_success(self.client.put(uri, headers=self.headerData, data=json.dumps(body)))
         self._assert_success(self.client.patch(uri, headers=self.headerData, data=json.dumps(body)))
         self._assert_success(self.client.get(uri, headers=self.headerData))
+        self._assert_success(self.client.get(self.app_url, headers=self.headerData))
 
         # 3.	Create Luna API [PUT]
         uri = self.app_url + resource_name + "/apis/myapi"
@@ -102,7 +104,6 @@ class ScenarioTest(HttpUser):
                 }
         self._assert_success(self.client.put(uri, headers=self.headerData, data=json.dumps(body)))
         self._assert_success(self.client.patch(uri, headers=self.headerData, data=json.dumps(body)))
-        self._assert_success(self.client.get(uri, headers=self.headerData))
 
         # 4.	Create Luna API Version [PUT]
         uri = self.app_url + resource_name + "/apis/myapi/versions/v1"
@@ -120,7 +121,6 @@ class ScenarioTest(HttpUser):
                 }
         self._assert_success(self.client.put(uri, headers=self.headerData, data=json.dumps(body)))
         self._assert_success(self.client.patch(uri, headers=self.headerData, data=json.dumps(body)))
-        self._assert_success(self.client.get(uri, headers=self.headerData))
 
         # 5.	Publish Luna Application [POST]
         uri = self.app_url + resource_name + "/publish"
