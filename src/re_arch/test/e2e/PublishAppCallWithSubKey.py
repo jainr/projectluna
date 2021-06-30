@@ -17,7 +17,7 @@ class ScenarioTest(HttpUser):
 
         
         self.app_url = "/api/manage/applications/"
-        self.partnerServices_url = "/api/manage/partnerServices/azureml/"
+        self.partnerServices_url = "/api/manage/partnerServices/"
         
         self.routing_url = os.environ['ROUTING_URL']
         self.host_url = os.environ['GATEWAY_URL']
