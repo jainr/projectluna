@@ -53,6 +53,7 @@ const AIServiceDetails = () => {
   const [subscriptionData, setSubscriptionData] = React.useState<IApplicationSubscription>();
   const [hideAddNewSub, setHideAddNewSub] = React.useState(true);
   const [subName, setSubName] = React.useState<string>('');
+  const [hideAddSubscriptionDialog, setHideAddSubscriptionDialog] = React.useState(true);
 
   const [applicationData, setApplicationData] = React.useState<IApplication>({
     UniqueName: "",
@@ -66,6 +67,9 @@ const AIServiceDetails = () => {
     type: '',
     isSubScribed: false
   });
+
+  const labelId: string = 'dialogLabel';
+  const subTextId: string = 'subTextLabel';
 
   const [applicationSubscriptions, setApplicationSubscriptions] = React.useState<IApplicationSubscription[]>([]);
   const [swaggerUrl, setSwaggerUrl] = React.useState<string>();
@@ -126,13 +130,35 @@ const AIServiceDetails = () => {
       <Stack horizontal style={{ display: 'block', textAlign: 'right' }}>
         {/* <PrimaryButton style={{ marginLeft:'100px' }} text="Save" ></PrimaryButton>       */}
         <div>
-          <DefaultButton onClick={() => { toggleOwnerPanel(false); openPanel() }}>Cancel</DefaultButton>
+          <DefaultButton onClick={() => { toggleOwnerPanel(false); openPanel() }}>Close</DefaultButton>
         </div>
       </Stack>
     ),
     [dismissPanel],
   );
 
+  const dialogAddSubContentProps: IDialogContentProps = {
+    type: DialogType.normal,
+    title: 'Add New Subscription',
+    closeButtonAriaLabel: 'Cancel',
+    isMultiline: true
+};
+
+const modalProps: IModalProps = {
+  titleAriaId: labelId,
+  subtitleAriaId: subTextId,
+  isBlocking: true,
+  isDarkOverlay: true,
+  allowTouchBodyScroll: true,
+}
+
+const toggleAddSubDialog = () => {
+  if (hideAddSubscriptionDialog) {
+      setHideAddSubscriptionDialog(false);
+  } else {
+      setHideAddSubscriptionDialog(true);
+  }
+}
   const getApplicationDetails = () => {
     fetch(`${window.BASE_URL}/gallery/applications/${selectedApplication}`, {
       mode: "cors",
@@ -284,7 +310,7 @@ const AIServiceDetails = () => {
                       </React.Fragment>
                       : <React.Fragment>
                         <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
-                        <Text block variant={'medium'} style={{ marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer' }}>+ Subscribe Now</Text>
+                        <Text block variant={'medium'} style={{ marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer' }} onClick={()=> setHideAddSubscriptionDialog(false)}>+ Subscribe Now</Text>
                       </React.Fragment>
                   }
                 </React.Fragment>
@@ -429,7 +455,7 @@ const AIServiceDetails = () => {
                       <Link onClick={() => setHideAddNewSub(false)}>+ New</Link>
                       <div style={{ display: hideAddNewSub ? 'none' : 'block', width: '250px', border: '1px solid black', padding: '10px' }}>
                         <TextField label={"Subscription Name:"} value={subName} onChange={setSubNameValue}></TextField>
-                        <PrimaryButton style={{ marginTop: '5px' }} onClick={() => { addSubscription(); setSubName('') }}>Submit</PrimaryButton>
+                        <PrimaryButton style={{ marginTop: '5px' }} onClick={() => { addSubscription(); setSubName(''); setHideAddNewSub(true) }}>Submit</PrimaryButton>
                       </div>
                     </div>
                   </React.Fragment>
@@ -452,7 +478,7 @@ const AIServiceDetails = () => {
       <br />
       <FooterLinks />
       <Panel
-        headerText="My Subscription"
+        headerText={subscriptionData?.SubscriptionName}
         isOpen={isOpen}
         isFooterAtBottom={true}
         hasCloseButton={false}
@@ -475,6 +501,22 @@ const AIServiceDetails = () => {
       >
         <MySubscriptionOwnersDetails subscription={subscriptionData} />
       </Panel>
+      <Dialog
+        hidden={hideAddSubscriptionDialog}
+        onDismiss={toggleAddSubDialog}
+        dialogContentProps={dialogAddSubContentProps}
+        modalProps={modalProps}
+            >
+                 {/* <div style={{ width: '250px', border: '1px solid black', padding: '10px' }}> */}
+                        <TextField label={"Subscription Name:"} value={subName} onChange={setSubNameValue}></TextField>                        
+                      {/* </div> */}
+                <DialogFooter>
+                    <PrimaryButton
+                        text="Submit"
+                        onClick={() => { addSubscription(); setSubName(''); toggleAddSubDialog(); viewMySubscription(); reloadLeftSection(); }} />
+                    <DefaultButton onClick={toggleAddSubDialog} text="Cancel" />
+                </DialogFooter>
+            </Dialog>
     </div>
   );
 }
