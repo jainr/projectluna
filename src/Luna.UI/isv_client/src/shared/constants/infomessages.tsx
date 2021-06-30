@@ -105,3 +105,27 @@ export const SettingsMessages =
         Enabled:''        
     },    
 }
+export const WizardMessages =
+{
+    defaultMLServices:"Don’t see your machine learning service or Git repo? Click on “Register New” to register your services.",
+    defaultMLComponents:"This will be a part of the URL when user calling the API service.",
+    defaultAPIServices:"A descriptive name will help user to understand what your application is for. For example: Text Analysis, Sales Forecasting.",
+    sourceServiceType: "Set Source Service Type",
+    sourceService: "Set Source Service",
+    mLComponentType: "Set ML Component Type ",
+    mLComponent:"Set ML Component",
+    operationName:"Set Operation Name",
+    branchOrCommitHash:"Set Branch Or Commit Hash",
+    executionConfigFile:"Set Execution ConfigFile",
+    computeServiceType:"Set Compute Service Type",
+    computeService:"Set Compute Service ",
+    applicationDisplayName:"Set Application Display Name",
+    applicationName:"Set Application Name",
+    apiName:"Set API Name",
+    apiVersion:"Set API Version",
+    applicationDescription:"Set Application Description",
+    logoImageURL:"Set Logo Image URL",
+    documentationURL:"Set Documentation URL",
+    publisher:"Set publisher",
+
+}
