@@ -107,8 +107,6 @@ export abstract class ServiceBase {
           result = new Result<T>(null, false,null);
         }
         else if(error.response.status === 409){
-          debugger;
-
           result = new Result<T>(null, false,[{ code: '409', target: 'method_error', message: error.response.data.message}]);
         }
         else {

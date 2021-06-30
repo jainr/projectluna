@@ -47,6 +47,15 @@ export default class WizardService extends ServiceBase {
         return result;
     }
 
+    public static async computedServiceTypeList(): Promise<Result<any>> {
+      var result = await this.requestJson<any>({
+          url: `/manage/partnerServices/metadata/computeservicetypes`,
+          method: "GET"            
+      });
+
+      return result;
+  }
+
     public static async createApplication(model: IWizardModel): Promise<Result<any>> {
         let applicationModel: IApplicationModel = {
             displayName: model.applicationDisplayName,
@@ -71,7 +80,7 @@ export default class WizardService extends ServiceBase {
         let apiModel: IApiModel = {
             displayName: model.apiName,           
             description: model.applicationDescription,
-            type: model.mLComponentType,
+            type: model.mLComponentType === ''? model.computeServiceType : model.mLComponentType,
             advancedSettings: ""            
         };
         
