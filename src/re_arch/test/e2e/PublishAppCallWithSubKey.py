@@ -29,6 +29,8 @@ class ScenarioTest(HttpUser):
         self.admin_spn_client_id = os.environ['ADMIN_SPN_CLIENT_ID']
         self.luna_app_client_id = os.environ['LUNA_APP_CLIENT_ID']
         self.luna_app_client_secret = os.environ['ADMIN_SPN_CLIENT_SECRET']
+        self.aml_endpoint_name = os.environ['AML_ENDPOINT_NAME']
+        self.aml_endpoint_input = os.environ['AML_ENDPOINT_INPUT']
         
         data = {
             "grant_type": "client_credentials",
@@ -108,12 +110,12 @@ class ScenarioTest(HttpUser):
         # 4.	Create Luna API Version [PUT]
         uri = self.app_url + resource_name + "/apis/myapi/versions/v1"
         body = {
-                    "AzureMLWorkspaceName":"amlworkspace",
-                    "description": "my version lalala",
+                    "AzureMLWorkspaceName": resource_name,
+                    "description": "my version",
                     "type": "AzureML",
                     "endpoints": [
                         {
-                            "endpointName": "bostonhousing",
+                            "endpointName": self.aml_endpoint_name,
                             "operationName": "predict"
                         }
                     ],
@@ -140,7 +142,7 @@ class ScenarioTest(HttpUser):
 
         # # 7.	Call Realtime Endpoint [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
-        body = {"data":[[1,2,3,4,5,6,7,8,9,0,1,2,3]]}
+        body = json.loads(self.aml_endpoint_input)
         endPointHeaderData = { "api-key": subscriptionKey }
         response = self.client.post(uri, headers=endPointHeaderData, data=json.dumps(body))
         self._assert_success(response)

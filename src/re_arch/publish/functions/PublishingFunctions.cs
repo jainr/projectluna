@@ -1421,7 +1421,7 @@ namespace Luna.Publish.Functions
                         OrderByDescending(x => x.LastAppliedEventId).FirstOrDefault();
 
                     var events = await _dbContext.ApplicationEvents.
-                        Where(x => x.Id > snapshot.LastAppliedEventId).
+                        Where(x => x.Id > snapshot.LastAppliedEventId && x.ResourceName == name).
                         OrderBy(x => x.Id).
                         Select(x => x.GetEventObject()).
                         ToListAsync();
@@ -2646,7 +2646,7 @@ namespace Luna.Publish.Functions
             if (!isNewOffer)
             {
                 events = await _dbContext.MarketplaceOfferEvents.
-                    Where(x => x.Id > snapshot.LastAppliedEventId).
+                    Where(x => x.Id > snapshot.LastAppliedEventId && x.ResourceName == offerId).
                     OrderBy(x => x.Id).
                     Select(x => x.GetEventObject()).
                     ToListAsync();
@@ -2686,7 +2686,7 @@ namespace Luna.Publish.Functions
             if (!isNewApp)
             {
                 events = await _dbContext.ApplicationEvents.
-                    Where(x => x.Id > snapshot.LastAppliedEventId).
+                    Where(x => x.Id > snapshot.LastAppliedEventId && x.ResourceName == appName).
                     OrderBy(x => x.Id).
                     Select(x => x.GetEventObject()).
                     ToListAsync();

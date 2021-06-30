@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -19,6 +20,7 @@ namespace Luna.Common.Utils
             this.TraceId = traceId;
             this.ErrorCode = UserErrorCode.InternalServerError;
             this.HttpStatusCode = HttpStatusCode.InternalServerError;
+            this.StackTrace = ex.StackTrace;
 
             if (ex is LunaException)
             {
@@ -44,13 +46,17 @@ namespace Luna.Common.Utils
         public UserErrorCode ErrorCode { get; set; }
         public HttpStatusCode HttpStatusCode { get; set; }
 
+        [JsonIgnore]
+        public string StackTrace { get; set; }
+
         public override string ToString()
         {
-            return string.Format("Error message: {0} Error Code: {1}, Http Status Code: {2}, Trace Id: {3}",
+            return string.Format("Error message: {0} Error Code: {1}, Http Status Code: {2}, Trace Id: {3}, Stack trace {4}",
                 this.Message,
                 this.ErrorCode.ToString(),
                 this.HttpStatusCode.ToString(),
-                this.TraceId);
+                this.TraceId,
+                this.StackTrace);
         }
 
         public JsonResult GetHttpResult()
