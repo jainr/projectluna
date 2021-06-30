@@ -20,7 +20,7 @@ import { getTypeParameterOwner } from 'typescript';
 import { PromptState } from 'msal/lib-commonjs/utils/Constants';
 import { withRouter } from "react-router-dom";
 import { useHistory, useLocation } from 'react-router';
-import { GetRecommendedApplication } from './GetMyApplication';
+import { GetMySubscriptionByApplication, GetRecommendedApplication } from './GetMyApplication';
 import { IApplication } from './IApplication';
 import { IApplicationTags } from './IApplicationTags';
 
@@ -46,7 +46,14 @@ const Recommendation = (props: any) => {
     for (const key in recommendedApplications) {
       if (Object.prototype.hasOwnProperty.call(recommendedApplications, key)) {
         const element = recommendedApplications[key];
-        element.type = 'recommended';
+        element.type = 'MyApplication';
+        let mysubbyapp = await GetMySubscriptionByApplication(element.UniqueName);
+        if (mysubbyapp.length > 0) {          
+          element.isSubScribed = true;         
+        }
+        else{          
+          element.isSubScribed = false;         
+        }
         appslist.push(element);
       }
     }
@@ -57,7 +64,7 @@ const Recommendation = (props: any) => {
 
   }
 
-  const selectApplication = (selectedApp: IApplication) => {
+  const selectApplication = (selectedApp: IApplication) => {    
     sessionStorage.setItem('selectedApplication', selectedApp.UniqueName);
     sessionStorage.setItem('selectedApplicationObject', JSON.stringify(selectedApp));
     props.reloadLeftSection();
