@@ -6,6 +6,7 @@ using Luna.Publish.Public.Client;
 using Luna.PubSub.Public.Client;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Storage.Queue;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.EntityFrameworkCore;
@@ -124,13 +125,15 @@ namespace Luna.Provision.Functions
 
 
         [FunctionName("ProcessAzureMarketplaceEvents")]
-        public async Task ProcessAzureMarketplaceEvents([QueueTrigger("provision-processazuremarketplaceevents")] string myQueueItem)
+        public async Task ProcessAzureMarketplaceEvents([QueueTrigger("provision-processazuremarketplaceevents")] CloudQueueMessage myQueueItem)
         {
-            if (myQueueItem.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
+            var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
+
+            if (queueMessage.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
             {
                 await ProcessMarketplaceOfferEvents();
             }
-            else if (myQueueItem.Equals(LunaEventType.CREATE_AZURE_MARKETPLACE_SUBSCRIPTION))
+            else if (queueMessage.EventType.Equals(LunaEventType.CREATE_AZURE_MARKETPLACE_SUBSCRIPTION))
             {
                 await ProcessMarketplaceSubscriptionEvents();
             }

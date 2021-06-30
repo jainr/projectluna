@@ -23,8 +23,14 @@ namespace Luna.PubSub.Public.Client
         /// <param name="headers">The luna request header</param>
         /// <param name="eventType"></param>
         /// <param name="eventsAfter"></param>
+        /// <param name="partitionKey"></param>
         /// <returns>The event list</returns>
-        Task<List<LunaBaseEventEntity>> ListEventsAsync(string eventStoreName, LunaRequestHeaders headers, string eventType = null, long eventsAfter = 0);
+        Task<List<LunaBaseEventEntity>> ListEventsAsync(
+            string eventStoreName, 
+            LunaRequestHeaders headers, 
+            string eventType = null, 
+            long eventsAfter = 0,
+            string partitionKey = null);
 
         /// <summary>
         /// Publish a event to the specified event store

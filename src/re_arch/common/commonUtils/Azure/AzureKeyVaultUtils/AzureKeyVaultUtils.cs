@@ -16,9 +16,9 @@ namespace Luna.Common.Utils
     {
         private static Random random = new Random();
         private const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        private readonly KeyVaultClient _keyVaultClient;
+        private static KeyVaultClient _keyVaultClient = null;
         private readonly ILogger<AzureKeyVaultUtils> _logger;
-        private readonly string _vaultBaseUrl;
+        private static string _vaultBaseUrl;
 
         [ActivatorUtilitiesConstructor]
         public AzureKeyVaultUtils(IOptionsMonitor<AzureKeyVaultConfiguration> option, 
@@ -26,25 +26,33 @@ namespace Luna.Common.Utils
             ILogger<AzureKeyVaultUtils> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            AzureServiceTokenProvider azureServiceTokenProvider = null;
 
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("USER_ASSIGNED_MANAGED_IDENTITY")))
+            if (_keyVaultClient == null)
             {
-                var connectionString = $"RunAs=App;AppId={Environment.GetEnvironmentVariable("USER_ASSIGNED_MANAGED_IDENTITY")}";
-                azureServiceTokenProvider = new AzureServiceTokenProvider(connectionString: connectionString);
+                AzureServiceTokenProvider azureServiceTokenProvider = null;
+
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("USER_ASSIGNED_MANAGED_IDENTITY")))
+                {
+                    var connectionString = $"RunAs=App;AppId={Environment.GetEnvironmentVariable("USER_ASSIGNED_MANAGED_IDENTITY")}";
+                    azureServiceTokenProvider = new AzureServiceTokenProvider(connectionString: connectionString);
+                }
+                else
+                {
+                    azureServiceTokenProvider = new AzureServiceTokenProvider();
+                }
+
+                _keyVaultClient = new KeyVaultClient(
+                    new KeyVaultClient.AuthenticationCallback(
+                        azureServiceTokenProvider.KeyVaultTokenCallback
+                    ), httpClient
+                );
+
+                _logger.LogInformation("Initialize the key vault.");
             }
             else
             {
-                azureServiceTokenProvider = new AzureServiceTokenProvider();
+                _logger.LogInformation("Key vault is already initialized.");
             }
-
-            _keyVaultClient = new KeyVaultClient(
-                new KeyVaultClient.AuthenticationCallback(
-                    azureServiceTokenProvider.KeyVaultTokenCallback
-                ), httpClient
-            );
-
-            _logger.LogInformation("Initialize the key vault.");
 
             _vaultBaseUrl = $"https://{option.CurrentValue.KeyVaultName}.vault.azure.net/";
         }

@@ -30,7 +30,7 @@ namespace Luna.Routing.Data
         public DbSet<PartnerServiceDbView> PartnerServices { get; set; }
         public DbSet<SubscriptionsDBView> Subscriptions { get; set; }
 
-        public DbSet<ProcessedEventDB> ProcessedEvents { get; set; }
+        public DbSet<SubscriptionEventDB> SubscriptionEvents { get; set; }
 
         /// <summary>
         /// Save changes to database

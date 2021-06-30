@@ -339,14 +339,14 @@ CREATE TABLE [routing].[PublishedAPIVersions](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
-/****** Object:  Table [routing].[ProcessedEvents]    Script Date: 4/29/2021 11:07:14 AM ******/
+/****** Object:  Table [routing].[SubscriptionEvents]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [routing].[ProcessedEvents](
+CREATE TABLE [routing].[SubscriptionEvents](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
-	[EventStoreName] [nvarchar](128) NOT NULL,
+	[SubscriptionId] [nvarchar](128) NOT NULL,
 	[LastAppliedEventId] [bigint] NOT NULL,
 PRIMARY KEY CLUSTERED 
 (

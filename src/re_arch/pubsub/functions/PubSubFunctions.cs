@@ -132,6 +132,7 @@ namespace Luna.PubSub.Functions
                 {
                     string eventType = null;
                     long eventsAfter = 0;
+                    string partitionKey = null;
                     if (req.Query.ContainsKey(PubSubServiceQueryParameters.EVENT_TYPE))
                     {
                         eventType = req.Query[PubSubServiceQueryParameters.EVENT_TYPE].ToString();
@@ -146,7 +147,12 @@ namespace Luna.PubSub.Functions
                         }
                     }
 
-                    var events = await _eventStoreClient.ListEvents(name, eventType, eventsAfter);
+                    if (req.Query.ContainsKey(PubSubServiceQueryParameters.PARTITION_KEY))
+                    {
+                        partitionKey = req.Query[PubSubServiceQueryParameters.PARTITION_KEY].ToString();
+                    }
+
+                    var events = await _eventStoreClient.ListEvents(name, eventType, eventsAfter, partitionKey);
 
                     return new OkObjectResult(events);
 

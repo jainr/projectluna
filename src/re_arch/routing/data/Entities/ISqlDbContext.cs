@@ -19,7 +19,7 @@ namespace Luna.Routing.Data
 
         DbSet<SubscriptionsDBView> Subscriptions { get; set; }
 
-        DbSet<ProcessedEventDB> ProcessedEvents { get; set; }
+        DbSet<SubscriptionEventDB> SubscriptionEvents { get; set; }
 
         /// <summary>
         /// Save the changes to database

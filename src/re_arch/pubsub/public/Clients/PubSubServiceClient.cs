@@ -51,8 +51,14 @@ namespace Luna.PubSub.Public.Client
         /// <param name="headers">The luna request header</param>
         /// <param name="eventType"></param>
         /// <param name="eventsAfter"></param>
+        /// <param name="partitionKey"></param>
         /// <returns>The event list</returns>
-        public async Task<List<LunaBaseEventEntity>> ListEventsAsync(string eventStoreName, LunaRequestHeaders headers, string eventType = null, long eventsAfter = 0)
+        public async Task<List<LunaBaseEventEntity>> ListEventsAsync(
+            string eventStoreName, 
+            LunaRequestHeaders headers, 
+            string eventType = null, 
+            long eventsAfter = 0,
+            string partitionKey = null)
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var url = this._config.ServiceBaseUrl + $"eventStores/{eventStoreName}/events?{PubSubServiceQueryParameters.EVENTS_AFTER}={eventsAfter}";
@@ -60,6 +66,11 @@ namespace Luna.PubSub.Public.Client
             if (eventType != null)
             {
                 url = url + $"&{PubSubServiceQueryParameters.EVENT_TYPE}=" + eventType;
+            }
+
+            if (partitionKey != null)
+            {
+                url = url + $"&{PubSubServiceQueryParameters.PARTITION_KEY}=" + partitionKey;
             }
 
             var uri = new Uri(url);

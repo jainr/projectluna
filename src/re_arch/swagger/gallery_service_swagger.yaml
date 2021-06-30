@@ -834,6 +834,8 @@ definitions:
         type: string
       Value:
         type: string
+      IsSystemParametr:
+        type: boolean
 securityDefinitions:
   x-functions-key:
     type: apiKey

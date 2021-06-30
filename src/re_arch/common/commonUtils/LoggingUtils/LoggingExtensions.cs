@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Azure.Storage.Queue;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,6 +8,16 @@ namespace Luna.Common.Utils
 {
     public static class LoggingExtensions
     {
+
+        public static IDisposable BeginQueueTriggerNamedScope(this ILogger logger, CloudQueueMessage queueMessage)
+        {
+            var dict = new Dictionary<string, object>();
+            dict.Add("Luna.QueueMessageId", queueMessage.Id);
+            dict.Add("Luna.QueueMessageDequeueCount", queueMessage.DequeueCount);
+            dict.Add("Luna.QueueMessageInsertionTime", queueMessage.InsertionTime);
+            return logger.BeginScope(dict);
+        }
+
         public static IDisposable BeginManagementNamedScope(this ILogger logger,
             LunaRequestHeaders header)
         {
@@ -35,9 +46,16 @@ namespace Luna.Common.Utils
         {
             logger.LogInformation($"[FxBegin][{methodName}] Function {methodName} begins.");
         }
-        public static void LogMethodEnd(this ILogger logger, string methodName)
+        public static void LogMethodEnd(this ILogger logger, string methodName, long elapsedTimeInMS = -1)
         {
-            logger.LogInformation($"[FxEnd][{methodName}] Function {methodName} ends.");
+            if (elapsedTimeInMS == -1)
+            {
+                logger.LogInformation($"[FxEnd][{methodName}] Function {methodName} ends.");
+            }
+            else
+            {
+                logger.LogInformation($"[FxEnd][{methodName}] Function {methodName} ends in {elapsedTimeInMS} ms.");
+            }
         }
 
         public static void LogRoutingRequestBegin(this ILogger logger, string methodName)
