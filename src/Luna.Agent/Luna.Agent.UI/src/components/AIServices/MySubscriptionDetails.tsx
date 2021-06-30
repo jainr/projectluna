@@ -5,8 +5,7 @@ import { IApplicationSubscription } from './IApplicationSubscription';
 import { SharedColors } from '@uifabric/fluent-theme';
 
 
-const MySubscriptionDetails = (props: any) => {
-
+const MySubscriptionDetails = (props: any) => {    
     const [isBaseUrlCopySuccess, setBaseUrlCopySuccess] = React.useState<boolean>(false);
     const [isPrimaryKeyCopySuccess, setPrimaryKeyCopySuccess] = React.useState<boolean>(false);
     const [isSecondaryKeyCopySuccess, setSecondaryKeyCopySuccess] = React.useState<boolean>(false);
@@ -181,7 +180,7 @@ const MySubscriptionDetails = (props: any) => {
     }
 
     const deleteSubscriptionKey = () => {
-        if (subName === subscriptionDetail?.SubscriptionName) {
+        if (subName === subscriptionDetail?.SubscriptionName) {            
             fetch(window.BASE_URL + '/gallery/applications/'+selectedApplication+'/subscriptions/' + subscriptionDetail?.SubscriptionName, {
                 mode: "cors",
                 method: "DELETE",
@@ -193,9 +192,11 @@ const MySubscriptionDetails = (props: any) => {
                 }
             })
                 .then(response => response.json())
-                .then(_data => {
-                    history.push('servicedetails')                
-            });
+            //     .then(_data => {                    
+            //         history.push('servicedetails');
+
+            // });
+            history.push('servicedetails');
         }
         else
         {
@@ -305,7 +306,7 @@ const MySubscriptionDetails = (props: any) => {
                     <Text block variant={'small'}>Warning! Deleting the subscription is irreversible and cannot be undone. Proceeding will permanently delete this subscription. The subscription keys will stop working immediately.</Text>
                 </Stack>
                 <hr></hr>
-                <Text block variant={'small'} style={{ color: 'grey', marginBottom: '10px' }}>Type the subscription name</Text>
+                <Text block variant={'small'} style={{ color: 'grey', marginBottom: '10px' }}>Type the subscription name: {subscriptionDetail?.SubscriptionName}</Text>
                 <TextField style={{ marginTop: '5px' }}
                     value={subName}
                     onChange={setSubNameValue}></TextField>
