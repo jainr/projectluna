@@ -17,6 +17,7 @@ const MySubscriptionOwnersDetails = (props: any) => {
 
     React.useEffect(() => {
         loadSubscriptionDetail(props.subscription.SubscriptionId);
+        setUserId(uuid());
     }, []);
 
     const labelId: string = 'dialogLabel';
@@ -86,7 +87,7 @@ const MySubscriptionOwnersDetails = (props: any) => {
                 'Host': 'lunatest-gateway.azurewebsites.net'
             },
             body: JSON.stringify({
-                "Userid": uuid(),
+                "Userid": userId,
                 "UserName": userName
             })
         })
@@ -145,7 +146,8 @@ const MySubscriptionOwnersDetails = (props: any) => {
             })}
             <Link style={{ marginTop: '50px' }} onClick={() => setHideAddNewOwner(false)}>+ New Owner</Link>
             <div style={{ display: hideAddNewOwner ? 'none' : 'block', width: '250px', border: '1px solid black', padding: '10px' }}>
-                {/* <TextField label={"User Id:"} value={userId} onChange={setUserIdValue}></TextField> */}
+                <TextField label={"User Id:"} value={userId} disabled={true}></TextField> 
+                {/* onChange={setUserIdValue} */}
                 <TextField label={"User Name:"} value={userName} onChange={setUserNameValue}></TextField>
                 <PrimaryButton style={{ marginTop: '5px' }} onClick={() => { addOwner(); setUserId(''); setUserName('');setHideAddNewOwner(true); }}>Submit</PrimaryButton>
             </div>

@@ -11,22 +11,14 @@ export interface IWizardFormValues {
 }
 
 const wizardFormValidator: ObjectSchema<IWizardModel> = yup.object().shape(
-  {
+  {    
   sourceServiceType: yup.string().required("Source Service Type required"),
-  sourceService: yup.string().required("Source Service required"),
-  mLComponentType: yup.string().required("ML Component Type required"),
-  mLComponent: yup.string().required("ML Component required"),
-  operationName: yup.string().matches(opetarionNameRegExp,
-    {
-      message: ErrorMessage.operationName,
-      excludeEmptyString: true
-    }).required("Operation Name is required"),
-    // .max(128,"The Operation Name is too long. Must be no more than 128 characters"),
-  applicationDisplayName: yup.string().matches(opetarionNameRegExp,
-    {
-      message: ErrorMessage.applicationDisplayName,
-      excludeEmptyString: true
-    }).required("Application Display Name is required"),
+  sourceService: yup.string().required("Source Service required"),  
+  mLComponentType: yup.string(),
+  mLComponent: yup.string(),
+  operationName: yup.string(),
+  applicationDisplayName: yup.string().max(128,"Application Display Name is too long. Must be no more than 128 characters").required("Application Display Name is required")
+  ,
   applicationName: yup.string().matches(opetarionNameRegExp,
     {
       message: ErrorMessage.applicationName,
@@ -52,12 +44,7 @@ const wizardFormValidator: ObjectSchema<IWizardModel> = yup.object().shape(
     {
       message: ErrorMessage.Url,
       excludeEmptyString: true
-    }),
-  // publisher: yup.string().matches(opetarionNameRegExp,
-  //   {
-  //     message: ErrorMessage.publisher,
-  //     excludeEmptyString: true
-  //   }),
+    }),  
   publisher: yup.string(),
   branchOrCommitHash: yup.string(),
   executionConfigFile: yup.string(),

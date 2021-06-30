@@ -11,22 +11,30 @@
     overflow: hidden;
 }
 
-.block-ellipsis {   
+.block-ellipsis {
     display: block;
-     display: -webkit-box;
-     max-width: 100%;
-     height: 46px;
-     margin: auto 0;
-     font-size: 13px;
-     line-height: 1.2;
-     -webkit-line-clamp: 3;
-     -webkit-box-orient: vertical;
-     overflow: hidden;
-     text-overflow: ellipsis;
- }
- .divWidth25{
-width: 25%;
- }
- .divWidth75{
+    display: -webkit-box;
+    max-width: 100%;
+    height: 46px;
+    margin: auto 0;
+    font-size: 13px;
+    line-height: 1.2;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.divWidth25 {
+    width: 24%;
+}
+.divWidth75 {
     width: 75%;
-     }
+}
+.pivottab {
+    height: 100%;    
+}
+.pivottab > div > div
+{
+    height: 745px;
+    overflow-y: auto;
+}
