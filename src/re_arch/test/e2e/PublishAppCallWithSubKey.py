@@ -9,8 +9,6 @@ from locust.user.wait_time import constant
 class ScenarioTest(HttpUser):
     ### Scenario Test for Publishing a new LunaAPI Realtime Endpoint
 
-    with open("luna_locust_config.json", "r") as jsonfile: 
-        data = json.load(jsonfile)
     HttpUser.host = os.environ['GATEWAY_URL']
     wait_time = constant(60)
     

@@ -9,8 +9,6 @@ from locust.user.wait_time import constant
 class ScenarioTest(HttpUser):
     ### Scenario Test for Publishing a new LunaAPI Realtime Endpoint
 
-    with open("luna_locust_config.json", "r") as jsonfile: 
-        data = json.load(jsonfile)
     HttpUser.host = os.environ['GATEWAY_URL']
     wait_time = constant(60)
     
@@ -136,7 +134,7 @@ class ScenarioTest(HttpUser):
 
         # # Endpoint Tests
         # #############################################
-        time.sleep(30)
+        time.sleep(15)
 
         # # 7.	Call Realtime Endpoint [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
@@ -152,7 +150,7 @@ class ScenarioTest(HttpUser):
         self._assert_success(response)
         masterKey = response.json()['PrimaryMasterKey']
         
-        time.sleep(30)
+        time.sleep(15)
         
         # # 7.	Call Realtime Endpoint with the new application master key[POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
