@@ -438,7 +438,7 @@ namespace Luna.Provision.Functions
             {
                 if (ev.EventType.Equals(LunaEventType.CREATE_AZURE_MARKETPLACE_SUBSCRIPTION))
                 {
-                    var sub = JsonConvert.DeserializeObject<MarketplaceSubscriptionInternal>(ev.EventContent);
+                    var sub = JsonConvert.DeserializeObject<MarketplaceSubscriptionEventContent>(ev.EventContent);
 
                     var plan = await _dbContext.MarketplacePlans.
                         SingleOrDefaultAsync(x => x.OfferId == sub.OfferId &&

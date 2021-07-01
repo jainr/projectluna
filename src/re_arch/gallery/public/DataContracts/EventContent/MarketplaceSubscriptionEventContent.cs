@@ -5,10 +5,10 @@ using System.Text;
 
 namespace Luna.Gallery.Public.Client
 {
-    public class MarketplaceSubscriptionInternal : MarketplaceSubscription
+    public class MarketplaceSubscriptionEventContent : MarketplaceSubscription
     {
 
-        public MarketplaceSubscriptionInternal() : base()
+        public MarketplaceSubscriptionEventContent() : base()
         {
         }
 

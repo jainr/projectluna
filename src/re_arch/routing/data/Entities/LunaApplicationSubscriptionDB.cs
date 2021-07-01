@@ -1,15 +1,14 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace Luna.Routing.Data
 {
-    public class SubscriptionsDBView
+    public class LunaApplicationSubscriptionDB
     {
-        [Key]
-        public Guid SubscriptionId { get; set; }
+        public long Id { get; set; }
+
+        public string SubscriptionId { get; set; }
 
         public string PrimaryKeySecretName { get; set; }
 
@@ -17,5 +16,8 @@ namespace Luna.Routing.Data
 
         public string ApplicationName { get; set; }
 
+        public string Status { get; set; }
+
+        public long LastAppliedEventId { get; set; }
     }
 }

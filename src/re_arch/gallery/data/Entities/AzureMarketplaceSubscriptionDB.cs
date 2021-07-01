@@ -27,9 +27,9 @@ namespace Luna.Gallery.Data
             this.OwnerId = ownerId;
         }
 
-        public MarketplaceSubscriptionInternal ToMarketplaceSubscriptionInternal()
+        public MarketplaceSubscriptionEventContent ToEventContent()
         {
-            return new MarketplaceSubscriptionInternal()
+            return new MarketplaceSubscriptionEventContent()
             { 
                 PlanCreatedByEventId = this.PlanCreatedByEventId,
                 Id = this.SubscriptionId,

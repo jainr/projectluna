@@ -17,6 +17,9 @@ using Luna.Publish.Public.Client;
 using Luna.Gallery.Public.Client;
 using Luna.Gallery.Clients;
 using Newtonsoft.Json.Linq;
+using Microsoft.Azure.Storage.Queue;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace Luna.Gallery.Functions
 {
@@ -26,6 +29,9 @@ namespace Luna.Gallery.Functions
     public class GalleryServiceFunctions
     {
         private const string ROUTING_SERVICE_BASE_URL_CONFIG_NAME = "ROUTING_SERVICE_BASE_URL";
+
+        private static ConcurrentDictionary<string, long> ApplicationsInProcess = new ConcurrentDictionary<string, long>();
+        private static ConcurrentDictionary<string, long> MarketplaceInProgress = new ConcurrentDictionary<string, long>();
 
         private readonly ISqlDbContext _dbContext;
         private readonly ILogger<GalleryServiceFunctions> _logger;
@@ -47,130 +53,201 @@ namespace Luna.Gallery.Functions
         }
 
         [FunctionName("ProcessApplicationEvents")]
-        public async Task ProcessApplicationEvents([QueueTrigger("gallery-processapplicationevents")] string myQueueItem)
+        public async Task ProcessApplicationEvents([QueueTrigger("gallery-processapplicationevents")] CloudQueueMessage myQueueItem)
         {
-            // Get the last applied event id
-            // If there's no record in the database, it will return the default value of long type 0
-            var lastAppliedEventId = await _dbContext.PublishedLunaAppliations.
-                OrderByDescending(x => x.LastAppliedEventId).
-                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
-
-            var events = await _pubSubClient.ListEventsAsync(
-                LunaEventStoreType.APPLICATION_EVENT_STORE,
-                new LunaRequestHeaders(),
-                eventsAfter: lastAppliedEventId);
-
-            foreach (var ev in events)
+            Stopwatch sw = Stopwatch.StartNew();
+            string appName = "";
+            using (_logger.BeginQueueTriggerNamedScope(myQueueItem))
             {
-                if (ev.EventType.Equals(LunaEventType.PUBLISH_APPLICATION_EVENT))
+                try
                 {
-                    await CreateOrUpdateLunaApplication(ev.EventContent, ev.EventSequenceId);
+                    _logger.LogMethodBegin(nameof(this.ProcessApplicationEvents));
+
+                    this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
+
+                    var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
+
+                    appName = queueMessage.PartitionKey;
+                    queueMessage.YieldTo(ApplicationsInProcess, this._logger);
+
+                    // Get the last applied event id
+                    // If there's no record in the database, it will return the default value of long type 0
+                    var lastAppliedEventId = await _dbContext.PublishedLunaAppliations.
+                        Where(x => x.UniqueName == appName).
+                        OrderByDescending(x => x.LastAppliedEventId).
+                        Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+
+                    this._logger.LogDebug($"The last applied event id is {lastAppliedEventId}.");
+
+                    var events = await _pubSubClient.ListEventsAsync(
+                        LunaEventStoreType.APPLICATION_EVENT_STORE,
+                        new LunaRequestHeaders(),
+                        eventsAfter: lastAppliedEventId,
+                        partitionKey: appName);
+
+                    this._logger.LogDebug($"{events.Count} events retreived with partition key {queueMessage.PartitionKey}.");
+
+                    foreach (var ev in events)
+                    {
+                        if (ev.EventType.Equals(LunaEventType.PUBLISH_APPLICATION_EVENT))
+                        {
+                            await CreateOrUpdateLunaApplication(ev.EventContent, ev.EventSequenceId);
+                            this._logger.LogDebug($"Application {ev.PartitionKey} created/updated. ");
+                        }
+                        else if (ev.EventType.Equals(LunaEventType.DELETE_APPLICATION_EVENT))
+                        {
+                            await DeleteLunaApplication(ev.PartitionKey, ev.EventSequenceId);
+                            this._logger.LogDebug($"Application {ev.PartitionKey} deleted.");
+                        }
+                    }
                 }
-                else if (ev.EventType.Equals(LunaEventType.DELETE_APPLICATION_EVENT))
+                catch (Exception ex)
                 {
-                    // TODO: should not use partition key
-                    await DeleteLunaApplication(ev.PartitionKey, ev.EventSequenceId);
+                    ErrorUtils.HandleExceptions(ex, this._logger, string.Empty);
+                }
+                finally
+                {
+                    long value;
+                    ApplicationsInProcess.TryRemove(appName, out value);
+
+                    sw.Stop();
+                    _logger.LogMethodEnd(nameof(this.ProcessApplicationEvents),
+                        sw.ElapsedMilliseconds);
                 }
             }
         }
 
         [FunctionName("ProcessMarketplaceEvents")]
-        public async Task ProcessMarketplaceEvents([QueueTrigger("gallery-processazuremarketplaceevents")] string myQueueItem)
+        public async Task ProcessMarketplaceEvents([QueueTrigger("gallery-processazuremarketplaceevents")] CloudQueueMessage myQueueItem)
         {
-            // Get the last applied event id
-            // If there's no record in the database, it will return the default value of long type 0
-            var lastAppliedEventId = await _dbContext.PublishedAzureMarketplacePlans.
-                OrderByDescending(x => x.LastAppliedEventId).
-                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
-
-            var events = await _pubSubClient.ListEventsAsync(
-                LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
-                new LunaRequestHeaders(),
-                eventsAfter: lastAppliedEventId);
-
-            foreach (var ev in events)
+            Stopwatch sw = Stopwatch.StartNew();
+            string partitionKey = "";
+            using (_logger.BeginQueueTriggerNamedScope(myQueueItem))
             {
-                if (ev.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
+                try
                 {
-                    var offer = JsonConvert.DeserializeObject<MarketplaceOffer>(ev.EventContent);
+                    _logger.LogMethodBegin(nameof(this.ProcessMarketplaceEvents));
 
-                    var currentPlans = await _dbContext.PublishedAzureMarketplacePlans.
-                        Where(x => x.IsEnabled && x.MarketplaceOfferId == offer.OfferId).
-                        ToListAsync();
+                    this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
 
-                    foreach(var currentPlan in currentPlans)
+                    var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
+
+                    partitionKey = queueMessage.PartitionKey;
+                    queueMessage.YieldTo(MarketplaceInProgress, this._logger);
+
+                    // Get the last applied event id
+                    // If there's no record in the database, it will return the default value of long type 0
+                    var lastAppliedEventId = await _dbContext.PublishedAzureMarketplacePlans.
+                        Where(x => x.MarketplaceOfferId == partitionKey).
+                        OrderByDescending(x => x.LastAppliedEventId).
+                        Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+
+                    var events = await _pubSubClient.ListEventsAsync(
+                        LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
+                        new LunaRequestHeaders(),
+                        eventsAfter: lastAppliedEventId,
+                        partitionKey: partitionKey);
+
+                    foreach (var ev in events)
                     {
-                        currentPlan.IsEnabled = false;
-                        currentPlan.LastAppliedEventId = ev.EventSequenceId;
-                    }
-
-                    var newPlans = new List<PublishedAzureMarketplacePlanDB>();
-
-                    foreach(var plan in offer.Plans)
-                    {
-                        var newPlan = new PublishedAzureMarketplacePlanDB()
+                        if (ev.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
                         {
-                            MarketplaceOfferId = offer.OfferId,
-                            MarketplacePlanId = plan.PlanId,
-                            OfferDisplayName = offer.Properties.DisplayName,
-                            OfferDescription = offer.Properties.DisplayName,
-                            Mode = plan.Properties.Mode,
-                            LastAppliedEventId = ev.EventSequenceId,
-                            CreatedByEventId = ev.EventSequenceId,
-                            IsEnabled = true,
-                        };
+                            var offer = JsonConvert.DeserializeObject<MarketplaceOffer>(ev.EventContent);
 
-                        List<MarketplaceParameter> parameters = new List<MarketplaceParameter>();
-                        parameters.AddRange(offer.Parameters);
-                        parameters.AddRange(plan.Parameters);
+                            var currentPlans = await _dbContext.PublishedAzureMarketplacePlans.
+                                Where(x => x.IsEnabled && x.MarketplaceOfferId == offer.OfferId).
+                                ToListAsync();
 
-                        newPlan.Parameters = JsonConvert.SerializeObject(parameters, new JsonSerializerSettings()
-                        {
-                            TypeNameHandling = TypeNameHandling.All
-                        });
+                            foreach (var currentPlan in currentPlans)
+                            {
+                                currentPlan.IsEnabled = false;
+                                currentPlan.LastAppliedEventId = ev.EventSequenceId;
+                            }
 
-                        newPlans.Add(newPlan);
-                    }
+                            var newPlans = new List<PublishedAzureMarketplacePlanDB>();
 
-                    using (var transaction = await _dbContext.BeginTransactionAsync())
-                    {
-                        if (currentPlans.Count > 0)
-                        {
-                            _dbContext.PublishedAzureMarketplacePlans.UpdateRange(currentPlans);
-                            await _dbContext._SaveChangesAsync();
+                            foreach (var plan in offer.Plans)
+                            {
+                                var newPlan = new PublishedAzureMarketplacePlanDB()
+                                {
+                                    MarketplaceOfferId = offer.OfferId,
+                                    MarketplacePlanId = plan.PlanId,
+                                    OfferDisplayName = offer.Properties.DisplayName,
+                                    OfferDescription = offer.Properties.DisplayName,
+                                    Mode = plan.Properties.Mode,
+                                    LastAppliedEventId = ev.EventSequenceId,
+                                    CreatedByEventId = ev.EventSequenceId,
+                                    IsEnabled = true,
+                                };
+
+                                List<MarketplaceParameter> parameters = new List<MarketplaceParameter>();
+                                parameters.AddRange(offer.Parameters);
+                                parameters.AddRange(plan.Parameters);
+
+                                newPlan.Parameters = JsonConvert.SerializeObject(parameters, new JsonSerializerSettings()
+                                {
+                                    TypeNameHandling = TypeNameHandling.All
+                                });
+
+                                newPlans.Add(newPlan);
+                            }
+
+                            using (var transaction = await _dbContext.BeginTransactionAsync())
+                            {
+                                if (currentPlans.Count > 0)
+                                {
+                                    _dbContext.PublishedAzureMarketplacePlans.UpdateRange(currentPlans);
+                                    await _dbContext._SaveChangesAsync();
+                                }
+
+                                if (newPlans.Count > 0)
+                                {
+                                    _dbContext.PublishedAzureMarketplacePlans.AddRange(newPlans);
+                                    await _dbContext._SaveChangesAsync();
+                                }
+
+                                transaction.Commit();
+                            }
+
                         }
-
-                        if (newPlans.Count > 0)
+                        else if (ev.EventType.Equals(LunaEventType.DELETE_AZURE_MARKETPLACE_OFFER))
                         {
-                            _dbContext.PublishedAzureMarketplacePlans.AddRange(newPlans);
-                            await _dbContext._SaveChangesAsync();
-                        }
+                            var offerId = ev.PartitionKey;
 
-                        transaction.Commit();
+                            var currentPlans = await _dbContext.PublishedAzureMarketplacePlans.
+                                Where(x => x.IsEnabled && x.MarketplaceOfferId == offerId).
+                                ToListAsync();
+
+                            foreach (var currentPlan in currentPlans)
+                            {
+                                currentPlan.IsEnabled = false;
+                                currentPlan.LastAppliedEventId = ev.EventSequenceId;
+                            }
+
+                            if (currentPlans.Count > 0)
+                            {
+                                _dbContext.PublishedAzureMarketplacePlans.UpdateRange(currentPlans);
+                                await _dbContext._SaveChangesAsync();
+                            }
+                        }
                     }
 
                 }
-                else if (ev.EventType.Equals(LunaEventType.DELETE_AZURE_MARKETPLACE_OFFER))
+                catch (Exception ex)
                 {
-                    var offerId = ev.PartitionKey;
+                    ErrorUtils.HandleExceptions(ex, this._logger, string.Empty);
+                }
+                finally
+                {
+                    long value;
+                    ApplicationsInProcess.TryRemove(partitionKey, out value);
 
-                    var currentPlans = await _dbContext.PublishedAzureMarketplacePlans.
-                        Where(x => x.IsEnabled && x.MarketplaceOfferId == offerId).
-                        ToListAsync();
-
-                    foreach (var currentPlan in currentPlans)
-                    {
-                        currentPlan.IsEnabled = false;
-                        currentPlan.LastAppliedEventId = ev.EventSequenceId;
-                    }
-
-                    if (currentPlans.Count > 0)
-                    {
-                        _dbContext.PublishedAzureMarketplacePlans.UpdateRange(currentPlans);
-                        await _dbContext._SaveChangesAsync();
-                    }
+                    sw.Stop();
+                    _logger.LogMethodEnd(nameof(this.ProcessMarketplaceEvents),
+                        sw.ElapsedMilliseconds);
                 }
             }
+
         }
 
         /// <summary>
@@ -895,7 +972,10 @@ namespace Luna.Gallery.Functions
                             new CreateSubscriptionEventEntity()
                             {
                                 SubscriptionId = subscription.SubscriptionId.ToString(),
-                                EventContent = subscription.SubscriptionId.ToString()
+                                EventContent = JsonConvert.SerializeObject(subscription.ToEventContent(), new JsonSerializerSettings()
+                                {
+                                    TypeNameHandling = TypeNameHandling.All
+                                })
                             },
                             lunaHeaders);
 
@@ -1715,7 +1795,10 @@ namespace Luna.Gallery.Functions
                         await _pubSubClient.PublishEventAsync(
                             LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
                             new CreateAzureMarketplaceSubscriptionEventEntity(subscriptionId, 
-                            JsonConvert.SerializeObject(subDb.ToMarketplaceSubscriptionInternal())),
+                            JsonConvert.SerializeObject(subDb.ToEventContent(), new JsonSerializerSettings()
+                            {
+                                TypeNameHandling = TypeNameHandling.All
+                            })),
                             lunaHeaders);
 
                         transaction.Commit();

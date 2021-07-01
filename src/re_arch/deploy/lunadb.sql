@@ -339,14 +339,18 @@ CREATE TABLE [routing].[PublishedAPIVersions](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
-/****** Object:  Table [routing].[SubscriptionEvents]    Script Date: 4/29/2021 11:07:14 AM ******/
+/****** Object:  Table [routing].[LunaApplicationSubscriptions]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [routing].[SubscriptionEvents](
+CREATE TABLE [routing].[LunaApplicationSubscriptions](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
 	[SubscriptionId] [nvarchar](128) NOT NULL,
+	[ApplicationName] [nvarchar](128) NULL,
+	[Status] [nvarchar](64) NULL,
+	[PrimaryKeySecretName] [nvarchar](64) NULL,
+	[SecondaryKeySecretName] [nvarchar](64) NULL,
 	[LastAppliedEventId] [bigint] NOT NULL,
 PRIMARY KEY CLUSTERED 
 (
@@ -580,20 +584,6 @@ AS
 SELECT   Id,SwaggerEventId, SwaggerContent, ApplicationName
 FROM     provision.LunaApplicationSwaggers
 WHERE   (IsEnabled = 1)
-GO
-
-/****** Object:  View [routing].[Subscriptions]    Script Date: 5/17/2021 9:18:23 AM ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-CREATE VIEW [routing].[Subscriptions]
-AS
-SELECT SubscriptionId, ApplicationName, PrimaryKeySecretName, SecondaryKeySecretName, Status
-FROM   gallery.LunaApplicationSubscriptions
-WHERE  (Status = N'Subscribed')
 GO
 
 

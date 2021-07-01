@@ -17,9 +17,7 @@ namespace Luna.Routing.Data
 
         DbSet<PartnerServiceDbView> PartnerServices { get; set; }
 
-        DbSet<SubscriptionsDBView> Subscriptions { get; set; }
-
-        DbSet<SubscriptionEventDB> SubscriptionEvents { get; set; }
+        DbSet<LunaApplicationSubscriptionDB> LunaApplicationSubscriptions { get; set; }
 
         /// <summary>
         /// Save the changes to database
