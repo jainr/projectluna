@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Panel, PanelType, Stack, StackItem, Text } from '@fluentui/react';
+import { CommandButton, DefaultButton, Panel, PanelType, PrimaryButton, Stack, StackItem, Text, TextField } from '@fluentui/react';
 import FooterLinks from '../FooterLinks/FooterLinks';
 import { LinkedServices } from './Settings.LinkedServices';
 import { Administration } from './Settings.Administration';
@@ -12,6 +12,7 @@ import Moment from 'react-moment';
 import { useBoolean } from '@uifabric/react-hooks';
 
 import MarketPlacePublisher from './MarketPlacePublisher'
+import InternalPublisher from './InternalPublisher'
 
 /** @component Settings view and code including PivotView for subpages. */
 function Settings() {
@@ -22,6 +23,11 @@ function Settings() {
   const [marketPlacePublisher, setMarketPlacePublisher] = React.useState<IMarketPlacePublisher[]>();
   const [isOpen, { setTrue: openInternalPublisherPanel, setFalse: dismissInternalPublisherPanel }] = useBoolean(false);
   const [isMarketOpen, { setTrue: openMarketPublisherPanel, setFalse: dismissMarketPublisherPanel }] = useBoolean(false);
+  const [isInternalPublisherPanelOpen, toggleInternalPublisherPanel] = React.useState(false);
+  const [isHidePublisherKey, setHidePublisherKey] = React.useState<boolean>(true);
+  const [primaryKey, setPrimaryKey] = React.useState<string>();
+  const [inernalPublisherHeader, setInernalPublisherHeader] = React.useState<string>();
+  const [internalPublisherDetails, setInternalPublisherDetails] = React.useState<IInternalPublisher>();
 
   React.useEffect(() => {
     loadData();
@@ -60,8 +66,28 @@ function Settings() {
     setIsMarketPublishiingLoading(false);
   }
 
-  const selectInternalPublication = (selectedInternalPublisher: IInternalPublisher) => {
+  const selectInternalPublication = (selectedInternalPublisher: IInternalPublisher, operation: string) => {
     openInternalPublisherPanel();
+    if (operation === "Add") {
+      // let iInternalPublisher: IInternalPublisher = {} as IInternalPublisher;
+       const  internalPublisher = (): IInternalPublisher => ({
+        CreatedTime: '',
+        Description: '',
+        DisplayName: '',
+        EndpointUrl: '',
+        IsEnabled: '',
+        LastUpdatedTime: '',
+        Name: '',
+        PublisherKey: '',
+        Type: '',
+        WebsiteUrl: '',
+       });    
+      setInternalPublisherDetails(internalPublisher);
+    }
+    else if ("Update") {
+
+      setInternalPublisherDetails(selectedInternalPublisher);
+    }
   }
 
   const selectMarketPublication = (selectedMarketPublisher: IMarketPlacePublisher) => {
@@ -74,7 +100,21 @@ function Settings() {
 
   const closeInternalPublisherPannel = () => {
     dismissInternalPublisherPanel();
-  }  
+  }
+  const hideShowPrimaryKey = () => {
+    isHidePublisherKey ? setHidePublisherKey(false) : setHidePublisherKey(true);
+  }
+  const onRenderFooterContent = React.useCallback(
+    () => (
+      <Stack horizontal>
+        <PrimaryButton style={{ marginLeft: '120px' }} text="Save" ></PrimaryButton>
+        <div>
+          <DefaultButton style={{ marginLeft: '20px' }} onClick={() => { closeInternalPublisherPannel(); }}>Close</DefaultButton>
+        </div>
+      </Stack>
+    ),
+    [dismissInternalPublisherPanel],
+  );
 
   return (
     <div className="settings">
@@ -94,7 +134,10 @@ function Settings() {
         <Stack className="section">
           <hr style={{ width: "100%" }} />
           <Text block variant={'xLarge'} className="title">Internal Publishers
-            <a className="anchor" onClick={openInternalPublisherPanel}>+ Register New</a>
+            <a className="anchor" onClick={() => {
+              openInternalPublisherPanel();
+              setInernalPublisherHeader("Register Internal Publisher"); selectInternalPublication(internalPublisherDetails!, "Add")
+            }}>+ Register New</a>
           </Text>
 
           <React.Fragment>
@@ -121,7 +164,7 @@ function Settings() {
                         return (
                           <tr key={idx}>
                             <td>
-                              <a onClick={(event) => selectInternalPublication(values)} className="anchor">
+                              <a onClick={(event) => { selectInternalPublication(values, "Update"); setInernalPublisherHeader("Internal Publisher"); }} className="anchor">
                                 {values.DisplayName}
                               </a>
                             </td>
@@ -208,14 +251,14 @@ function Settings() {
       </div>
 
       <Panel
-        headerText="Internal Publishers"
+        headerText={inernalPublisherHeader}
         isOpen={isOpen}
         isFooterAtBottom={true}
         hasCloseButton={false}
-        type={PanelType.custom}
-        customWidth={"400px"}
         isBlocking={true}
+      // onRenderFooterContent={onRenderFooterContent}      
       >
+        {internalPublisherDetails ? <InternalPublisher closeInternalPublisherPannel={closeInternalPublisherPannel} internalPublisherData={internalPublisherDetails} loadData={loadData}/> : null}
       </Panel>
       <Panel
         headerText="Manage Azure Marketplace Publishers"
@@ -223,11 +266,11 @@ function Settings() {
         isFooterAtBottom={true}
         hasCloseButton={true}
         type={PanelType.custom}
-        customWidth={"600px"}        
+        customWidth={"600px"}
         isBlocking={true}
         closeButtonAriaLabel="Cancel"
       >
-        {marketPlacePublisher ? <MarketPlacePublisher Closepannel = {dismissMarketPublisherPanel} marketPlacePublisher={marketPlacePublisher} /> : null}
+        {marketPlacePublisher ? <MarketPlacePublisher Closepannel={dismissMarketPublisherPanel} marketPlacePublisher={marketPlacePublisher} /> : null}
       </Panel>
     </div>
   );
