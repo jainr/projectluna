@@ -150,3 +150,50 @@ main > div > div {
     font-size: 30px;
 }
 /*Recommended*/
+
+/*Setings*/
+.settings .internalPublisherGrid
+{
+    margin-bottom: 3%;
+    margin-top: 2%;
+}
+
+.settings .internalPublisherGrid thead th
+{
+    text-align:left;
+    border-bottom: 1px solid black;
+    padding-bottom: 1%;
+}
+
+.settings .internalPublisherGrid td
+{
+    text-align: left;    
+    padding-top: 1%;
+}
+
+.settings .marketPublisherGrid
+{    
+    margin-top: 2%;
+}
+
+.settings .marketPublisherGrid thead th
+{
+    text-align: left;
+    border-bottom: 1px solid black;
+    padding-bottom: 1%;
+}
+
+.settings .marketPublisherGrid td
+{
+    text-align: left;    
+    padding-top: 1%;
+}
+.settings .anchor
+{
+    cursor: pointer;    
+    font-weight: normal;
+    font-size: 15px;
+    color: rgb(0, 120, 212);
+    text-decoration: underline;
+}
+/*Settings*/
