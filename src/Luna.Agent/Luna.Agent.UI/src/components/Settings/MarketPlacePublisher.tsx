@@ -39,7 +39,7 @@ const MarketPlacePublisher = (props: IMarketPlacePublisherProps) => {
         setIsDisabled(true);
         setIsLoading(true);
         marketPlacePublisherUpdate.forEach(async element => {
-            debugger
+            
             // await UpdateMarketPlacePublisher(element);
         });
         setIsLoading(false);

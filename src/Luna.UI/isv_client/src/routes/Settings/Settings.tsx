@@ -213,7 +213,6 @@ export const SettingList: React.FunctionComponent<ISettingsListProps> = (props) 
   }
   
   const getPermissionsFormErrorString = (touched, errors, property: string) => {
-    debugger
     var retobj =  touched.permissions && errors.permissions && touched.permissions[property] && errors.permissions[property] ? errors.permissions[property] : '';
     return retobj;
   };
