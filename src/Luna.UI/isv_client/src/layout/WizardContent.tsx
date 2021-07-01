@@ -145,17 +145,22 @@ const WizardContent: React.FunctionComponent = (props) => {
     setComputeServiceTypeList([...computeServiceTypeList]);
     globalContext.hideProcessing();
   }
-  const getComputeService = async () => {
+  const getComputeServiceList = async (type: string) => {
     globalContext.showProcessing();
-    let computeServiceList: IDropdownOption[] = [{
-      key: '',
-      text: ''
-    }];
-    computeServiceList.push(
-      {
-        key: "MySynapseWorkspace",
-        text: "My Synapse Workspace"
+    let computeServiceList: IDropdownOption[] = [];
+    let computeServiceListResponse = await WizardService.computeServiceList(type);
+    if (computeServiceListResponse.value && computeServiceListResponse.success) {
+      var components = computeServiceListResponse.value;
+      components.map((item, index) => {
+        return (
+          computeServiceList.push(
+            {
+              key: item.Id,
+              text: item.DisplayName
+            })
+        )
       })
+    }
     setComputeServiceList([...computeServiceList]);
     globalContext.hideProcessing();
   }
@@ -177,7 +182,6 @@ const WizardContent: React.FunctionComponent = (props) => {
   useEffect(() => {
     getServiceTypes();
     getComputeServiceType();
-    getComputeService();
     setTooltip(WizardMessages.defaultMLServices);    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -571,6 +575,10 @@ const WizardContent: React.FunctionComponent = (props) => {
                                 onBlur={handleBlur}
                                 onChange={(event, option, index) => {
                                   selectOnChange(`wizard.computeServiceType`, setFieldValue, event, option, index);
+                                  if (option) {
+                                    let key = (option.key as string);
+                                    getComputeServiceList(key);
+                                  }
                                 }}
                                 errorMessage={getFormErrorString(touched, errors, 'computeServiceType')} />
                             </td>

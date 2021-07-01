@@ -56,6 +56,36 @@ export default class WizardService extends ServiceBase {
       return result;
   }
 
+  public static async computeServiceList(type): Promise<Result<any>> {
+    var result = await this.requestJson<any>({
+        url: `/manage/partnerServices?type=${type}`,
+        method: "GET"            
+    });
+
+    return result;
+  }
+
+  public static async createPartnerService(model: IWizardModel): Promise<Result<any>> {
+    let applicationModel: IApplicationModel = {
+        displayName: model.applicationDisplayName,
+        applicationName: model.applicationName,
+        description: model.applicationDescription,
+        logoImageUrl: model.logoImageURL,
+        documentationUrl: model.documentationURL,
+        publisher: model.publisher,
+        tags:[],
+    };
+    
+    var result = await this.requestJson<any>({
+      //url: `/manage/partnerServices/metadata/computeservicetypes`,
+      url: `/manage/applications/${applicationModel.applicationName}`,
+      method: "PUT",
+      data: applicationModel
+    });       
+
+    return result;
+  }
+
     public static async createApplication(model: IWizardModel): Promise<Result<any>> {
         let applicationModel: IApplicationModel = {
             displayName: model.applicationDisplayName,
@@ -80,7 +110,7 @@ export default class WizardService extends ServiceBase {
         let apiModel: IApiModel = {
             displayName: model.apiName,           
             description: model.applicationDescription,
-            type: model.mLComponentType === ''? model.computeServiceType : model.mLComponentType,
+            type: model.mLComponentType === ''? 'MLProject' : model.mLComponentType,
             advancedSettings: ""            
         };
         

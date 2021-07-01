@@ -22,7 +22,7 @@ const MySubscriptionDetails = (props: any) => {
     const [subName, setSubName] = React.useState<string>();
     const [isSubNameWrong, setSubNameWrong] = React.useState<boolean>(false);
     const [selectedApplication, setselectedApplication] = React.useState<string | null>(sessionStorage.getItem('selectedApplication'));
-
+    const deleteCallback = props.deleteCallback;
     const labelId: string = 'dialogLabel';
     const subTextId: string = 'subTextLabel';
 
@@ -190,13 +190,10 @@ const MySubscriptionDetails = (props: any) => {
                     'Luna-User-Id': 'test-admin',
                     'Host': 'lunatest-gateway.azurewebsites.net'
                 }
-            })
-                .then(response => response.json())
-            //     .then(_data => {                    
-            //         history.push('servicedetails');
-
-            // });
-            history.push('servicedetails');
+            }).then(_data => {                    
+                toggleDeleteSubDialog();
+                deleteCallback();
+             });
         }
         else
         {

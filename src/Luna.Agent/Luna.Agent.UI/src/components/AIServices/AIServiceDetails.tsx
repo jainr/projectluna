@@ -159,7 +159,7 @@ const toggleAddSubDialog = () => {
       setHideAddSubscriptionDialog(true);
   }
 }
-  const getApplicationDetails = () => {
+  const getApplicationDetails = (subscribed:boolean) => {
     fetch(`${window.BASE_URL}/gallery/applications/${selectedApplication}`, {
       mode: "cors",
       method: "GET",
@@ -171,7 +171,11 @@ const toggleAddSubDialog = () => {
       },
     })
       .then(response => response.json())
-      .then(_data => { setApplicationData(_data); loadAPIList(_data); });
+      .then(_data => {
+        _data.isSubScribed = subscribed;
+        setApplicationData(_data);
+        loadAPIList(_data); 
+      });
 
   }
   const addSubscription = () => {
@@ -225,7 +229,15 @@ const toggleAddSubDialog = () => {
       },
     })
       .then(response => response.json())
-      .then(_data => { setApplicationSubscriptions(_data) });
+      .then(_data => {
+        debugger;
+        let subscribed = false;
+        if (_data != null && _data.length > 0) {
+          subscribed = true;
+        }
+        getApplicationDetails(subscribed);
+        setApplicationSubscriptions(_data) 
+      });
   }
 
   const loadSwaggerData = () => {
@@ -263,7 +275,6 @@ const toggleAddSubDialog = () => {
       setselectedApplicationObjectLoading(false);
     }
     setSelectedTab('SampleCode');
-    getApplicationDetails();
     loadLanguagesList();
     getApplicationSubscriptions();
     loadSwaggerData();
@@ -301,9 +312,9 @@ const toggleAddSubDialog = () => {
                     }
                   </div>
                   {
-                    selectedApplicationObject?.isSubScribed ?
+                    applicationData?.isSubScribed ?
                       <React.Fragment>
-                        <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>You haven't subscribed this application yet.</Text>
+                        <Text block variant={'medium'} style={{ marginTop: '20px', fontWeight: 'bold' }}>You own this application already.</Text>
                         <br />
                         <Text block variant={'medium'} style={{ marginTop: '5px', color: 'blue', borderBottom: '1px solid blue', width: 'fit-content', cursor: 'pointer' }}
                           onClick={viewMySubscription}>View my subscriptions</Text>
@@ -452,7 +463,7 @@ const toggleAddSubDialog = () => {
                           }
                         </tbody>
                       </table>
-                      <Link onClick={() => setHideAddNewSub(false)}>+ New</Link>
+                      <Link onClick={()=> setHideAddSubscriptionDialog(false)}>+ New</Link>
                       <div style={{ display: hideAddNewSub ? 'none' : 'block', width: '250px', border: '1px solid black', padding: '10px' }}>
                         <TextField label={"Subscription Name:"} value={subName} onChange={setSubNameValue}></TextField>
                         <PrimaryButton style={{ marginTop: '5px' }} onClick={() => { addSubscription(); setSubName(''); setHideAddNewSub(true) }}>Submit</PrimaryButton>
@@ -486,7 +497,7 @@ const toggleAddSubDialog = () => {
         customWidth={"400px"}
         isBlocking={true}
       >
-        <MySubscriptionDetails toggle={togglePanel} closePanel={closePanel} subscription={subscriptionData} />
+        <MySubscriptionDetails deleteCallback={() => {closePanel();getApplicationSubscriptions();}} toggle={togglePanel} closePanel={closePanel} subscription={subscriptionData} />
       </Panel>
       <Panel
         headerText="Subscription Owners"

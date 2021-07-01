@@ -46,10 +46,10 @@ const wizardFormValidator: ObjectSchema<IWizardModel> = yup.object().shape(
       excludeEmptyString: true
     }),  
   publisher: yup.string(),
-  branchOrCommitHash: yup.string(),
-  executionConfigFile: yup.string(),
-  computeServiceType: yup.string(),
-  computeService: yup.string(),
+  branchOrCommitHash: yup.string().min(1,"Branch or Commit Hash is required"),
+  executionConfigFile: yup.string().min(1,"Config file is required"),
+  computeServiceType: yup.string().min(1,"Compute Service Type is required"),
+  computeService: yup.string().min(1,"Compute Service is required"),
   clientId: yup.string()
   }
 );
@@ -73,8 +73,8 @@ export const wizardFormValidationSchema: ObjectSchema<IWizardFormValues> =
     logoImageURL: '',
     documentationURL: '',
     publisher: '',
-    branchOrCommitHash: '',
-    executionConfigFile: '',
+    branchOrCommitHash: 'main',
+    executionConfigFile: 'config.json',
     computeServiceType: '',
     computeService: '',
     clientId: uuid()
