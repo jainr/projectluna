@@ -196,4 +196,35 @@ main > div > div {
     color: rgb(0, 120, 212);
     text-decoration: underline;
 }
+.settings .marketPublisherGrid .pannel
+{
+    min-height: 500px;
+}
+.pannelcontent
+{
+    min-height: 500px;
+    overflow: auto;
+}
+
+.pannelcontent thead th
+{
+    text-align: left;
+    border-bottom: 1px solid black;
+    padding-bottom: 1%;
+}
+
+.pannelcontent td
+{
+    text-align: left;    
+    padding-top: 1%;
+}
+.pannelsubtitle
+{
+    padding-bottom: 3%;
+    padding-top: 3%;
+}
+.pannelcontent .pannelspinner{
+    margin: 0 auto;
+    margin-top: 35%;
+}
 /*Settings*/

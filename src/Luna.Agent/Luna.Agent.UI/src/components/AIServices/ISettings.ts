@@ -20,7 +20,7 @@ export interface IMarketPlacePublisher {
   Description: '',
   DisplayName: '',
   EndpointUrl: '',
-  IsEnabled: '',
+  IsEnabled: boolean,
   LastUpdatedTime: '',
   Name: '',
   PublisherKey: '',

@@ -11,6 +11,8 @@ import { GetInternalPublisher, GetMarketPlacePublisher } from '../Settings/GetPu
 import Moment from 'react-moment';
 import { useBoolean } from '@uifabric/react-hooks';
 
+import MarketPlacePublisher from './MarketPlacePublisher'
+
 /** @component Settings view and code including PivotView for subpages. */
 function Settings() {
 
@@ -64,7 +66,7 @@ function Settings() {
 
   const selectMarketPublication = (selectedMarketPublisher: IMarketPlacePublisher) => {
     openMarketPublisherPanel();
-  }  
+  }
 
   const OpenInternalPublisherPannel = () => {
     openInternalPublisherPanel();
@@ -72,15 +74,7 @@ function Settings() {
 
   const closeInternalPublisherPannel = () => {
     dismissInternalPublisherPanel();
-  }
-
-  const OpenMarketPublisherPannel = () => {
-   openMarketPublisherPanel(); 
-  }
-
-  const closeMarketPublisherPannel = () => {
-    dismissMarketPublisherPanel();
-  }
+  }  
 
   return (
     <div className="settings">
@@ -99,8 +93,8 @@ function Settings() {
 
         <Stack className="section">
           <hr style={{ width: "100%" }} />
-          <Text block variant={'xLarge'} className="title">Internal Publishers 
-          <a className="anchor" onClick={openInternalPublisherPanel}>+ Register New</a>
+          <Text block variant={'xLarge'} className="title">Internal Publishers
+            <a className="anchor" onClick={openInternalPublisherPanel}>+ Register New</a>
           </Text>
 
           <React.Fragment>
@@ -156,7 +150,7 @@ function Settings() {
         <Stack className="section">
           <hr style={{ width: "100%" }} />
           <Text block variant={'xLarge'} className="title">Azure Market Publishers
-          <a className="anchor" onClick={openMarketPublisherPanel}>+ Manage</a>
+            <a className="anchor" onClick={openMarketPublisherPanel}>+ Manage</a>
           </Text>
 
           <React.Fragment>
@@ -221,17 +215,19 @@ function Settings() {
         type={PanelType.custom}
         customWidth={"400px"}
         isBlocking={true}
-      >        
+      >
       </Panel>
       <Panel
         headerText="Manage Azure Marketplace Publishers"
         isOpen={isMarketOpen}
         isFooterAtBottom={true}
-        hasCloseButton={false}
+        hasCloseButton={true}
         type={PanelType.custom}
-        customWidth={"400px"}
+        customWidth={"600px"}        
         isBlocking={true}
+        closeButtonAriaLabel="Cancel"
       >
+        {marketPlacePublisher ? <MarketPlacePublisher Closepannel = {dismissMarketPublisherPanel} marketPlacePublisher={marketPlacePublisher} /> : null}
       </Panel>
     </div>
   );
