@@ -735,7 +735,7 @@ namespace Luna.Publish.Functions
                         await _dbContext._SaveChangesAsync();
 
                         await _pubSubClient.PublishEventAsync(
-                            LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE, 
+                            LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE, 
                             publishEvent, 
                             lunaHeaders);
 
@@ -820,7 +820,7 @@ namespace Luna.Publish.Functions
                         await _dbContext._SaveChangesAsync();
 
                         await _pubSubClient.PublishEventAsync(
-                            LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
+                            LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE,
                             deleteEvent,
                             lunaHeaders);
 
@@ -2046,6 +2046,11 @@ namespace Luna.Publish.Functions
 
                 try
                 {
+                    if (!await IsApplicationExist(appName))
+                    {
+                        throw new LunaNotFoundUserException(string.Format(ErrorMessages.APPLICATION_DOES_NOT_EXIST, appName));
+                    }
+
                     if (await IsAPIExist(appName, apiName))
                     {
                         throw new LunaConflictUserException(string.Format(ErrorMessages.API_ALREADY_EXIST, apiName, appName));

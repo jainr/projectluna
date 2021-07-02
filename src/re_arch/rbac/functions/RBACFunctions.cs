@@ -119,6 +119,13 @@ namespace Luna.RBAC
                 try
                 {
                     var assignment = await DeserializeRequestBody<RoleAssignmentDb>(req);
+
+                    if (await _dbContext.RoleAssignments.AnyAsync(x => x.Uid == assignment.Uid && x.Role == assignment.Role))
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.ROLE_ASSIGNMENT_ALREADY_EXIST, assignment.Uid, assignment.Role));
+                    }
+
                     assignment.CreatedTime = DateTime.UtcNow;
                     _dbContext.RoleAssignments.Add(assignment);
                     await _dbContext._SaveChangesAsync();

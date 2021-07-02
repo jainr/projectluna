@@ -11,12 +11,14 @@ namespace Luna.PubSub.Public.Client
         {
             return name.Equals(APPLICATION_EVENT_STORE, StringComparison.InvariantCulture) ||
                name.Equals(SUBSCRIPTION_EVENT_STORE, StringComparison.InvariantCulture) ||
-               name.Equals(AZURE_MARKETPLACE_EVENT_STORE, StringComparison.InvariantCulture);
+               name.Equals(AZURE_MARKETPLACE_OFFER_EVENT_STORE, StringComparison.InvariantCulture) ||
+               name.Equals(AZURE_MARKETPLACE_SUB_EVENT_STORE, StringComparison.InvariantCulture);
         }
 
         public const string APPLICATION_EVENT_STORE = "ApplicationEvents";
         public const string SUBSCRIPTION_EVENT_STORE = "SubscriptionEvents";
-        public const string AZURE_MARKETPLACE_EVENT_STORE = "AzureMarketplaceEvents";
+        public const string AZURE_MARKETPLACE_OFFER_EVENT_STORE = "MarketplaceOfferEvents";
+        public const string AZURE_MARKETPLACE_SUB_EVENT_STORE = "MarketplaceSubscriptionEvents";
     }
 
     public class LunaEventType

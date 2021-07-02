@@ -84,12 +84,18 @@ namespace Luna.Routing.Clients
             {
                 await RefreshCachedSecretAsync(_secretCache.SubscriptionKeys, sub.PrimaryKeySecretName);
                 await RefreshCachedSecretAsync(_secretCache.SubscriptionKeys, sub.SecondaryKeySecretName);
+                _secretCache.SubscriptionKeysLastRefreshedEventId =
+                    _secretCache.SubscriptionKeysLastRefreshedEventId > sub.LastAppliedEventId ?
+                    _secretCache.SubscriptionKeysLastRefreshedEventId : sub.LastAppliedEventId;
             }
 
             foreach (var app in applications)
             {
                 await RefreshCachedSecretAsync(_secretCache.ApplicationMasterKeys, app.PrimaryMasterKeySecretName);
                 await RefreshCachedSecretAsync(_secretCache.ApplicationMasterKeys, app.SecondaryMasterKeySecretName);
+                _secretCache.ApplicationMasterKeysLastRefreshedEventId =
+                    _secretCache.ApplicationMasterKeysLastRefreshedEventId > app.LastAppliedEventId ?
+                    _secretCache.ApplicationMasterKeysLastRefreshedEventId : app.LastAppliedEventId;
             }
         }
 

@@ -28,6 +28,10 @@ variables:
   admin_spn_client_id: "f0d50d2d-7ff0-40e3-82cc-8c44b176c088"
   # the Luna AAD application client id
   luna_app_client_id: "8909bdfe-55e1-40fd-b295-58d3608297fd"
+  # concurrent workers:
+  concurrent_workers: 10
+  # timeout
+  timeout: 600s
 
   # add the following variables (need to be encrypted) when creating the pipeline: admin_spn_client_secret, aml_spn_client_secret
 
@@ -51,14 +55,8 @@ steps:
 - script: unzip -o test.zip
   displayName: 'unzip test files'
 
-- script: locust -f PublishAppCallWithMasterKey.py --headless --users 2 --run-time 5s --stop-timeout 99 --exit-code-on-error 0 
-  env:
-    ADMIN_SPN_CLIENT_SECRET: $(admin_spn_client_secret)
-    AML_SPN_CLIENT_SECRET: $(aml_spn_client_secret)
-  displayName: 'Run test with application master key'
 
-
-- script: locust -f PublishAppCallWithSubKey.py --headless --users 2 --run-time 5s --stop-timeout 99 --exit-code-on-error 0 
+- script: locust -f lunae2etest.py --headless --users $(concurrent_workers) --run-time $(timeout) --stop-timeout 99 --exit-code-on-error 0 
   env:
     ADMIN_SPN_CLIENT_SECRET: $(admin_spn_client_secret)
     AML_SPN_CLIENT_SECRET: $(aml_spn_client_secret)

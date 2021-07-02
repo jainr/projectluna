@@ -13,7 +13,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -25,6 +27,11 @@ namespace Luna.Provision.Functions
     public class ProvisionServiceFunctions
     {
         private const string ROUTING_SERVICE_BASE_URL_CONFIG_NAME = "ROUTING_SERVICE_BASE_URL";
+
+        private static ConcurrentDictionary<string, long> ApplicationsInProgress = new ConcurrentDictionary<string, long>();
+        private static ConcurrentDictionary<string, long> SubscriptionsInProgress = new ConcurrentDictionary<string, long>();
+        private static ConcurrentDictionary<string, long> MarketplaceOffersInProcess = new ConcurrentDictionary<string, long>();
+        private static ConcurrentDictionary<string, long> MarketplaceSubsInProgress = new ConcurrentDictionary<string, long>();
 
         private readonly ISqlDbContext _dbContext;
         private readonly ILogger<ProvisionServiceFunctions> _logger;
@@ -49,93 +56,318 @@ namespace Luna.Provision.Functions
         }
 
         [FunctionName("ProcessApplicationEvents")]
-        public async Task ProcessApplicationEvents([QueueTrigger("provision-processapplicationevents")] string myQueueItem)
+        public async Task ProcessApplicationEvents([QueueTrigger("provision-processapplicationevents")] CloudQueueMessage myQueueItem)
         {
-            // Get the last applied event id
-            // If there's no record in the database, it will return the default value of long type 0
-            var lastAppliedEventId = await _dbContext.LunaApplicationSwaggers.
-                OrderByDescending(x => x.LastAppliedEventId).
-                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
-
-            var events = await _pubSubClient.ListEventsAsync(
-                LunaEventStoreType.APPLICATION_EVENT_STORE,
-                new LunaRequestHeaders(),
-                eventsAfter: lastAppliedEventId);
-
-            foreach (var ev in events)
+            Stopwatch sw = Stopwatch.StartNew();
+            string appName = "";
+            using (_logger.BeginQueueTriggerNamedScope(myQueueItem))
             {
-                if (ev.EventType.Equals(LunaEventType.PUBLISH_APPLICATION_EVENT))
+                try
                 {
-                    LunaApplication app = JsonConvert.DeserializeObject<LunaApplication>(ev.EventContent, new JsonSerializerSettings()
-                    {
-                        TypeNameHandling = TypeNameHandling.All
-                    });
+                    _logger.LogMethodBegin(nameof(this.ProcessApplicationEvents));
 
-                    var swaggerContent = await this._swaggerClient.GenerateSwaggerAsync(app);
+                    this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
 
-                    var swaggerDb = new LunaApplicationSwaggerDB()
-                    {
-                        ApplicationName = ev.PartitionKey,
-                        SwaggerContent = swaggerContent,
-                        SwaggerEventId = ev.EventSequenceId,
-                        LastAppliedEventId = ev.EventSequenceId,
-                        IsEnabled = true,
-                        CreatedTime = DateTime.UtcNow
-                    };
+                    var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
 
-                    this._dbContext.LunaApplicationSwaggers.Add(swaggerDb);
-                    await this._dbContext._SaveChangesAsync();
-                }
-                else
-                {
-                    var appName = ev.PartitionKey;
-                    var isDeleted = ev.EventType.Equals(LunaEventType.DELETE_APPLICATION_EVENT);
+                    appName = queueMessage.PartitionKey;
+                    queueMessage.YieldTo(ApplicationsInProgress, this._logger);
 
-                    var swaggerDb = await this._dbContext.LunaApplicationSwaggers.
+                    // Get the last applied event id
+                    // If there's no record in the database, it will return the default value of long type 0
+                    var lastAppliedEventId = await _dbContext.LunaApplicationSwaggers.
                         Where(x => x.ApplicationName == appName).
-                        OrderByDescending(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+                        OrderByDescending(x => x.LastAppliedEventId).
+                        Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
 
-                    if (swaggerDb != null)
+                    var events = await _pubSubClient.ListEventsAsync(
+                        LunaEventStoreType.APPLICATION_EVENT_STORE,
+                        new LunaRequestHeaders(),
+                        eventsAfter: lastAppliedEventId,
+                        partitionKey: appName);
+
+                    foreach (var ev in events)
                     {
-                        swaggerDb.IsEnabled = !isDeleted;
-                        swaggerDb.LastAppliedEventId = ev.EventSequenceId;
+                        if (ev.EventType.Equals(LunaEventType.PUBLISH_APPLICATION_EVENT))
+                        {
+                            LunaApplication app = JsonConvert.DeserializeObject<LunaApplication>(ev.EventContent, new JsonSerializerSettings()
+                            {
+                                TypeNameHandling = TypeNameHandling.All
+                            });
 
-                        this._dbContext.LunaApplicationSwaggers.Update(swaggerDb);
-                        await this._dbContext._SaveChangesAsync();
+                            var swaggerContent = await this._swaggerClient.GenerateSwaggerAsync(app);
+
+                            var swaggerDb = new LunaApplicationSwaggerDB()
+                            {
+                                ApplicationName = ev.PartitionKey,
+                                SwaggerContent = swaggerContent,
+                                SwaggerEventId = ev.EventSequenceId,
+                                LastAppliedEventId = ev.EventSequenceId,
+                                IsEnabled = true,
+                                CreatedTime = DateTime.UtcNow
+                            };
+
+                            this._dbContext.LunaApplicationSwaggers.Add(swaggerDb);
+                            await this._dbContext._SaveChangesAsync();
+                        }
+                        else
+                        {
+                            var isDeleted = ev.EventType.Equals(LunaEventType.DELETE_APPLICATION_EVENT);
+
+                            var swaggerDb = await this._dbContext.LunaApplicationSwaggers.
+                                Where(x => x.ApplicationName == appName).
+                                OrderByDescending(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+
+                            if (swaggerDb != null)
+                            {
+                                swaggerDb.IsEnabled = !isDeleted;
+                                swaggerDb.LastAppliedEventId = ev.EventSequenceId;
+
+                                this._dbContext.LunaApplicationSwaggers.Update(swaggerDb);
+                                await this._dbContext._SaveChangesAsync();
+                            }
+                        }
                     }
+
+                }
+                catch (Exception ex)
+                {
+                    ErrorUtils.HandleExceptions(ex, this._logger, string.Empty);
+                }
+                finally
+                {
+                    long value;
+                    ApplicationsInProgress.TryRemove(appName, out value);
+
+                    sw.Stop();
+                    _logger.LogMethodEnd(nameof(this.ProcessApplicationEvents),
+                        sw.ElapsedMilliseconds);
                 }
             }
         }
 
         [FunctionName("ProcessSubscriptionEvents")]
-        public async Task ProcessSubscriptionEvents([QueueTrigger("provision-processsubscriptionevents")] string myQueueItem)
+        public async Task ProcessSubscriptionEvents([QueueTrigger("provision-processsubscriptionevents")] CloudQueueMessage myQueueItem)
         {
-            // Get the last applied event id
-            // If there's no record in the database, it will return the default value of long type 0
-            var lastAppliedEventId = await _dbContext.LunaApplicationSwaggers.
-                OrderByDescending(x => x.LastAppliedEventId).
-                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+            Stopwatch sw = Stopwatch.StartNew();
+            string subId = "";
+            using (_logger.BeginQueueTriggerNamedScope(myQueueItem))
+            {
+                try
+                {
+                    _logger.LogMethodBegin(nameof(this.ProcessSubscriptionEvents));
 
-            var events = await _pubSubClient.ListEventsAsync(
-                LunaEventStoreType.SUBSCRIPTION_EVENT_STORE,
-                new LunaRequestHeaders(),
-                eventsAfter: lastAppliedEventId);
+                    this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
+
+                    var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
+
+                    subId = queueMessage.PartitionKey;
+                    queueMessage.YieldTo(SubscriptionsInProgress, this._logger);
+
+                }
+                catch (Exception ex)
+                {
+                    ErrorUtils.HandleExceptions(ex, this._logger, string.Empty);
+                }
+                finally
+                {
+                    long value;
+                    SubscriptionsInProgress.TryRemove(subId, out value);
+
+                    sw.Stop();
+                    _logger.LogMethodEnd(nameof(this.ProcessSubscriptionEvents),
+                        sw.ElapsedMilliseconds);
+                }
+            }
 
         }
 
 
-        [FunctionName("ProcessAzureMarketplaceEvents")]
-        public async Task ProcessAzureMarketplaceEvents([QueueTrigger("provision-processazuremarketplaceevents")] CloudQueueMessage myQueueItem)
+        [FunctionName("ProcessMarketplaceOfferEvents")]
+        public async Task ProcessMarketplaceOfferEvents([QueueTrigger("provision-processmarketplaceofferevents")] CloudQueueMessage myQueueItem)
         {
-            var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
+            Stopwatch sw = Stopwatch.StartNew();
+            string offerId = "";
+            using (_logger.BeginQueueTriggerNamedScope(myQueueItem))
+            {
+                try
+                {
+                    _logger.LogMethodBegin(nameof(this.ProcessMarketplaceOfferEvents));
 
-            if (queueMessage.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
-            {
-                await ProcessMarketplaceOfferEvents();
+                    this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
+
+                    var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
+
+                    offerId = queueMessage.PartitionKey;
+                    queueMessage.YieldTo(MarketplaceOffersInProcess, this._logger);
+
+                    // Get the last applied event id
+                    // If there's no record in the database, it will return the default value of long type 0
+                    var lastAppliedEventId = await _dbContext.MarketplacePlans.
+                        Where(x => x.OfferId == offerId).
+                        OrderByDescending(x => x.CreatedByEventId).
+                        Select(x => x.CreatedByEventId).FirstOrDefaultAsync();
+
+                    var events = await _pubSubClient.ListEventsAsync(
+                        LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE,
+                        new LunaRequestHeaders(),
+                        eventsAfter: lastAppliedEventId,
+                        partitionKey: offerId);
+
+                    foreach (var ev in events)
+                    {
+                        if (ev.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
+                        {
+                            MarketplaceOffer offer = JsonConvert.DeserializeObject<MarketplaceOffer>(ev.EventContent, new JsonSerializerSettings()
+                            {
+                                TypeNameHandling = TypeNameHandling.Auto
+                            });
+
+                            foreach (var plan in offer.Plans)
+                            {
+                                var planDb = new MarketplacePlanDB();
+                                planDb.OfferId = offer.OfferId;
+                                planDb.PlanId = plan.PlanId;
+                                planDb.Mode = plan.Properties.Mode;
+                                planDb.Properties = JsonConvert.SerializeObject(plan.Properties, new JsonSerializerSettings()
+                                {
+                                    TypeNameHandling = TypeNameHandling.All
+                                });
+                                var parameters = new List<MarketplaceParameter>();
+                                parameters.AddRange(offer.Parameters);
+                                parameters.AddRange(plan.Parameters);
+                                planDb.Parameters = JsonConvert.SerializeObject(parameters, new JsonSerializerSettings()
+                                {
+                                    TypeNameHandling = TypeNameHandling.All
+                                });
+                                planDb.CreatedByEventId = ev.EventSequenceId;
+                                planDb.ProvisioningStepsSecretName = offer.ProvisioningStepsSecretName;
+
+                                _dbContext.MarketplacePlans.Add(planDb);
+                            }
+
+                            await _dbContext._SaveChangesAsync();
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    ErrorUtils.HandleExceptions(ex, this._logger, string.Empty);
+                }
+                finally
+                {
+                    long value;
+                    MarketplaceOffersInProcess.TryRemove(offerId, out value);
+
+                    sw.Stop();
+                    _logger.LogMethodEnd(nameof(this.ProcessMarketplaceOfferEvents),
+                        sw.ElapsedMilliseconds);
+                }
             }
-            else if (queueMessage.EventType.Equals(LunaEventType.CREATE_AZURE_MARKETPLACE_SUBSCRIPTION))
+
+        }
+
+        [FunctionName("ProcessMarketplaceSubEvents")]
+        public async Task ProcessMarketplaceSubEvents([QueueTrigger("provision-processmarketplacesubevents")] CloudQueueMessage myQueueItem)
+        {
+            Stopwatch sw = Stopwatch.StartNew();
+            string subId = "";
+            using (_logger.BeginQueueTriggerNamedScope(myQueueItem))
             {
-                await ProcessMarketplaceSubscriptionEvents();
+                try
+                {
+                    _logger.LogMethodBegin(nameof(this.ProcessMarketplaceSubEvents));
+
+                    this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
+
+                    var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
+
+                    subId = queueMessage.PartitionKey;
+                    Guid subGuid = Guid.Parse(subId);
+
+                    queueMessage.YieldTo(MarketplaceSubsInProgress, this._logger);
+
+                    // Get the last applied event id
+                    // If there's no record in the database, it will return the default value of long type 0
+                    var lastAppliedEventId = await _dbContext.MarketplaceSubProvisionJobs.
+                        Where(x => x.SubscriptionId == subGuid).
+                        OrderByDescending(x => x.CreatedByEventId).
+                        Select(x => x.CreatedByEventId).FirstOrDefaultAsync();
+
+                    var events = await _pubSubClient.ListEventsAsync(
+                        LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE,
+                        new LunaRequestHeaders(),
+                        eventsAfter: lastAppliedEventId,
+                        partitionKey: subId);
+
+                    foreach (var ev in events)
+                    {
+                        if (ev.EventType.Equals(LunaEventType.CREATE_AZURE_MARKETPLACE_SUBSCRIPTION))
+                        {
+                            var sub = JsonConvert.DeserializeObject<MarketplaceSubscriptionEventContent>(ev.EventContent);
+
+                            var plan = await _dbContext.MarketplacePlans.
+                                SingleOrDefaultAsync(x => x.OfferId == sub.OfferId &&
+                                x.PlanId == sub.PlanId && x.CreatedByEventId == sub.PlanCreatedByEventId);
+
+                            if (plan == null)
+                            {
+                                throw new LunaServerException($"Plan {sub.PlanId} in offer {sub.OfferId} created by event {sub.PlanCreatedByEventId} does not exist.");
+                            }
+
+                            var currentTime = DateTime.UtcNow;
+
+                            var jobDb = new MarketplaceSubProvisionJobDB()
+                            {
+                                SubscriptionId = sub.Id,
+                                OfferId = sub.OfferId,
+                                PlanId = sub.PlanId,
+                                PlanCreatedByEventId = sub.PlanCreatedByEventId,
+                                Mode = plan.Mode,
+                                Status = ProvisionStatus.Queued.ToString(),
+                                EventType = ev.EventType,
+                                ProvisioningStepIndex = -1,
+                                IsSynchronizedStep = false,
+                                ProvisioningStepStatus = ProvisionStepStatus.NotStarted.ToString(),
+                                ParametersSecretName = sub.ParametersSecretName,
+                                ProvisionStepsSecretName = plan.ProvisioningStepsSecretName,
+                                IsActive = false,
+                                RetryCount = 0,
+                                CreatedByEventId = ev.EventSequenceId,
+                                CreatedTime = currentTime,
+                                LastUpdatedTime = currentTime,
+                            };
+
+                            using (var transaction = await _dbContext.BeginTransactionAsync())
+                            {
+                                // Can have only one create job for a subscription
+                                if (!await _dbContext.MarketplaceSubProvisionJobs.
+                                    AnyAsync(x => x.SubscriptionId == sub.Id && x.EventType == ev.EventType))
+                                {
+                                    this._dbContext.MarketplaceSubProvisionJobs.Add(jobDb);
+                                    await this._dbContext._SaveChangesAsync();
+                                }
+
+                                transaction.Commit();
+                            }
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    ErrorUtils.HandleExceptions(ex, this._logger, string.Empty);
+                }
+                finally
+                {
+                    long value;
+                    MarketplaceSubsInProgress.TryRemove(subId, out value);
+
+                    sw.Stop();
+                    _logger.LogMethodEnd(nameof(this.ProcessMarketplaceSubEvents),
+                        sw.ElapsedMilliseconds);
+                }
             }
         }
 
@@ -369,127 +601,6 @@ namespace Luna.Provision.Functions
         }
 
         #region private methods
-
-        private async Task ProcessMarketplaceOfferEvents()
-        {
-            // Get the last applied event id
-            // If there's no record in the database, it will return the default value of long type 0
-            var lastAppliedEventId = await _dbContext.MarketplacePlans.
-                OrderByDescending(x => x.CreatedByEventId).
-                Select(x => x.CreatedByEventId).FirstOrDefaultAsync();
-
-            var events = await _pubSubClient.ListEventsAsync(
-                LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
-                new LunaRequestHeaders(),
-                eventsAfter: lastAppliedEventId);
-
-            foreach (var ev in events)
-            {
-                if (ev.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
-                {
-                    MarketplaceOffer offer = JsonConvert.DeserializeObject<MarketplaceOffer>(ev.EventContent, new JsonSerializerSettings()
-                    {
-                        TypeNameHandling = TypeNameHandling.Auto
-                    });
-
-                    foreach (var plan in offer.Plans)
-                    {
-                        var planDb = new MarketplacePlanDB();
-                        planDb.OfferId = offer.OfferId;
-                        planDb.PlanId = plan.PlanId;
-                        planDb.Mode = plan.Properties.Mode;
-                        planDb.Properties = JsonConvert.SerializeObject(plan.Properties, new JsonSerializerSettings()
-                        {
-                            TypeNameHandling = TypeNameHandling.All
-                        });
-                        var parameters = new List<MarketplaceParameter>();
-                        parameters.AddRange(offer.Parameters);
-                        parameters.AddRange(plan.Parameters);
-                        planDb.Parameters = JsonConvert.SerializeObject(parameters, new JsonSerializerSettings()
-                        {
-                            TypeNameHandling = TypeNameHandling.All
-                        });
-                        planDb.CreatedByEventId = ev.EventSequenceId;
-                        planDb.ProvisioningStepsSecretName = offer.ProvisioningStepsSecretName;
-
-                        _dbContext.MarketplacePlans.Add(planDb);
-                    }
-
-                    await _dbContext._SaveChangesAsync();
-                }
-            }
-        }
-
-        private async Task ProcessMarketplaceSubscriptionEvents()
-        {
-            // Get the last applied event id
-            // If there's no record in the database, it will return the default value of long type 0
-            var lastAppliedEventId = await _dbContext.MarketplaceSubProvisionJobs.
-                OrderByDescending(x => x.CreatedByEventId).
-                Select(x => x.CreatedByEventId).FirstOrDefaultAsync();
-
-            var events = await _pubSubClient.ListEventsAsync(
-                LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
-                new LunaRequestHeaders(),
-                eventsAfter: lastAppliedEventId);
-
-
-            foreach (var ev in events)
-            {
-                if (ev.EventType.Equals(LunaEventType.CREATE_AZURE_MARKETPLACE_SUBSCRIPTION))
-                {
-                    var sub = JsonConvert.DeserializeObject<MarketplaceSubscriptionEventContent>(ev.EventContent);
-
-                    var plan = await _dbContext.MarketplacePlans.
-                        SingleOrDefaultAsync(x => x.OfferId == sub.OfferId &&
-                        x.PlanId == sub.PlanId && x.CreatedByEventId == sub.PlanCreatedByEventId);
-
-                    if (plan == null)
-                    {
-                        throw new LunaServerException($"Plan {sub.PlanId} in offer {sub.OfferId} created by event {sub.PlanCreatedByEventId} does not exist.");
-                    }
-
-                    var currentTime = DateTime.UtcNow;
-
-                    var jobDb = new MarketplaceSubProvisionJobDB()
-                    {
-                        SubscriptionId = sub.Id,
-                        OfferId = sub.OfferId,
-                        PlanId = sub.PlanId,
-                        PlanCreatedByEventId = sub.PlanCreatedByEventId,
-                        Mode = plan.Mode,
-                        Status = ProvisionStatus.Queued.ToString(),
-                        EventType = ev.EventType,
-                        ProvisioningStepIndex = -1,
-                        IsSynchronizedStep = false,
-                        ProvisioningStepStatus = ProvisionStepStatus.NotStarted.ToString(),
-                        ParametersSecretName = sub.ParametersSecretName,
-                        ProvisionStepsSecretName = plan.ProvisioningStepsSecretName,
-                        IsActive = false,
-                        RetryCount = 0,
-                        CreatedByEventId = ev.EventSequenceId,
-                        CreatedTime = currentTime,
-                        LastUpdatedTime = currentTime,
-                    };
-
-                    using (var transaction = await _dbContext.BeginTransactionAsync())
-                    {
-                        // Can have only one create job for a subscription
-                        if (!await _dbContext.MarketplaceSubProvisionJobs.
-                            AnyAsync(x => x.SubscriptionId == sub.Id && x.EventType == ev.EventType))
-                        {
-                            this._dbContext.MarketplaceSubProvisionJobs.Add(jobDb);
-                            await this._dbContext._SaveChangesAsync();
-                        }
-
-                        transaction.Commit();
-                    }
-
-
-
-                }
-            }
-        }
 
         #endregion
 

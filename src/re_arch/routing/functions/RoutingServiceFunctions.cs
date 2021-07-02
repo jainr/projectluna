@@ -725,24 +725,36 @@ namespace Luna.Routing.Functions
         private async Task<LunaRequestHeaders> ValidateAccessKeys(LunaRequestHeaders lunaHeaders, PublishedAPIVersionDB apiVersion)
         {
             var subscriptions = await this._dbContext.LunaApplicationSubscriptions.
-                Where(x => x.LastAppliedEventId > _secretCacheClient.SecretCache.SubscriptionKeysLastRefreshedEventId).ToListAsync();
+                Where(x => x.LastAppliedEventId > _secretCacheClient.SecretCache.SubscriptionKeysLastRefreshedEventId).
+                OrderBy(x => x.LastAppliedEventId).
+                ToListAsync();
 
+            this._logger.LogDebug($"Subscription secrets refreshed until event {_secretCacheClient.SecretCache.SubscriptionKeysLastRefreshedEventId}.");
             this._logger.LogDebug($"{subscriptions.Count} subscriptions need to be updated in secret cache.");
 
             var applications = await this._dbContext.PublishedAPIVersions.
                 Where(x => x.IsEnabled && x.LastAppliedEventId > _secretCacheClient.SecretCache.ApplicationMasterKeysLastRefreshedEventId).
+                OrderBy(x => x.LastAppliedEventId).
                 ToListAsync();
 
-            applications = applications.GroupBy(x => x.ApplicationName, (x, y) => new
+            List<PublishedAPIVersionDB> appsWithoutDup = new List<PublishedAPIVersionDB>();
+
+            foreach(var app in applications)
             {
-                Key = x,
-                Value = y.Take(1).ToList()
-            }).Select(x => x.Value).
-            Aggregate((x, y) => { x.AddRange(y); return x; });
+                if (!appsWithoutDup.Any(x => x.ApplicationName == app.ApplicationName))
+                {
+                    appsWithoutDup.Add(app);
+                }
+            }
 
-            this._logger.LogDebug($"{subscriptions.Count} applications need to be updated in secret cache.");
+            this._logger.LogDebug($"Application secrets refreshed until event {_secretCacheClient.SecretCache.ApplicationMasterKeysLastRefreshedEventId}.");
+            this._logger.LogDebug($"{appsWithoutDup.Count} applications need to be updated in secret cache.");
 
-            await _secretCacheClient.UpdateSecretCacheAsync(subscriptions, applications.ToList());
+            if (subscriptions.Count > 0 || appsWithoutDup.Count > 0)
+            {
+
+                await _secretCacheClient.UpdateSecretCacheAsync(subscriptions, appsWithoutDup);
+            }
 
             if (string.IsNullOrEmpty(lunaHeaders.LunaApplicationMasterKey))
             {

@@ -15,9 +15,9 @@ class ScenarioTest(HttpUser):
     def on_start(self):
         self.service_name = "Create & Call API Endpoint Scenario"
 
-        
         self.app_url = "/api/manage/applications/"
         self.partnerServices_url = "/api/manage/partnerServices/"
+        self.rbac_url = "api/manage/rbac/"
         
         self.routing_url = os.environ['ROUTING_URL']
         self.host_url = os.environ['GATEWAY_URL']
@@ -54,6 +54,40 @@ class ScenarioTest(HttpUser):
     @task
     def create_and_call_realtime_endpoint(self):
         resource_name = "test" + str(uuid.uuid1())
+        uid = str(uuid.uuid1())
+
+        # RBAC Tests
+        ##############################################
+
+        #1. Add and remove admin
+        uri = self.rbac_url + "roleassignments/Add"
+        body = {
+                "uid": uid,
+                "userName": resource_name,
+                "role": "SystemAdmin"
+                }
+        
+        self._assert_success(self.client.post(uri, headers=self.headerData, data=json.dumps(body)))
+
+        uri = self.rbac_url + "roleassignments/Remove"
+        self._assert_success(self.client.post(uri, headers=self.headerData, data=json.dumps(body)))
+        
+        #2. Add and remove publisher
+        uri = self.rbac_url + "roleassignments/Add"
+        body = {
+                "uid": uid,
+                "userName": resource_name,
+                "role": "Publisher"
+                }
+        
+        self._assert_success(self.client.post(uri, headers=self.headerData, data=json.dumps(body)))
+
+        uri = self.rbac_url + "roleassignments/Remove"
+        self._assert_success(self.client.post(uri, headers=self.headerData, data=json.dumps(body)))
+
+        #3. List role assignment
+        uri = self.rbac_url + "roleassignments"
+        self._assert_success(self.client.get(uri, headers=self.headerData))
 
         # Resource Creation Tests
         ##############################################
@@ -110,7 +144,7 @@ class ScenarioTest(HttpUser):
         # 4.	Create Luna API Version [PUT]
         uri = self.app_url + resource_name + "/apis/myapi/versions/v1"
         body = {
-                    "AzureMLWorkspaceName": resource_name,
+                    "AzureMLWorkspaceName":resource_name,
                     "description": "my version",
                     "type": "AzureML",
                     "endpoints": [
@@ -127,10 +161,14 @@ class ScenarioTest(HttpUser):
         # 5.	Publish Luna Application [POST]
         uri = self.app_url + resource_name + "/publish"
         self._assert_success(self.client.post(uri, headers=self.headerData, data=json.dumps(body)))
-
-        time.sleep(15)
-
-        # 6.	Create Subscription to Application [PUT]
+        
+        # 6.	Get application master key [GET]
+        uri = self.app_url + resource_name + "/masterkeys"
+        response = self.client.get(uri, headers=self.headerData, data=json.dumps(body))
+        self._assert_success(response)
+        masterKey = response.json()['PrimaryMasterKey']
+        
+        # 7.	Create Subscription to Application [PUT]
         uri = self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/sub" + resource_name
         response = self.client.put(uri, headers=self.headerData)
         self._assert_success(response)
@@ -140,11 +178,39 @@ class ScenarioTest(HttpUser):
         uri = self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/" + subscriptionId
         self._assert_success(self.client.get(uri, headers=self.headerData))
 
-        # # Endpoint Tests
+        # # Endpoint Tests with application master key
         # #############################################
-        time.sleep(10)
+        time.sleep(5)
 
-        # # 7.	Call Realtime Endpoint [POST]
+        # 1.	Call Realtime Endpoint [POST]
+        uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
+        body = json.loads(self.aml_endpoint_input)
+        endPointHeaderData = { "Luna-Application-Master-Key": masterKey }
+        response = self.client.post(uri, headers=endPointHeaderData, data=json.dumps(body))
+        self._assert_success(response)
+        print("Endpoint Results: " + str(response.content))
+
+        # 2.	regenerate application master key [POST]
+        uri = self.app_url + resource_name + "/regeneratemasterkeys?key-name=primaryKey"
+        response = self.client.post(uri, headers=self.headerData, data=json.dumps(body))
+        self._assert_success(response)
+        masterKey = response.json()['PrimaryMasterKey']
+        
+        time.sleep(5)
+        
+        # 3.	Call Realtime Endpoint with the new application master key[POST]
+        uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
+        body = json.loads(self.aml_endpoint_input)
+        endPointHeaderData = { "Luna-Application-Master-Key": masterKey }
+        response = self.client.post(uri, headers=endPointHeaderData, data=json.dumps(body))
+        self._assert_success(response)
+        print("Endpoint Results: " + str(response.content))
+        
+        # # Endpoint Tests with subscription key
+        # #############################################
+        time.sleep(5)
+
+        # 1.	Call Realtime Endpoint [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
         body = json.loads(self.aml_endpoint_input)
         endPointHeaderData = { "api-key": subscriptionKey }
@@ -152,14 +218,14 @@ class ScenarioTest(HttpUser):
         self._assert_success(response)
         print("Endpoint Results: " + str(response.content))
         
-        # 6.	Regenerate subscription key [PUT]
+        # 2.	Regenerate subscription key [PUT]
         uri = self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/sub" + resource_name + "/regeneratekey?key-name=PrimaryKey"
         response = self.client.post(uri, headers=self.headerData)
         self._assert_success(response)
         subscriptionKey = response.json()['PrimaryKey']
-        time.sleep(10)
+        time.sleep(5)
         
-        # # 7.	Call Realtime Endpoint with regenerated key [POST]
+        # 3.	Call Realtime Endpoint with regenerated key [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
         body = json.loads(self.aml_endpoint_input)
         endPointHeaderData = { "api-key": subscriptionKey }
@@ -169,9 +235,6 @@ class ScenarioTest(HttpUser):
 
         # Cleanup Test Resources
         ##############################################
-
-        # 6b.	Delete Subscription [DELETE]
-        self._assert_success(self.client.delete(self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/sub" + resource_name, headers=self.headerData))
 
         # 4b.	Delete Luna API Version [DELETE]
         self._assert_success(self.client.delete(self.app_url + resource_name + "/apis/myapi/versions/v1", headers=self.headerData))

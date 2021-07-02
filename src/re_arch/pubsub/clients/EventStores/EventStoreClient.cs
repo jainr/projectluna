@@ -113,9 +113,13 @@ namespace Luna.PubSub.Clients
             {
                 return new SubscriptionEventStoreInfo(connectionString, validThrough);
             }
-            else if (name.Equals(LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE, StringComparison.InvariantCultureIgnoreCase))
+            else if (name.Equals(LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE, StringComparison.InvariantCultureIgnoreCase))
             {
-                return new AzureMarketplaceEventStoreInfo(connectionString, validThrough);
+                return new MarketplaceOfferEventStoreInfo(connectionString, validThrough);
+            }
+            else if (name.Equals(LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new MarketplaceSubscriptionEventStoreInfo(connectionString, validThrough);
             }
             else
             {

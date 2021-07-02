@@ -31,7 +31,7 @@ namespace Luna.Gallery.Functions
         private const string ROUTING_SERVICE_BASE_URL_CONFIG_NAME = "ROUTING_SERVICE_BASE_URL";
 
         private static ConcurrentDictionary<string, long> ApplicationsInProcess = new ConcurrentDictionary<string, long>();
-        private static ConcurrentDictionary<string, long> MarketplaceInProgress = new ConcurrentDictionary<string, long>();
+        private static ConcurrentDictionary<string, long> MarketplaceOffersInProgress = new ConcurrentDictionary<string, long>();
 
         private readonly ISqlDbContext _dbContext;
         private readonly ILogger<GalleryServiceFunctions> _logger;
@@ -117,8 +117,8 @@ namespace Luna.Gallery.Functions
             }
         }
 
-        [FunctionName("ProcessMarketplaceEvents")]
-        public async Task ProcessMarketplaceEvents([QueueTrigger("gallery-processazuremarketplaceevents")] CloudQueueMessage myQueueItem)
+        [FunctionName("ProcessMarketplaceOfferEvents")]
+        public async Task ProcessMarketplaceOfferEvents([QueueTrigger("gallery-processmarketplaceofferevents")] CloudQueueMessage myQueueItem)
         {
             Stopwatch sw = Stopwatch.StartNew();
             string partitionKey = "";
@@ -126,14 +126,14 @@ namespace Luna.Gallery.Functions
             {
                 try
                 {
-                    _logger.LogMethodBegin(nameof(this.ProcessMarketplaceEvents));
+                    _logger.LogMethodBegin(nameof(this.ProcessMarketplaceOfferEvents));
 
                     this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
 
                     var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
 
                     partitionKey = queueMessage.PartitionKey;
-                    queueMessage.YieldTo(MarketplaceInProgress, this._logger);
+                    queueMessage.YieldTo(MarketplaceOffersInProgress, this._logger);
 
                     // Get the last applied event id
                     // If there's no record in the database, it will return the default value of long type 0
@@ -143,7 +143,7 @@ namespace Luna.Gallery.Functions
                         Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
 
                     var events = await _pubSubClient.ListEventsAsync(
-                        LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
+                        LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE,
                         new LunaRequestHeaders(),
                         eventsAfter: lastAppliedEventId,
                         partitionKey: partitionKey);
@@ -243,7 +243,7 @@ namespace Luna.Gallery.Functions
                     ApplicationsInProcess.TryRemove(partitionKey, out value);
 
                     sw.Stop();
-                    _logger.LogMethodEnd(nameof(this.ProcessMarketplaceEvents),
+                    _logger.LogMethodEnd(nameof(this.ProcessMarketplaceOfferEvents),
                         sw.ElapsedMilliseconds);
                 }
             }
@@ -1793,7 +1793,7 @@ namespace Luna.Gallery.Functions
                         await _dbContext._SaveChangesAsync();
 
                         await _pubSubClient.PublishEventAsync(
-                            LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
+                            LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE,
                             new CreateAzureMarketplaceSubscriptionEventEntity(subscriptionId, 
                             JsonConvert.SerializeObject(subDb.ToEventContent(), new JsonSerializerSettings()
                             {
@@ -1930,7 +1930,7 @@ namespace Luna.Gallery.Functions
                         await _dbContext._SaveChangesAsync();
 
                         await _pubSubClient.PublishEventAsync(
-                            LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
+                            LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE,
                             new DeleteAzureMarketplaceSubscriptionEventEntity(subscriptionId,
                             JsonConvert.SerializeObject(subDb)),
                             lunaHeaders);

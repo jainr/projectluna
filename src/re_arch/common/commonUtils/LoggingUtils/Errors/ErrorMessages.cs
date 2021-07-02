@@ -69,5 +69,6 @@ namespace Luna.Common.Utils
         public const string MARKETPLACE_SUBSCRIPTION_CAN_NOT_BE_ACTIVATED = "Can not activate Azure marketplace subscription {0}. The subscription is in {1} state.";
         public const string INTERNAL_SERVER_ERROR = "The server encountered an internal error and was unable to complete your request.";
         public const string REQUIRED_PARAMETER_NOT_PROVIDED = "The value of required parameter {0} is not provided.";
+        public const string ROLE_ASSIGNMENT_ALREADY_EXIST = "User {0} with role {1} already exists.";
     }
 }
