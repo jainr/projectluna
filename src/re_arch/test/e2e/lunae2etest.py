@@ -168,7 +168,8 @@ class ScenarioTest(HttpUser):
         self._assert_success(response)
         masterKey = response.json()['PrimaryMasterKey']
 
-        time.sleep(10)
+        ## long wait time for cold start up
+        time.sleep(20)
         
         # 7.	Create Subscription to Application [PUT]
         uri = self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/sub" + resource_name
@@ -182,7 +183,9 @@ class ScenarioTest(HttpUser):
 
         # # Endpoint Tests with application master key
         # #############################################
-        time.sleep(10)
+
+        ## long wait time for cold start up
+        time.sleep(20)
 
         # 1.	Call Realtime Endpoint [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
