@@ -168,7 +168,7 @@ class ScenarioTest(HttpUser):
         self._assert_success(response)
         masterKey = response.json()['PrimaryMasterKey']
 
-        time.sleep(5)
+        time.sleep(10)
         
         # 7.	Create Subscription to Application [PUT]
         uri = self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/sub" + resource_name
@@ -182,7 +182,7 @@ class ScenarioTest(HttpUser):
 
         # # Endpoint Tests with application master key
         # #############################################
-        time.sleep(5)
+        time.sleep(10)
 
         # 1.	Call Realtime Endpoint [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
@@ -198,7 +198,7 @@ class ScenarioTest(HttpUser):
         self._assert_success(response)
         masterKey = response.json()['PrimaryMasterKey']
         
-        time.sleep(5)
+        time.sleep(10)
         
         # 3.	Call Realtime Endpoint with the new application master key[POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
@@ -210,7 +210,6 @@ class ScenarioTest(HttpUser):
         
         # # Endpoint Tests with subscription key
         # #############################################
-        time.sleep(5)
 
         # 1.	Call Realtime Endpoint [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"
@@ -225,7 +224,7 @@ class ScenarioTest(HttpUser):
         response = self.client.post(uri, headers=self.headerData)
         self._assert_success(response)
         subscriptionKey = response.json()['PrimaryKey']
-        time.sleep(5)
+        time.sleep(10)
         
         # 3.	Call Realtime Endpoint with regenerated key [POST]
         uri = self.routing_url + "/api/" + resource_name + "/myapi/predict?api-version=v1"

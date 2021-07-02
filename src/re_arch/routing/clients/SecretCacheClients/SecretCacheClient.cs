@@ -65,16 +65,22 @@ namespace Luna.Routing.Clients
             if (!secretItem.Equals(default(KeyValuePair<string, SecretItemCache>)))
             {
                 SecretItemCache value;
-                cache.TryRemove(secretItem.Key, out value);
+                if (cache.TryRemove(secretItem.Key, out value))
+                {
+                    _logger.LogDebug($"Fail to remove secret {secretName} to the cache.");
+                }
             }
 
             var secretValue = await _keyVaultUtils.GetSecretAsync(secretName);
 
-            cache.TryAdd(secretValue, new SecretItemCache()
+            if (!cache.TryAdd(secretValue, new SecretItemCache()
             {
                 SecretName = secretName,
                 SecretValue = secretValue
-            });
+            }))
+            {
+                _logger.LogDebug($"Fail to add secret {secretName} to the cache.");
+            }
         }
 
         public async Task UpdateSecretCacheAsync(List<LunaApplicationSubscriptionDB> subscriptions, List<PublishedAPIVersionDB> applications)

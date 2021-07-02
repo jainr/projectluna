@@ -118,21 +118,8 @@ namespace Luna.Routing.Functions
                         }
                         else if (ev.EventType.Equals(LunaEventType.REGENERATE_APPLICATION_MASTER_KEY))
                         {
-                            var apiVersion = await _dbContext.PublishedAPIVersions.
-                                Where(x => x.ApplicationName == ev.PartitionKey && x.IsEnabled).
-                                Take(1).
-                                SingleOrDefaultAsync();
-
-                            if (apiVersion != null)
-                            {
-                                await UpdateLunaApplication(ev.PartitionKey, ev.EventSequenceId);
-
-                                this._logger.LogDebug($"Application {ev.PartitionKey} master key refreshed in the cache.");
-                            }
-                            else
-                            {
-                                this._logger.LogWarning($"No version for application {ev.PartitionKey} found.");
-                            }
+                            await UpdateLunaApplication(ev.PartitionKey, ev.EventSequenceId);
+                            this._logger.LogDebug($"Application {ev.PartitionKey} updated. ");
                         }
                         else
                         {
@@ -840,7 +827,9 @@ namespace Luna.Routing.Functions
 
         private async Task DeleteLunaApplication(string name, long eventSequenceId)
         {
-            var oldVersions = await _dbContext.PublishedAPIVersions.Where(x => x.ApplicationName == name).ToListAsync();
+            var oldVersions = await _dbContext.PublishedAPIVersions.
+                Where(x => x.IsEnabled && x.ApplicationName == name).ToListAsync();
+
             var currentTime = DateTime.UtcNow;
 
             foreach (var oldVersion in oldVersions)
@@ -850,16 +839,10 @@ namespace Luna.Routing.Functions
                 oldVersion.IsEnabled = false;
             }
 
-            using (var transaction = await _dbContext.BeginTransactionAsync())
+            if (oldVersions.Count > 0)
             {
-                if (oldVersions.Count > 0)
-                {
-                    _dbContext.PublishedAPIVersions.UpdateRange(oldVersions);
-                }
-
+                _dbContext.PublishedAPIVersions.UpdateRange(oldVersions);
                 await _dbContext._SaveChangesAsync();
-
-                transaction.Commit();
             }
 
             return;
@@ -867,7 +850,9 @@ namespace Luna.Routing.Functions
 
         private async Task UpdateLunaApplication(string name, long eventSequenceId)
         {
-            var versions = await _dbContext.PublishedAPIVersions.Where(x => x.ApplicationName == name).ToListAsync();
+            var versions = await _dbContext.PublishedAPIVersions.
+                Where(x => x.IsEnabled && x.ApplicationName == name).ToListAsync();
+
             var currentTime = DateTime.UtcNow;
 
             foreach (var oldVersion in versions)
@@ -876,16 +861,10 @@ namespace Luna.Routing.Functions
                 oldVersion.LastUpdatedTime = currentTime;
             }
 
-            using (var transaction = await _dbContext.BeginTransactionAsync())
+            if (versions.Count > 0)
             {
-                if (versions.Count > 0)
-                {
-                    _dbContext.PublishedAPIVersions.UpdateRange(versions);
-                }
-
+                _dbContext.PublishedAPIVersions.UpdateRange(versions);
                 await _dbContext._SaveChangesAsync();
-
-                transaction.Commit();
             }
 
             return;
