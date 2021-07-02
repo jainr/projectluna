@@ -6,8 +6,8 @@ pool:
 
 # Update the variable values when creating the pipeline
 variables:
-  # the test binary if you are not running from the Luna repo
-  test_binary_zip_url: "https://github.com/Azure/projectluna/raw/re-arch-amp/src/re_arch/test/testreleases/test-0.1.zip"
+  # the test file if you are not running from the Luna repo
+  test_file_url: "https://github.com/Azure/projectluna/raw/re-arch-amp/src/re_arch/test/e2e/lunae2etest.py"
   # the routing service url
   routing_url: "https://lunaaidep2-routing.azurewebsites.net"
   # the gateway service (management service) url
@@ -46,18 +46,11 @@ steps:
 - script: pip install Locust  
   displayName: 'Installing Locust'
 
-- script: wget $(test_binary_zip_url) -O test.zip
-  displayName: 'Download test package'
+- script: wget $(test_file_url) -O test.py
+  displayName: 'Download test file'
 
-- script: sudo apt-get install -y unzip
-  displayName: 'install unzip'
-
-- script: unzip -o test.zip
-  displayName: 'unzip test files'
-
-
-- script: locust -f lunae2etest.py --headless --users $(concurrent_workers) --run-time $(timeout) --stop-timeout 99 --exit-code-on-error 0 
+- script: locust -f test.py --headless --users $(concurrent_workers) --run-time $(timeout) --stop-timeout 99 --exit-code-on-error 0 
   env:
     ADMIN_SPN_CLIENT_SECRET: $(admin_spn_client_secret)
     AML_SPN_CLIENT_SECRET: $(aml_spn_client_secret)
-  displayName: 'Run test with subscription key'
+  displayName: 'Run e2e test'

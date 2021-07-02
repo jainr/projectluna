@@ -237,6 +237,9 @@ class ScenarioTest(HttpUser):
 
         # Cleanup Test Resources
         ##############################################
+        
+        # 5b.   Delete subscription [DELETE]
+        self._assert_success(self.client.delete(self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/sub" + resource_name, headers=self.headerData))
 
         # 4b.	Delete Luna API Version [DELETE]
         self._assert_success(self.client.delete(self.app_url + resource_name + "/apis/myapi/versions/v1", headers=self.headerData))
