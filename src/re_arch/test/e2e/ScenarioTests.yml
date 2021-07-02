@@ -29,9 +29,9 @@ variables:
   # the Luna AAD application client id
   luna_app_client_id: "8909bdfe-55e1-40fd-b295-58d3608297fd"
   # concurrent workers:
-  concurrent_workers: 10
+  concurrent_workers: 5
   # timeout
-  timeout: 600s
+  timeout: 60s
 
   # add the following variables (need to be encrypted) when creating the pipeline: admin_spn_client_secret, aml_spn_client_secret
 

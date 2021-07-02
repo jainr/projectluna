@@ -17,7 +17,7 @@ class ScenarioTest(HttpUser):
 
         self.app_url = "/api/manage/applications/"
         self.partnerServices_url = "/api/manage/partnerServices/"
-        self.rbac_url = "api/manage/rbac/"
+        self.rbac_url = "/api/manage/rbac/"
         
         self.routing_url = os.environ['ROUTING_URL']
         self.host_url = os.environ['GATEWAY_URL']
@@ -167,6 +167,8 @@ class ScenarioTest(HttpUser):
         response = self.client.get(uri, headers=self.headerData, data=json.dumps(body))
         self._assert_success(response)
         masterKey = response.json()['PrimaryMasterKey']
+
+        time.sleep(5)
         
         # 7.	Create Subscription to Application [PUT]
         uri = self.host_url + "/api/gallery/applications/" + resource_name + "/subscriptions/sub" + resource_name
