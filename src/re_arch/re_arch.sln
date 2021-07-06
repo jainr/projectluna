@@ -95,8 +95,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E170EAE3-E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "e2e", "e2e", "{8F6A260F-5E5B-4AD8-9E5E-F167B743DFFA}"
 	ProjectSection(SolutionItems) = preProject
-		test\e2e\PublishAppCallWithMasterKey.py = test\e2e\PublishAppCallWithMasterKey.py
-		test\e2e\PublishAppCallWithSubKey.py = test\e2e\PublishAppCallWithSubKey.py
+		test\e2e\lunae2etest.py = test\e2e\lunae2etest.py
 		test\e2e\ScenarioTests.yml = test\e2e\ScenarioTests.yml
 	EndProjectSection
 EndProject

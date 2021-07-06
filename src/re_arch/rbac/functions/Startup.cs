@@ -24,8 +24,6 @@ namespace Luna.RBAC.Functions
 
             builder.Services.TryAddScoped<ISqlDbContext, SqlDbContext>();
 
-            builder.Services.AddSingleton<IRBACCacheClient, RBACCacheClient>();
-
             builder.Services.AddApplicationInsightsTelemetry();
         }
     }

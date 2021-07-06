@@ -3,6 +3,7 @@ using Luna.RBAC.Public.Client;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Luna.RBAC.Clients
@@ -12,6 +13,10 @@ namespace Luna.RBAC.Clients
     /// </summary>
     public class RBACCacheClient : IRBACCacheClient
     {
+        private const int InitializationTimeoutInMs = 5000;
+
+        private const int InitializationCheckInterval = 100;
+
         private static RBACCache _cache = new RBACCache();
 
         public RBACCacheClient()
@@ -27,6 +32,23 @@ namespace Luna.RBAC.Clients
             return _cache.Initialized;
         }
 
+        public bool YieldToInitialization()
+        {
+            int timeElapsedInMs = 0;
+            while (timeElapsedInMs < InitializationTimeoutInMs)
+            {
+                if (_cache.Initialized)
+                {
+                    return true;
+                }
+
+                timeElapsedInMs += InitializationCheckInterval;
+                Thread.Sleep(InitializationCheckInterval);
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Initialize the RBAC cache
         /// </summary>
@@ -34,6 +56,8 @@ namespace Luna.RBAC.Clients
         /// <param name="ownerships">The ownerships</param>
         public void InitializeCache(List<RoleAssignmentDb> roleAssignments, List<OwnershipDb> ownerships)
         {
+            _cache.Initialized = false;
+
             foreach (var roleAssignment in roleAssignments)
             {
                 this.AddRoleAssignment(roleAssignment);
