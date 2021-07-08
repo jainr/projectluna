@@ -13,7 +13,10 @@
   -a <admin-aad-object-id> \
   -u <admin-user-display-name> \
   -w <y if created new azure service, configure only otherwise> \
-  -m <y if use managed identity>
+  -m <y if use managed identity> \
+  -e <tenant id for Azure Marketplace, use any guid if not integrated with Azure Marketplace> \
+  -i <client id for Azure Marketplace, use any guid if not integrated with Azure Marketplace> \
+  -y <client secret for Azure Marketplace, use any string if not integrated with Azure Marketplace>
 
 3. Import the Postman collection (management_test.json)
 
