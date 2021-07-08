@@ -60,18 +60,27 @@ namespace Luna.Routing.Clients
 
         private async Task RefreshCachedSecretAsync(ConcurrentDictionary<string, SecretItemCache> cache, string secretName)
         {
-            var secretItem = cache.Where(x => x.Value.SecretName == secretName).SingleOrDefault();
+            var secretValue = await _keyVaultUtils.GetSecretAsync(secretName);
+
+            var secretItem = cache.Where(x => x.Value.SecretName == secretName && x.Key != secretValue).SingleOrDefault();
 
             if (!secretItem.Equals(default(KeyValuePair<string, SecretItemCache>)))
             {
                 SecretItemCache value;
                 if (cache.TryRemove(secretItem.Key, out value))
                 {
-                    _logger.LogDebug($"Fail to remove secret {secretName} to the cache.");
+                    _logger.LogDebug($"Fail to remove secret {secretName} from the cache.");
+                }
+                else
+                {
+                    _logger.LogDebug($"Removed secret {secretName} from the cache.");
                 }
             }
+            else
+            {
+                _logger.LogDebug($"Secret {secretName} does not need to be removed.");
+            }
 
-            var secretValue = await _keyVaultUtils.GetSecretAsync(secretName);
 
             if (!cache.TryAdd(secretValue, new SecretItemCache()
             {
@@ -80,6 +89,10 @@ namespace Luna.Routing.Clients
             }))
             {
                 _logger.LogDebug($"Fail to add secret {secretName} to the cache.");
+            }
+            else
+            {
+                _logger.LogDebug($"Add secret {secretName} to the cache.");
             }
         }
 
