@@ -11,7 +11,11 @@ import {
   IGitRepoModel,
   IMLModelArtifactModel,
   IMLEndpointArtifactModel,
-  IAMLComputeClusterModel
+  IAMLComputeClusterModel,
+  IProductDetailsModel,
+  IPartnerServiceModel,
+  IAutomationWebhookModel,
+  IPermissionsModel
 } from "../models";
 import {v4 as uuid} from "uuid";
 
@@ -33,6 +37,19 @@ export default class ProductService extends ServiceBase {
   public static async get(productName: string): Promise<Result<IProductModel>> {
 
     var result = await this.requestJson<IProductModel>({
+      url: `/applications/${productName}`,
+      method: "GET"
+    });
+
+    if (!result.hasErrors && result.value)
+      result.value.clientId = uuid();
+
+    return result;
+  }
+
+  public static async getDetails(productName: string): Promise<Result<IProductDetailsModel>> {
+
+    var result = await this.requestJson<IProductDetailsModel>({
       url: `/applications/${productName}`,
       method: "GET"
     });
@@ -196,6 +213,32 @@ export default class ProductService extends ServiceBase {
     return result;
   }
 
+  public static async getPartnerServicesList(): Promise<Result<IPartnerServiceModel[]>> {
+
+    var result = await this.requestJson<IPartnerServiceModel[]>({
+      url: `/amlworkspaces/`,
+      method: "GET"
+    });
+
+    if (!result.hasErrors && result.value)
+      result.value.map(u => u.clientId = uuid());
+
+    return result;
+  }
+
+  public static async getAutomationWebhooksList(): Promise<Result<IAutomationWebhookModel[]>> {
+
+    var result = await this.requestJson<IAutomationWebhookModel[]>({
+      url: `/amlworkspaces/`,
+      method: "GET"
+    });
+
+    if (!result.hasErrors && result.value)
+      result.value.map(u => u.clientId = uuid());
+
+    return result;
+  }
+
   public static async getModelsFromAmlWorkspace(workspaceName:string): Promise<Result<IMLModelArtifactModel[]>> {
 
     var result = await this.requestJson<IMLModelArtifactModel[]>({
@@ -239,6 +282,32 @@ export default class ProductService extends ServiceBase {
 
     var result = await this.requestJson<IAMLWorkSpaceModel>({
       url: `/amlworkspaces/${workspaceName}`,
+      method: "GET"
+    });
+
+    if (!result.hasErrors && result.value)
+      result.value.clientId = uuid();
+
+    return result;
+  }
+
+  public static async getPartnerServiceByName(partnerServiceName:string): Promise<Result<IPartnerServiceModel>> {
+
+    var result = await this.requestJson<IPartnerServiceModel>({
+      url: `/amlworkspaces/${partnerServiceName}`,
+      method: "GET"
+    });
+
+    if (!result.hasErrors && result.value)
+      result.value.clientId = uuid();
+
+    return result;
+  }
+
+  public static async getAutomationWebhookByName(partnerServiceName:string): Promise<Result<IAutomationWebhookModel>> {
+
+    var result = await this.requestJson<IAutomationWebhookModel>({
+      url: `/amlworkspaces/${partnerServiceName}`,
       method: "GET"
     });
 
@@ -313,5 +382,6 @@ export default class ProductService extends ServiceBase {
 
     return result;
   }
+  
   //#endregion
 }

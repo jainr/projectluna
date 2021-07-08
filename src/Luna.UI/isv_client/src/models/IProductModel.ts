@@ -15,6 +15,20 @@ export interface IProductModel extends IBaseModel {
   selectedProductindex?: number  
 }
 
+export interface IProductDetailsModel extends IBaseModel {
+  displayName: string;
+  applicationName: string;
+  owner: string;
+  description: string;
+  logoImageUrl: string;
+  documentationUrl: string;
+  tags: string;
+  createdTime?: string;
+  lastUpdatedTime?: string;
+  Idlist?: string;
+  selectedProductId?: string
+  selectedProductindex?: number  
+}
 export interface ILookupType {
   id:string;
   displayName:string;
@@ -65,6 +79,24 @@ export interface IAMLWorkSpaceModel extends IBaseModel{
   selectedWorkspaceName:string;
 }
 
+export interface IPartnerServiceModel extends IBaseModel{  
+  type:string;
+  resourceId:string;
+  tenantId:string;
+  clientId:string;
+  registeredTime?:string;
+  clinetSecrets:string;
+  partnerServiceName: string;
+  createdDate: string;
+}
+
+export interface IAutomationWebhookModel extends IBaseModel{  
+  name:string;
+  webhookURL:string;  
+  enabled: boolean;
+  clientId:string;
+  createdDate: string;
+}
 export interface IMLModelArtifactModel extends IBaseModel{
   name:string;
   version: string;
@@ -83,6 +115,12 @@ export interface IGitRepoModel extends IBaseModel{
   repoName: string;
   httpUrl: string;
   personalAccessToken: string;
+}
+
+export interface IPermissionsModel extends IBaseModel{
+  userId: string;
+  role: string;
+  createdDate: string;
 }
 
 export interface ISourceModel {  

@@ -55,7 +55,9 @@ export abstract class ServiceBase {
 
     var token = await ServiceBase.getTokenWithRetry();
     
-    const headers = { Authorization: `Bearer ${token}` };
+
+    const headers = { Authorization: `Bearer ${token}`, Host: window.Configs.HOST, "Luna-User-Id": window.Configs.LUNA_USER_ID };
+
 
     var axiosRequestConfig: AxiosRequestConfig;
     axiosRequestConfig = {
@@ -94,14 +96,18 @@ export abstract class ServiceBase {
 
         // validation error
         if (error.response.status === 400) {
-          if (!Array.isArray(error.response.data.error.details))
-            result = new Result<T>(null, false,[{ code: '', target: 'method_error', message: 'One or more validation errors have occurred but we were unable to parse them. Please inspect the console for more information.'}]);
-          else
-            result = new Result<T>(null, false, error.response.data.error.details);
+          // if (!Array.isArray(error.response.data.error.details))
+          //   result = new Result<T>(null, false,[{ code: '', target: 'method_error', message: 'One or more validation errors have occurred but we were unable to parse them. Please inspect the console for more information.'}]);
+          // else
+          //   result = new Result<T>(null, false, error.response.data.error.details);
+          result = new Result<T>(null, false, [{ code: '400', target: 'method_error', message: error.response.data.message}]);
         }
         else if (error.response.status === 404) {
           ServiceBase.dispatchGlobalError("Method not found!");
           result = new Result<T>(null, false,null);
+        }
+        else if(error.response.status === 409){
+          result = new Result<T>(null, false,[{ code: '409', target: 'method_error', message: error.response.data.message}]);
         }
         else {
           let message = '';

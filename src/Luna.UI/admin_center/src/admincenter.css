@@ -1,0 +1,98 @@
+html, body {
+  background-color: #F5F5F7;
+}
+.floatLeft {
+  float: left;
+}
+.bgclrblue {
+  /* background-color: #4876ca; */
+  background-image: linear-gradient(to right top, #29529d, #315ba8, #3964b3, #406DC1, #4876ca);
+}
+.bgclrred {
+  background-color: #c00000;
+}
+.dashboardcard {
+  color: #fff;
+  margin-right: 20px;
+  min-height: 200px;
+  display:flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* width: 12%; */
+  width: 200px;
+  box-shadow: rgb(27 26 26 / 78%) 0px 3.2px 7.2px 0px, rgb(39 39 39 / 43%) 0px 0.6px 1.8px 0px;
+}
+.dashboardcard h1 {
+  font-size: 50px;
+  margin: 0px 0px 0px 5px;
+}
+.fnt10 {
+  font-size: 12px;
+  cursor: pointer;
+  margin-right:10px;
+}
+.cardtext {  
+  padding-bottom: 0px;
+  padding-left: 16px;
+}
+.txticon {
+  display:flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+  align-items: center;
+  text-align: right;
+  margin-right: 16px;
+}
+.Arrowicon {
+  padding-right: 5%;  
+}
+.footerclass {
+  width: 100% !important;
+  background-color: transparent;  
+}
+
+
+.footerclass li a {
+  color: gray;
+}
+.footerclass li {
+  float: left;
+  list-style: none;
+  margin-right: 8px;
+  padding: 4px;
+}
+.footerclass .sperator
+{
+  color: gray;
+  font-weight: bold;
+}
+.collapsearrow{
+  text-align: right;
+  cursor: pointer;
+}
+.acolor a
+{
+  color: rgb(86 166 234);
+}
+main
+{
+  display: flex;
+}
+main > div {
+  flex: 1 1;
+  overflow-y: auto;
+  margin: 20px;
+}
+.contentarea
+{
+  box-shadow: rgba(0, 0, 0, 0.133) 0px 3.2px 7.2px 0px, rgba(0, 0, 0, 0.11) 0px 0.6px 1.8px 0px; 
+  background-color: white; 
+  padding: 20px 20px 50px;
+  
+}
+.dashboardarrowIcon
+{
+  font-size: 30px;
+  margin-bottom: -2%;
+  
+}

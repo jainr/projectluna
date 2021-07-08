@@ -2,8 +2,11 @@
 // Licensed under the MIT License.
 
 import * as React from 'react';
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { vs } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import mytext from './SampleCode';
 import FooterLinks from '../FooterLinks/FooterLinks';
-import { Stack, Text, Link, Image, StackItem, TextField, ImageFit, Panel, DefaultButton, PrimaryButton, Separator, Dropdown, IDropdownOption, Dialog, DialogType, IModalProps, IDialogContentProps, DialogFooter } from '@fluentui/react';
+import { Stack, Text, Link, Image, StackItem, TextField, ImageFit, Panel, DefaultButton, PrimaryButton, Separator, Dropdown, IDropdownOption, Dialog, DialogType, IModalProps, IDialogContentProps, DialogFooter, IconButton, FontIcon } from '@fluentui/react';
 import { PanelStyles } from '../../helpers/PanelStyles';
 import { getTheme } from '@fluentui/react';
 import { GetInternalOffers } from './GetInternalOffers';
@@ -17,20 +20,24 @@ import { getTypeParameterOwner } from 'typescript';
 import { PromptState } from 'msal/lib-commonjs/utils/Constants';
 import { withRouter } from "react-router-dom";
 import { useHistory, useLocation } from 'react-router';
+import { GetMyApplication, GetMySubscriptionByApplication, GetinternalPublisherApplication, GetMarketPlaceApplication } from './GetMyApplication';
+import { IApplication } from './IApplication';
+import { IApplicationTags } from './IApplicationTags';
+
 
 function generateUUID() { // Public Domain/MIT
   var d = new Date().getTime();//Timestamp
-  var d2 = (performance && performance.now && (performance.now()*1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16;//random number between 0 and 16
-      if(d > 0){//Use timestamp until depleted
-          r = (d + r)%16 | 0;
-          d = Math.floor(d/16);
-      } else {//Use microseconds since page-load if supported
-          r = (d2 + r)%16 | 0;
-          d2 = Math.floor(d2/16);
-      }
-      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  var d2 = (performance && performance.now && (performance.now() * 1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16;//random number between 0 and 16
+    if (d > 0) {//Use timestamp until depleted
+      r = (d + r) % 16 | 0;
+      d = Math.floor(d / 16);
+    } else {//Use microseconds since page-load if supported
+      r = (d2 + r) % 16 | 0;
+      d2 = Math.floor(d2 / 16);
+    }
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
   });
 }
 
@@ -45,6 +52,15 @@ const AIServices = () => {
   const [isDataLoading, setIsDataLoading] = React.useState(true);
   const [planOptions, setPlanOptions] = React.useState<IDropdownOption[]>([]);
   const [hideNewSubDialog, setHideNewSubDialog] = React.useState(true);
+  const [myApplication, setMyApplication] = React.useState<IApplication[]>();
+  const [allApplication, setAllApplication] = React.useState<IApplication[]>();
+  const [publisherApplication, setpublisherApplication] = React.useState<IApplication[]>();
+  const [marketPlaceApplication, setMarketPlaceApplication] = React.useState<IApplication[]>();
+  const [isMyAppLoading, setIsMyAppLoading] = React.useState<boolean>(true);
+  const [isublisherAppLoading, setIsPublisherAppLoading] = React.useState<boolean>(true);
+  const [isMarketPlaceAppLoading, setMarketPlaceAppLoading] = React.useState<boolean>(true);
+  const [isListView, setIsListView] = React.useState<boolean>(false);
+  const [designViewText, setDesignViewText] = React.useState<string>('Switch to List view');
 
   const [newSubscription, setNewSubscription] = React.useState<ISubscription>({
     OfferDisplayName: '',
@@ -56,114 +72,114 @@ const AIServices = () => {
   });
 
   React.useEffect(() => {
-      loadData();
+    loadData();
   }, []);
 
   /**
    * Load data and merge all offer types into one object.
    */
   const loadData = async () => {
-    let dataSet = [];
-    let internalOffers = await GetInternalOffers();
-    //let marketplaceOffers = await GetMarketplaceOffers();
+    let allapps: IApplication[] = [];
 
-    for (const key in internalOffers) {
-      if (Object.prototype.hasOwnProperty.call(internalOffers, key)) {
-        const element = internalOffers[key];
-        dataSet.push(element);
+    /*Get MyApplication starts*/
+    setIsMyAppLoading(true);
+    let myapps: IApplication[] = [];
+    let myApplications = await GetMyApplication();
+    for (const key in myApplications) {
+      if (Object.prototype.hasOwnProperty.call(myApplications, key)) {
+        const element = myApplications[key];
+        let mysubbyapp = await GetMySubscriptionByApplication(element.UniqueName);
+        if (mysubbyapp.length > 0) {
+          element.type = 'MyApplication';
+          element.isSubScribed = true;
+          myapps.push(element);
+          allapps.push(element);
+        }
       }
     }
-/*
-    for (const key in marketplaceOffers) {
-      if (Object.prototype.hasOwnProperty.call(marketplaceOffers, key)) {
-        const element = marketplaceOffers[key];
-        dataSet.push(element);
+    setIsMyAppLoading(false);
+    setMyApplication(myapps);
+
+    /*Get MyApplication ends*/
+
+    /*Get Publisher Application starts*/
+    setIsPublisherAppLoading(true);
+    let ipublisherapps: IApplication[] = [];
+    let ipublisherApplications = await GetinternalPublisherApplication();
+    for (const key in ipublisherApplications) {
+      if (Object.prototype.hasOwnProperty.call(ipublisherApplications, key)) {
+        const element = ipublisherApplications[key];
+        element.type = 'PublisherApplication';
+        element.isSubScribed = false;
+        allapps.push(element);
+        ipublisherapps.push(element);
       }
     }
-*/
-    setInitOfferData(dataSet);
-    setOfferData(dataSet);
+    ipublisherapps = ipublisherapps.filter(x => x.isSubScribed == false);
+    setIsPublisherAppLoading(false);
+    setpublisherApplication(ipublisherapps);
+    /*Get Publisher Application ends*/
+
+    /*Get Market Application starts*/
+    setMarketPlaceAppLoading(true)
+    let marketPlaceapps: IApplication[] = [];
+    let marketplaceApplications = await GetMarketPlaceApplication();
+    for (const key in marketplaceApplications) {
+      if (Object.prototype.hasOwnProperty.call(marketplaceApplications, key)) {
+        const element = marketplaceApplications[key];
+        element.type = 'MarketPlaceApplication';
+        element.isSubScribed = false;
+        // allapps.push(element);
+        // marketPlaceapps.push(element);
+      }
+    }
+    setMarketPlaceAppLoading(false)
+    setMarketPlaceApplication(marketPlaceapps);
+
+    /*Get Market Application ends*/
+
+    setAllApplication(allapps);
 
   }
 
   const searchFilter = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string | undefined) => {
-    setOfferData(filterByValue(initOffferData!, newValue!));
+    if (newValue) {
+      let MyApplication = allApplication?.filter(x => x.type.includes("MyApplication") && x.DisplayName.toLowerCase().includes(newValue.toLowerCase()));
+      setMyApplication(MyApplication);
+
+      let PublisherApplication = allApplication?.filter(x => x.type.includes("PublisherApplication") && x.isSubScribed == false && x.DisplayName.toLowerCase().includes(newValue.toLowerCase()));
+      setpublisherApplication(PublisherApplication);
+
+      let MarketPlaceApplication = allApplication?.filter(x => x.type.includes("MarketPlaceApplication") && x.isSubScribed == false && x.DisplayName.toLowerCase().includes(newValue.toLowerCase()));
+      setMarketPlaceApplication(MarketPlaceApplication);
+    }
+    else {
+      let MyApplication = allApplication?.filter(x => x.type.includes("MyApplication"));
+      setMyApplication(MyApplication);
+
+      let PublisherApplication = allApplication?.filter(x => x.type.includes("PublisherApplication") && x.isSubScribed == false);
+      setpublisherApplication(PublisherApplication);
+
+      let MarketPlaceApplication = allApplication?.filter(x => x.type.includes("MarketPlaceApplication") && x.isSubScribed == false);
+      setMarketPlaceApplication(MarketPlaceApplication);
+    }
+    // setOfferData(filterByValue(initOffferData!, newValue!));
   }
 
-  const buttonStyles = { root: { marginRight: 8 } };
-  
-  const CreateSubscription = () => {
-    setIsDataLoading(true);
-    const bearerToken = 'Bearer ' + sessionStorage.getItem(`msal.${window.MSAL_CONFIG.appId}.idtoken`);
-    const newSub = JSON.parse(sessionStorage.getItem('newSub')!);
-    fetch(`${window.BASE_URL}/subscriptions/${newSub.SubscriptionId}`, {
-        mode: "cors",
-        method: "PUT",
-        headers: {
-            'Authorization': bearerToken,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newSub)
-    })
-        .then(response => {
-            if (response.status === 200 || 202) {
-              setIsNewSubSuccessful(true);
-                loadData();
-                setTimeout(() => {
-                  setIsNewSubSuccessful(false);
-                }, 7000);
-                dismissPanel();
-                setHideNewSubDialog(false);
-            } else {
-                window.alert(`Error creating new subscription. - ${response.status}`);
-            }
-            return response.json();
-        }).finally(() => setIsDataLoading(true));
-  }
-  
-  const onRenderFooterContent = React.useCallback(
-    () => (
-        <div>
-            <PrimaryButton
-                onClick={CreateSubscription} styles={buttonStyles}>
-                Submit
-      </PrimaryButton>
-            <DefaultButton onClick={dismissPanel}>Cancel</DefaultButton>
-        </div>
-    ),
-    [dismissPanel],
-  );
-
-  const dialogDeleteUserContentProps: IDialogContentProps = {
-    type: DialogType.normal,
-    title: 'New Subscription is being created',
-    closeButtonAriaLabel: 'Close',
-    isMultiline: true,
-    subText: `New subscription ${newSubscription.SubscriptionId} is being created.`,
-  };
-
-  const modalProps: IModalProps = {
-    titleAriaId: 'titleId',
-    subtitleAriaId: 'subtitleId',
-    isBlocking: true,
-    isDarkOverlay: true,
-    allowTouchBodyScroll: true
+  const selectApplication = (selectedApp: IApplication) => {
+    sessionStorage.setItem('selectedApplication', selectedApp.UniqueName);
+    sessionStorage.setItem('selectedApplicationObject', JSON.stringify(selectedApp));
+    history.push("servicedetails");
   }
 
-  const setSubscriptionsPageActive = () => {
-    for (const key in document.getElementsByClassName('nav-item')) {
-      if (Object.prototype.hasOwnProperty.call(document.getElementsByClassName('nav-item'), key)) {
-        const liElement = document.getElementsByClassName('nav-item')[key] as HTMLLIElement;
-        if (key === "1")
-        {
-          liElement.classList.add('active');
-        }
-        else
-        {
-          liElement.classList.remove('active');
-        }
-      }
+  const ChangeView = () => {
+    if (isListView) {
+      setDesignViewText('Switch to List view');
+      setIsListView(false);
+    }
+    else {
+      setDesignViewText('Switch to Tile view');
+      setIsListView(true);
     }
   }
 
@@ -186,185 +202,300 @@ const AIServices = () => {
             ></TextField>
           </StackItem>
         </Stack>
-        </div>
-        <br />
-        
-
-      <div style={PanelStyles}>
-        <p style={{ display: offerData && offerData.length >= 1 ? "none" : "block" }}>
-            <Text variant={'medium'}>Loading Available Offers...</Text>
-        </p>
-        <Dialog
-        hidden={hideNewSubDialog}
-        onDismiss={() => setHideNewSubDialog(true)}
-        dialogContentProps={dialogDeleteUserContentProps}
-        modalProps={modalProps}
-      >
-        <DialogFooter>
-          <DefaultButton onClick={function(event){setSubscriptionsPageActive(); history.push('../#'); }} text="Go to my subscriptions" />
-          <DefaultButton onClick={() => setHideNewSubDialog(true)} text="Close" />
-        </DialogFooter>
-      </Dialog>
-
-        <Panel  
-                isOpen={isOpen}
-                onDismiss={dismissPanel}
-                headerText="Subscribe new Service"
-                closeButtonAriaLabel="Close"
-                onRenderFooterContent={onRenderFooterContent}
-                // Stretch panel content to fill the available height so the footer is positioned
-                // at the bottom of the page
-                isFooterAtBottom={true}
-            >
-                <Stack tokens={{ childrenGap: 10 }}>
-                    <TextField
-                        required
-                        autoComplete="off"
-                        label="Subscription Id"
-                        value={newSubscription.SubscriptionId}
-                        readOnly={true}
-                        disabled={true}
-                    ></TextField>
-                    <TextField
-                        required
-                        autoComplete="off"
-                        value={newSubscription.OfferDisplayName}
-                        readOnly={true}
-                        disabled={true}
-                        label="Machine Learning Service Name"
-                    ></TextField>
-                    <TextField
-                        required
-                        autoComplete="off"
-                        label="Subscription Name"
-                        value={newSubscription.Name}
-                        onChange={((event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string | undefined) => {
-                            let sub = newSubscription;
-                            sub = {
-                              OfferName: sub.OfferName, 
-                              OfferDisplayName: sub.OfferDisplayName,
-                              PlanName: sub.PlanName,
-                              Name: newValue!,
-                              SubscriptionId: sub.SubscriptionId,
-                              Owner: sub.Owner
-                            };
-                            setNewSubscription(sub);
-                            sessionStorage.setItem('newSub', JSON.stringify(sub));
-                        })}
-                    ></TextField>
-                    <Dropdown
-                          label="Plan"
-                          placeholder={"Select a Plan"}
-                          options={planOptions}
-                          onChange={(event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined, index?: number | undefined) => {
-                            let sub = newSubscription;
-                            sub = {
-                              OfferName: sub.OfferName, 
-                              OfferDisplayName: sub.OfferDisplayName,
-                              PlanName: option?.key!+"",
-                              Name: sub.Name,
-                              SubscriptionId: sub.SubscriptionId,
-                              Owner: sub.Owner
-                            };
-                            setNewSubscription(sub);
-                            sessionStorage.setItem('newSub', JSON.stringify(sub));
-                          }}
-                        />
-                    <Separator />
-                </Stack>
-            </Panel>
-        <Stack wrap={true} horizontal tokens={{ childrenGap: 20 }}>
-            
-        {
-              offerData?.map((offer, index) => 
-              <div 
-                  key={index}
-                  style={{ 
-                  display: offer.OfferType === 'internal' ? 'block' : 'none',
-                  width: '15vw',
-                  boxShadow: theme.effects.elevation8, 
-                  padding: '10px 10px 20px' }}>
-                  <Stack 
-                  styles={{ root: { minHeight: '200px' }}}
-                  tokens={{ childrenGap: 14 }}>
-                  {
-                    offer.LogoImageUrl === '' &&
-                    <Image 
-                      imageFit={ImageFit.contain}
-                      srcSet={`${process.env.PUBLIC_URL}/noimage.png 1x, ${process.env.PUBLIC_URL}/noimage@2x.png 2x`}
-                      src={process.env.PUBLIC_URL + '/noimage.png'}
-                      alt={offer.OfferDisplayName}
-                      maximizeFrame={true}
-                      width={100}
-                      height={100}
-                      loading="lazy"
-                    />
-                  }
-                  {
-                    offer.LogoImageUrl !== ''  &&
-                    <Image 
-                      imageFit={ImageFit.contain}
-                      src={offer.LogoImageUrl}
-                      alt={offer.OfferDisplayName}
-                      maximizeFrame={true}
-                      width={100}
-                      height={100}
-                      loading="lazy"
-                    />
-                  }
-                  <Text block variant={'xLarge'} 
-                  title={offer.OfferDisplayName}
-                  style={{ overflow: "hidden", whiteSpace: 'nowrap', textOverflow: 'ellipsis'}}>{offer.OfferDisplayName}</Text>
-                  <Text block variant={'medium'}
-                  title={offer.PublisherName}
-                  className="ellipsis">{offer.PublisherName}</Text>
-                  <Text block variant={'small'} className="block-ellipsis" title={offer.Description}>{offer.Description}</Text>
-                  
-                  </Stack>
-                  <Stack tokens={{ childrenGap: 40 }} horizontal horizontalAlign="space-between" style={{ marginTop: '10px' }}>
+        <Stack className="section">
+          <hr style={{ width: "100%" }} />
+          <Text block variant={'xLarge'} className="title">My Applications
+            <a className="choosedesigntype" onClick={ChangeView}>{designViewText}</a>
+          </Text>
+          {
+            isListView ?
+              <React.Fragment>
+                <table cellSpacing={0} cellPadding={0}>
+                  <thead>
+                    <th>
+                      Application Name
+                    </th>
+                    <th>
+                      Publisher
+                    </th>
+                    <th>
+                      Description
+                    </th>
+                  </thead>
+                  <tbody>
                     {
-                      offer.DocumentationUrl !== null &&
-                      <Link href={offer.DocumentationUrl} target="_blank" hrefLang="en-us">Learn More</Link>
+                      isMyAppLoading ? <tr><td colSpan={3}>loading data.....</td></tr>
+                        :
+                        myApplication && myApplication?.length > 0 ?
+                          myApplication?.map((values: IApplication, idx: number) => {
+                            return (
+                              <tr>
+                                <td>
+                                  <a onClick={(event) => selectApplication(values)}>
+                                    {values.DisplayName}
+                                  </a>
+                                </td>
+                                <td>
+                                  {values.Publisher}
+                                </td>
+                                <td>
+                                  {values.Description}
+                                </td>
+                              </tr>
+                            )
+                          })
+                          :
+                          <Text block variant={'medium'} style={{ color: 'grey', fontWeight: 600, marginTop: '10px' }}> Oops! You don’t own any application yet! Choose an application below to start with.</Text>
                     }
+                  </tbody>
+                </table>
+              </React.Fragment>
+              : <React.Fragment>
+
+                <div>
+                  {
+                    isMyAppLoading ? 'loading data.....'
+                      :
+                      myApplication && myApplication?.length > 0 ?
+                        myApplication?.map((values: IApplication, idx: number) => {
+                          return (
+                            <div className="appblock" key={idx} onClick={(event) => selectApplication(values)}>
+                              <IconButton style={{ color: SharedColors.blue10 }}
+                                iconProps={{ iconName: "TestBeakerSolid" }} size={30} className="TestBeakericon" />
+                              <Text block variant={'xLarge'} className="heading">{values.DisplayName}</Text>
+                              <p className="description">
+                                {values.Description}
+                              </p>
+                              <p className="publisher">
+                                <Text block variant={"small"}>Publisher: {values.Publisher}</Text>
+                              </p>
+                              <hr className="seperator" />
+                              <div className="tags">
+                                {
+                                  values.Tags.map((tagvalues: IApplicationTags, tagidx: any) => {
+                                    let data = values.Tags.length > 1 ? tagvalues.name + ' | ' : tagvalues.name;
+                                    return (
+                                      data
+                                    )
+                                  })
+                                }
+                              </div>
+                              <div className="subscribeddiv">
+                                <FontIcon aria-label="Compass" iconName="CircleFill" style={{ paddingTop: '3%' }} />
+                                <span className="subscribedtext"> Subcribed</span>
+                              </div>
+                            </div>
+                          )
+                        })
+                        :
+                        <Text block variant={'medium'} style={{ color: 'grey', fontWeight: 600, marginTop: '10px' }}> Oops! You don’t own any application yet! Choose an application below to start with.</Text>
+                  }
+                </div>
+              </React.Fragment>
+          }
+        </Stack>
+        <Stack className="section">
+          <Text block variant={'xLarge'} className="title">Applications from internal publishers
+          </Text>
+          {
+            isListView ?
+              <React.Fragment>
+                <table cellSpacing={0} cellPadding={0}>
+                  <thead>
+                    <th>
+                      Application Name
+                    </th>
+                    <th>
+                      Publisher
+                    </th>
+                    <th>
+                      Description
+                    </th>
+                  </thead>
+                  <tbody>
                     {
-                      offer.SubscribePageUrl !== null &&
-                      <Link onClick={function(event){ 
-                        
-                        let planOptions: IDropdownOption[] = [];
-                        for (const plan in offer.Plans) {
-                          planOptions.push({"key": offer.Plans[plan].PlanName, "text": offer.Plans[plan].PlanDisplayName})
-                        }
-                        setPlanOptions(planOptions);
-                        setNewSubscription({
-                        OfferName: offer.OfferName+'',
-                        OfferDisplayName: offer.OfferDisplayName,
-                        PlanName: 'default',
-                        Name: '',
-                        SubscriptionId: generateUUID(),
-                        Owner: sessionStorage.getItem('_userEmail')+'',
-                      });
-                      
-                      sessionStorage.setItem('newSub', JSON.stringify(newSubscription));
-                      openPanel(); }} hrefLang="en-us">Subscribe</Link>
+                      isublisherAppLoading ? <tr><td colSpan={3}>loading data.....</td></tr>
+                        :
+                        publisherApplication && publisherApplication?.length > 0 ?
+                          publisherApplication?.map((values: IApplication, idx: number) => {
+                            return (
+                              <tr>
+                                <td>
+                                  <a onClick={(event) => selectApplication(values)}>
+                                    {values.DisplayName}
+                                  </a>
+                                </td>
+                                <td>
+                                  {values.Publisher}
+                                </td>
+                                <td>
+                                  {values.Description}
+                                </td>
+                              </tr>
+                            )
+                          })
+                          :
+                          <Text block variant={'medium'} style={{ color: 'grey', fontWeight: 600, marginTop: '10px' }}> Oops! You don’t own any application yet! Choose an application below to start with.</Text>
                     }
-                  </Stack>
-               </div>
-              )}
-          </Stack>
+                  </tbody>
+                </table>
+              </React.Fragment>
+              : <React.Fragment>
+
+                <div>
+                  {
+                    isublisherAppLoading ? 'loading data.....'
+                      :
+                      publisherApplication && publisherApplication?.length > 0 ?
+                        publisherApplication?.map((values: IApplication, idx: number) => {
+                          return (
+                            <div className="appblock" key={idx} onClick={(event) => selectApplication(values)}>
+                              <IconButton style={{ color: SharedColors.blue10 }}
+                                iconProps={{ iconName: "TestBeakerSolid" }} size={30} className="TestBeakericon" />
+                              <Text block variant={'xLarge'} className="heading">{values.DisplayName}</Text>
+                              <p className="description">
+                                {values.Description}
+                              </p>
+                              <p className="publisher">
+                                <Text block variant={"small"}>Publisher: {values.Publisher}</Text>
+                              </p>
+                              <hr className="seperator" />
+                              <div className="tags">
+                                {
+                                  values.Tags.map((tagvalues: IApplicationTags, tagidx: any) => {
+                                    let data = values.Tags.length > 1 ? tagvalues.name + ' | ' : tagvalues.name;
+                                    return (
+                                      data
+                                    )
+                                  })
+                                }
+                              </div>
+                              {
+                                values.isSubScribed ?
+                                  <div className="subscribeddiv">
+                                    <FontIcon aria-label="Compass" iconName="CircleFill" style={{ paddingTop: '3%' }} />
+                                    <span className="subscribedtext"> Subcribed</span>
+                                  </div>
+                                  : null
+                              }
+                            </div>
+                          )
+                        })
+                        :
+                        <Text block variant={'medium'} style={{ color: 'grey', fontWeight: 600, marginTop: '10px' }}> Oops! You don’t own any application yet! Choose an application below to start with.</Text>
+                  }
+                </div>
+              </React.Fragment>
+          }
+        </Stack>
+        <Stack className="section" style={{ marginBottom: '5%' }}>
+          <Text block variant={'xLarge'} className="title">Applications from Azure Marketplace
+          </Text>
+          {
+            isListView ?
+              <React.Fragment>
+                <table cellSpacing={0} cellPadding={0}>
+                  <thead>
+                    <th>
+                      Application Name
+                    </th>
+                    <th>
+                      Publisher
+                    </th>
+                    <th>
+                      Description
+                    </th>
+                  </thead>
+                  <tbody>
+                    {
+                      isMarketPlaceAppLoading ? <tr><td colSpan={3}>loading data.....</td></tr>
+                        :
+                        marketPlaceApplication && marketPlaceApplication?.length > 0 ?
+                          marketPlaceApplication?.map((values: IApplication, idx: number) => {
+                            return (
+                              <tr>
+                                <td>
+                                  <a onClick={(event) => selectApplication(values)}>
+                                    {values.DisplayName}
+                                  </a>
+                                </td>
+                                <td>
+                                  {values.Publisher}
+                                </td>
+                                <td>
+                                  {values.Description}
+                                </td>
+                              </tr>
+                            )
+                          })
+                          :
+                          <Text block variant={'medium'} style={{ color: 'grey', fontWeight: 600, marginTop: '10px' }}> Oops! You don’t own any application yet! Choose an application below to start with.</Text>
+                    }
+                  </tbody>
+                </table>
+              </React.Fragment>
+              : <React.Fragment>
+
+                <div>
+                  {
+                    isMarketPlaceAppLoading ? 'loading data.....'
+                      :
+                      marketPlaceApplication && marketPlaceApplication?.length > 0 ?
+                        marketPlaceApplication?.map((values: IApplication, idx: number) => {
+                          return (
+                            <div className="appblock" key={idx} onClick={(event) => selectApplication(values)}>
+                              <IconButton style={{ color: SharedColors.blue10 }}
+                                iconProps={{ iconName: "TestBeakerSolid" }} size={30} className="TestBeakericon" />
+                              <Text block variant={'xLarge'} className="heading">{values.DisplayName}</Text>
+                              <p className="description">
+                                {values.Description}
+                              </p>
+                              <p className="publisher">
+                                <Text block variant={"small"}>Publisher: {values.Publisher}</Text>
+                              </p>
+                              <hr className="seperator" />
+                              <div className="tags">
+                                {
+                                  values.Tags.map((tagvalues: IApplicationTags, tagidx: any) => {
+                                    let data = values.Tags.length > 1 ? tagvalues.name + ' | ' : tagvalues.name;
+                                    return (
+                                      data
+                                    )
+                                  })
+                                }
+                              </div>
+                              {
+                                values.isSubScribed ?
+                                  <div className="subscribeddiv">
+                                    <FontIcon aria-label="Compass" iconName="CircleFill" style={{ paddingTop: '3%' }} />
+                                    <span className="subscribedtext"> Subcribed</span>
+                                  </div>
+                                  : null
+                              }
+                            </div>
+                          )
+                        })
+                        :
+                        <Text block variant={'medium'} style={{ color: 'grey', fontWeight: 600, marginTop: '10px' }}> Oops! You don’t own any application yet! Choose an application below to start with.</Text>
+                  }
+                </div>
+              </React.Fragment>
+          }
+        </Stack>
       </div>
+      <br />
       <FooterLinks />
     </div>
   );
 }
 
 function filterByValue(array: any[], value: string) {
-  return array.filter((data) =>  JSON.stringify(data).toLowerCase().indexOf(value.toLowerCase()) !== -1);
+  return array.filter((data) => JSON.stringify(data).toLowerCase().indexOf(value.toLowerCase()) !== -1);
 }
 
-export interface IPlan{
+export interface IPlan {
   PlanName: string;
   PlanDisplayName: string;
   Description: string;
 }
-
 export default AIServices;

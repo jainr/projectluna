@@ -3,8 +3,9 @@
     Licensed under the MIT License.
 */
 
-html, body {
-    background-color: #F5F5F7;
+html,
+body {
+    background-color: #f5f5f7;
 }
 
 main {
@@ -21,3 +22,210 @@ main > div {
 main > div > div {
     margin: 20px;
 }
+
+/*Machine Learning Gallery*/
+.AIServices .title {
+    font-weight: 700;
+    font-size: 25px;
+    padding: 25px;
+    padding-left: 0;
+}
+.AIServices .section {
+    min-height: 230px;
+}
+.AIServices table {
+    margin-top: 2% !important;
+}
+.AIServices table th {
+    text-align: left;
+    border-bottom: 1px solid black;
+}
+.AIServices .choosedesigntype {
+    cursor: pointer;
+    float: right;
+    font-weight: normal;
+    font-size: 15px;
+    color: rgb(0, 120, 212);
+    text-decoration: underline;
+}
+.AIServices table tr td {
+    padding: 15px;
+    padding-left: 0;
+    text-align: left;
+}
+.AIServices table tr td a {
+    cursor: pointer;
+    font-weight: normal;
+    font-size: 15px;
+    color: rgb(0, 120, 212);
+    text-decoration: underline;
+}
+.AIServices .appblock {
+    width: 250px;
+    height: 200px;
+    padding: 15px;
+    border: 1px solid #cac3c366;
+    box-shadow: 2px 2px 8px 3px #888888;
+    margin-top: 10px;
+    cursor: pointer;
+    float: left;
+    margin-right: 1%;
+}
+.AIServices .appblock .heading {
+    font-weight: 700;
+}
+.AIServices .appblock .description {    
+    text-overflow: ellipsis;
+    overflow: hidden;
+    min-height: 45px;
+}
+.AIServices .appblock .publisher,
+.AIServices .appblock .publisher span {
+    color: #a7a3a3;
+    font-size: 14px;
+    font-weight: 500;
+}
+.AIServices .appblock .tags {
+    float: left;
+}
+.AIServices .appblock .subscribeddiv {
+    float: right;
+    color: #68bd2e;
+}
+.AIServices .appblock .subscribedtext {
+    font-weight: 400;
+}
+.AIServices .appblock .seperator {
+    border: 1px solid #cac3c366;
+    width: 111%;
+    border: 1px solid #cac3c366;
+    margin-left: -6%;
+}
+.AIServices .appblock .TestBeakericon i
+{
+    font-size: 30px;
+}
+.AIServices .leftsection
+{
+    float: left;
+    border-right: 1px solid black;
+    height: 100%;
+}
+.AIServices .leftsection .contentsection{
+    padding-bottom: 360px;
+    
+}
+.AIServices .rightsection
+{
+    float: right;
+}
+.AIServices .leftfooter
+{
+    color: blue;    
+}
+/*Machine Learning Gallery*/
+
+/*Recommended*/
+
+.AIServices .Recommended .appblock {
+    box-shadow: none;
+    border: 1px solid #cac3c366;
+    cursor: pointer;
+    box-shadow: 2px 2px 8px 3px #888888;
+}
+.AIServices .Recommended .title {
+    font-weight: normal;
+    font-size: 19px;
+    padding: 25px;
+    padding-left: 0;
+    padding-top: 0;
+}
+.AIServices .Recommended .PanelStyles {
+    /* height: 800px !important; */
+    height: 790px !important;
+    box-shadow: none !important;
+}
+.AIServices .Recommended .TestBeakericon i
+{
+    font-size: 30px;
+}
+/*Recommended*/
+
+/*Setings*/
+.settings .internalPublisherGrid
+{
+    margin-bottom: 3%;
+    margin-top: 2%;
+}
+
+.settings .internalPublisherGrid thead th
+{
+    text-align:left;
+    border-bottom: 1px solid black;
+    padding-bottom: 1%;
+}
+
+.settings .internalPublisherGrid td
+{
+    text-align: left;    
+    padding-top: 1%;
+}
+
+.settings .marketPublisherGrid
+{    
+    margin-top: 2%;
+}
+
+.settings .marketPublisherGrid thead th
+{
+    text-align: left;
+    border-bottom: 1px solid black;
+    padding-bottom: 1%;
+}
+
+.settings .marketPublisherGrid td
+{
+    text-align: left;    
+    padding-top: 1%;
+}
+.settings .anchor
+{
+    cursor: pointer;    
+    font-weight: normal;
+    font-size: 15px;
+    color: rgb(0, 120, 212);
+    text-decoration: underline;
+}
+.settings .marketPublisherGrid .pannel
+{
+    min-height: 500px;
+}
+.pannelcontent
+{
+    min-height: 500px;
+    overflow: auto;
+}
+
+.pannelcontent thead th
+{
+    text-align: left;
+    border-bottom: 1px solid black;
+    padding-bottom: 1%;
+}
+
+.pannelcontent td
+{
+    text-align: left;    
+    padding-top: 1%;
+    padding-bottom: 2%;
+}
+.pannelsubtitle
+{
+    padding-bottom: 3%;
+    padding-top: 3%;
+}
+.pannelcontent .pannelspinner{
+    margin: 0 auto;
+    margin-top: 35%;
+}
+/*Settings*/
