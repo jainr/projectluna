@@ -50,6 +50,19 @@ namespace Luna.Gallery.Data
             return sub;
         }
 
+        public LunaApplicationSubscriptionEventContent ToEventContent()
+        {
+            return new LunaApplicationSubscriptionEventContent()
+            {
+                SubscriptionId = this.SubscriptionId,
+                ApplicationName = this.ApplicationName,
+                Status = this.Status,
+                Notes = this.Notes,
+                PrimaryKeySecretName = this.PrimaryKeySecretName,
+                SecondaryKeySecretName = this.SecondaryKeySecretName
+            };
+        }
+
         public List<LunaApplicationSubscriptionOwnerDB> Owners { get; set; }
     }
 }

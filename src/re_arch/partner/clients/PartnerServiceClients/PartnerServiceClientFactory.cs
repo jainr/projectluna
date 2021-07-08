@@ -1,6 +1,7 @@
 ﻿using Luna.Common.Utils;
 using Luna.Partner.Public.Client;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -10,9 +11,9 @@ namespace Luna.Partner.Clients
 {
     public class PartnerServiceClientFactory : IPartnerServiceClientFactory
     {
-        private static Dictionary<string, IPartnerServiceClient> _partnerServiceClient;
-        private static Dictionary<string, IRealtimeEndpointPartnerServiceClient> _realtimeEndpointPartnerServiceClient;
-        private static Dictionary<string, IPipelineEndpointPartnerServiceClient> _pipelineEndpointPartnerServiceClient;
+        private static ConcurrentDictionary<string, IPartnerServiceClient> _partnerServiceClient;
+        private static ConcurrentDictionary<string, IRealtimeEndpointPartnerServiceClient> _realtimeEndpointPartnerServiceClient;
+        private static ConcurrentDictionary<string, IPipelineEndpointPartnerServiceClient> _pipelineEndpointPartnerServiceClient;
         private HttpClient _httpClient;
         private readonly IEncryptionUtils _encryptionUtils;
 
@@ -21,9 +22,9 @@ namespace Luna.Partner.Clients
         {
             _httpClient = httpClient;
             this._encryptionUtils = encryptionUtils ?? throw new ArgumentNullException(nameof(encryptionUtils));
-            _partnerServiceClient = new Dictionary<string, IPartnerServiceClient>();
-            _realtimeEndpointPartnerServiceClient = new Dictionary<string, IRealtimeEndpointPartnerServiceClient>();
-            _pipelineEndpointPartnerServiceClient = new Dictionary<string, IPipelineEndpointPartnerServiceClient>();
+            _partnerServiceClient = new ConcurrentDictionary<string, IPartnerServiceClient>();
+            _realtimeEndpointPartnerServiceClient = new ConcurrentDictionary<string, IRealtimeEndpointPartnerServiceClient>();
+            _pipelineEndpointPartnerServiceClient = new ConcurrentDictionary<string, IPipelineEndpointPartnerServiceClient>();
         }
 
         /// <summary>
@@ -40,25 +41,18 @@ namespace Luna.Partner.Clients
                 return _partnerServiceClient[name];
             }
 
-            IPartnerServiceClient client = null;
-
             if (config.Type.Equals(PartnerServiceType.AzureML.ToString(), 
                 StringComparison.InvariantCultureIgnoreCase))
             {
-                client = new AzureMLWorkspaceClient(_httpClient, _encryptionUtils, config);
+                _partnerServiceClient.TryAdd(name, new AzureMLWorkspaceClient(_httpClient, _encryptionUtils, config));
             }
             else if (config.Type.Equals(PartnerServiceType.GitHub.ToString(),
                 StringComparison.InvariantCultureIgnoreCase))
             {
-                client = new GitHubClient(_httpClient, _encryptionUtils, config);
+                _partnerServiceClient.TryAdd(name, new GitHubClient(_httpClient, _encryptionUtils, config));
             }
 
-            if (client != null)
-            {
-                _partnerServiceClient.TryAdd(name, client);
-            }
-
-            return client;
+            return _partnerServiceClient[name];
         }
 
         /// <summary>
@@ -75,20 +69,14 @@ namespace Luna.Partner.Clients
                 return _realtimeEndpointPartnerServiceClient[name];
             }
 
-            IRealtimeEndpointPartnerServiceClient client = null;
-
             if (config.Type.Equals(PartnerServiceType.AzureML.ToString(),
                 StringComparison.InvariantCultureIgnoreCase))
             {
-                client = new AzureMLWorkspaceClient(_httpClient, _encryptionUtils, config);
+                _realtimeEndpointPartnerServiceClient.TryAdd(name, 
+                    new AzureMLWorkspaceClient(_httpClient, _encryptionUtils, config));
             }
 
-            if (client != null)
-            {
-                _realtimeEndpointPartnerServiceClient.TryAdd(name, client);
-            }
-
-            return client;
+            return _realtimeEndpointPartnerServiceClient[name];
         }
 
         /// <summary>
@@ -110,12 +98,8 @@ namespace Luna.Partner.Clients
             if (config.Type.Equals(PartnerServiceType.AzureML.ToString(),
                 StringComparison.InvariantCultureIgnoreCase))
             {
-                client = new AzureMLWorkspaceClient(_httpClient, _encryptionUtils, config);
-            }
-
-            if (client != null)
-            {
-                _pipelineEndpointPartnerServiceClient.TryAdd(name, client);
+                _pipelineEndpointPartnerServiceClient.TryAdd(name, 
+                    new AzureMLWorkspaceClient(_httpClient, _encryptionUtils, config));
             }
 
             return client;

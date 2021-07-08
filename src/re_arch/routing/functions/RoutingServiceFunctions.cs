@@ -17,6 +17,10 @@ using System.Collections.Generic;
 using Luna.PubSub.Public.Client;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using System.Diagnostics;
+using Microsoft.Azure.Storage.Queue;
+using System.Collections.Concurrent;
+using System.Threading;
+using Luna.Gallery.Public.Client;
 
 namespace Luna.Routing.Functions
 {
@@ -26,6 +30,9 @@ namespace Luna.Routing.Functions
     public class RoutingServiceFunctions
     {
         private const string API_VERSION_QUERY_PARAM_NAME = "api-version";
+
+        private static ConcurrentDictionary<string, long> ApplicationsInProcess = new ConcurrentDictionary<string, long>();
+        private static ConcurrentDictionary<string, long> SubscriptionsInProcess = new ConcurrentDictionary<string, long>();
 
         private readonly ISqlDbContext _dbContext;
         private readonly ILogger<RoutingServiceFunctions> _logger;
@@ -55,47 +62,83 @@ namespace Luna.Routing.Functions
         /// <param name="myQueueItem">The queue item</param>
         /// <returns></returns>
         [FunctionName("ProcessApplicationEvents")]
-        public async Task ProcessApplicationEvents([QueueTrigger("routing-processapplicationevents")] string myQueueItem)
+        public async Task ProcessApplicationEvents([QueueTrigger("routing-processapplicationevents")] CloudQueueMessage myQueueItem)
         {
-            // Get the last applied event id
-            // If there's no record in the database, it will return the default value of long type 0
-            var lastAppliedEventId = await _dbContext.PublishedAPIVersions.
-                OrderByDescending(x => x.LastAppliedEventId).
-                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
-
-            var events = await _pubSubClient.ListEventsAsync(
-                LunaEventStoreType.APPLICATION_EVENT_STORE,
-                new LunaRequestHeaders(),
-                eventsAfter: lastAppliedEventId);
-
-            foreach (var ev in events)
+            Stopwatch sw = Stopwatch.StartNew();
+            string appName = "";
+            using (_logger.BeginQueueTriggerNamedScope(myQueueItem))
             {
-                if (ev.EventType.Equals(LunaEventType.PUBLISH_APPLICATION_EVENT))
+                try
                 {
-                    var versions = await CreateOrUpdateLunaApplication(ev.EventContent, ev.EventSequenceId);
+                    _logger.LogMethodBegin(nameof(this.ProcessApplicationEvents));
 
-                    if (versions.Count > 0)
+                    this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
+
+                    var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
+
+                    appName = queueMessage.PartitionKey;
+                    queueMessage.YieldTo(ApplicationsInProcess, this._logger);
+
+                    // Get the last applied event id
+                    // If there's no record in the database, it will return the default value of long type 0
+                    var lastAppliedEventId = await _dbContext.PublishedAPIVersions.
+                        Where(x => x.ApplicationName == queueMessage.PartitionKey).
+                        OrderByDescending(x => x.LastAppliedEventId).
+                        Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+
+                    this._logger.LogDebug($"The last applied event id is {lastAppliedEventId}.");
+
+                    // Only get events associated with specified application.
+                    var events = await _pubSubClient.ListEventsAsync(
+                        LunaEventStoreType.APPLICATION_EVENT_STORE,
+                        new LunaRequestHeaders(),
+                        eventsAfter: lastAppliedEventId,
+                        partitionKey: queueMessage.PartitionKey);
+
+                    this._logger.LogDebug($"{events.Count} events retreived with partition key {queueMessage.PartitionKey}.");
+
+                    foreach (var ev in events)
                     {
-                        await _secretCacheClient.RefreshApplicationMasterKey(versions[0].PrimaryMasterKeySecretName);
-                        await _secretCacheClient.RefreshApplicationMasterKey(versions[0].SecondaryMasterKeySecretName);
+                        if (ev.EventType.Equals(LunaEventType.PUBLISH_APPLICATION_EVENT))
+                        {
+                            var versions = await CreateOrUpdateLunaApplication(ev.EventContent, ev.EventSequenceId);
+
+                            if (versions.Count > 0)
+                            {
+                                this._logger.LogDebug($"Application {ev.PartitionKey} created/updated. ");
+                            }
+                            {
+                                this._logger.LogWarning($"No version for application {ev.PartitionKey} found.");
+                            }
+                        }
+                        else if (ev.EventType.Equals(LunaEventType.DELETE_APPLICATION_EVENT))
+                        {
+                            await DeleteLunaApplication(ev.PartitionKey, ev.EventSequenceId);
+                            this._logger.LogDebug($"Application {ev.PartitionKey} deleted.");
+                        }
+                        else if (ev.EventType.Equals(LunaEventType.REGENERATE_APPLICATION_MASTER_KEY))
+                        {
+                            await UpdateLunaApplication(ev.PartitionKey, ev.EventSequenceId);
+                            this._logger.LogDebug($"Application {ev.PartitionKey} updated. ");
+                        }
+                        else
+                        {
+                            this._logger.LogError($"Unknown event type {ev.EventType}.");
+                        }
                     }
                 }
-                else if (ev.EventType.Equals(LunaEventType.DELETE_APPLICATION_EVENT))
+                catch (Exception ex)
                 {
-                    // TODO: should not use partition key
-                    await DeleteLunaApplication(ev.PartitionKey, ev.EventSequenceId);
+                    ErrorUtils.HandleExceptions(ex, this._logger, string.Empty);
                 }
-                else if (ev.EventType.Equals(LunaEventType.REGENERATE_APPLICATION_MASTER_KEY))
+                finally
                 {
-                    var apiVersion = await _dbContext.PublishedAPIVersions.
-                        Where(x => x.ApplicationName == ev.PartitionKey && x.IsEnabled).
-                        Take(1).
-                        SingleOrDefaultAsync();
-                    if (apiVersion != null)
-                    {
-                        await _secretCacheClient.RefreshApplicationMasterKey(apiVersion.PrimaryMasterKeySecretName);
-                        await _secretCacheClient.RefreshApplicationMasterKey(apiVersion.SecondaryMasterKeySecretName);
-                    }
+                    long value;
+                    ApplicationsInProcess.TryRemove(appName, out value);
+
+                    sw.Stop();
+                    _logger.LogMethodEnd(nameof(this.ProcessApplicationEvents),
+                        sw.ElapsedMilliseconds);
                 }
             }
         }
@@ -106,58 +149,107 @@ namespace Luna.Routing.Functions
         /// <param name="myQueueItem">The queue item</param>
         /// <returns></returns>
         [FunctionName("ProcessSubscriptionEvents")]
-        public async Task ProcessSubscriptionEvents([QueueTrigger("routing-processsubscriptionevents")] string myQueueItem)
+        public async Task ProcessSubscriptionEvents([QueueTrigger("routing-processsubscriptionevents")] CloudQueueMessage myQueueItem)
         {
-            // Get the last applied event id
-            // If there's no record in the database, it will return the default value of long type 0
-            var lastAppliedEventId = await _dbContext.ProcessedEvents.
-                Where(x => x.EventStoreName == LunaEventStoreType.SUBSCRIPTION_EVENT_STORE).
-                OrderByDescending(x => x.LastAppliedEventId).
-                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
-
-            // Add the record if lastAppliedEventId is 0
-            if (lastAppliedEventId == 0)
+            Stopwatch sw = Stopwatch.StartNew();
+            string subId = string.Empty;
+            using (_logger.BeginQueueTriggerNamedScope(myQueueItem))
             {
-                await _dbContext.ProcessedEvents.AddAsync(new ProcessedEventDB()
+                try
                 {
-                    EventStoreName = LunaEventStoreType.SUBSCRIPTION_EVENT_STORE,
-                    LastAppliedEventId = -1
-                });
+                    var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
 
-                await _dbContext._SaveChangesAsync();
-            }
+                    this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
 
-            var events = await _pubSubClient.ListEventsAsync(
-                LunaEventStoreType.SUBSCRIPTION_EVENT_STORE,
-                new LunaRequestHeaders(),
-                eventsAfter: lastAppliedEventId);
+                    _logger.LogMethodBegin(nameof(this.ProcessSubscriptionEvents));
 
-            foreach (var ev in events)
-            {
-                if (ev.EventType.Equals(LunaEventType.CREATE_SUBSCRIPTION_EVENT) || 
-                    ev.EventType.Equals(LunaEventType.REGENERATE_SUBSCRIPTION_KEY_EVENT))
-                {
+                    subId = queueMessage.PartitionKey;
+                    queueMessage.YieldTo(SubscriptionsInProcess, this._logger);
 
-                    var sub = await _dbContext.Subscriptions.SingleOrDefaultAsync(x => x.SubscriptionId == new Guid(ev.PartitionKey));
+                    var subDb = await _dbContext.LunaApplicationSubscriptions.
+                        SingleOrDefaultAsync(x => x.SubscriptionId == queueMessage.PartitionKey);
 
-                    if (sub != null)
+                    var lastAppliedEventId = subDb == null ? 0 : subDb.LastAppliedEventId;
+
+                    this._logger.LogDebug($"The last applied event id is {lastAppliedEventId}.");
+
+                    var events = await _pubSubClient.ListEventsAsync(
+                        LunaEventStoreType.SUBSCRIPTION_EVENT_STORE,
+                        new LunaRequestHeaders(),
+                        eventsAfter: lastAppliedEventId,
+                        partitionKey: queueMessage.PartitionKey);
+
+                    this._logger.LogDebug($"{events.Count} events retreived with partition key {queueMessage.PartitionKey}.");
+
+                    foreach (var ev in events)
                     {
-                        await _secretCacheClient.RefreshSubscriptionKey(sub.PrimaryKeySecretName);
-                        await _secretCacheClient.RefreshSubscriptionKey(sub.SecondaryKeySecretName);
+                        if (ev.EventType.Equals(LunaEventType.CREATE_SUBSCRIPTION_EVENT))
+                        {
+                            if (subDb != null)
+                            {
+                                this._logger.LogError($"Subscription {ev.PartitionKey} already exists. EventSequenceId {ev.EventSequenceId}.");
+                            }
+
+                            var sub = JsonConvert.DeserializeObject<LunaApplicationSubscriptionEventContent>(ev.EventContent);
+
+                            subDb = new LunaApplicationSubscriptionDB()
+                            {
+                                SubscriptionId = sub.SubscriptionId.ToString(),
+                                Status = sub.Status,
+                                ApplicationName = sub.ApplicationName,
+                                PrimaryKeySecretName = sub.PrimaryKeySecretName,
+                                SecondaryKeySecretName = sub.SecondaryKeySecretName,
+                                LastAppliedEventId = ev.EventSequenceId
+                            };
+
+                            this._dbContext.LunaApplicationSubscriptions.Add(subDb);
+                            await this._dbContext._SaveChangesAsync();
+                        }
+                        else if (ev.EventType.Equals(LunaEventType.REGENERATE_SUBSCRIPTION_KEY_EVENT))
+                        {
+                            if (subDb != null)
+                            {
+                                subDb.LastAppliedEventId = ev.EventSequenceId;
+                                this._dbContext.LunaApplicationSubscriptions.Update(subDb);
+                                await this._dbContext._SaveChangesAsync();
+
+                                this._logger.LogDebug($"Delete subscription {ev.PartitionKey}.");
+                            }
+                            else
+                            {
+                                this._logger.LogError($"Can not find subscription {ev.PartitionKey}. EventSequenceId {ev.EventSequenceId}.");
+                            }
+                        }
+                        else if (ev.EventType.Equals(LunaEventType.DELETE_SUBSCRIPTION_EVENT))
+                        {
+                            if (subDb != null)
+                            {
+                                this._dbContext.LunaApplicationSubscriptions.Remove(subDb);
+                                await this._dbContext._SaveChangesAsync();
+
+                                this._logger.LogDebug($"Delete subscription {ev.PartitionKey}.");
+                            }
+                            else
+                            {
+                                this._logger.LogDebug($"Can not find subscription {ev.PartitionKey}. EventSequenceId {ev.EventSequenceId}.");
+                            }
+                        }
                     }
                 }
-                else if (ev.EventType.Equals(LunaEventType.DELETE_SUBSCRIPTION_EVENT))
+                catch (Exception ex)
                 {
-                    // Do nothing for now. The secret is invalid and will be unloaded after service restarted.
+                    ErrorUtils.HandleExceptions(ex, this._logger, string.Empty);
                 }
+                finally
+                {
+                    long value;
+                    SubscriptionsInProcess.TryRemove(subId, out value);
 
-                lastAppliedEventId = lastAppliedEventId < ev.EventSequenceId ? ev.EventSequenceId : lastAppliedEventId;
+                    sw.Stop();
+                    _logger.LogMethodEnd(nameof(this.ProcessSubscriptionEvents),
+                        sw.ElapsedMilliseconds);
+                }
             }
-
-            var processEvent = await _dbContext.ProcessedEvents.SingleOrDefaultAsync(x => x.EventStoreName == LunaEventStoreType.SUBSCRIPTION_EVENT_STORE);
-            processEvent.LastAppliedEventId = lastAppliedEventId;
-            _dbContext.ProcessedEvents.Update(processEvent);
-            await _dbContext._SaveChangesAsync();
         }
 
         /// <summary>
@@ -205,10 +297,13 @@ namespace Luna.Routing.Functions
                             input,
                             versionProp,
                             lunaHeaders.GetPassThroughHeaders());
-
+                        var content = await response.Content.ReadAsStringAsync();
+                        // workaround the escape string issue from AML
+                        //content = content.Replace("\\\"", "\"");
+                        //content = content.Substring(1, content.Length - 2);
                         result = new ContentResult()
                         {
-                            Content = await response.Content.ReadAsStringAsync(),
+                            Content = content,
                             ContentType = response.Content.Headers.ContentType.MediaType,
                             StatusCode = (int)response.StatusCode
                         };
@@ -616,12 +711,36 @@ namespace Luna.Routing.Functions
 
         private async Task<LunaRequestHeaders> ValidateAccessKeys(LunaRequestHeaders lunaHeaders, PublishedAPIVersionDB apiVersion)
         {
-            if (!_secretCacheClient.SecretCache.IsInitialized)
+            var subscriptions = await this._dbContext.LunaApplicationSubscriptions.
+                Where(x => x.LastAppliedEventId > _secretCacheClient.SecretCache.SubscriptionKeysLastRefreshedEventId).
+                OrderBy(x => x.LastAppliedEventId).
+                ToListAsync();
+
+            this._logger.LogDebug($"Subscription secrets refreshed until event {_secretCacheClient.SecretCache.SubscriptionKeysLastRefreshedEventId}.");
+            this._logger.LogDebug($"{subscriptions.Count} subscriptions need to be updated in secret cache.");
+
+            var applications = await this._dbContext.PublishedAPIVersions.
+                Where(x => x.IsEnabled && x.LastAppliedEventId > _secretCacheClient.SecretCache.ApplicationMasterKeysLastRefreshedEventId).
+                OrderBy(x => x.LastAppliedEventId).
+                ToListAsync();
+
+            List<PublishedAPIVersionDB> appsWithoutDup = new List<PublishedAPIVersionDB>();
+
+            foreach(var app in applications)
             {
-                var subscriptions = await _dbContext.Subscriptions.ToListAsync();
-                var apiVersions = await _dbContext.PublishedAPIVersions.Where(x => x.IsEnabled).ToListAsync();
-                var partnerService = await _dbContext.PartnerServices.ToListAsync();
-                await _secretCacheClient.Init(subscriptions, apiVersions, partnerService);
+                if (!appsWithoutDup.Any(x => x.ApplicationName == app.ApplicationName))
+                {
+                    appsWithoutDup.Add(app);
+                }
+            }
+
+            this._logger.LogDebug($"Application secrets refreshed until event {_secretCacheClient.SecretCache.ApplicationMasterKeysLastRefreshedEventId}.");
+            this._logger.LogDebug($"{appsWithoutDup.Count} applications need to be updated in secret cache.");
+
+            if (subscriptions.Count > 0 || appsWithoutDup.Count > 0)
+            {
+
+                await _secretCacheClient.UpdateSecretCacheAsync(subscriptions, appsWithoutDup);
             }
 
             if (string.IsNullOrEmpty(lunaHeaders.LunaApplicationMasterKey))
@@ -634,7 +753,7 @@ namespace Luna.Routing.Functions
                 if (_secretCacheClient.SecretCache.SubscriptionKeys.ContainsKey(lunaHeaders.LunaSubscriptionKey))
                 {
                     var secretName = _secretCacheClient.SecretCache.SubscriptionKeys[lunaHeaders.LunaSubscriptionKey].SecretName;
-                    var sub = await _dbContext.Subscriptions.
+                    var sub = await _dbContext.LunaApplicationSubscriptions.
                         Where(x => (x.PrimaryKeySecretName == secretName || x.SecondaryKeySecretName == secretName) &&
                         x.ApplicationName == apiVersion.ApplicationName).
                         SingleOrDefaultAsync();
@@ -708,7 +827,9 @@ namespace Luna.Routing.Functions
 
         private async Task DeleteLunaApplication(string name, long eventSequenceId)
         {
-            var oldVersions = await _dbContext.PublishedAPIVersions.Where(x => x.ApplicationName == name).ToListAsync();
+            var oldVersions = await _dbContext.PublishedAPIVersions.
+                Where(x => x.IsEnabled && x.ApplicationName == name).ToListAsync();
+
             var currentTime = DateTime.UtcNow;
 
             foreach (var oldVersion in oldVersions)
@@ -718,16 +839,32 @@ namespace Luna.Routing.Functions
                 oldVersion.IsEnabled = false;
             }
 
-            using (var transaction = await _dbContext.BeginTransactionAsync())
+            if (oldVersions.Count > 0)
             {
-                if (oldVersions.Count > 0)
-                {
-                    _dbContext.PublishedAPIVersions.UpdateRange(oldVersions);
-                }
-
+                _dbContext.PublishedAPIVersions.UpdateRange(oldVersions);
                 await _dbContext._SaveChangesAsync();
+            }
 
-                transaction.Commit();
+            return;
+        }
+
+        private async Task UpdateLunaApplication(string name, long eventSequenceId)
+        {
+            var versions = await _dbContext.PublishedAPIVersions.
+                Where(x => x.IsEnabled && x.ApplicationName == name).ToListAsync();
+
+            var currentTime = DateTime.UtcNow;
+
+            foreach (var oldVersion in versions)
+            {
+                oldVersion.LastAppliedEventId = eventSequenceId;
+                oldVersion.LastUpdatedTime = currentTime;
+            }
+
+            if (versions.Count > 0)
+            {
+                _dbContext.PublishedAPIVersions.UpdateRange(versions);
+                await _dbContext._SaveChangesAsync();
             }
 
             return;

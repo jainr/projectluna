@@ -222,8 +222,6 @@ paths:
         - Azure Marketplace
       summary: Publish an Azure Marketplace SaaS offer
       operationId: postApiMarketplaceOffersByOfferIdPublish
-      produces:
-        - application/json
       parameters:
         - in: path
           name: offerId
@@ -231,10 +229,8 @@ paths:
           required: true
           type: string
       responses:
-        '200':
+        '204':
           description: Success
-          schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
       security:
         - x-functions-key: [ ]
   /api/marketplace/offers:
@@ -804,6 +800,141 @@ definitions:
       IsEnabled: true
       CreatedTime: 
       LastUpdatedTime: 
+  Luna.Publish.Public.Client.MarketplaceOffer:
+    required:
+      - OfferId
+      - Properties
+      - Plans
+      - Parameters
+    type: object
+    properties:
+      OfferId:
+        type: string
+      Status:
+        type: string
+      Properties:
+        $ref: '#/definitions/Luna.Publish.Public.Client.MarketplaceOfferProp'
+      Plans:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.MarketplacePlan'
+      Parameters:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.MarketplaceParameter'
+      ProvisioningSteps:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.MarketplaceProvisioningStep'
+      ProvisioningStepsSecretName:
+        type: string
+  Luna.Publish.Public.Client.MarketplaceOfferProp:
+    required:
+      - DisplayName
+      - Description
+    type: object
+    properties:
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      IsManualActivation:
+        type: boolean
+  Luna.Publish.Public.Client.MarketplacePlan:
+    required:
+      - PlanId
+      - Parameters
+    type: object
+    properties:
+      PlanId:
+        type: string
+      Properties:
+        $ref: '#/definitions/Luna.Publish.Public.Client.MarketplacePlanProp'
+      Parameters:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.MarketplaceParameter'
+  Luna.Publish.Public.Client.MarketplacePlanProp:
+    required:
+      - Description
+      - Mode
+    type: object
+    properties:
+      Description:
+        type: string
+      Mode:
+        type: string
+      OnSubscribe:
+        type: array
+        items:
+          type: string
+      OnUpdate:
+        type: array
+        items:
+          type: string
+      OnSuspend:
+        type: array
+        items:
+          type: string
+      OnDelete:
+        type: array
+        items:
+          type: string
+      OnPurge:
+        type: array
+        items:
+          type: string
+  Luna.Publish.Public.Client.MarketplaceParameter:
+    required:
+      - ParameterName
+      - DisplayName
+      - Description
+      - ValueType
+    type: object
+    properties:
+      ParameterName:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      ValueType:
+        type: string
+      FromList:
+        type: boolean
+      ValueList:
+        type: string
+      Maximum:
+        format: int32
+        type: integer
+      Minimum:
+        format: int32
+        type: integer
+      IsRequired:
+        type: boolean
+  Luna.Publish.Public.Client.MarketplaceProvisioningStep:
+    required:
+      - Name
+      - Type
+      - Properties
+    type: object
+    properties:
+      Name:
+        type: string
+      Type:
+        type: string
+      Properties:
+        $ref: '#/definitions/Luna.Publish.Public.Client.BaseProvisioningStepProp'
+  Luna.Publish.Public.Client.BaseProvisioningStepProp:
+    required:
+      - IsSynchronized
+      - Description
+    type: object
+    properties:
+      IsSynchronized:
+        type: boolean
+      Description:
+        type: string
   Luna.Publish.Public.Client.AzureMarketplaceOffer:
     required:
       - MarketplaceOfferId

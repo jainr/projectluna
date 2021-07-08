@@ -36,6 +36,7 @@ namespace Luna.Provision.Functions
 
             builder.Services.AddSingleton<IPubSubServiceClient, PubSubServiceClient>();
             builder.Services.AddSingleton<ISwaggerClient, SwaggerClient>();
+            builder.Services.AddSingleton<IProvisionStepClientFactory, ProvisionStepClientFactory>();
 
             string connectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING");
             

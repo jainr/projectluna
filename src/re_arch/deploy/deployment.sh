@@ -1,4 +1,4 @@
-while getopts "s:r:n:l:q:p:t:c:x:a:u:w:m:" opt
+while getopts "s:r:n:l:q:p:t:c:x:a:u:w:m:e:i:y" opt
 do
    case "$opt" in
       s ) subscriptionId="$OPTARG" ;;
@@ -14,6 +14,9 @@ do
 	  u ) adminUserName="$OPTARG" ;;
 	  w ) createNew="$OPTARG" ;;
 	  m ) useManagedIdentity="$OPTARG" ;;
+	  e ) marketplaceTenantId="$OPTARG" ;;
+	  i ) marketplaceClientId="$OPTARG" ;;
+	  y ) marketplaceClientSecret="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
@@ -390,7 +393,10 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
              "KEY_VAULT_NAME=${keyVaultName}" \
 			 "ROUTING_SERVICE_BASE_URL=${routingFxUrl}" \
 			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
-			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"
+			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}" \
+			 "MARKETPLACE_AUTH_TENANT_ID=${marketplaceTenantId}" \
+			 "MARKETPLACE_AUTH_CLIENT_ID=${marketplaceClientId}" \
+			 "MARKETPLACE_AUTH_CLIENT_SECRET=${marketplaceClientSecret}"
 			 
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $provisionFxAppName \

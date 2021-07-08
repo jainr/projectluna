@@ -18,6 +18,8 @@ namespace Luna.Common.Utils
 
         public const string PUBLISHER_KEY = "pub-";
 
+        public const string PROVISIONING_STEPS = "prv-";
+
         public static string GetNamePrefix(string name)
         {
             if (name.Contains("-"))

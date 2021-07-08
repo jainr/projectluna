@@ -15,6 +15,10 @@ namespace Luna.Provision.Data
 
         DbSet<LunaApplicationSwaggerDB> LunaApplicationSwaggers { get; set; }
 
+        DbSet<MarketplacePlanDB> MarketplacePlans { get; set; }
+
+        DbSet<MarketplaceSubProvisionJobDB> MarketplaceSubProvisionJobs { get; set; }
+
         /// <summary>
         /// Save the changes to database
         /// </summary>

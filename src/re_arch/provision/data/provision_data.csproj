@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>Luna.Gallery.Data</RootNamespace>
-    <AssemblyName>Luna.Gallery.Data</AssemblyName>
+    <RootNamespace>Luna.Provision.Data</RootNamespace>
+    <AssemblyName>Luna.Provision.Data</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

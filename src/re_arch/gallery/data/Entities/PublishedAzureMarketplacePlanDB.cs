@@ -18,11 +18,13 @@ namespace Luna.Gallery.Data
 
         public string OfferDescription { get; set; }
 
-        public bool IsLocalDeployment { get; set; }
+        public string Mode { get; set; }
 
-        public string ManagementKitDownloadUrlSecretName { get; set; }
+        public string Parameters { get; set; }
 
         public long LastAppliedEventId { get; set; }
+
+        public long CreatedByEventId { get; set; }
 
         public bool IsEnabled { get; set; }
     }

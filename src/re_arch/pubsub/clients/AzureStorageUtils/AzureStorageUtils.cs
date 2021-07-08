@@ -61,27 +61,43 @@ namespace Luna.PubSub.Clients
         /// <param name="eventType">The event type</param>
         /// <param name="eventsAfter">The earliest event sequence id</param>
         /// <returns></returns>
-        public async Task<List<LunaBaseEventEntity>> RetrieveSortedTableEntities(string tableName, string eventType, long eventsAfter)
+        public async Task<List<LunaBaseEventEntity>> RetrieveSortedTableEntities(
+            string tableName, 
+            string eventType, 
+            long eventsAfter,
+            string partitionKey = null)
         {
+            Expression<Func<LunaBaseEventEntity, bool>> expr = null;
             CloudTable table = _tableClient.GetTableReference(tableName);
             if (eventType == null)
             {
-                return table.CreateQuery<LunaBaseEventEntity>().
-                    Where(x => x.EventSequenceId > eventsAfter).
-                    ToList<LunaBaseEventEntity>().
-                    OrderBy(x => x.EventSequenceId).
-                    ToList<LunaBaseEventEntity>();
+                if (partitionKey == null)
+                {
+                    expr = x => x.EventSequenceId > eventsAfter;
+                }
+                else
+                {
+                    expr = x => x.EventSequenceId > eventsAfter && x.PartitionKey == partitionKey;
+                }
 
             }
             else
             {
-                return table.CreateQuery<LunaBaseEventEntity>().
-                    Where(x => x.EventSequenceId > eventsAfter && x.EventType == eventType).
-                    ToList<LunaBaseEventEntity>().
-                    OrderBy(x => x.EventSequenceId).
-                    ToList<LunaBaseEventEntity>();
-
+                if (partitionKey == null)
+                {
+                    expr = x => x.EventSequenceId > eventsAfter && x.EventType == eventType;
+                }
+                else
+                {
+                    expr = x => x.EventSequenceId > eventsAfter && x.PartitionKey == partitionKey && x.EventType == eventType;
+                }
             }
+
+            return table.CreateQuery<LunaBaseEventEntity>().
+                Where(expr).
+                ToList<LunaBaseEventEntity>().
+                OrderBy(x => x.EventSequenceId).
+                ToList<LunaBaseEventEntity>();
         }
 
         /// <summary>

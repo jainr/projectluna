@@ -22,13 +22,11 @@ namespace Luna.RBAC
     /// </summary>
     public class RBACFunctions
     {
-        private readonly IRBACCacheClient _cacheClient;
         private readonly ISqlDbContext _dbContext;
         private readonly ILogger<RBACFunctions> _logger;
 
-        public RBACFunctions(IRBACCacheClient cacheClient, ISqlDbContext dbContext, ILogger<RBACFunctions> logger)
+        public RBACFunctions(ISqlDbContext dbContext, ILogger<RBACFunctions> logger)
         {
-            this._cacheClient = cacheClient;
             this._dbContext = dbContext;
             this._logger = logger;
         }
@@ -119,10 +117,18 @@ namespace Luna.RBAC
                 try
                 {
                     var assignment = await DeserializeRequestBody<RoleAssignmentDb>(req);
+
+                    if (await _dbContext.RoleAssignments.AnyAsync(x => x.Uid == assignment.Uid && x.Role == assignment.Role))
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.ROLE_ASSIGNMENT_ALREADY_EXIST, assignment.Uid, assignment.Role));
+                    }
+
                     assignment.CreatedTime = DateTime.UtcNow;
+
                     _dbContext.RoleAssignments.Add(assignment);
                     await _dbContext._SaveChangesAsync();
-                    _cacheClient.AddRoleAssignment(assignment);
+
                     return new OkObjectResult(assignment);
                 }
                 catch (Exception ex)
@@ -178,7 +184,6 @@ namespace Luna.RBAC
                     _dbContext.RoleAssignments.RemoveRange(roleAssignments);
                     await _dbContext._SaveChangesAsync();
 
-                    _cacheClient.RemoveRoleAssignment(assignment);
                     return new NoContentResult();
                 }
                 catch (Exception ex)
@@ -229,9 +234,10 @@ namespace Luna.RBAC
                 {
                     var ownership = await DeserializeRequestBody<OwnershipDb>(req);
                     ownership.CreatedTime = DateTime.UtcNow;
+
                     _dbContext.Ownerships.Add(ownership);
                     await _dbContext._SaveChangesAsync();
-                    _cacheClient.AssignOwnership(ownership);
+
                     return new OkObjectResult(ownership);
                 }
                 catch (Exception ex)
@@ -283,9 +289,10 @@ namespace Luna.RBAC
                     var ownership = await DeserializeRequestBody<OwnershipDb>(req);
                     var ownerships = await _dbContext.Ownerships.
                         Where(o => o.Uid == ownership.Uid && o.ResourceId == ownership.ResourceId).ToListAsync();
+
                     _dbContext.Ownerships.RemoveRange(ownerships);
                     await _dbContext._SaveChangesAsync();
-                    _cacheClient.RemoveOwnership(ownership);
+
                     return new NoContentResult();
                 }
                 catch (Exception ex)
@@ -345,13 +352,6 @@ namespace Luna.RBAC
 
                 try
                 {
-                    if (!_cacheClient.IsCacheInitialized())
-                    {
-                        var roleAssignments = await _dbContext.RoleAssignments.ToListAsync();
-                        var ownerships = await _dbContext.Ownerships.ToListAsync();
-                        _cacheClient.InitializeCache(roleAssignments, ownerships);
-                    }
-
                     var query = await DeserializeRequestBody<RBACQuery>(req);
                     var result = new RBACQueryResult()
                     {
@@ -360,15 +360,15 @@ namespace Luna.RBAC
                         Role = RBACRole.Unknown.ToString()
                     };
 
-                    if (_cacheClient.IsSystemAdmin(query.Uid))
+                    if (await _dbContext.RoleAssignments.AnyAsync(x => x.Uid == query.Uid && x.Role == RBACRole.SystemAdmin.ToString()))
                     {
                         result.CanAccess = true;
                         result.Role = RBACRole.SystemAdmin.ToString();
                     }
-                    else if (_cacheClient.IsPublisher(query.Uid))
+                    else if (await _dbContext.RoleAssignments.AnyAsync(x => x.Uid == query.Uid && x.Role == RBACRole.Publisher.ToString()))
                     {
-                        if (_cacheClient.IsOwnedBy(query.Uid, query.ResourceId) ||
-                            (!string.IsNullOrEmpty(query.Action) && RBACActions.PublisherAllowedActions.Contains(query.Action)))
+                        if (await _dbContext.Ownerships.AnyAsync(x => x.Uid == query.Uid && x.ResourceId == query.ResourceId) || 
+                            (!string.IsNullOrEmpty(query.Action) && RBACActions.PublisherAllowedActions.Contains(query.Action))) 
                         {
                             result.CanAccess = true;
                             result.Role = RBACRole.Publisher.ToString();

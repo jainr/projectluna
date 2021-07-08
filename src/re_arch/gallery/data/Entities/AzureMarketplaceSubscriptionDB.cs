@@ -15,15 +15,31 @@ namespace Luna.Gallery.Data
             this.LastUpdatedTime = this.CreatedTime;
         }
 
-        public AzureMarketplaceSubscriptionDB(MarketplaceSubscription sub, string ownerId):
+        public AzureMarketplaceSubscriptionDB(MarketplaceSubscription sub, string ownerId, long planCreatedByEventId):
             this()
         {
             this.SubscriptionId = sub.Id;
             this.SubscriptionName = sub.Name;
             this.OfferId = sub.OfferId;
             this.PlanId = sub.PlanId;
+            this.PlanCreatedByEventId = planCreatedByEventId;
             this.Publisher = sub.PublisherId;
             this.OwnerId = ownerId;
+        }
+
+        public MarketplaceSubscriptionEventContent ToEventContent()
+        {
+            return new MarketplaceSubscriptionEventContent()
+            { 
+                PlanCreatedByEventId = this.PlanCreatedByEventId,
+                Id = this.SubscriptionId,
+                Name = this.SubscriptionName,
+                OfferId = this.OfferId,
+                PlanId = this.PlanId,
+                SaaSSubscriptionStatus = this.SaaSSubscriptionStatus,
+                PublisherId = this.Publisher,
+                ParametersSecretName = this.ParameterSecretName
+            };
         }
 
         [Key]
@@ -38,6 +54,8 @@ namespace Luna.Gallery.Data
         public string OfferId { get; set; }
 
         public string PlanId { get; set; }
+
+        public long PlanCreatedByEventId { get; set; }
 
         public string Publisher { get; set; }
 

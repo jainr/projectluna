@@ -27,6 +27,9 @@ namespace Luna.Provision.Data
 
         public DbSet<LunaApplicationSwaggerDB> LunaApplicationSwaggers { get; set; }
 
+        public DbSet<MarketplacePlanDB> MarketplacePlans { get; set; }
+
+        public DbSet<MarketplaceSubProvisionJobDB> MarketplaceSubProvisionJobs { get; set; }
 
         /// <summary>
         /// Save changes to database

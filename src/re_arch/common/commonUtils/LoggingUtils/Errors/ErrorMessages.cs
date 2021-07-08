@@ -42,6 +42,7 @@ namespace Luna.Common.Utils
         public const string CAN_NOT_GET_OUTPUT = "Can not get operation output with id {0}. The operation status is {1}.";
         public const string EVENT_STORE_DOES_NOT_EXIST = "Event store {0} does not exist";
         public const string EVENT_TYPE_IS_NOT_SUPPORTED = "Event type {0} is not support in event store {1}";
+        public const string MARKETPLACE_SUBSCIRPTION_ALREADY_EXIST = "Marketplace subscription with id {0} already exist.";
         public const string SUBSCIRPTION_ALREADY_EXIST = "Subscription with name {0} already exist for application {1}. Pleaes choose a different name and try again.";
         public const string SUBSCIRPTION_DOES_NOT_EXIST = "The subsciption {0} does not exist or you do not have permission to access it.";
         public const string SUBSCIRPTION_OWNER_ALREADY_EXIST = "User {0} is already a owner of subscription {1}.";
@@ -60,11 +61,14 @@ namespace Luna.Common.Utils
         public const string INVALID_MARKETPLACE_TOKEN = "The Azure marketplace token is invalid.";
         public const string INVALID_PARTNER_SERVICE_TYPE = "The partner service type {0} is invalid.";
         public const string MARKETPLACE_SUBSCRIPTION_DOES_NOT_EXIST = "The Azure marketplace subscription {0} does not exist or you don't have permission to access it.";
+        public const string MARKETPLACE_SUB_ID_DOES_NOT_MATCH = "The subscription id {0} in request path does not match the subscription id in request body {1}.";
         public const string MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH = "The offer id {0} in request path does not match the offer id in request body {1}.";
         public const string APP_PUBLISHER_NAME_DOES_NOT_MATCH = "The application publisher name {0} in request path does not match the name in request body {1}.";
         public const string AUTOMATION_WEBHOOK_NAME_DOES_NOT_MATCH = "The webhook name {0} in request path does not match the webhook name in request body {1}.";
         public const string MARKETPLACE_PLAN_NAME_DOES_NOT_MATCH = "The plan id {0} in request path does not match the plan id in request body {1}.";
         public const string MARKETPLACE_SUBSCRIPTION_CAN_NOT_BE_ACTIVATED = "Can not activate Azure marketplace subscription {0}. The subscription is in {1} state.";
         public const string INTERNAL_SERVER_ERROR = "The server encountered an internal error and was unable to complete your request.";
+        public const string REQUIRED_PARAMETER_NOT_PROVIDED = "The value of required parameter {0} is not provided.";
+        public const string ROLE_ASSIGNMENT_ALREADY_EXIST = "User {0} with role {1} already exists.";
     }
 }

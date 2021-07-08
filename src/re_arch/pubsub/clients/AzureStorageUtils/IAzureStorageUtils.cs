@@ -23,8 +23,13 @@ namespace Luna.PubSub.Clients
         /// <param name="tableName">The table name</param>
         /// <param name="eventType">The event type</param>
         /// <param name="eventsAfter">The earliest event sequence id</param>
+        /// <param name="partitionKey">The partitionKey</param>
         /// <returns></returns>
-        Task<List<LunaBaseEventEntity>> RetrieveSortedTableEntities(string tableName, string eventType, long eventsAfter = 0);
+        Task<List<LunaBaseEventEntity>> RetrieveSortedTableEntities(
+            string tableName, 
+            string eventType, 
+            long eventsAfter = 0, 
+            string partitionKey = null);
 
         /// <summary>
         /// Get ReadOnly SaS connection string for a table

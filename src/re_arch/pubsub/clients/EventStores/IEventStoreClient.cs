@@ -30,7 +30,12 @@ namespace Luna.PubSub.Clients
         /// <param name="eventStoreName">The event store name</param>
         /// <param name="eventType">The event type</param>
         /// <param name="eventsAfter">Only list events published after a certain event</param>
+        /// <param name="partitionKey">Only list events with certain partition key</param>
         /// <returns>The list of events sorted by published time</returns>
-        Task<List<LunaBaseEventEntity>> ListEvents(string eventStoreName, string eventType = null, long eventsAfter = 0);
+        Task<List<LunaBaseEventEntity>> ListEvents(
+            string eventStoreName, 
+            string eventType = null, 
+            long eventsAfter = 0,
+            string partitionKey = null);
     }
 }

@@ -11,5 +11,7 @@ namespace Luna.Gallery.Public.Client
         public string Type { get; set; }
 
         public string Value { get; set; }
+
+        public bool IsSystemParametr { get; set; }
     }
 }

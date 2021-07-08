@@ -1,0 +1,56 @@
+trigger:
+- api-testing
+
+pool:
+  vmImage: ubuntu-latest
+
+# Update the variable values when creating the pipeline
+variables:
+  # the test file if you are not running from the Luna repo
+  test_file_url: "https://github.com/Azure/projectluna/raw/re-arch-amp/src/re_arch/test/e2e/lunae2etest.py"
+  # the routing service url
+  routing_url: "https://lunaaidep2-routing.azurewebsites.net"
+  # the gateway service (management service) url
+  gateway_url: "https://lunaaidep2-gateway.azurewebsites.net"
+  # the Azure/AAD tenant id
+  tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+  # the service principal client id to access AML workspace
+  aml_spn_client_id: "f0d50d2d-7ff0-40e3-82cc-8c44b176c088"
+  # the AML workspace Azure resource id
+  aml_resource_id: "/subscriptions/a6c2a7cc-d67e-4a1a-b765-983f08c0423a/resourceGroups/lunaai-demo-rg/providers/Microsoft.MachineLearningServices/workspaces/luanai-ws"
+  # the AML workspace region
+  aml_region: "southcentralus"
+  # the name of endpoint deployed in the AML workspace
+  aml_endpoint_name: "bostonhousing"
+  # the input when calling the endpoint
+  aml_endpoint_input: "{\"data\":[[1,2,3,4,5,6,7,8,9,0,1,2,3]]}"
+  # the service admin service principal client id
+  admin_spn_client_id: "f0d50d2d-7ff0-40e3-82cc-8c44b176c088"
+  # the Luna AAD application client id
+  luna_app_client_id: "8909bdfe-55e1-40fd-b295-58d3608297fd"
+  # concurrent workers:
+  concurrent_workers: 5
+  # timeout
+  timeout: 60s
+
+  # add the following variables (need to be encrypted) when creating the pipeline: admin_spn_client_secret, aml_spn_client_secret
+
+steps:
+- task: UsePythonVersion@0
+  displayName: 'Configuring Python'
+  inputs:
+    versionSpec: '3.x'
+    addToPath: true
+    architecture: 'x64'
+
+- script: pip install Locust  
+  displayName: 'Installing Locust'
+
+- script: wget $(test_file_url) -O test.py
+  displayName: 'Download test file'
+
+- script: locust -f test.py --headless --users $(concurrent_workers) --run-time $(timeout) --stop-timeout 99 --exit-code-on-error 0 
+  env:
+    ADMIN_SPN_CLIENT_SECRET: $(admin_spn_client_secret)
+    AML_SPN_CLIENT_SECRET: $(aml_spn_client_secret)
+  displayName: 'Run e2e test'

@@ -36,8 +36,10 @@ namespace Luna.Publish.Functions
 
             builder.Services.AddSingleton<IPubSubServiceClient, PubSubServiceClient>();
 
-            builder.Services.AddSingleton<IPublishingEventContentGenerator, PublishingEventContentGenerator>();
-            builder.Services.AddSingleton<IPublishingEventProcessor, PublishingEventProcessor>();
+            builder.Services.AddSingleton<IAppEventContentGenerator, AppEventContentGenerator>();
+            builder.Services.AddSingleton<IAppEventProcessor, AppEventProcessor>();
+            builder.Services.AddSingleton<IOfferEventContentGenerator, OfferEventContentGenerator>();
+            builder.Services.AddSingleton<IOfferEventProcessor, OfferEventProcessor>();
 
             builder.Services.AddSingleton<IHttpRequestParser, HttpRequestParser>();
 

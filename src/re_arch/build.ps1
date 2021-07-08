@@ -47,6 +47,7 @@ foreach ($service in $services) {
 	dotnet publish --configuration Release /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary
 
 	Remove-Item -Path $zipFilePath -Force
+	Start-Sleep -s 1
 	Compress-Archive -Path .\bin\Release\netcoreapp3.1\publish\* -DestinationPath $zipFilePath -Force
 	
 	pop-location
@@ -73,7 +74,7 @@ if ($deployNew) {
 	
 	push-location testbuild
 	
-	./deployment.sh -s $config.subscriptionId -r $config.resourceGroupName -l $config.region -n $config.namePrefix -q $config.sqlUserName -p $config.sqlPassword -t $config.tenantId -c $config.clientId -x $config.clientSecret -a $config.adminUserId -u $config.adminUserName -w $config.createNewResource -m $config.useManagedIdentity
+	./deployment.sh -s $config.subscriptionId -r $config.resourceGroupName -l $config.region -n $config.namePrefix -q $config.sqlUserName -p $config.sqlPassword -t $config.tenantId -c $config.clientId -x $config.clientSecret -a $config.adminUserId -u $config.adminUserName -w $config.createNewResource -m $config.useManagedIdentity -e $config.marketplaceTenantId -i $config.marketplaceClientId -y $config.marketplaceClientSecret
 
 	pop-location
 	
@@ -176,6 +177,9 @@ if ($publishLocalSettings) {
 	$galleryServiceConfig.Values | add-member -name "PUBSUB_SERVICE_BASE_URL" -value $pubsubFxUrl -MemberType NoteProperty
 	$galleryServiceConfig.Values | add-member -name "PUBSUB_SERVICE_KEY" -value $pubsubFxKey -MemberType NoteProperty	
 	$galleryServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty	
+	$galleryServiceConfig.Values | add-member -name "MARKETPLACE_AUTH_TENANT_ID" -value $config.marketplaceTenantId -MemberType NoteProperty	
+	$galleryServiceConfig.Values | add-member -name "MARKETPLACE_AUTH_CLIENT_ID" -value $config.marketplaceClientId -MemberType NoteProperty	
+	$galleryServiceConfig.Values | add-member -name "MARKETPLACE_AUTH_CLIENT_SECRET" -value $config.marketplaceClientSecret -MemberType NoteProperty	
 	$galleryServiceConfig.Values | add-member -name "KEY_VAULT_NAME" -value $keyVaultName -MemberType NoteProperty	
 	$galleryServiceConfig | ConvertTo-Json -depth 3 | Out-File .\gallery\functions\local.settings.json
 	

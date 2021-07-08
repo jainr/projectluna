@@ -17,6 +17,9 @@ using Luna.Publish.Public.Client;
 using Luna.Gallery.Public.Client;
 using Luna.Gallery.Clients;
 using Newtonsoft.Json.Linq;
+using Microsoft.Azure.Storage.Queue;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace Luna.Gallery.Functions
 {
@@ -26,6 +29,9 @@ namespace Luna.Gallery.Functions
     public class GalleryServiceFunctions
     {
         private const string ROUTING_SERVICE_BASE_URL_CONFIG_NAME = "ROUTING_SERVICE_BASE_URL";
+
+        private static ConcurrentDictionary<string, long> ApplicationsInProcess = new ConcurrentDictionary<string, long>();
+        private static ConcurrentDictionary<string, long> MarketplaceOffersInProgress = new ConcurrentDictionary<string, long>();
 
         private readonly ISqlDbContext _dbContext;
         private readonly ILogger<GalleryServiceFunctions> _logger;
@@ -47,118 +53,201 @@ namespace Luna.Gallery.Functions
         }
 
         [FunctionName("ProcessApplicationEvents")]
-        public async Task ProcessApplicationEvents([QueueTrigger("gallery-processapplicationevents")] string myQueueItem)
+        public async Task ProcessApplicationEvents([QueueTrigger("gallery-processapplicationevents")] CloudQueueMessage myQueueItem)
         {
-            // Get the last applied event id
-            // If there's no record in the database, it will return the default value of long type 0
-            var lastAppliedEventId = await _dbContext.PublishedLunaAppliations.
-                OrderByDescending(x => x.LastAppliedEventId).
-                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
-
-            var events = await _pubSubClient.ListEventsAsync(
-                LunaEventStoreType.APPLICATION_EVENT_STORE,
-                new LunaRequestHeaders(),
-                eventsAfter: lastAppliedEventId);
-
-            foreach (var ev in events)
+            Stopwatch sw = Stopwatch.StartNew();
+            string appName = "";
+            using (_logger.BeginQueueTriggerNamedScope(myQueueItem))
             {
-                if (ev.EventType.Equals(LunaEventType.PUBLISH_APPLICATION_EVENT))
+                try
                 {
-                    await CreateOrUpdateLunaApplication(ev.EventContent, ev.EventSequenceId);
+                    _logger.LogMethodBegin(nameof(this.ProcessApplicationEvents));
+
+                    this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
+
+                    var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
+
+                    appName = queueMessage.PartitionKey;
+                    queueMessage.YieldTo(ApplicationsInProcess, this._logger);
+
+                    // Get the last applied event id
+                    // If there's no record in the database, it will return the default value of long type 0
+                    var lastAppliedEventId = await _dbContext.PublishedLunaAppliations.
+                        Where(x => x.UniqueName == appName).
+                        OrderByDescending(x => x.LastAppliedEventId).
+                        Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+
+                    this._logger.LogDebug($"The last applied event id is {lastAppliedEventId}.");
+
+                    var events = await _pubSubClient.ListEventsAsync(
+                        LunaEventStoreType.APPLICATION_EVENT_STORE,
+                        new LunaRequestHeaders(),
+                        eventsAfter: lastAppliedEventId,
+                        partitionKey: appName);
+
+                    this._logger.LogDebug($"{events.Count} events retreived with partition key {queueMessage.PartitionKey}.");
+
+                    foreach (var ev in events)
+                    {
+                        if (ev.EventType.Equals(LunaEventType.PUBLISH_APPLICATION_EVENT))
+                        {
+                            await CreateOrUpdateLunaApplication(ev.EventContent, ev.EventSequenceId);
+                            this._logger.LogDebug($"Application {ev.PartitionKey} created/updated. ");
+                        }
+                        else if (ev.EventType.Equals(LunaEventType.DELETE_APPLICATION_EVENT))
+                        {
+                            await DeleteLunaApplication(ev.PartitionKey, ev.EventSequenceId);
+                            this._logger.LogDebug($"Application {ev.PartitionKey} deleted.");
+                        }
+                    }
                 }
-                else if (ev.EventType.Equals(LunaEventType.DELETE_APPLICATION_EVENT))
+                catch (Exception ex)
                 {
-                    // TODO: should not use partition key
-                    await DeleteLunaApplication(ev.PartitionKey, ev.EventSequenceId);
+                    ErrorUtils.HandleExceptions(ex, this._logger, string.Empty);
+                }
+                finally
+                {
+                    long value;
+                    ApplicationsInProcess.TryRemove(appName, out value);
+
+                    sw.Stop();
+                    _logger.LogMethodEnd(nameof(this.ProcessApplicationEvents),
+                        sw.ElapsedMilliseconds);
                 }
             }
         }
 
-        [FunctionName("ProcessMarketplaceEvents")]
-        public async Task ProcessMarketplaceEvents([QueueTrigger("gallery-processazuremarketplaceevents")] string myQueueItem)
+        [FunctionName("ProcessMarketplaceOfferEvents")]
+        public async Task ProcessMarketplaceOfferEvents([QueueTrigger("gallery-processmarketplaceofferevents")] CloudQueueMessage myQueueItem)
         {
-            // Get the last applied event id
-            // If there's no record in the database, it will return the default value of long type 0
-            var lastAppliedEventId = await _dbContext.PublishedAzureMarketplacePlans.
-                OrderByDescending(x => x.LastAppliedEventId).
-                Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
-
-            var events = await _pubSubClient.ListEventsAsync(
-                LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
-                new LunaRequestHeaders(),
-                eventsAfter: lastAppliedEventId);
-
-            foreach (var ev in events)
+            Stopwatch sw = Stopwatch.StartNew();
+            string partitionKey = "";
+            using (_logger.BeginQueueTriggerNamedScope(myQueueItem))
             {
-                if (ev.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
+                try
                 {
-                    var offer = JsonConvert.DeserializeObject<AzureMarketplaceOffer>(ev.EventContent);
+                    _logger.LogMethodBegin(nameof(this.ProcessMarketplaceOfferEvents));
 
-                    var currentPlans = await _dbContext.PublishedAzureMarketplacePlans.
-                        Where(x => x.IsEnabled && x.MarketplaceOfferId == offer.MarketplaceOfferId).
-                        ToListAsync();
+                    this._logger.LogDebug($"Received queue message {myQueueItem.AsString}.");
 
-                    foreach(var currentPlan in currentPlans)
+                    var queueMessage = JsonConvert.DeserializeObject<LunaQueueMessage>(myQueueItem.AsString);
+
+                    partitionKey = queueMessage.PartitionKey;
+                    queueMessage.YieldTo(MarketplaceOffersInProgress, this._logger);
+
+                    // Get the last applied event id
+                    // If there's no record in the database, it will return the default value of long type 0
+                    var lastAppliedEventId = await _dbContext.PublishedAzureMarketplacePlans.
+                        Where(x => x.MarketplaceOfferId == partitionKey).
+                        OrderByDescending(x => x.LastAppliedEventId).
+                        Select(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+
+                    var events = await _pubSubClient.ListEventsAsync(
+                        LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE,
+                        new LunaRequestHeaders(),
+                        eventsAfter: lastAppliedEventId,
+                        partitionKey: partitionKey);
+
+                    foreach (var ev in events)
                     {
-                        currentPlan.IsEnabled = false;
-                        currentPlan.LastAppliedEventId = ev.EventSequenceId;
-                    }
-
-                    var newPlans = new List<PublishedAzureMarketplacePlanDB>();
-
-                    foreach(var plan in offer.Plans)
-                    {
-                        newPlans.Add(new PublishedAzureMarketplacePlanDB()
+                        if (ev.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
                         {
-                            MarketplaceOfferId = offer.MarketplaceOfferId,
-                            MarketplacePlanId = plan.MarketplacePlanId,
-                            OfferDisplayName = offer.DisplayName,
-                            OfferDescription = offer.Description,
-                            IsLocalDeployment = plan.IsLocalDeployment,
-                            LastAppliedEventId = ev.EventSequenceId,
-                            IsEnabled = true,
-                            ManagementKitDownloadUrlSecretName = plan.ManagementKitDownloadUrlSecretName
-                        });
-                    }
+                            var offer = JsonConvert.DeserializeObject<MarketplaceOffer>(ev.EventContent);
 
-                    using (var transaction = await _dbContext.BeginTransactionAsync())
-                    {
-                        if (currentPlans.Count > 0)
-                        {
-                            _dbContext.PublishedAzureMarketplacePlans.UpdateRange(currentPlans);
-                            await _dbContext._SaveChangesAsync();
+                            var currentPlans = await _dbContext.PublishedAzureMarketplacePlans.
+                                Where(x => x.IsEnabled && x.MarketplaceOfferId == offer.OfferId).
+                                ToListAsync();
+
+                            foreach (var currentPlan in currentPlans)
+                            {
+                                currentPlan.IsEnabled = false;
+                                currentPlan.LastAppliedEventId = ev.EventSequenceId;
+                            }
+
+                            var newPlans = new List<PublishedAzureMarketplacePlanDB>();
+
+                            foreach (var plan in offer.Plans)
+                            {
+                                var newPlan = new PublishedAzureMarketplacePlanDB()
+                                {
+                                    MarketplaceOfferId = offer.OfferId,
+                                    MarketplacePlanId = plan.PlanId,
+                                    OfferDisplayName = offer.Properties.DisplayName,
+                                    OfferDescription = offer.Properties.DisplayName,
+                                    Mode = plan.Properties.Mode,
+                                    LastAppliedEventId = ev.EventSequenceId,
+                                    CreatedByEventId = ev.EventSequenceId,
+                                    IsEnabled = true,
+                                };
+
+                                List<MarketplaceParameter> parameters = new List<MarketplaceParameter>();
+                                parameters.AddRange(offer.Parameters);
+                                parameters.AddRange(plan.Parameters);
+
+                                newPlan.Parameters = JsonConvert.SerializeObject(parameters, new JsonSerializerSettings()
+                                {
+                                    TypeNameHandling = TypeNameHandling.All
+                                });
+
+                                newPlans.Add(newPlan);
+                            }
+
+                            using (var transaction = await _dbContext.BeginTransactionAsync())
+                            {
+                                if (currentPlans.Count > 0)
+                                {
+                                    _dbContext.PublishedAzureMarketplacePlans.UpdateRange(currentPlans);
+                                    await _dbContext._SaveChangesAsync();
+                                }
+
+                                if (newPlans.Count > 0)
+                                {
+                                    _dbContext.PublishedAzureMarketplacePlans.AddRange(newPlans);
+                                    await _dbContext._SaveChangesAsync();
+                                }
+
+                                transaction.Commit();
+                            }
+
                         }
-
-                        if (newPlans.Count > 0)
+                        else if (ev.EventType.Equals(LunaEventType.DELETE_AZURE_MARKETPLACE_OFFER))
                         {
-                            _dbContext.PublishedAzureMarketplacePlans.AddRange(newPlans);
-                            await _dbContext._SaveChangesAsync();
-                        }
+                            var offerId = ev.PartitionKey;
 
-                        transaction.Commit();
+                            var currentPlans = await _dbContext.PublishedAzureMarketplacePlans.
+                                Where(x => x.IsEnabled && x.MarketplaceOfferId == offerId).
+                                ToListAsync();
+
+                            foreach (var currentPlan in currentPlans)
+                            {
+                                currentPlan.IsEnabled = false;
+                                currentPlan.LastAppliedEventId = ev.EventSequenceId;
+                            }
+
+                            if (currentPlans.Count > 0)
+                            {
+                                _dbContext.PublishedAzureMarketplacePlans.UpdateRange(currentPlans);
+                                await _dbContext._SaveChangesAsync();
+                            }
+                        }
                     }
 
                 }
-                else if (ev.EventType.Equals(LunaEventType.DELETE_AZURE_MARKETPLACE_OFFER))
+                catch (Exception ex)
                 {
-                    var offerId = ev.PartitionKey;
+                    ErrorUtils.HandleExceptions(ex, this._logger, string.Empty);
+                }
+                finally
+                {
+                    long value;
+                    ApplicationsInProcess.TryRemove(partitionKey, out value);
 
-                    var currentPlans = await _dbContext.PublishedAzureMarketplacePlans.
-                        Where(x => x.IsEnabled && x.MarketplaceOfferId == offerId).
-                        ToListAsync();
-
-                    foreach (var currentPlan in currentPlans)
-                    {
-                        currentPlan.IsEnabled = false;
-                    }
-
-                    if (currentPlans.Count > 0)
-                    {
-                        _dbContext.PublishedAzureMarketplacePlans.UpdateRange(currentPlans);
-                        await _dbContext._SaveChangesAsync();
-                    }
+                    sw.Stop();
+                    _logger.LogMethodEnd(nameof(this.ProcessMarketplaceOfferEvents),
+                        sw.ElapsedMilliseconds);
                 }
             }
+
         }
 
         /// <summary>
@@ -883,7 +972,10 @@ namespace Luna.Gallery.Functions
                             new CreateSubscriptionEventEntity()
                             {
                                 SubscriptionId = subscription.SubscriptionId.ToString(),
-                                EventContent = subscription.SubscriptionId.ToString()
+                                EventContent = JsonConvert.SerializeObject(subscription.ToEventContent(), new JsonSerializerSettings()
+                                {
+                                    TypeNameHandling = TypeNameHandling.All
+                                })
                             },
                             lunaHeaders);
 
@@ -1453,19 +1545,20 @@ namespace Luna.Gallery.Functions
         #region azure marketplace
 
         /// <summary>
-        /// Get offer parameters
+        /// Get parameters
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/offerparameters</url>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}/parameters</url>
         /// <param name="offerId" required="true" cref="string" in="path">The offer ID</param>
+        /// <param name="planId" required="true" cref="string" in="path">The plan ID</param>
         /// <param name="req">Http request</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
-        ///     where T is <see cref="MarketplaceOfferParameter"/>
+        ///     where T is <see cref="MarketplaceParameter"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="MarketplaceOfferParameter.example"/>
+        ///             <see cref="MarketplaceParameter.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of a marketplace subscription
@@ -1478,84 +1571,33 @@ namespace Luna.Gallery.Functions
         ///     <in>header</in>
         /// </security>
         /// <returns></returns>
-        [FunctionName("GetMarketplaceOfferParameters")]
-        public async Task<IActionResult> GetMarketplaceOfferParameters(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/offers/{offerId}/offerparameters")]
+        [FunctionName("GetMarketplaceParameters")]
+        public async Task<IActionResult> GetMarketplaceParameters(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/offers/{offerId}/plans/{planId}/parameters")]
             HttpRequest req,
-            string offerId)
+            string offerId,
+            string planId)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.GetMarketplaceOfferParameters));
+                _logger.LogMethodBegin(nameof(this.GetMarketplaceParameters));
 
                 try
                 {
-                    if (!await _dbContext.PublishedAzureMarketplacePlans.AnyAsync(x => x.IsEnabled && x.MarketplaceOfferId == offerId))
+                    var plan = await _dbContext.PublishedAzureMarketplacePlans.
+                        SingleOrDefaultAsync(x => x.IsEnabled && x.MarketplaceOfferId == offerId && x.MarketplacePlanId == planId);
+
+                    if (plan == null)
                     {
                         throw new LunaNotFoundUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
+                            string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, planId, offerId));
                     }
-                    List<MarketplaceOfferParameter> parameters = new List<MarketplaceOfferParameter>();
-                    parameters.Add(new MarketplaceOfferParameter()
+
+                    var parameters = JsonConvert.
+                        DeserializeObject<List<MarketplaceParameter>>(plan.Parameters, new JsonSerializerSettings()
                     {
-                        ParameterName = "tenantid",
-                        DisplayName = "Tenant ID",
-
-                        Description = "The tenant id for your Azure subscription.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = false
-                    });
-
-                    parameters.Add(new MarketplaceOfferParameter()
-                    {
-                        ParameterName = "subscriptionid",
-                        DisplayName = "Subscription ID",
-
-                        Description = "The id for your Azure subscription.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = false
-                    });
-
-                    parameters.Add(new MarketplaceOfferParameter()
-                    {
-                        ParameterName = "resourcegroupname",
-                        DisplayName = "Resource Group Name",
-
-                        Description = "The resource group name where the Azure resources are deployed in.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = false
-                    });
-
-                    parameters.Add(new MarketplaceOfferParameter()
-                    {
-                        ParameterName = "uniquename",
-                        DisplayName = "Unique Name",
-
-                        Description = "A unique name for your service.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = false
-                    });
-
-                    parameters.Add(new MarketplaceOfferParameter()
-                    {
-                        ParameterName = "region",
-                        DisplayName = "Region",
-
-                        Description = "The Azure region where the Azure resources are deployed in.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = true,
-                        ValueList = "westus;eastus;westeurope"
-                    });
-
-                    parameters.Add(new MarketplaceOfferParameter()
-                    {
-                        ParameterName = "accesstoken",
-                        DisplayName = "Access Token",
-
-                        Description = "The access token to access your Azure subscription.",
-                        ValueType = MarketplaceParameterValueType.STRING,
-                        FromList = false
+                        TypeNameHandling = TypeNameHandling.Auto
                     });
 
                     return new OkObjectResult(parameters);
@@ -1566,7 +1608,7 @@ namespace Luna.Gallery.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.GetMarketplaceOfferParameters));
+                    _logger.LogMethodEnd(nameof(this.GetMarketplaceParameters));
                 }
             }
         }
@@ -1672,6 +1714,20 @@ namespace Luna.Gallery.Functions
                 try
                 {
                     var subscription = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceSubscription>(req);
+
+                    if (subscription.Id != subscriptionId)
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_SUB_ID_DOES_NOT_MATCH, subscriptionId, subscription.Id),
+                            UserErrorCode.NameMismatch);
+                    }
+
+                    if (await _dbContext.AzureMarketplaceSubscriptions.AnyAsync(x => x.SubscriptionId == subscriptionId))
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_SUBSCIRPTION_ALREADY_EXIST, subscriptionId));
+                    }
+
                     if (string.IsNullOrEmpty(subscription.Token))
                     {
                         throw new LunaBadRequestUserException(ErrorMessages.INVALID_MARKETPLACE_TOKEN, UserErrorCode.InvalidToken);
@@ -1688,14 +1744,43 @@ namespace Luna.Gallery.Functions
                         throw new LunaBadRequestUserException(ErrorMessages.INVALID_MARKETPLACE_TOKEN, UserErrorCode.InvalidToken);
                     }
 
-                    if (await _dbContext.PublishedAzureMarketplacePlans.AnyAsync(x => x.IsEnabled &&
-                        x.MarketplaceOfferId == subscription.OfferId && x.MarketplacePlanId == subscription.PlanId))
+                    var plan = await _dbContext.PublishedAzureMarketplacePlans.SingleOrDefaultAsync(x => x.IsEnabled &&
+                        x.MarketplaceOfferId == subscription.OfferId && x.MarketplacePlanId == subscription.PlanId);
+
+                    if (plan == null)
                     {
                         throw new LunaNotFoundUserException(
                             string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, subscription.PlanId, subscription.OfferId));
                     }
 
-                    var subDb = new AzureMarketplaceSubscriptionDB(subscription, lunaHeaders.UserId);
+                    var requiredParameters = JsonConvert.
+                        DeserializeObject<List<MarketplaceParameter>>(plan.Parameters, new JsonSerializerSettings()
+                        {
+                            TypeNameHandling = TypeNameHandling.Auto
+                        });
+
+                    foreach (var param in requiredParameters)
+                    {
+                        if (param.IsRequired && !subscription.InputParameters.Any(x => x.Name == param.ParameterName))
+                        {
+                            throw new LunaBadRequestUserException(
+                                string.Format(ErrorMessages.REQUIRED_PARAMETER_NOT_PROVIDED, param.ParameterName), 
+                                UserErrorCode.ParameterNotProvided,
+                                target: param.ParameterName);
+                        }
+                    }
+
+                    if (plan.Mode == MarketplacePlanMode.IaaS.ToString())
+                    {
+                        if (!JumpboxParameterConstants.VerifyJumpboxParameterNames(subscription.InputParameters.Select(x => x.Name).ToList()))
+                        {
+                            throw new LunaBadRequestUserException(
+                                string.Format(ErrorMessages.REQUIRED_PARAMETER_NOT_PROVIDED, "jumpbox"),
+                                UserErrorCode.ParameterNotProvided);
+                        }
+                    }
+
+                    var subDb = new AzureMarketplaceSubscriptionDB(subscription, lunaHeaders.UserId, plan.CreatedByEventId);
 
                     subDb.ParameterSecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.MARKETPLACE_SUBCRIPTION_PARAMETERS);
 
@@ -1708,9 +1793,12 @@ namespace Luna.Gallery.Functions
                         await _dbContext._SaveChangesAsync();
 
                         await _pubSubClient.PublishEventAsync(
-                            LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
+                            LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE,
                             new CreateAzureMarketplaceSubscriptionEventEntity(subscriptionId, 
-                            JsonConvert.SerializeObject(subDb)),
+                            JsonConvert.SerializeObject(subDb.ToEventContent(), new JsonSerializerSettings()
+                            {
+                                TypeNameHandling = TypeNameHandling.All
+                            })),
                             lunaHeaders);
 
                         transaction.Commit();
@@ -1842,7 +1930,7 @@ namespace Luna.Gallery.Functions
                         await _dbContext._SaveChangesAsync();
 
                         await _pubSubClient.PublishEventAsync(
-                            LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
+                            LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE,
                             new DeleteAzureMarketplaceSubscriptionEventEntity(subscriptionId,
                             JsonConvert.SerializeObject(subDb)),
                             lunaHeaders);

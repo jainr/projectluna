@@ -3,6 +3,7 @@ using Luna.Routing.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,66 +17,25 @@ namespace Luna.Routing.Clients
 
         public string SecretValue { get; set; }
 
-        public DateTime LastUpdatedTime { get; set; }
     }
 
     public class SecretCache
     {
         public SecretCache()
         {
-            SubscriptionKeys = new Dictionary<string, SecretItemCache>();
-            ApplicationMasterKeys = new Dictionary<string, SecretItemCache>();
-            PartnerServiceSecrets = new Dictionary<string, SecretItemCache>();
-            IsInitialized = false;
+            SubscriptionKeys = new ConcurrentDictionary<string, SecretItemCache>();
+            ApplicationMasterKeys = new ConcurrentDictionary<string, SecretItemCache>();
+            SubscriptionKeysLastRefreshedEventId = 0;
+            ApplicationMasterKeysLastRefreshedEventId = 0;
         }
 
-        public bool IsInitialized { get; set; }
+        public long SubscriptionKeysLastRefreshedEventId { get; set; }
 
-        // We need to retrive by value for subscription and master keys
-        public void AddSubscriptionKey(string name, string value)
-        {
-            if (!SubscriptionKeys.ContainsKey(value))
-            {
-                SubscriptionKeys.Add(value, new SecretItemCache()
-                {
-                    SecretName = name,
-                    SecretValue = value,
-                    LastUpdatedTime = DateTime.UtcNow
-                });
-            }
-        }
+        public long ApplicationMasterKeysLastRefreshedEventId { get; set; }
 
-        // We need to retrive by value for subscription and master keys
-        public void AddApplicationMasterKey(string name, string value)
-        {
-            if (!ApplicationMasterKeys.ContainsKey(value))
-            {
-                ApplicationMasterKeys.Add(value, new SecretItemCache()
-                {
-                    SecretName = name,
-                    SecretValue = value,
-                    LastUpdatedTime = DateTime.UtcNow
-                });
-            }
-        }
+        public ConcurrentDictionary<string, SecretItemCache> SubscriptionKeys { get; set; }
 
-        //retrive by name for partner service secrets
-        public void AddPartnerServiceSecret(string name, string value)
-        {
-            if (!PartnerServiceSecrets.ContainsKey(name))
-            {
-                PartnerServiceSecrets.Add(name, new SecretItemCache()
-                {
-                    SecretName = name,
-                    SecretValue = value,
-                    LastUpdatedTime = DateTime.UtcNow
-                });
-            }
-        }
-
-        public Dictionary<string, SecretItemCache> SubscriptionKeys { get; set; }
-        public Dictionary<string, SecretItemCache> ApplicationMasterKeys { get; set; }
-        public Dictionary<string, SecretItemCache> PartnerServiceSecrets { get; set; }
+        public ConcurrentDictionary<string, SecretItemCache> ApplicationMasterKeys { get; set; }
     }
 
     public class SecretCacheClient : ISecretCacheClient
@@ -98,102 +58,63 @@ namespace Luna.Routing.Clients
             get { return _secretCache; }
         }
 
-        private async Task InitSubscriptionKeys(List<SubscriptionsDBView> subscriptions)
+        private async Task RefreshCachedSecretAsync(ConcurrentDictionary<string, SecretItemCache> cache, string secretName)
         {
-            foreach (var sub in subscriptions)
-            {
-                _secretCache.AddSubscriptionKey(
-                    sub.PrimaryKeySecretName,
-                    await _keyVaultUtils.GetSecretAsync(sub.PrimaryKeySecretName));
+            var secretValue = await _keyVaultUtils.GetSecretAsync(secretName);
 
-                _secretCache.AddSubscriptionKey(
-                    sub.SecondaryKeySecretName,
-                    await _keyVaultUtils.GetSecretAsync(sub.SecondaryKeySecretName));
-            }
-        }
-
-        private async Task InitApplicationMasterKeys(List<PublishedAPIVersionDB> apiVersions)
-        {
-            foreach (var version in apiVersions)
-            {
-                _secretCache.AddApplicationMasterKey(
-                    version.PrimaryMasterKeySecretName,
-                    await _keyVaultUtils.GetSecretAsync(version.PrimaryMasterKeySecretName));
-
-                _secretCache.AddApplicationMasterKey(
-                    version.SecondaryMasterKeySecretName,
-                    await _keyVaultUtils.GetSecretAsync(version.SecondaryMasterKeySecretName));
-            }
-        }
-
-        private async Task InitPartnerServiceSecrets(List<PartnerServiceDbView> partnerServices)
-        {
-            foreach (var srv in partnerServices)
-            {
-                _secretCache.AddPartnerServiceSecret(
-                    srv.ConfigurationSecretName,
-                    await _keyVaultUtils.GetSecretAsync(srv.ConfigurationSecretName));
-            }
-        }
-
-        public async Task RefreshApplicationMasterKey(string secretName)
-        {
-            var secretItem = _secretCache.ApplicationMasterKeys.
-                   Where(x => x.Value.SecretName == secretName).SingleOrDefault();
+            var secretItem = cache.Where(x => x.Value.SecretName == secretName && x.Key != secretValue).SingleOrDefault();
 
             if (!secretItem.Equals(default(KeyValuePair<string, SecretItemCache>)))
             {
-                _secretCache.ApplicationMasterKeys.Remove(secretItem.Key);
+                SecretItemCache value;
+                if (cache.TryRemove(secretItem.Key, out value))
+                {
+                    _logger.LogDebug($"Fail to remove secret {secretName} from the cache.");
+                }
+                else
+                {
+                    _logger.LogDebug($"Removed secret {secretName} from the cache.");
+                }
+            }
+            else
+            {
+                _logger.LogDebug($"Secret {secretName} does not need to be removed.");
             }
 
-            var secretValue = await _keyVaultUtils.GetSecretAsync(secretName);
 
-            _secretCache.AddApplicationMasterKey(secretName, secretValue);
+            if (!cache.TryAdd(secretValue, new SecretItemCache()
+            {
+                SecretName = secretName,
+                SecretValue = secretValue
+            }))
+            {
+                _logger.LogDebug($"Fail to add secret {secretName} to the cache.");
+            }
+            else
+            {
+                _logger.LogDebug($"Add secret {secretName} to the cache.");
+            }
         }
 
-        public async Task RefreshSubscriptionKey(string secretName)
+        public async Task UpdateSecretCacheAsync(List<LunaApplicationSubscriptionDB> subscriptions, List<PublishedAPIVersionDB> applications)
         {
-            var secretItem = _secretCache.SubscriptionKeys.
-                   Where(x => x.Value.SecretName == secretName).SingleOrDefault();
 
-            if (!secretItem.Equals(default(KeyValuePair<string, SecretItemCache>)))
+            foreach(var sub in subscriptions)
             {
-                _secretCache.SubscriptionKeys.Remove(secretItem.Key);
+                await RefreshCachedSecretAsync(_secretCache.SubscriptionKeys, sub.PrimaryKeySecretName);
+                await RefreshCachedSecretAsync(_secretCache.SubscriptionKeys, sub.SecondaryKeySecretName);
+                _secretCache.SubscriptionKeysLastRefreshedEventId =
+                    _secretCache.SubscriptionKeysLastRefreshedEventId > sub.LastAppliedEventId ?
+                    _secretCache.SubscriptionKeysLastRefreshedEventId : sub.LastAppliedEventId;
             }
 
-            var secretValue = await _keyVaultUtils.GetSecretAsync(secretName);
-
-            _secretCache.AddSubscriptionKey(secretName, secretValue);
-        }
-
-        public async Task RefreshPartnerServiceSecret(string secretName)
-        {
-            var secretItem = _secretCache.PartnerServiceSecrets.
-                   Where(x => x.Value.SecretName == secretName).SingleOrDefault();
-
-            if (!secretItem.Equals(default(KeyValuePair<string, SecretItemCache>)))
+            foreach (var app in applications)
             {
-                _secretCache.PartnerServiceSecrets.Remove(secretItem.Key);
-            }
-
-            var secretValue = await _keyVaultUtils.GetSecretAsync(secretName);
-
-            _secretCache.AddPartnerServiceSecret(secretName, secretValue);
-        }
-
-        public async Task Init(List<SubscriptionsDBView> subscriptions, 
-            List<PublishedAPIVersionDB> apiVersions, 
-            List<PartnerServiceDbView> partnerServices)
-        {
-            // Initialize the secret cache in memory
-            // List secrets was identified as a dangrous operation in Key vault. We will avoid that operation
-            if (!_secretCache.IsInitialized)
-            {
-                await InitApplicationMasterKeys(apiVersions);
-                await InitSubscriptionKeys(subscriptions);
-                await InitPartnerServiceSecrets(partnerServices);
-
-                _secretCache.IsInitialized = true; 
+                await RefreshCachedSecretAsync(_secretCache.ApplicationMasterKeys, app.PrimaryMasterKeySecretName);
+                await RefreshCachedSecretAsync(_secretCache.ApplicationMasterKeys, app.SecondaryMasterKeySecretName);
+                _secretCache.ApplicationMasterKeysLastRefreshedEventId =
+                    _secretCache.ApplicationMasterKeysLastRefreshedEventId > app.LastAppliedEventId ?
+                    _secretCache.ApplicationMasterKeysLastRefreshedEventId : app.LastAppliedEventId;
             }
         }
 

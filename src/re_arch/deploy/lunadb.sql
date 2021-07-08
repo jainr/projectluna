@@ -113,27 +113,6 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [publish].[ApplicationSnapshots]    Script Date: 4/29/2021 11:07:14 AM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [publish].[ApplicationSnapshots](
-	[id] [bigint] IDENTITY(1,1) NOT NULL,
-	[snapshotId] [uniqueidentifier] NOT NULL,
-	[lastAppliedEventId] [bigint] NOT NULL,
-	[applicationName] [nvarchar](128) NOT NULL,
-	[snapshotContent] [nvarchar](max) NOT NULL,
-	[status] [nvarchar](64) NOT NULL,
-	[tags] [nvarchar](1024) NOT NULL,
-	[createdTime] [datetime2](7) NOT NULL,
-	[deletedTime] [datetime2](7) NULL,
-PRIMARY KEY CLUSTERED 
-(
-	[id] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
-GO
 /****** Object:  Table [publish].[LunaAPIs]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
@@ -192,12 +171,35 @@ PRIMARY KEY CLUSTERED
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [publish].[PublishingEvents]    Script Date: 4/29/2021 11:07:14 AM ******/
+
+/****** Object:  Table [publish].[ApplicationSnapshots]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [publish].[PublishingEvents](
+CREATE TABLE [publish].[ApplicationSnapshots](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[snapshotId] [uniqueidentifier] NOT NULL,
+	[lastAppliedEventId] [bigint] NOT NULL,
+	[applicationName] [nvarchar](128) NOT NULL,
+	[snapshotContent] [nvarchar](max) NOT NULL,
+	[status] [nvarchar](64) NOT NULL,
+	[tags] [nvarchar](1024) NOT NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+	[deletedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+/****** Object:  Table [publish].[ApplicationEvents]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [publish].[ApplicationEvents](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
 	[eventId] [uniqueidentifier] NOT NULL,
 	[eventType] [nvarchar](64) NOT NULL,
@@ -212,6 +214,72 @@ PRIMARY KEY CLUSTERED
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
+
+/****** Object:  Table [publish].[MarketplaceOfferSnapshots]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [publish].[MarketplaceOfferSnapshots](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[snapshotId] [uniqueidentifier] NOT NULL,
+	[lastAppliedEventId] [bigint] NOT NULL,
+	[offerId] [nvarchar](50) NOT NULL,
+	[snapshotContent] [nvarchar](max) NOT NULL,
+	[status] [nvarchar](64) NOT NULL,
+	[tags] [nvarchar](1024) NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+	[deletedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+/****** Object:  Table [publish].[MarketplaceOfferEvents]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [publish].[MarketplaceOfferEvents](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[eventId] [uniqueidentifier] NOT NULL,
+	[eventType] [nvarchar](64) NOT NULL,
+	[resourceName] [nvarchar](128) NOT NULL,
+	[eventContent] [nvarchar](max) NOT NULL,
+	[createdBy] [nvarchar](128) NOT NULL,
+	[tags] [nvarchar](1024) NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+/****** Object:  Table [publish].[MarketplaceOffers]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [publish].[MarketplaceOffers](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[offerId] [nvarchar](50) NOT NULL,
+	[status] [nvarchar](64) NOT NULL,
+	[displayName] [nvarchar](128) NOT NULL,
+	[description] [nvarchar](1024) NOT NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+	[lastUpdatedTime] [datetime2](7) NOT NULL,
+	[lastPublishedTime] [datetime2](7) NULL,
+	[deletedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 /****** Object:  Table [rbac].[ownerships]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
@@ -271,14 +339,18 @@ CREATE TABLE [routing].[PublishedAPIVersions](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
-/****** Object:  Table [routing].[ProcessedEvents]    Script Date: 4/29/2021 11:07:14 AM ******/
+/****** Object:  Table [routing].[LunaApplicationSubscriptions]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [routing].[ProcessedEvents](
+CREATE TABLE [routing].[LunaApplicationSubscriptions](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
-	[EventStoreName] [nvarchar](128) NOT NULL,
+	[SubscriptionId] [nvarchar](128) NOT NULL,
+	[ApplicationName] [nvarchar](128) NULL,
+	[Status] [nvarchar](64) NULL,
+	[PrimaryKeySecretName] [nvarchar](64) NULL,
+	[SecondaryKeySecretName] [nvarchar](64) NULL,
 	[LastAppliedEventId] [bigint] NOT NULL,
 PRIMARY KEY CLUSTERED 
 (
@@ -388,8 +460,8 @@ CREATE TABLE [gallery].[PublishedAzureMarketplacePlans](
 	[marketplacePlanId] [nvarchar](50) NOT NULL,
 	[offerDisplayName] [nvarchar](128) NOT NULL,
 	[offerDescription] [nvarchar](1024) NOT NULL,
-	[isLocalDeployment] [bit] NOT NULL,
-	[ManagementKitDownloadUrlSecretName] [nvarchar](64) NOT NULL,
+	[mode] [nvarchar](64) NOT NULL,
+	[parameters] [nvarchar](max) NOT NULL,
 	[LastAppliedEventId] [bigint] NULL,
 	[IsEnabled] [bit] NOT NULL,
 PRIMARY KEY CLUSTERED 
@@ -411,6 +483,7 @@ CREATE TABLE [gallery].[AzureMarketplaceSubscriptions](
 	[SaaSSubscriptionStatus] [nvarchar](64) NOT NULL,
 	[OfferId] [nvarchar](50) NOT NULL,
 	[PlanId] [nvarchar](50) NOT NULL,
+	[PlanCreatedByEventId] [bigint] NOT NULL,
 	[Publisher] [nvarchar](128) NOT NULL,
 	[ParameterSecretName] [nvarchar](64) NOT NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
@@ -420,6 +493,40 @@ CREATE TABLE [gallery].[AzureMarketplaceSubscriptions](
 PRIMARY KEY CLUSTERED 
 (
 	[SubscriptionId] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [provision].[MarketplaceSubProvisionJobs]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE provision.[MarketplaceSubProvisionJobs](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[SubscriptionId] [uniqueidentifier] NOT NULL,
+	[OfferId] [nvarchar](50) NOT NULL,
+	[PlanId] [nvarchar](50) NOT NULL,
+	[PlanCreatedByEventId] [bigint] NOT NULL,
+	[Mode] [nvarchar](64) NOT NULL,
+	[Status] [nvarchar](64) NOT NULL,
+	[EventType] [nvarchar](64) NOT NULL,
+	[ProvisioningStepIndex] [int] NOT NULL,
+	[IsSynchronizedStep] [bit] NOT NULL,
+	[ProvisioningStepStatus] [nvarchar](64) NOT NULL,
+	[ParametersSecretName] [nvarchar](64) NOT NULL,
+	[ProvisionStepsSecretName] [nvarchar](64) NOT NULL,
+	[IsActive] [bit] NOT NULL,
+	[retryCount] [int] NOT NULL,
+	[lastErrorMessage] [nvarchar](1024) NULL,
+	[provisionSteps] [nvarchar](1024) NULL,
+	[CreatedByEventId] [bigint] NOT NULL,
+	[CreatedTime] [datetime2](7) NOT NULL,
+	[LastUpdatedTime] [datetime2](7) NOT NULL,
+	[CompletedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
 )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
@@ -444,6 +551,27 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
+/****** Object:  Table [provision].[MarketplacePlans]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [provision].[MarketplacePlans](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[offerId] [nvarchar](50) NOT NULL,
+	[planId] [nvarchar](50) NOT NULL,
+	[parameters] [nvarchar](max) NOT NULL,
+	[mode] [nvarchar](64) NOT NULL,
+	[properties] [nvarchar](max) NOT NULL,
+	[provisioningStepsSecretName] [nvarchar](64) NOT NULL,
+	[createdByEventId] [bigint] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 /****** Object:  View [gallery].[LunaApplicationSwaggers]    Script Date: 6/17/2021 3:12:40 PM ******/
 SET ANSI_NULLS ON
 GO
@@ -456,20 +584,6 @@ AS
 SELECT   Id,SwaggerEventId, SwaggerContent, ApplicationName
 FROM     provision.LunaApplicationSwaggers
 WHERE   (IsEnabled = 1)
-GO
-
-/****** Object:  View [routing].[Subscriptions]    Script Date: 5/17/2021 9:18:23 AM ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
-CREATE VIEW [routing].[Subscriptions]
-AS
-SELECT SubscriptionId, ApplicationName, PrimaryKeySecretName, SecondaryKeySecretName, Status
-FROM   gallery.LunaApplicationSubscriptions
-WHERE  (Status = N'Subscribed')
 GO
 
 

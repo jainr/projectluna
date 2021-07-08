@@ -70,7 +70,15 @@ namespace Luna.PubSub.Clients
             {
                 if (!subscriber.ExcludedEventTypes.Contains(ev.EventType))
                 {
-                    await _storageUtils.CreateQueueMessage(subscriber.SubscriberQueueName, ev.EventType);
+                    var queueMessage = new LunaQueueMessage()
+                    {
+                        EventType = ev.EventType,
+                        PartitionKey = ev.PartitionKey,
+                        EventSequenceId = ev.EventSequenceId
+                    };
+                    var messageText = JsonConvert.SerializeObject(queueMessage);
+
+                    await _storageUtils.CreateQueueMessage(subscriber.SubscriberQueueName, messageText);
                 }
             }
 
@@ -83,10 +91,15 @@ namespace Luna.PubSub.Clients
         /// <param name="eventStoreName">The event store name</param>
         /// <param name="eventType">The event type</param>
         /// <param name="eventsAfter">Only list events published after a certain event</param>
+        /// <param name="partitionKey">Only list events with certain partition key</param>
         /// <returns>The list of events sorted by published time</returns>
-        public async Task<List<LunaBaseEventEntity>> ListEvents(string eventStoreName, string eventType = null, long eventsAfter = 0)
+        public async Task<List<LunaBaseEventEntity>> ListEvents(
+            string eventStoreName, 
+            string eventType = null, 
+            long eventsAfter = 0,
+            string partitionKey = null)
         {
-            var events = await _storageUtils.RetrieveSortedTableEntities(eventStoreName, eventType, eventsAfter);
+            var events = await _storageUtils.RetrieveSortedTableEntities(eventStoreName, eventType, eventsAfter, partitionKey);
             return events;
         }
 
@@ -100,9 +113,13 @@ namespace Luna.PubSub.Clients
             {
                 return new SubscriptionEventStoreInfo(connectionString, validThrough);
             }
-            else if (name.Equals(LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE, StringComparison.InvariantCultureIgnoreCase))
+            else if (name.Equals(LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE, StringComparison.InvariantCultureIgnoreCase))
             {
-                return new AzureMarketplaceEventStoreInfo(connectionString, validThrough);
+                return new MarketplaceOfferEventStoreInfo(connectionString, validThrough);
+            }
+            else if (name.Equals(LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new MarketplaceSubscriptionEventStoreInfo(connectionString, validThrough);
             }
             else
             {

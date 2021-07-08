@@ -1,4 +1,5 @@
 ﻿using Luna.Common.Utils;
+using Luna.Publish.Public.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -184,12 +185,13 @@ namespace Luna.Gallery.Public.Client
         Task UnsubscribeMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers);
 
         /// <summary>
-        /// Get parameters for the specified offer
+        /// Get parameters for the specified offer and plan
         /// </summary>
         /// <param name="offerId">The offer id</param>
+        /// <param name="planId">The plan id</param>
         /// <param name="headers">The Luna request headers</param>
-        /// <returns>The offer parameters</returns>
-        Task<List<MarketplaceOfferParameter>> GetOfferParametersAsync(string offerId, LunaRequestHeaders headers);
+        /// <returns>The parameters</returns>
+        Task<List<MarketplaceParameter>> GetMarketplaceParametersAsync(string offerId, string planId, LunaRequestHeaders headers);
 
         /// <summary>
         /// Create a application publisher

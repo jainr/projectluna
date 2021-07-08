@@ -10,12 +10,7 @@ namespace Luna.Routing.Clients
     {
         SecretCache SecretCache { get; }
 
-        Task Init(List<SubscriptionsDBView> subscriptions,
-            List<PublishedAPIVersionDB> apiVersions,
-            List<PartnerServiceDbView> partnerServices);
+        Task UpdateSecretCacheAsync(List<LunaApplicationSubscriptionDB> subscriptions, List<PublishedAPIVersionDB> applications);
 
-        Task RefreshApplicationMasterKey(string secretName);
-        Task RefreshSubscriptionKey(string secretName);
-        Task RefreshPartnerServiceSecret(string secretName);
     }
 }

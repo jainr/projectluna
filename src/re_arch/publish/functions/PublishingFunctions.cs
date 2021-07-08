@@ -15,6 +15,7 @@ using Luna.Common.Utils;
 using Luna.Publish.Public.Client;
 using Luna.PubSub.Public.Client;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 
 namespace Luna.Publish.Functions
 {
@@ -24,24 +25,30 @@ namespace Luna.Publish.Functions
     public class PublishingFunctions
     {
 
-        private readonly IPublishingEventContentGenerator _eventGenerator;
-        private readonly IPublishingEventProcessor _eventProcessor;
+        private readonly IAppEventContentGenerator _appEventGenerator;
+        private readonly IAppEventProcessor _appEventProcessor;
+        private readonly IOfferEventContentGenerator _offerEventGenerator;
+        private readonly IOfferEventProcessor _offerEventProcessor;
         private readonly IHttpRequestParser _requestParser;
         private readonly ISqlDbContext _dbContext;
         private readonly IAzureKeyVaultUtils _keyVaultUtils;
         private readonly IPubSubServiceClient _pubSubClient;
         private readonly ILogger<PublishingFunctions> _logger;
 
-        public PublishingFunctions(IPublishingEventContentGenerator eventGenerator, 
-            IPublishingEventProcessor eventProcessor,
+        public PublishingFunctions(IAppEventContentGenerator appEventGenerator, 
+            IAppEventProcessor appEventProcessor,
+            IOfferEventProcessor offerEventProcessor,
+            IOfferEventContentGenerator offerEventGenerator,
             IHttpRequestParser parser,
             ISqlDbContext dbContext,
             IAzureKeyVaultUtils keyVaultUtils,
             IPubSubServiceClient pubSubClient,
             ILogger<PublishingFunctions> logger)
         {
-            this._eventGenerator = eventGenerator ?? throw new ArgumentNullException(nameof(eventGenerator));
-            this._eventProcessor = eventProcessor ?? throw new ArgumentNullException(nameof(eventProcessor));
+            this._appEventGenerator = appEventGenerator ?? throw new ArgumentNullException(nameof(appEventGenerator));
+            this._appEventProcessor = appEventProcessor ?? throw new ArgumentNullException(nameof(appEventProcessor));
+            this._offerEventGenerator = offerEventGenerator ?? throw new ArgumentNullException(nameof(offerEventGenerator));
+            this._offerEventProcessor = offerEventProcessor ?? throw new ArgumentNullException(nameof(offerEventProcessor));
             this._requestParser = parser ?? throw new ArgumentNullException(nameof(parser));
             this._dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             this._keyVaultUtils = keyVaultUtils ?? throw new ArgumentNullException(nameof(keyVaultUtils));
@@ -385,6 +392,152 @@ namespace Luna.Publish.Functions
         #region Azure Marketplace SaaS offers
 
         /// <summary>
+        /// Create or update an Azure Marketplace SaaS offer from template
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/template</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req" in="body">
+        ///     <see cref="MarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer template
+        ///         </summary>
+        ///     </example>
+        ///     Request contract
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="MarketplaceOffer"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceOffer.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace offer template
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateOrUpdateAzureMarketplaceOfferFromTemplate")]
+        public async Task<IActionResult> CreateOrUpdateAzureMarketplaceOfferFromTemplate(
+            [HttpTrigger(AuthorizationLevel.Function, "Post", Route = "marketplace/offers/{offerId}/template")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateOrUpdateAzureMarketplaceOfferFromTemplate));
+
+                try
+                {
+                    var requestCotent = await HttpUtils.GetRequestBodyAsync(req);
+
+                    var offer = JsonConvert.DeserializeObject<MarketplaceOffer>(requestCotent, new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.Auto
+                    });
+
+                    if (offer.OfferId != offerId)
+                    {
+                        throw new LunaBadRequestUserException(
+                            string.Format(ErrorMessages.MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH, offerId, offer.OfferId),
+                            UserErrorCode.NameMismatch, target: nameof(offerId));
+                    }
+
+                    MarketplaceOfferSnapshotDB snapshot = null;
+                    bool isNewOffer = false;
+
+                    var offerEvent = new MarketplaceOfferEventDB()
+                    {
+                        EventId = Guid.NewGuid(),
+                        ResourceName = offerId,
+                        CreatedBy = lunaHeaders.UserId,
+                        Tags = "",
+                        CreatedTime = DateTime.UtcNow
+                    };
+
+                    var offerDb = await _dbContext.MarketplaceOffers.
+                        SingleOrDefaultAsync(x => x.OfferId == offerId && 
+                        x.Status != MarketplaceOfferStatus.Deleted.ToString());
+
+                    if (offerDb != null)
+                    {
+                        offerDb.LastUpdatedTime = DateTime.UtcNow;
+
+                        offerEvent.EventType = MarketplaceOfferEventType.UpdateMarketplaceOfferFromTemplate.ToString();
+                        offerEvent.EventContent = await _offerEventGenerator.
+                            GenerateUpdateMarketplaceOfferFromTemplateEventContentAsync(requestCotent);
+                    }
+                    else
+                    {
+                        offerEvent.EventType = MarketplaceOfferEventType.CreateMarketplaceOfferFromTemplate.ToString();
+                        offerEvent.EventContent = await _offerEventGenerator.
+                            GenerateCreateMarketplaceOfferFromTemplateEventContentAsync(requestCotent);
+
+                        isNewOffer = true;
+                        snapshot = await this.CreateMarketplaceOfferSnapshotAsync(offerId,
+                            MarketplaceOfferStatus.Draft,
+                            offerEvent,
+                            "",
+                            isNewOffer);
+                    }
+
+                    using (var transaction = await _dbContext.BeginTransactionAsync())
+                    {
+                        _dbContext.MarketplaceOfferEvents.Add(offerEvent);
+                        await _dbContext._SaveChangesAsync();
+
+                        if (isNewOffer)
+                        {
+                            _dbContext.MarketplaceOffers.Add(
+                                new MarketplaceOfferDB(offerId, 
+                                offer.Properties.DisplayName,
+                                offer.Properties.Description));
+                            await _dbContext._SaveChangesAsync();
+
+                            if (snapshot != null)
+                            {
+                                snapshot.LastAppliedEventId = offerEvent.Id;
+                                _dbContext.MarketplaceOfferSnapshots.Add(snapshot);
+                                await _dbContext._SaveChangesAsync();
+                            }
+                            else
+                            {
+                                throw new LunaServerException($"Snapshot for offer {offerId} does not exist.");
+                            }
+                        }
+                        else
+                        {
+                            _dbContext.MarketplaceOffers.Update(offerDb);
+                            await _dbContext._SaveChangesAsync();
+                        }
+
+                        transaction.Commit();
+                    }
+
+                    return new OkObjectResult(offer);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateOrUpdateAzureMarketplaceOfferFromTemplate));
+                }
+            }
+        }
+
+        /// <summary>
         /// Create an Azure Marketplace SaaS offer
         /// </summary>
         /// <group>Azure Marketplace</group>
@@ -432,27 +585,7 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    if (await IsMarketplaceOfferExist(offerId))
-                    {
-                        throw new LunaConflictUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_ALREADY_EXIST, offerId));
-                    }
-
-                    var offer = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplaceOffer>(req);
-
-                    if (!offerId.Equals(offer.MarketplaceOfferId))
-                    {
-                        throw new LunaBadRequestUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH, offerId, offer.MarketplaceOfferId),
-                            UserErrorCode.NameMismatch);
-                    }
-
-                    var offerDb = new AzureMarketplaceOfferDB(offer);
-
-                    _dbContext.AzureMarketplaceOffers.Add(offerDb);
-                    await _dbContext._SaveChangesAsync();
-
-                    return new OkObjectResult(offerDb.ToAzureMarketplaceOffer());
+                    return new BadRequestResult();
                 }
                 catch (Exception ex)
                 {
@@ -514,31 +647,7 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
-                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
-                        x.MarketplaceOfferId == offerId);
-
-                    if (offerDb == null)
-                    {
-                        throw new LunaNotFoundUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
-                    }
-
-                    var offer = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplaceOffer>(req);
-
-                    if (!offerId.Equals(offer.MarketplaceOfferId))
-                    {
-                        throw new LunaBadRequestUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH, offerId, offer.MarketplaceOfferId),
-                            UserErrorCode.NameMismatch);
-                    }
-
-                    offerDb.Update(offer);
-
-                    _dbContext.AzureMarketplaceOffers.Update(offerDb);
-                    await _dbContext._SaveChangesAsync();
-
-                    return new OkObjectResult(offerDb.ToAzureMarketplaceOffer());
+                    return new BadRequestResult();
                 }
                 catch (Exception ex)
                 {
@@ -560,18 +669,7 @@ namespace Luna.Publish.Functions
         /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/publish</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req">The http request</param>
-        /// <response code="200">
-        ///     <see cref="AzureMarketplaceOffer"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="AzureMarketplaceOffer.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of Azure marketplace offer
-        ///         </summary>
-        ///     </example>
-        ///     Success
-        /// </response>
+        /// <response code="204">Success</response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
         ///     <in>header</in>
@@ -589,10 +687,9 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    var offerDb = await _dbContext.AzureMarketplaceOffers.
-                        Include(x => x.Plans).SingleOrDefaultAsync(
-                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
-                        x.MarketplaceOfferId == offerId);
+                    var offerDb = await _dbContext.MarketplaceOffers.
+                        SingleOrDefaultAsync(x => x.OfferId == offerId && 
+                        x.Status != MarketplaceOfferStatus.Deleted.ToString());
 
                     if (offerDb == null)
                     {
@@ -602,23 +699,50 @@ namespace Luna.Publish.Functions
 
                     offerDb.Publish();
 
-                    var eventContent = JsonConvert.SerializeObject(offerDb.ToAzureMarketplaceOfferEvent());
-                    var publishEvent = new PublishAzureMarketplaceOfferEventEntity(offerId, eventContent);
+                    var snapshotDb = await this.CreateMarketplaceOfferSnapshotAsync(offerId, MarketplaceOfferStatus.Published);
+
+                    var publishEvent = new PublishAzureMarketplaceOfferEventEntity(offerId, snapshotDb.SnapshotContent);
+
+                    var comments = req.Query.ContainsKey("comments") ? req.Query["comments"].ToString() : "";
+
+                    var offerEvent = new PublishMarketplaceOfferEvent()
+                    {
+                        Comments = comments,
+                    };
+
+                    var eventContent = JsonConvert.SerializeObject(offerEvent, new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.All
+                    });
+
+                    var offerEventDb = new MarketplaceOfferEventDB(
+                        offerId,
+                        MarketplaceOfferEventType.PublishMarketplaceOffer.ToString(),
+                        eventContent,
+                        lunaHeaders.UserId,
+                        "");
 
                     using (var transaction = await _dbContext.BeginTransactionAsync())
                     {
-                        _dbContext.AzureMarketplaceOffers.Update(offerDb);
+                        _dbContext.MarketplaceOffers.Update(offerDb);
+                        await _dbContext._SaveChangesAsync();
+
+                        _dbContext.MarketplaceOfferEvents.Add(offerEventDb);
+                        await _dbContext._SaveChangesAsync();
+
+                        snapshotDb.LastAppliedEventId = offerEventDb.Id;
+                        _dbContext.MarketplaceOfferSnapshots.Add(snapshotDb);
                         await _dbContext._SaveChangesAsync();
 
                         await _pubSubClient.PublishEventAsync(
-                            LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE, 
+                            LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE, 
                             publishEvent, 
                             lunaHeaders);
 
                         transaction.Commit();
                     }
 
-                    return new OkObjectResult(offerDb.ToAzureMarketplaceOffer());
+                    return new NoContentResult();
                 }
                 catch (Exception ex)
                 {
@@ -657,9 +781,9 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
+                    var offerDb = await _dbContext.MarketplaceOffers.SingleOrDefaultAsync(
                         x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
-                        x.MarketplaceOfferId == offerId);
+                        x.OfferId == offerId);
 
                     if (offerDb == null)
                     {
@@ -671,13 +795,32 @@ namespace Luna.Publish.Functions
 
                     var deleteEvent = new DeleteAzureMarketplaceOfferEventEntity(offerId);
 
+                    var offerEvent = new DeleteMarketplaceOfferEvent()
+                    {
+                    };
+
+                    var eventContent = JsonConvert.SerializeObject(offerEvent, new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.All
+                    });
+
+                    var offerEventDb = new MarketplaceOfferEventDB(
+                        offerId,
+                        MarketplaceOfferEventType.DeleteMarketplaceOffer.ToString(),
+                        eventContent,
+                        lunaHeaders.UserId,
+                        "");
+
                     using (var transaction = await _dbContext.BeginTransactionAsync())
                     {
-                        _dbContext.AzureMarketplaceOffers.Update(offerDb);
+                        _dbContext.MarketplaceOffers.Update(offerDb);
+                        await _dbContext._SaveChangesAsync();
+
+                        _dbContext.MarketplaceOfferEvents.Add(offerEventDb);
                         await _dbContext._SaveChangesAsync();
 
                         await _pubSubClient.PublishEventAsync(
-                            LunaEventStoreType.AZURE_MARKETPLACE_EVENT_STORE,
+                            LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE,
                             deleteEvent,
                             lunaHeaders);
 
@@ -734,11 +877,10 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    var offerDb = await _dbContext.AzureMarketplaceOffers.
-                        Include(x => x.Plans).
+                    var offerDb = await _dbContext.MarketplaceOffers.
                         SingleOrDefaultAsync(
                             x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
-                            x.MarketplaceOfferId == offerId);
+                            x.OfferId == offerId);
 
                     if (offerDb == null)
                     {
@@ -746,7 +888,30 @@ namespace Luna.Publish.Functions
                             string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
                     }
 
-                    return new OkObjectResult(offerDb.ToAzureMarketplaceOffer());
+                    var snapshot = await _dbContext.MarketplaceOfferSnapshots.
+                        Where(x => x.OfferId == offerId).
+                        OrderByDescending(x => x.LastAppliedEventId).FirstOrDefaultAsync();
+
+                    var events = await _dbContext.MarketplaceOfferEvents.
+                        Where(x => x.Id > snapshot.LastAppliedEventId && x.ResourceName == offerId).
+                        OrderBy(x => x.Id).
+                        Select(x => x.GetEventObject()).
+                        ToListAsync();
+
+                    var offer = _offerEventProcessor.GetMarketplaceOffer(offerId, events, snapshot);
+
+                    if (!string.IsNullOrEmpty(offer.ProvisioningStepsSecretName))
+                    {
+                        var content = await this._keyVaultUtils.GetSecretAsync(offer.ProvisioningStepsSecretName);
+                        var steps = JsonConvert.DeserializeObject<List<MarketplaceProvisioningStep>>(content, new JsonSerializerSettings()
+                        {
+                            TypeNameHandling = TypeNameHandling.All
+                        });
+                        offer.ProvisioningSteps = steps;
+                        offer.ProvisioningStepsSecretName = null;
+                    }
+
+                    return new OkObjectResult(offer);
                 }
                 catch (Exception ex)
                 {
@@ -796,9 +961,9 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    var offers = await _dbContext.AzureMarketplaceOffers.Where(
+                    var offers = await _dbContext.MarketplaceOffers.Where(
                         x => x.Status != MarketplaceOfferStatus.Deleted.ToString()).
-                        Select(x => x.ToAzureMarketplaceOffer()).
+                        Select(x => x.ToMarketplaceOffer()).
                         ToListAsync();
 
                     return new OkObjectResult(offers);
@@ -864,51 +1029,8 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
-                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
-                        x.MarketplaceOfferId == offerId);
 
-                    if (offerDb == null)
-                    {
-                        throw new LunaNotFoundUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
-                    }
-
-                    if (await _dbContext.AzureMarketplacePlans.AnyAsync(x => x.OfferId == offerDb.Id && x.MarketplacePlanId == planId))
-                    {
-                        throw new LunaConflictUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_PLAN_ALREADY_EXIST, planId, offerId));
-                    }
-
-                    var plan = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplacePlan>(req);
-
-                    if (!offerId.Equals(plan.MarketplaceOfferId))
-                    {
-                        throw new LunaBadRequestUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH, offerId, plan.MarketplaceOfferId),
-                            UserErrorCode.NameMismatch);
-                    }
-
-                    if (!planId.Equals(plan.MarketplacePlanId))
-                    {
-                        throw new LunaBadRequestUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_PLAN_NAME_DOES_NOT_MATCH, planId, plan.MarketplacePlanId),
-                            UserErrorCode.NameMismatch);
-                    }
-
-                    var planDb = new AzureMarketplacePlanDB(offerDb.Id, plan);
-
-                    planDb.ManagementKitDownloadUrlSecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.MGMT_KIT_URL);
-
-                    if (!string.IsNullOrEmpty(plan.ManagementKitDownloadUrl))
-                    {
-                        await _keyVaultUtils.SetSecretAsync(planDb.ManagementKitDownloadUrlSecretName, plan.ManagementKitDownloadUrl);
-                    }
-
-                    _dbContext.AzureMarketplacePlans.Add(planDb);
-                    await _dbContext._SaveChangesAsync();
-
-                    return new OkObjectResult(planDb.ToAzureMarketplacePlan(plan.ManagementKitDownloadUrl));
+                    return new BadRequestResult();
                 }
                 catch (Exception ex)
                 {
@@ -971,59 +1093,7 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
-                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
-                        x.MarketplaceOfferId == offerId);
-
-                    if (offerDb == null)
-                    {
-                        throw new LunaNotFoundUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
-                    }
-
-                    var planDb = await _dbContext.AzureMarketplacePlans.
-                        Include(x => x.Offer).SingleOrDefaultAsync(x => x.OfferId == offerDb.Id && x.MarketplacePlanId == planId);
-
-                    if (planDb == null)
-                    {
-                        throw new LunaNotFoundUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, planId, offerId));
-                    }
-
-                    var plan = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplacePlan>(req);
-
-                    if (!offerId.Equals(plan.MarketplaceOfferId))
-                    {
-                        throw new LunaBadRequestUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH, offerId, plan.MarketplaceOfferId),
-                            UserErrorCode.NameMismatch);
-                    }
-
-                    if (!planId.Equals(plan.MarketplacePlanId))
-                    {
-                        throw new LunaBadRequestUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_PLAN_NAME_DOES_NOT_MATCH, planId, plan.MarketplacePlanId),
-                            UserErrorCode.NameMismatch);
-                    }
-
-                    await _dbContext._SaveChangesAsync();
-
-                    using (var transaction = await _dbContext.BeginTransactionAsync())
-                    {
-                        planDb.Update(plan);
-
-                        _dbContext.AzureMarketplacePlans.Update(planDb);
-                        await _dbContext._SaveChangesAsync();
-
-                        if (!string.IsNullOrEmpty(plan.ManagementKitDownloadUrl))
-                        {
-                            await _keyVaultUtils.SetSecretAsync(planDb.ManagementKitDownloadUrlSecretName, plan.ManagementKitDownloadUrl);
-                        }
-
-                        transaction.Commit();
-                    }
-
-                    return new OkObjectResult(planDb.ToAzureMarketplacePlan(plan.ManagementKitDownloadUrl));
+                    return new BadRequestResult();
                 }
                 catch (Exception ex)
                 {
@@ -1064,37 +1134,7 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
-                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
-                        x.MarketplaceOfferId == offerId);
-
-                    if (offerDb == null)
-                    {
-                        throw new LunaConflictUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
-                    }
-
-                    var planDb = await _dbContext.AzureMarketplacePlans.
-                        Include(x => x.Offer).SingleOrDefaultAsync(x => x.OfferId == offerDb.Id && x.MarketplacePlanId == planId);
-
-                    if (planDb == null)
-                    {
-                        throw new LunaConflictUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, planId, offerId));
-                    }
-
-
-                    using (var transaction = await _dbContext.BeginTransactionAsync())
-                    {
-                        _dbContext.AzureMarketplacePlans.Remove(planDb);
-                        await _dbContext._SaveChangesAsync();
-
-                        await _keyVaultUtils.DeleteSecretAsync(planDb.ManagementKitDownloadUrlSecretName);
-
-                        transaction.Commit();
-                    }
-
-                    return new NoContentResult();
+                    return new BadRequestResult();
                 }
                 catch (Exception ex)
                 {
@@ -1146,28 +1186,7 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
-                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
-                        x.MarketplaceOfferId == offerId);
-
-                    if (offerDb == null)
-                    {
-                        throw new LunaNotFoundUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
-                    }
-
-                    var planDb = await _dbContext.AzureMarketplacePlans.
-                        Include(x => x.Offer).SingleOrDefaultAsync(x => x.OfferId == offerDb.Id && x.MarketplacePlanId == planId);
-
-                    if (planDb == null)
-                    {
-                        throw new LunaNotFoundUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, planId, offerId));
-                    }
-
-                    var url = await _keyVaultUtils.GetSecretAsync(planDb.ManagementKitDownloadUrlSecretName);
-
-                    return new OkObjectResult(planDb.ToAzureMarketplacePlan(url));
+                    return new BadRequestResult();
                 }
                 catch (Exception ex)
                 {
@@ -1218,23 +1237,7 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    var offerDb = await _dbContext.AzureMarketplaceOffers.SingleOrDefaultAsync(
-                        x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
-                        x.MarketplaceOfferId == offerId);
-
-                    if (offerDb == null)
-                    {
-                        throw new LunaNotFoundUserException(
-                            string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, offerId));
-                    }
-
-                    var plans = await _dbContext.
-                        AzureMarketplacePlans.
-                        Where(x => x.OfferId == offerDb.Id).
-                        Select(x => x.ToAzureMarketplacePlan(null)).
-                        ToListAsync();
-
-                    return new OkObjectResult(plans);
+                    return new BadRequestResult();
                 }
                 catch (Exception ex)
                 {
@@ -1417,13 +1420,13 @@ namespace Luna.Publish.Functions
                         Where(x => x.ApplicationName == name).
                         OrderByDescending(x => x.LastAppliedEventId).FirstOrDefault();
 
-                    var events = await _dbContext.PublishingEvents.
-                        Where(x => x.Id > snapshot.LastAppliedEventId).
+                    var events = await _dbContext.ApplicationEvents.
+                        Where(x => x.Id > snapshot.LastAppliedEventId && x.ResourceName == name).
                         OrderBy(x => x.Id).
                         Select(x => x.GetEventObject()).
                         ToListAsync();
 
-                    var lunaApp = _eventProcessor.GetLunaApplication(name, events, snapshot);
+                    var lunaApp = _appEventProcessor.GetLunaApplication(name, events, snapshot);
 
                     if (lunaApp == null)
                     {
@@ -1507,20 +1510,20 @@ namespace Luna.Publish.Functions
                     await _keyVaultUtils.SetSecretAsync(application.PrimaryMasterKeySecretName, Guid.NewGuid().ToString("N"));
                     await _keyVaultUtils.SetSecretAsync(application.SecondaryMasterKeySecretName, Guid.NewGuid().ToString("N"));
 
-                    var ev = _eventGenerator.GenerateCreateLunaApplicationEventContent(name, application);
+                    var ev = _appEventGenerator.GenerateCreateLunaApplicationEventContent(name, application);
 
-                    var publishingEvent = new PublishingEventDB()
+                    var publishingEvent = new ApplicationEventDB()
                     {
                         ResourceName = name,
                         EventId = Guid.NewGuid(),
-                        EventType = PublishingEventType.CreateLunaApplication.ToString(),
+                        EventType = LunaAppEventType.CreateLunaApplication.ToString(),
                         EventContent = ev,
                         CreatedBy = lunaHeaders.UserId,
                         Tags = "",
                         CreatedTime = DateTime.UtcNow
                     };
 
-                    var snapshot = await this.CreateSnapshot(name,
+                    var snapshot = await this.CreateApplicationSnapshot(name,
                         ApplicationStatus.Draft,
                         currentEvent: publishingEvent,
                         isNewApp: true);
@@ -1535,7 +1538,7 @@ namespace Luna.Publish.Functions
                                 application.SecondaryMasterKeySecretName));
                         await _dbContext._SaveChangesAsync();
 
-                        _dbContext.PublishingEvents.Add(publishingEvent);
+                        _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
                         snapshot.LastAppliedEventId = publishingEvent.Id;
@@ -1615,13 +1618,13 @@ namespace Luna.Publish.Functions
 
                     var application = await _requestParser.ParseAndValidateLunaApplicationAsync(
                         await HttpUtils.GetRequestBodyAsync(req));
-                    var ev = _eventGenerator.GenerateUpdateLunaApplicationEventContent(name, application);
+                    var ev = _appEventGenerator.GenerateUpdateLunaApplicationEventContent(name, application);
 
-                    var publishingEvent = new PublishingEventDB()
+                    var publishingEvent = new ApplicationEventDB()
                     {
                         ResourceName = name,
                         EventId = Guid.NewGuid(),
-                        EventType = PublishingEventType.UpdateLunaApplication.ToString(),
+                        EventType = LunaAppEventType.UpdateLunaApplication.ToString(),
                         EventContent = ev,
                         CreatedBy = lunaHeaders.UserId,
                         Tags = "",
@@ -1634,7 +1637,7 @@ namespace Luna.Publish.Functions
                         _dbContext.LunaApplications.Update(appToUpdate);
                         await _dbContext._SaveChangesAsync();
 
-                        _dbContext.PublishingEvents.Add(publishingEvent);
+                        _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
 
@@ -1693,22 +1696,22 @@ namespace Luna.Publish.Functions
                         throw new LunaConflictUserException(string.Format(ErrorMessages.CAN_NOT_DELETE_APPLICATION_WITH_APIS, name));
                     }
 
-                    var ev = _eventGenerator.GenerateDeleteLunaApplicationEventContent(name);
+                    var ev = _appEventGenerator.GenerateDeleteLunaApplicationEventContent(name);
 
                     var applicationEvent = new DeleteApplicationEventEntity(name, ev);
 
-                    var publishingEvent = new PublishingEventDB()
+                    var publishingEvent = new ApplicationEventDB()
                     {
                         ResourceName = name,
                         EventId = Guid.NewGuid(),
-                        EventType = PublishingEventType.DeleteLunaApplication.ToString(),
+                        EventType = LunaAppEventType.DeleteLunaApplication.ToString(),
                         EventContent = ev,
                         CreatedBy = lunaHeaders.UserId,
                         Tags = "",
                         CreatedTime = DateTime.UtcNow
                     };
 
-                    var snapshot = await this.CreateSnapshot(name,
+                    var snapshot = await this.CreateApplicationSnapshot(name,
                         ApplicationStatus.Deleted,
                         currentEvent: publishingEvent);
 
@@ -1717,7 +1720,7 @@ namespace Luna.Publish.Functions
                         _dbContext.LunaApplications.Remove(appToDelete);
                         await _dbContext._SaveChangesAsync();
 
-                        _dbContext.PublishingEvents.Add(publishingEvent);
+                        _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
                         snapshot.LastAppliedEventId = publishingEvent.Id;
@@ -1891,21 +1894,20 @@ namespace Luna.Publish.Functions
                         comments = req.Query["comments"];
                     }
 
+                    var ev = _appEventGenerator.GeneratePublishLunaApplicationEventContent(name, comments);
 
-                    var ev = _eventGenerator.GeneratePublishLunaApplicationEventContent(name, comments);
-
-                    var publishingEvent = new PublishingEventDB()
+                    var publishingEvent = new ApplicationEventDB()
                     {
                         ResourceName = name,
                         EventId = Guid.NewGuid(),
-                        EventType = PublishingEventType.PublishLunaApplication.ToString(),
+                        EventType = LunaAppEventType.PublishLunaApplication.ToString(),
                         EventContent = ev,
                         CreatedBy = lunaHeaders.UserId,
                         Tags = "",
                         CreatedTime = DateTime.UtcNow
                     };
 
-                    var snapshot = await this.CreateSnapshot(name,
+                    var snapshot = await this.CreateApplicationSnapshot(name,
                         ApplicationStatus.Published,
                         currentEvent: publishingEvent);
 
@@ -1918,7 +1920,7 @@ namespace Luna.Publish.Functions
                         _dbContext.LunaApplications.Update(appToPublish);
                         await _dbContext._SaveChangesAsync();
 
-                        _dbContext.PublishingEvents.Add(publishingEvent);
+                        _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
                         snapshot.LastAppliedEventId = publishingEvent.Id;
@@ -2044,19 +2046,24 @@ namespace Luna.Publish.Functions
 
                 try
                 {
+                    if (!await IsApplicationExist(appName))
+                    {
+                        throw new LunaNotFoundUserException(string.Format(ErrorMessages.APPLICATION_DOES_NOT_EXIST, appName));
+                    }
+
                     if (await IsAPIExist(appName, apiName))
                     {
                         throw new LunaConflictUserException(string.Format(ErrorMessages.API_ALREADY_EXIST, apiName, appName));
                     }
 
                     var api = await _requestParser.ParseAndValidateLunaAPIAsync(await HttpUtils.GetRequestBodyAsync(req));
-                    var ev = _eventGenerator.GenerateCreateLunaAPIEventContent(appName, apiName, api);
+                    var ev = _appEventGenerator.GenerateCreateLunaAPIEventContent(appName, apiName, api);
 
-                    var publishingEvent = new PublishingEventDB()
+                    var publishingEvent = new ApplicationEventDB()
                     {
                         ResourceName = appName,
                         EventId = Guid.NewGuid(),
-                        EventType = PublishingEventType.CreateLunaAPI.ToString(),
+                        EventType = LunaAppEventType.CreateLunaAPI.ToString(),
                         EventContent = ev,
                         CreatedBy = lunaHeaders.UserId,
                         Tags = "",
@@ -2068,7 +2075,7 @@ namespace Luna.Publish.Functions
                         _dbContext.LunaAPIs.Add(new LunaAPIDB(appName, apiName, api.Type));
                         await _dbContext._SaveChangesAsync();
 
-                        _dbContext.PublishingEvents.Add(publishingEvent);
+                        _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
                         transaction.Commit();
@@ -2150,13 +2157,13 @@ namespace Luna.Publish.Functions
                         throw new LunaConflictUserException(string.Format(ErrorMessages.VALUE_NOT_UPDATABLE, "Type"));
                     }
 
-                    var ev = _eventGenerator.GenerateUpdateLunaAPIEventContent(appName, apiName, api);
+                    var ev = _appEventGenerator.GenerateUpdateLunaAPIEventContent(appName, apiName, api);
 
-                    var publishingEvent = new PublishingEventDB()
+                    var publishingEvent = new ApplicationEventDB()
                     {
                         ResourceName = appName,
                         EventId = Guid.NewGuid(),
-                        EventType = PublishingEventType.UpdateLunaAPI.ToString(),
+                        EventType = LunaAppEventType.UpdateLunaAPI.ToString(),
                         EventContent = ev,
                         CreatedBy = lunaHeaders.UserId,
                         Tags = "",
@@ -2169,7 +2176,7 @@ namespace Luna.Publish.Functions
                         _dbContext.LunaAPIs.Update(apiToUpdate);
                         await _dbContext._SaveChangesAsync();
 
-                        _dbContext.PublishingEvents.Add(publishingEvent);
+                        _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
                         transaction.Commit();
@@ -2227,13 +2234,13 @@ namespace Luna.Publish.Functions
                         throw new LunaConflictUserException(string.Format(ErrorMessages.CAN_NOT_DELETE_API_WITH_VERSIONS, apiName));
                     }
 
-                    var ev = _eventGenerator.GenerateDeleteLunaAPIEventContent(appName, apiName);
+                    var ev = _appEventGenerator.GenerateDeleteLunaAPIEventContent(appName, apiName);
 
-                    var publishingEvent = new PublishingEventDB()
+                    var publishingEvent = new ApplicationEventDB()
                     {
                         ResourceName = appName,
                         EventId = Guid.NewGuid(),
-                        EventType = PublishingEventType.DeleteLunaAPI.ToString(),
+                        EventType = LunaAppEventType.DeleteLunaAPI.ToString(),
                         EventContent = ev,
                         CreatedBy = lunaHeaders.UserId,
                         Tags = "",
@@ -2245,7 +2252,7 @@ namespace Luna.Publish.Functions
                         _dbContext.LunaAPIs.Remove(apiToDelete);
                         await _dbContext._SaveChangesAsync();
 
-                        _dbContext.PublishingEvents.Add(publishingEvent);
+                        _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
                         transaction.Commit();
@@ -2387,13 +2394,13 @@ namespace Luna.Publish.Functions
 
 
                     var version = await _requestParser.ParseAndValidateAPIVersionAsync(await HttpUtils.GetRequestBodyAsync(req), api.APIType);
-                    var ev = _eventGenerator.GenerateCreateLunaAPIVersionEventContent(appName, apiName, versionName, version);
+                    var ev = _appEventGenerator.GenerateCreateLunaAPIVersionEventContent(appName, apiName, versionName, version);
 
-                    var publishingEvent = new PublishingEventDB()
+                    var publishingEvent = new ApplicationEventDB()
                     {
                         ResourceName = appName,
                         EventId = Guid.NewGuid(),
-                        EventType = PublishingEventType.CreateLunaAPIVersion.ToString(),
+                        EventType = LunaAppEventType.CreateLunaAPIVersion.ToString(),
                         EventContent = ev,
                         CreatedBy = lunaHeaders.UserId,
                         Tags = "",
@@ -2405,7 +2412,7 @@ namespace Luna.Publish.Functions
                         _dbContext.LunaAPIVersions.Add(new LunaAPIVersionDB(appName, apiName, versionName, version.Type));
                         await _dbContext._SaveChangesAsync();
 
-                        _dbContext.PublishingEvents.Add(publishingEvent);
+                        _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
                         transaction.Commit();
@@ -2502,13 +2509,13 @@ namespace Luna.Publish.Functions
                         throw new LunaConflictUserException(string.Format(ErrorMessages.VALUE_NOT_UPDATABLE, "Type"));
                     }
 
-                    var ev = _eventGenerator.GenerateUpdateLunaAPIVersionEventContent(appName, apiName, versionName, version);
+                    var ev = _appEventGenerator.GenerateUpdateLunaAPIVersionEventContent(appName, apiName, versionName, version);
 
-                    var publishingEvent = new PublishingEventDB()
+                    var publishingEvent = new ApplicationEventDB()
                     {
                         ResourceName = appName,
                         EventId = Guid.NewGuid(),
-                        EventType = PublishingEventType.UpdateLunaAPIVersion.ToString(),
+                        EventType = LunaAppEventType.UpdateLunaAPIVersion.ToString(),
                         EventContent = ev,
                         CreatedBy = lunaHeaders.UserId,
                         Tags = "",
@@ -2521,7 +2528,7 @@ namespace Luna.Publish.Functions
                         _dbContext.LunaAPIVersions.Update(apiVersionToUpdate);
                         await _dbContext._SaveChangesAsync();
 
-                        _dbContext.PublishingEvents.Add(publishingEvent);
+                        _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
                         transaction.Commit();
@@ -2589,13 +2596,13 @@ namespace Luna.Publish.Functions
                         throw new LunaNotFoundUserException(string.Format(ErrorMessages.API_VERSION_DOES_NOT_EXIST, versionName, apiName));
                     }
 
-                    var ev = _eventGenerator.GenerateDeleteLunaAPIVersionEventContent(appName, apiName, versionName);
+                    var ev = _appEventGenerator.GenerateDeleteLunaAPIVersionEventContent(appName, apiName, versionName);
 
-                    var publishingEvent = new PublishingEventDB()
+                    var publishingEvent = new ApplicationEventDB()
                     {
                         ResourceName = appName,
                         EventId = Guid.NewGuid(),
-                        EventType = PublishingEventType.DeleteLunaAPIVersion.ToString(),
+                        EventType = LunaAppEventType.DeleteLunaAPIVersion.ToString(),
                         EventContent = ev,
                         CreatedBy = lunaHeaders.UserId,
                         Tags = "",
@@ -2607,7 +2614,7 @@ namespace Luna.Publish.Functions
                         _dbContext.LunaAPIVersions.Remove(apiVersionToDelete);
                         await _dbContext._SaveChangesAsync();
 
-                        _dbContext.PublishingEvents.Add(publishingEvent);
+                        _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
                         transaction.Commit();
@@ -2629,9 +2636,49 @@ namespace Luna.Publish.Functions
 
         #region Private methods
 
-        private async Task<ApplicationSnapshotDB> CreateSnapshot(string appName,
+        private async Task<MarketplaceOfferSnapshotDB> CreateMarketplaceOfferSnapshotAsync(string offerId,
+            MarketplaceOfferStatus status,
+            MarketplaceOfferEventDB currentEvent = null,
+            string tags = "",
+            bool isNewOffer = false)
+        {
+            var snapshot = isNewOffer ? null : _dbContext.MarketplaceOfferSnapshots.
+                Where(x => x.OfferId == offerId).
+                OrderByDescending(x => x.LastAppliedEventId).FirstOrDefault();
+
+            var events = new List<BaseMarketplaceOfferEvent>();
+
+            if (!isNewOffer)
+            {
+                events = await _dbContext.MarketplaceOfferEvents.
+                    Where(x => x.Id > snapshot.LastAppliedEventId && x.ResourceName == offerId).
+                    OrderBy(x => x.Id).
+                    Select(x => x.GetEventObject()).
+                    ToListAsync();
+            }
+
+            if (currentEvent != null)
+            {
+                events.Add(currentEvent.GetEventObject());
+            }
+
+            var newSnapshot = new MarketplaceOfferSnapshotDB()
+            {
+                SnapshotId = Guid.NewGuid(),
+                OfferId = offerId,
+                SnapshotContent = _offerEventProcessor.GetMarketplaceOfferJSONString(offerId, events, snapshot),
+                Status = status.ToString(),
+                Tags = "",
+                CreatedTime = DateTime.UtcNow,
+                DeletedTime = null
+            };
+
+            return newSnapshot;
+        }
+
+        private async Task<ApplicationSnapshotDB> CreateApplicationSnapshot(string appName,
             ApplicationStatus status,
-            PublishingEventDB currentEvent = null,
+            ApplicationEventDB currentEvent = null,
             string tags = "",
             bool isNewApp = false)
         {
@@ -2639,12 +2686,12 @@ namespace Luna.Publish.Functions
                 Where(x => x.ApplicationName == appName).
                 OrderByDescending(x => x.LastAppliedEventId).FirstOrDefault();
 
-            var events = new List<BaseLunaPublishingEvent>();
+            var events = new List<BaseLunaAppEvent>();
 
             if (!isNewApp)
             {
-                events = await _dbContext.PublishingEvents.
-                    Where(x => x.Id > snapshot.LastAppliedEventId).
+                events = await _dbContext.ApplicationEvents.
+                    Where(x => x.Id > snapshot.LastAppliedEventId && x.ResourceName == appName).
                     OrderBy(x => x.Id).
                     Select(x => x.GetEventObject()).
                     ToListAsync();
@@ -2659,7 +2706,7 @@ namespace Luna.Publish.Functions
             {
                 SnapshotId = Guid.NewGuid(),
                 ApplicationName = appName,
-                SnapshotContent = _eventProcessor.GetLunaApplicationJSONString(appName, events, snapshot),
+                SnapshotContent = _appEventProcessor.GetLunaApplicationJSONString(appName, events, snapshot),
                 Status = status.ToString(),
                 Tags = "",
                 CreatedTime = DateTime.UtcNow,
@@ -2679,24 +2726,11 @@ namespace Luna.Publish.Functions
             return await _dbContext.LunaApplications.AnyAsync(x => x.ApplicationName == appName);
         }
 
-        /// <summary>
-        /// Check if the Azure marketplace offer exists
-        /// </summary>
-        /// <param name="offerId">The Azure marketplace offer id</param>
-        /// <returns>True if the offer exists, False otherwise</returns>
-        private async Task<bool> IsMarketplaceOfferExist(string offerId)
-        {
-            return await _dbContext.AzureMarketplaceOffers.AnyAsync(
-                x => x.Status != MarketplaceOfferStatus.Deleted.ToString() &&
-                x.MarketplaceOfferId == offerId);
-        }
-
         private async Task<bool> IsAutomationWebhookExist(string name)
         {
             return await _dbContext.AutomationWebhooks.AnyAsync(
                 x => x.Name == name);
         }
-
 
         /// <summary>
         /// Check if any Luna API exsits in the specified application

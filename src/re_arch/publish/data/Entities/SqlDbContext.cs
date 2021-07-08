@@ -27,17 +27,19 @@ namespace Luna.Publish.Data
 
         public DbSet<ApplicationSnapshotDB> ApplicationSnapshots { get; set; }
 
-        public DbSet<PublishingEventDB> PublishingEvents { get; set; }
+        public DbSet<ApplicationEventDB> ApplicationEvents { get; set; }
+
+        public DbSet<MarketplaceOfferSnapshotDB> MarketplaceOfferSnapshots { get; set; }
+
+        public DbSet<MarketplaceOfferEventDB> MarketplaceOfferEvents { get; set; }
+
+        public DbSet<MarketplaceOfferDB> MarketplaceOffers { get; set; }
 
         public DbSet<LunaApplicationDB> LunaApplications { get; set; }
 
         public DbSet<LunaAPIDB> LunaAPIs { get; set; }
 
         public DbSet<LunaAPIVersionDB> LunaAPIVersions { get; set; }
-
-        public DbSet<AzureMarketplaceOfferDB> AzureMarketplaceOffers { get; set; }
-
-        public DbSet<AzureMarketplacePlanDB> AzureMarketplacePlans { get; set; }
 
         public DbSet<AutomationWebhookDB> AutomationWebhooks { get; set; }
 
@@ -80,9 +82,6 @@ namespace Luna.Publish.Data
             modelBuilder.Entity<LunaAPIVersionDB>()
                 .HasKey(x => new { x.ApplicationName, x.APIName, x.VersionName });
 
-            modelBuilder.Entity<AzureMarketplacePlanDB>()
-                .HasOne(p => p.Offer)
-                .WithMany(o => o.Plans);
         }
     }
 }
