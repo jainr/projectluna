@@ -30,6 +30,15 @@ namespace Luna.PubSub.Public.Client
                 SubscriberServiceName = "provision",
                 SubscriberFunctionName = "processapplicationevents"
             });
+
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("EXTERNAL_SUBSCRIBER_FX_NAME")))
+            {
+                this.EventSubscribers.Add(new LunaEventSubscriber()
+                {
+                    SubscriberServiceName = "external",
+                    SubscriberFunctionName = Environment.GetEnvironmentVariable("EXTERNAL_SUBSCRIBER_FX_NAME")
+                });
+            }
         }
     }
 }
