@@ -29,5 +29,8 @@ namespace Luna.Publish.Public.Client
         [JsonProperty(PropertyName = "TimeoutInSeconds", Required = Required.Always)]
         public int TimeoutInSeconds { get; set; }
 
+        [JsonProperty(PropertyName = "InputArguments", Required = Required.Always)]
+        public List<ScriptArgument> InputArguments { get; set; }
+
     }
 }

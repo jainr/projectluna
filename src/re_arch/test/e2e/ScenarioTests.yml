@@ -7,7 +7,7 @@ pool:
 # Update the variable values when creating the pipeline
 variables:
   # the test file if you are not running from the Luna repo
-  test_file_url: "https://github.com/Azure/projectluna/raw/re-arch-amp/src/re_arch/test/e2e/lunae2etest.py"
+  test_file_url: "https://github.com/Azure/projectluna/raw/re-arch/src/re_arch/test/e2e/lunae2etest.py"
   # the routing service url
   routing_url: "https://lunaaidep2-routing.azurewebsites.net"
   # the gateway service (management service) url

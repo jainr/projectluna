@@ -8,7 +8,8 @@ namespace Luna.Provision.Data
     {
         NotStarted,
         Running,
-        Completed,
+        ExecutionCompleted,
+        JobCompleted,
         Failed
     }
 }

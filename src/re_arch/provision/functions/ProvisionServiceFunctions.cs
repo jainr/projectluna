@@ -36,6 +36,7 @@ namespace Luna.Provision.Functions
         private readonly ISqlDbContext _dbContext;
         private readonly ILogger<ProvisionServiceFunctions> _logger;
         private readonly IPubSubServiceClient _pubSubClient;
+        private readonly IGalleryServiceClient _galleryClient;
         private readonly IAzureKeyVaultUtils _keyVaultUtils;
         private readonly ISwaggerClient _swaggerClient;
         private readonly IProvisionStepClientFactory _provisionStepClientFactory;
@@ -44,12 +45,14 @@ namespace Luna.Provision.Functions
             ILogger<ProvisionServiceFunctions> logger, 
             IAzureKeyVaultUtils keyVaultUtils,
             IPubSubServiceClient pubSubClient,
+            IGalleryServiceClient galleryClient,
             ISwaggerClient swaggerClient,
             IProvisionStepClientFactory provisionStepClientFactory)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(dbContext));
             this._pubSubClient = pubSubClient ?? throw new ArgumentNullException(nameof(pubSubClient));
+            this._galleryClient = galleryClient ?? throw new ArgumentNullException(nameof(galleryClient));
             this._keyVaultUtils = keyVaultUtils ?? throw new ArgumentNullException(nameof(keyVaultUtils));
             this._swaggerClient = swaggerClient ?? throw new ArgumentNullException(nameof(swaggerClient));
             this._provisionStepClientFactory = provisionStepClientFactory ?? throw new ArgumentNullException(nameof(provisionStepClientFactory));
@@ -421,102 +424,153 @@ namespace Luna.Provision.Functions
             var activeJobs = await _dbContext.MarketplaceSubProvisionJobs.Where(x => x.IsActive).ToListAsync();
 
             // process active jobs
-            foreach(var job in activeJobs)
+            foreach (var job in activeJobs)
             {
                 var parameters = await GetParametersAsync(job);
                 var stepConfigs = await GetProvisionStepConfigAsync(job);
                 var steps = await GetProvisionStepsAsync(job);
 
-                if (job.ProvisioningStepIndex == -1)
+                if (job.ProvisioningStepIndex >= steps.Count)
                 {
-                    if (job.Mode.Equals(MarketplacePlanMode.IaaS.ToString()))
-                    {
-                        if (!IsJumpboxReady(parameters))
-                        {
-                            // prepare jumpbox
-                        }
-                        else
-                        {
-                        }
-                    }
-                    else
-                    {
-
-                    }
-
-                    job.ProvisioningStepIndex = 0;
-                    job.ProvisioningStepStatus = ProvisionStepStatus.NotStarted.ToString();
+                    var e = new LunaServerException("The provisioning step index is invalid");
                 }
                 else
                 {
-                    if (job.ProvisioningStepIndex >= steps.Count)
+                    MarketplaceProvisioningStep stepConfig = null;
+
+                    if (job.ProvisioningStepIndex < 0)
                     {
-                        var e = new LunaServerException("The provisioning step index is invalid");
+                        // skip the jump box preparation step if it is not required
+                        if (!job.Mode.Equals(MarketplacePlanMode.IaaS.ToString()) || IsJumpboxReady(parameters))
+                        {
+                            job.ProvisioningStepIndex = 0;
+                            job.ProvisioningStepStatus = ProvisionStepStatus.NotStarted.ToString();
+                            continue;
+                        }
+
+                        // Generate new SSH key pair if not exist
+                        if (!parameters.Any(x => x.Name == JumpboxParameterConstants.JUMPBOX_VM_SSH_PUBLIC_KEY_PARAM_NAME))
+                        {
+                            SSHKeyPair keyPair = SshUtils.GetSSHKeyPair();
+
+                            parameters.Add(new MarketplaceSubscriptionParameter
+                            {
+                                Name = JumpboxParameterConstants.JUMPBOX_VM_SSH_PUBLIC_KEY_PARAM_NAME,
+                                Value = keyPair.PublicKey,
+                                Type = MarketplaceParameterValueType.String.ToString(),
+                                IsSystemParameter = true
+                            });
+
+                            parameters.Add(new MarketplaceSubscriptionParameter
+                            {
+                                Name = JumpboxParameterConstants.JUMPBOX_VM_SSH_PRIVATE_KEY_PARAM_NAME,
+                                Value = keyPair.PrivateKey,
+                                Type = MarketplaceParameterValueType.String.ToString(),
+                                IsSystemParameter = true
+                            });
+                        }
+
+                        stepConfig = new MarketplaceProvisioningStep()
+                        {
+                            Name = "JumpboxProvisioning",
+                            Type = MarketplaceProvisioningStepType.ARMTemplate.ToString(),
+                            Properties = new ARMTemplateProvisioningStepProp
+                            {
+                                TemplateUrl = "https://lunaaidep1storage.blob.core.windows.net/lunatest/arm.json?sp=rl&st=2021-07-12T21:27:08Z&se=2021-11-24T21:27:00Z&sv=2020-08-04&sr=b&sig=XAUe%2B4ia9okGdfqhaLS7ZT4sD5ONXolhIPZbq%2F7lgzY%3D",
+                                IsRunInCompleteMode = false,
+                                AzureSubscriptionIdParameterName = JumpboxParameterConstants.JUMPBOX_VM_SUB_ID_PARAM_NAME,
+                                ResourceGroupNameParameterName = JumpboxParameterConstants.JUMPBOX_VM_RG_PARAM_NAME,
+                                AccessTokenParameterName = JumpboxParameterConstants.JUMPBOX_VM_ACCESS_TOKEN_PARAM_NAME,
+                                AzureLocationParameterName = JumpboxParameterConstants.JUMPBOX_VM_LOCATION_PARAM_NAME,
+                                InputParameterNames = new List<string>
+                                {
+                                    JumpboxParameterConstants.JUMPBOX_VM_LOCATION_PARAM_NAME,
+                                    JumpboxParameterConstants.JUMPBOX_VM_NAME_PARAM_NAME,
+                                    JumpboxParameterConstants.JUMPBOX_VM_SSH_PUBLIC_KEY_PARAM_NAME,
+                                }
+                            }
+                        };
                     }
                     else
                     {
                         var step = steps[job.ProvisioningStepIndex];
 
-                        var stepConfig = stepConfigs.SingleOrDefault(x => x.Name == step);
+                        stepConfig = stepConfigs.SingleOrDefault(x => x.Name == step);
+                    }
 
-                        if (stepConfig == null)
-                        {
-                            throw new LunaServerException("");
-                        }
+                    if (stepConfig == null)
+                    {
+                        throw new LunaServerException("");
+                    }
 
-                        if (stepConfig.Properties.IsSynchronized)
-                        {
-                            ISyncProvisionStepClient client = this._provisionStepClientFactory.GetSyncProvisionStepClient(stepConfig);
-                        }
-                        else
-                        {
-                            IAsyncProvisionStepClient client = this._provisionStepClientFactory.GetAsyncProvisionStepClient(stepConfig);
+                    if (stepConfig.Properties.IsSynchronized)
+                    {
+                        ISyncProvisionStepClient client = this._provisionStepClientFactory.GetSyncProvisionStepClient(stepConfig);
+                    }
+                    else
+                    {
+                        IAsyncProvisionStepClient client = this._provisionStepClientFactory.GetAsyncProvisionStepClient(stepConfig);
 
-                            if (client != null)
+                        if (client != null)
+                        {
+                            if (job.ProvisioningStepStatus.Equals(ProvisionStepStatus.NotStarted.ToString()))
                             {
-                                if (job.ProvisioningStepStatus.Equals(ProvisionStepStatus.NotStarted.ToString()))
-                                {
-                                    // TODO: should copy over
-                                    var newParams = await client.StartAsync(parameters);
+                                // TODO: should copy over
+                                var newParams = await client.StartAsync(parameters);
 
-                                    job.ProvisioningStepStatus = ProvisionStepStatus.Running.ToString();
-                                    var content = JsonConvert.SerializeObject(newParams, new JsonSerializerSettings()
-                                    {
-                                        TypeNameHandling = TypeNameHandling.All
-                                    });
-                                    await this._keyVaultUtils.SetSecretAsync(job.ParametersSecretName, content);
+                                var content = JsonConvert.SerializeObject(newParams, new JsonSerializerSettings()
+                                {
+                                    TypeNameHandling = TypeNameHandling.All
+                                });
 
-                                }
-                                else if (job.ProvisioningStepStatus.Equals(ProvisionStepStatus.Running.ToString()))
+                                await this._keyVaultUtils.SetSecretAsync(job.ParametersSecretName, content);
+
+                                job.ProvisioningStepStatus = ProvisionStepStatus.Running.ToString();
+
+                            }
+                            else if (job.ProvisioningStepStatus.Equals(ProvisionStepStatus.Running.ToString()))
+                            {
+                                var result = await client.CheckExecutionStatusAsync(parameters);
+                                switch (result)
                                 {
-                                    var result = await client.CheckExecutionStatusAsync(parameters);
-                                    switch (result)
-                                    {
-                                        case ProvisionStepExecutionResult.Completed:
-                                            job.ProvisioningStepStatus = ProvisionStepStatus.Completed.ToString();
-                                            break;
-                                        case ProvisionStepExecutionResult.Running:
-                                            break;
-                                        case ProvisionStepExecutionResult.Failed:
-                                            job.ProvisioningStepStatus = ProvisionStepStatus.Failed.ToString();
-                                            break;
-                                        default:
-                                            throw new LunaServerException($"invalid provision step result {result.ToString()}");
-                                    }
+                                    case ProvisionStepExecutionResult.Completed:
+                                        job.ProvisioningStepStatus = ProvisionStepStatus.ExecutionCompleted.ToString();
+                                        break;
+                                    case ProvisionStepExecutionResult.Running:
+                                        break;
+                                    case ProvisionStepExecutionResult.Failed:
+                                        job.ProvisioningStepStatus = ProvisionStepStatus.Failed.ToString();
+                                        break;
+                                    default:
+                                        throw new LunaServerException($"invalid provision step result {result.ToString()}");
                                 }
-                                else if (job.ProvisioningStepStatus.Equals(ProvisionStepStatus.Completed.ToString()))
+                            }
+                            else if (job.ProvisioningStepStatus.Equals(ProvisionStepStatus.ExecutionCompleted.ToString()))
+                            {
+                                var newParams = await client.FinishAsync(parameters);
+
+                                var content = JsonConvert.SerializeObject(newParams, new JsonSerializerSettings()
                                 {
-                                    if (job.ProvisioningStepIndex + 1 < steps.Count)
-                                    {
-                                        job.ProvisioningStepIndex = job.ProvisioningStepIndex + 1;
-                                        job.ProvisioningStepStatus = ProvisionStepStatus.NotStarted.ToString();
-                                    }
-                                    else
-                                    {
-                                        job.Status = ProvisionStatus.Completed.ToString();
-                                        job.IsActive = false;
-                                        job.CompletedTime = DateTime.UtcNow;
-                                    }
+                                    TypeNameHandling = TypeNameHandling.All
+                                });
+
+                                await this._keyVaultUtils.SetSecretAsync(job.ParametersSecretName, content);
+
+                                job.ProvisioningStepStatus = ProvisionStepStatus.JobCompleted.ToString();
+                            }
+                            else if (job.ProvisioningStepStatus.Equals(ProvisionStepStatus.JobCompleted.ToString()))
+                            {
+                                if (job.ProvisioningStepIndex + 1 < steps.Count)
+                                {
+                                    job.ProvisioningStepIndex = job.ProvisioningStepIndex + 1;
+                                    job.ProvisioningStepStatus = ProvisionStepStatus.NotStarted.ToString();
+                                }
+                                else
+                                {
+                                    await this._galleryClient.ActivateMarketplaceSubscriptionAsync(job.SubscriptionId, new LunaRequestHeaders());
+                                    job.Status = ProvisionStatus.Completed.ToString();
+                                    job.IsActive = false;
+                                    job.CompletedTime = DateTime.UtcNow;
                                 }
                             }
                         }
@@ -542,8 +596,8 @@ namespace Luna.Provision.Functions
                 {
                     // make it active
                     var plan = await _dbContext.MarketplacePlans.
-                        SingleOrDefaultAsync(x => x.OfferId == job.OfferId && 
-                            x.PlanId == job.PlanId && 
+                        SingleOrDefaultAsync(x => x.OfferId == job.OfferId &&
+                            x.PlanId == job.PlanId &&
                             x.CreatedByEventId == job.PlanCreatedByEventId);
 
                     if (plan == null)

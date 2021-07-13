@@ -404,6 +404,8 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --settings "SQL_CONNECTION_STRING=${sqlConnectionSring}" \
              "KEY_VAULT_NAME=${keyVaultName}" \
 			 "ROUTING_SERVICE_BASE_URL=${routingFxUrl}" \
+			 "GALLERY_SERVICE_BASE_URL=${galleryFxUrl}" \
+			 "GALLERY_SERVICE_KEY=${galleryFxKey}" \
 			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
 			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"
 

@@ -834,7 +834,7 @@ definitions:
         type: string
       Value:
         type: string
-      IsSystemParametr:
+      IsSystemParameter:
         type: boolean
 securityDefinitions:
   x-functions-key:

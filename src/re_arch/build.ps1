@@ -188,6 +188,8 @@ if ($publishLocalSettings) {
 	$provisionServiceConfig.Values | add-member -name "ROUTING_SERVICE_BASE_URL" -value $routingFxUrl -MemberType NoteProperty
 	$provisionServiceConfig.Values | add-member -name "PUBSUB_SERVICE_BASE_URL" -value $pubsubFxUrl -MemberType NoteProperty
 	$provisionServiceConfig.Values | add-member -name "PUBSUB_SERVICE_KEY" -value $pubsubFxKey -MemberType NoteProperty	
+	$provisionServiceConfig.Values | add-member -name "GALLERY_SERVICE_BASE_URL" -value $galleryFxUrl -MemberType NoteProperty
+	$provisionServiceConfig.Values | add-member -name "GALLERY_SERVICE_KEY" -value $galleryFxKey -MemberType NoteProperty	
 	$provisionServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty	
 	$provisionServiceConfig.Values | add-member -name "KEY_VAULT_NAME" -value $keyVaultName -MemberType NoteProperty	
 	$provisionServiceConfig | ConvertTo-Json -depth 3 | Out-File .\provision\functions\local.settings.json

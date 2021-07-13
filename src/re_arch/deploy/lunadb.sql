@@ -463,6 +463,7 @@ CREATE TABLE [gallery].[PublishedAzureMarketplacePlans](
 	[mode] [nvarchar](64) NOT NULL,
 	[parameters] [nvarchar](max) NOT NULL,
 	[LastAppliedEventId] [bigint] NULL,
+	[CreatedByEventId] [bigint] NULL,
 	[IsEnabled] [bit] NOT NULL,
 PRIMARY KEY CLUSTERED 
 (

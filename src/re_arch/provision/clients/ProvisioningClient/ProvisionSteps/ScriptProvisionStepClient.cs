@@ -1,6 +1,7 @@
 ﻿using Luna.Gallery.Public.Client;
 using Luna.Provision.Data;
 using Luna.Publish.Public.Client;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,23 +19,27 @@ namespace Luna.Provision.Clients
         private const string COMPLETED_STATUS_CONTENT = "completed";
         private const string FAILED_STATUS_CONTENT = "failed";
 
+        private readonly ILogger _logger;
+
         public ScriptProvisioningStepProp Properties { get; set; }
 
-        public ScriptProvisionStepClient(ScriptProvisioningStepProp properties)
+        public ScriptProvisionStepClient(ScriptProvisioningStepProp properties, ILogger logger)
         {
             this.Properties = properties;
+            _logger = logger;
         }
 
         public async Task<ProvisionStepExecutionResult> CheckExecutionStatusAsync(List<MarketplaceSubscriptionParameter> parameters)
         {
             var remoteUtils = GetSshUtils(parameters);
             var working_dir = parameters.LastOrDefault(x => x.Name == WORKING_DIR_PARAM_NAME);
+            var log = remoteUtils.ReadFileContent($"{working_dir.Value}/{LOG_FILE_NAME}");
             var content = remoteUtils.ReadFileContent($"{working_dir.Value}/{STATUS_FILE_NAME}");
-            if (content.Equals(COMPLETED_STATUS_CONTENT, StringComparison.InvariantCultureIgnoreCase))
+            if (content.StartsWith(COMPLETED_STATUS_CONTENT, StringComparison.InvariantCultureIgnoreCase))
             {
                 return ProvisionStepExecutionResult.Completed;
             }
-            else if (content.Equals(COMPLETED_STATUS_CONTENT, StringComparison.InvariantCultureIgnoreCase))
+            else if (content.StartsWith(FAILED_STATUS_CONTENT, StringComparison.InvariantCultureIgnoreCase))
             {
                 return ProvisionStepExecutionResult.Failed;
             }
@@ -56,6 +61,7 @@ namespace Luna.Provision.Clients
                 this.Properties.ScriptPackageUrl,
                 this.Properties.EntryScriptFileName,
                 parameters,
+                this.Properties.InputArguments,
                 LOG_FILE_NAME,
                 ERROR_LOG_FILE_NAME);
 
@@ -73,7 +79,7 @@ namespace Luna.Provision.Clients
         {
             var host = GetParameterValue(parameters, JumpboxParameterConstants.JUMPBOX_VM_PUBLIC_IP_PARAM_NAME);
             var userName = GetParameterValue(parameters, JumpboxParameterConstants.JUMPBOX_VM_USER_NAME_PARAM_NAME);
-            var privateKey = GetParameterValue(parameters, JumpboxParameterConstants.JUMPBOX_VM_SSH_KEY_PARAM_NAME);
+            var privateKey = GetParameterValue(parameters, JumpboxParameterConstants.JUMPBOX_VM_SSH_PRIVATE_KEY_PARAM_NAME);
             var passPhrase = GetParameterValue(parameters, JumpboxParameterConstants.JUMPBOX_VM_SSH_PASS_PHRASE_PARAM_NAME);
             return new SshUtils(host, userName, privateKey, passPhrase);
         }

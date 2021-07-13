@@ -1,0 +1,205 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "luna-jumpbox-azure-location": {
+            "type": "string"
+        },
+        "luna-jumpbox-vm-name": {
+            "type": "string"
+        },
+        "luna-jumpbox-ssh-public-key": {
+            "type": "secureString"
+        },
+        "roleAssignmentName": {
+            "type": "string",
+			"defaultValue": "[newGuid()]"
+        }
+    },
+    "variables": {
+        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetName'))]",
+		"networkInterfaceName": "[uniqueString(subscription().id, deployment().name)]",
+		"enableAcceleratedNetworking": true,
+		"networkSecurityGroupName": "[concat(uniqueString(subscription().id), '-nsg')]",
+		"networkSecurityGroupRules": [
+                {
+                    "name": "SSH",
+                    "properties": {
+                        "priority": 300,
+                        "protocol": "TCP",
+                        "access": "Allow",
+                        "direction": "Inbound",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "22"
+                    }
+                }
+            ],
+		"subnetName": "default",
+		"virtualNetworkName": "[concat(resourceGroup().name, '-vnet')]",
+		"addressPrefixes": [
+                "172.23.0.0/16"
+            ],
+		"subnets": [
+                {
+                    "name": "default",
+                    "properties": {
+                        "addressPrefix": "172.23.0.0/24"
+                    }
+                }
+            ],
+		"publicIpAddressName": "[concat(uniqueString(subscription().id), '-ip')]",
+		"publicIpAddressType": "Static",
+		"publicIpAddressSku": "Basic",
+		"virtualMachineComputerName": "[parameters('luna-jumpbox-vm-name')]",
+		"osDiskType": "StandardSSD_LRS",
+		"virtualMachineSize": "Standard_D2_v2",
+		"adminUsername": "azureuser"
+    },
+    "resources": [
+        {
+            "name": "[variables('networkInterfaceName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-10-01",
+            "location": "[parameters('luna-jumpbox-azure-location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', variables('publicIpAddressName'))]"
+                            }
+                        }
+                    }
+                ],
+                "enableAcceleratedNetworking": "[variables('enableAcceleratedNetworking')]",
+                "networkSecurityGroup": {
+                    "id": "[variables('nsgId')]"
+                }
+            }
+        },
+        {
+            "name": "[variables('networkSecurityGroupName')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-02-01",
+            "location": "[parameters('luna-jumpbox-azure-location')]",
+            "properties": {
+                "securityRules": "[variables('networkSecurityGroupRules')]"
+            }
+        },
+        {
+            "name": "[variables('virtualNetworkName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-11-01",
+            "location": "[parameters('luna-jumpbox-azure-location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[variables('addressPrefixes')]"
+                },
+                "subnets": "[variables('subnets')]"
+            }
+        },
+        {
+            "name": "[variables('publicIpAddressName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "2019-02-01",
+            "location": "[parameters('luna-jumpbox-azure-location')]",
+            "properties": {
+                "publicIpAllocationMethod": "[variables('publicIpAddressType')]"
+            },
+            "sku": {
+                "name": "[variables('publicIpAddressSku')]"
+            }
+        },
+        {
+            "name": "[parameters('luna-jumpbox-vm-name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2021-03-01",
+            "location": "[parameters('luna-jumpbox-azure-location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('virtualMachineSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[variables('osDiskType')]"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "18.04-LTS",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[variables('virtualMachineComputerName')]",
+                    "adminUsername": "[variables('adminUsername')]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "[concat('/home/', variables('adminUsername'), '/.ssh/authorized_keys')]",
+                                    "keyData": "[parameters('luna-jumpbox-ssh-public-key')]"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true
+                    }
+                }
+            },
+            "identity": {
+                "type": "systemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[parameters('roleAssignmentName')]",
+            "properties": {
+                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
+                "principalId": "[reference(resourceId('Microsoft.Compute/virtualMachines', parameters('luna-jumpbox-vm-name')), '2021-03-01', 'full').identity.principalId]"
+            }
+        }
+    ],
+    "outputs": {
+        "luna-jumpbox-user-name": {
+            "type": "string",
+            "value": "[variables('adminUsername')]"
+        },
+		"luna-jumpbox-vm-ip": {
+			"type": "string",
+			"value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName')),providers('Microsoft.Network', 'publicIPAddresses').apiVersions[0]).ipAddress]"
+  		}
+    }
+}
