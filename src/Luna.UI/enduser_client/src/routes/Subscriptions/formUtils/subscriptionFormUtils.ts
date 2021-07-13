@@ -7,14 +7,12 @@ import {
 
 export const getInitialCreateSubscriptionModel = (): ICreateSubscriptionModel => {
   return {
-    SubscriptionId: "",
+    Id: "",
     Name: "",
-    OfferName: "",
-    PlanName: "",
-    Owner: "",
-    Quantity: 1,
-    BeneficiaryTenantId: "",
-    PurchaserTenantId: "",
+    OfferId: "",
+    PlanId: "",
+    PublisherId: "",
+    Token: "",
     InputParameters: []
   }
 };

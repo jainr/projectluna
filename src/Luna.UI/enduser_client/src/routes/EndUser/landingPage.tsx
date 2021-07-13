@@ -108,26 +108,26 @@ const LandingPage: React.FunctionComponent = (props) => {
       }
 
       // set resolvetoken data
-      formData.planName = data.value.planId;
-      formData.offerName = data.value.offerId;
-      formData.beneficiaryTenantId = data.value.beneficiaryTenantId;
-      formData.purchaserTenantId = data.value.purchaserTenantId;
+      formData.planName = data.value.PlanId;
+      formData.offerName = data.value.OfferId;
+      formData.beneficiaryTenantId = "";
+      formData.purchaserTenantId = "";
       formData.quantity = 1;
-      formData.subscriptionId = data.value.subscriptionId;
-      formData.subscriptionName = data.value.subscriptionName;
+      formData.subscriptionId = data.value.Id;
+      formData.subscriptionName = data.value.Name;
 
       const [
         offerParametersResponse,
         subscriptionResponse,
       ] = await Promise.all([
-        OfferParameterService.list(data.value.offerId),
+        OfferParameterService.list(data.value.OfferId, data.value.PlanId),
         SubscriptionsService.list(formData.email)
       ]);
 
       // redirect to the subscription list because the user already has the subscription
       if ((subscriptionResponse.value && subscriptionResponse.success
         && (subscriptionResponse.value as ISubscriptionsModel[])
-        && (subscriptionResponse.value as ISubscriptionsModel[]).findIndex(x => x.subscriptionId === formData.subscriptionId) >= 0)
+        && (subscriptionResponse.value as ISubscriptionsModel[]).findIndex(x => x.Id === formData.subscriptionId) >= 0)
         || !offerParametersResponse.success) {
         history.push("/Subscriptions");
         return;
@@ -141,16 +141,28 @@ const LandingPage: React.FunctionComponent = (props) => {
         offerParameters.map((item, index) => {
           return (
           Parametersarray.push({
-            parameterName: item.parameterName,
-            displayName: item.displayName,
-            description: item.description,
-            valueType: item.valueType,
-            fromList: item.fromList,
-            valueList: item.valueList,
-            maximum: item.maximum,
-            minimum: item.minimum
+            parameterName: item.ParameterName,
+            displayName: item.DisplayName,
+            description: item.Description,
+            valueType: item.ValueType,
+            fromList: item.FromList,
+            valueList: item.ValueList,
+            maximum: item.Maximum,
+            minimum: item.Minimum
           }))
         });
+
+        Parametersarray.push({
+          parameterName: "luna-jumpbox-access-token",
+          displayName: "Access token",
+          description: "Access token to create jumpbox in the Azure resource group",
+          valueType: "String",
+          fromList: false,
+          valueList: "",
+          maximum: 0,
+          minimum: 0
+        });
+
         formData.inputParameters = Parametersarray;
       }
 
@@ -238,8 +250,8 @@ const LandingPage: React.FunctionComponent = (props) => {
   };
 
   const renderControls = (Parameter: IParameterModel, idx: number, handleChange, handleBlur, setFieldValue, touched) => {
-    if (Parameter.valueType === 'string') {
-      if (Parameter.valueList.length === 0) {
+    if (Parameter.valueType === 'String') {
+      if (!Parameter.valueList || Parameter.valueList.length === 0) {
         return (
           <TextField
             id={`parameterValues.${idx}.${Parameter.parameterName}`}
@@ -257,8 +269,8 @@ const LandingPage: React.FunctionComponent = (props) => {
             }} />)
 
       }
-    } else if (Parameter.valueType === 'number') {
-      if (Parameter.valueList.length === 0) {
+    } else if (Parameter.valueType === 'Number') {
+      if (!Parameter.valueList || Parameter.valueList.length === 0) {
         if (Parameter.maximum && Parameter.maximum > 0) {
           return (
             <TextField
@@ -408,16 +420,21 @@ const LandingPage: React.FunctionComponent = (props) => {
 
                 console.log(input);
 
+                var result = qs.parse(location.search);
+                if (!result.token) {
+                  setLoadingFormData(false);
+                  return;
+                }
+            
+                var token = decodeURI(result.token as string);
 
                 let subscriptionsModel = getInitialCreateSubscriptionModel();
-                subscriptionsModel.SubscriptionId = input.subscriptionId;
+                subscriptionsModel.Id = input.subscriptionId;
                 subscriptionsModel.Name = input.subscriptionName;
-                subscriptionsModel.OfferName = input.offerName;
-                subscriptionsModel.PlanName = input.planName;
-                subscriptionsModel.Owner = input.email;
-                subscriptionsModel.BeneficiaryTenantId = input.beneficiaryTenantId;
-                subscriptionsModel.PurchaserTenantId = input.purchaserTenantId;
-                subscriptionsModel.Quantity = input.quantity;
+                subscriptionsModel.OfferId = input.offerName;
+                subscriptionsModel.PlanId = input.planName;
+                subscriptionsModel.PublisherId = "";
+                subscriptionsModel.Token = token;
                 console.log('rendering items');
                 console.log('param values: ', input.parameterValues);
 

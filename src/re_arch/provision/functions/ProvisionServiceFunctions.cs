@@ -476,7 +476,7 @@ namespace Luna.Provision.Functions
                             Type = MarketplaceProvisioningStepType.ARMTemplate.ToString(),
                             Properties = new ARMTemplateProvisioningStepProp
                             {
-                                TemplateUrl = "https://lunaaidep1storage.blob.core.windows.net/lunatest/arm.json?sp=rl&st=2021-07-12T21:27:08Z&se=2021-11-24T21:27:00Z&sv=2020-08-04&sr=b&sig=XAUe%2B4ia9okGdfqhaLS7ZT4sD5ONXolhIPZbq%2F7lgzY%3D",
+                                TemplateUrl = Environment.GetEnvironmentVariable("DEPLOY_JB_ARM_TEMPLATE"),
                                 IsRunInCompleteMode = false,
                                 AzureSubscriptionIdParameterName = JumpboxParameterConstants.JUMPBOX_VM_SUB_ID_PARAM_NAME,
                                 ResourceGroupNameParameterName = JumpboxParameterConstants.JUMPBOX_VM_RG_PARAM_NAME,

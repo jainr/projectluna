@@ -111,6 +111,78 @@ export abstract class ServiceBase {
     return result;
   }
 
+  public static async sendRequest<T>(opts: IRequestOptions) : Promise<Result<T>> {
+
+    let axiosResponse: AxiosResponse | null = null;
+
+    var result: Result<T> | null = null;
+
+    var processQuery = (url: string, data: any): string => {
+      if (data) {
+        return `${url}?${jsonToUrl(data)}`;
+      }
+      return url;
+    };
+
+    var token = await ServiceBase.getTokenWithRetry();
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    var axiosRequestConfig: AxiosRequestConfig;
+    axiosRequestConfig = {
+      baseURL: window.Configs.API_ENDPOINT,
+      headers: headers
+    };
+
+    try {
+      switch (opts.method) {
+        case "GET":
+          axiosResponse = await Axios.get(processQuery(opts.url, opts.data), axiosRequestConfig);
+          break;
+        case "POST":
+          axiosResponse = await Axios.post(opts.url, opts.data, axiosRequestConfig);
+          break;
+        case "PUT":
+          axiosResponse = await Axios.put(opts.url, opts.data, axiosRequestConfig);
+          break;
+        case "DELETE":
+          axiosResponse = await Axios.delete(processQuery(opts.url, opts.data), axiosRequestConfig);
+          break;
+      }
+
+      if (!axiosResponse)
+        throw new Error('No Result');
+
+      result = new Result<T>(axiosResponse.data as T, true, null);
+
+    } catch (error) {
+
+      console.log(error);
+
+      // parse the server's error if one was provided
+      if (error.response && error.response.data !== "") {
+
+        // validation error
+        if (error.response.status === 400) {
+          if (!Array.isArray(error.response.data))
+            result = new Result<T>(null, false,[{method_error: ["One or more validation errors have occurred but we were unable to parse them. Please inspect the console for more information."]}]);
+          else
+            result = new Result<T>(null, false, error.response.data);
+        }
+        else {
+          let message = (error.title ? error.title : error.mesage);
+          ServiceBase.dispatchGlobalError(message);
+          result = new Result<T>(null, false,null);
+        }
+      }
+      else {
+        ServiceBase.dispatchGlobalError(error.message);
+        result = new Result<T>(null,false, null);
+      }
+    }
+
+    return result;
+  }
+
   private static dispatchGlobalError(message: string) {
     Cache.setItem(ERROR_STATE, { title: 'Error', description: message});
     Hub.dispatch(

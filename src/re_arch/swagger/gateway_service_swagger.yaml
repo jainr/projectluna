@@ -362,6 +362,53 @@ paths:
             $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
       security:
         - x-functions-key: [ ]
+    get:
+      tags:
+        - Azure Marketplace
+      summary: Get Azure Marketplace subscription
+      operationId: getApiMarketplaceSubscriptionsBySubscriptionId
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: subscriptionId
+          description: ID of the subscription
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
+      security:
+        - x-functions-key: [ ]
+  /api/marketplace/subscriptions:
+    get:
+      tags:
+        - Azure Marketplace
+      summary: List Azure Marketplace subscriptions
+      operationId: getApiMarketplaceSubscriptions
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
+            example:
+              Id: 7de85fed-9f81-44c0-ab36-d4540064200e
+              PublisherId: ms-ace
+              OfferId: textanalytics
+              Name: My sub
+              SaaSSubscriptionStatus: Subscribed
+              PlanId: default
+              AllowedCustomerOperations: [ ]
+              Token: 
+              InputParameters: [ ]
+      security:
+        - x-functions-key: [ ]
   '/api/manage/applications/{name}/regeneratemasterkeys':
     post:
       tags:
@@ -2053,7 +2100,7 @@ definitions:
         type: string
       Value:
         type: string
-      IsSystemParametr:
+      IsSystemParameter:
         type: boolean
   Luna.Publish.Public.Client.LunaApplicationMasterKeys:
     required:

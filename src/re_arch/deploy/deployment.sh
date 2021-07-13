@@ -336,6 +336,7 @@ publishFxKey=$(az functionapp keys list -g $resourceGroupName -n $publishFxAppNa
 partnerFxKey=$(az functionapp keys list -g $resourceGroupName -n $partnerFxAppName | ./jq -r '.functionKeys.default')
 pubsubFxKey=$(az functionapp keys list -g $resourceGroupName -n $pubsubFxAppName | ./jq -r '.functionKeys.default')
 galleryFxKey=$(az functionapp keys list -g $resourceGroupName -n $galleryFxAppName | ./jq -r '.functionKeys.default')
+deployJbArmTemplate="https://github.com/Azure/projectluna/raw/re-arch/src/re_arch/resources/arm.json"
 
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $gatewayFxAppName \
@@ -407,7 +408,8 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
 			 "GALLERY_SERVICE_BASE_URL=${galleryFxUrl}" \
 			 "GALLERY_SERVICE_KEY=${galleryFxKey}" \
 			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
-			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"
+			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}" \
+			 "DEPLOY_JB_ARM_TEMPLATE=&{deployJbArmTemplate}"
 
 if [ ${useManagedIdentity} = "y" ];
 then

@@ -185,6 +185,21 @@ namespace Luna.Gallery.Public.Client
         Task UnsubscribeMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers);
 
         /// <summary>
+        /// Get a marketplace subscription
+        /// </summary>
+        /// <param name="subscriptionId">The subscription id</param>
+        /// <param name="headers">The Luna request header</param>
+        /// <returns></returns>
+        Task<MarketplaceSubscription> GetMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers);
+
+        /// <summary>
+        /// List marketplace subscriptions
+        /// </summary>
+        /// <param name="headers">The Luna request header</param>
+        /// <returns></returns>
+        Task<List<MarketplaceSubscription>> ListMarketplaceSubscriptionsAsync(LunaRequestHeaders headers);
+
+        /// <summary>
         /// Get parameters for the specified offer and plan
         /// </summary>
         /// <param name="offerId">The offer id</param>

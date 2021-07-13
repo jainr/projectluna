@@ -1,12 +1,12 @@
 import {IBaseModel} from "./IBaseModel";
 
 export interface IOfferParameterModel extends IBaseModel {
-  parameterName: string;
-  displayName: string;
-  description: string;
-  valueType: string;
-  fromList: boolean;
-  valueList: string;
-  maximum: number | null;
-  minimum: number | null;
+  ParameterName: string;
+  DisplayName: string;
+  Description: string;
+  ValueType: string;
+  FromList: boolean;
+  ValueList: string;
+  Maximum: number | null;
+  Minimum: number | null;
 }

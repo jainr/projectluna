@@ -12,10 +12,20 @@ import {
 
 export default class SubscriptionsService extends ServiceBase {
 
+    public static async getDeviceCode(): Promise<string>{
+
+        var result = await this.sendRequest<ISubscriptionsModel[]>({
+            url: `/marketplace/subscriptions`,
+            method: "GET"
+        });
+
+        return "";
+    }
+
     public static async list(email: string): Promise<Result<ISubscriptionsModel[]>> {
 
         var result = await this.requestJson<ISubscriptionsModel[]>({
-            url: `/subscriptions?owner=${email}`,
+            url: `/marketplace/subscriptions`,
             method: "GET"
         });
 
@@ -25,7 +35,7 @@ export default class SubscriptionsService extends ServiceBase {
     public static async get(subscriptionId: string): Promise<Result<ISubscriptionsModel>> {
 
         var result = await this.requestJson<ISubscriptionsModel>({
-            url: `/subscriptions/${subscriptionId}`,
+            url: `/marketplace/subscriptions/${subscriptionId}`,
             method: "GET"
         });
 
@@ -48,7 +58,7 @@ export default class SubscriptionsService extends ServiceBase {
 
     public static async create(model: ICreateSubscriptionModel): Promise<Result<ISubscriptionsModel>> {
         var result = await this.requestJson<ISubscriptionsModel>({
-            url: `/subscriptions/${model.SubscriptionId}`,
+            url: `/marketplace/subscriptions/${model.Id}`,
             method: "PUT",
             data: model
         });

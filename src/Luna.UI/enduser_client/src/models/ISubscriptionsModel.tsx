@@ -6,10 +6,10 @@ export interface IParamModel {
 
 export interface ISubscriptionsModel {
 
-  subscriptionId: string,
-  name: string,
-  offerName: string,
-  planName: string,
+  Id: string,
+  Name: string,
+  OfferId: string,
+  PlanId: string,
   owner: string,
   quantity: number,
   beneficiaryTenantId: string,
@@ -28,8 +28,8 @@ export interface ISubscriptionsModel {
   baseUrl: string,
   secondaryKey: string,
 
-  publisherId: string,
-  status: string,
+  PublisherId: string,
+  SaaSSubscriptionStatus: string,
   isTest: boolean,
   allowedCustomerOperationsMask: number,
   sessionMode: string,
@@ -49,14 +49,12 @@ export interface ISubscriptionsModel {
 }
 
 export interface ICreateSubscriptionModel {
-  SubscriptionId: string
+  Id: string
   Name: string
-  OfferName: string
-  PlanName: string
-  Owner: string
-  Quantity: number,
-  BeneficiaryTenantId: string,
-  PurchaserTenantId: string
+  OfferId: string
+  PlanId: string
+  PublisherId: string
+  Token: string
   InputParameters: IParamModel[];
 }
 

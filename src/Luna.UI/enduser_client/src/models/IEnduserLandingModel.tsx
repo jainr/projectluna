@@ -38,13 +38,11 @@ export interface ILandingModel {
 
 export interface IResolveTokenModel {
 
-    offerId: string,
-    planId: string,
-    publisherId: string | null,
-    beneficiaryTenantId: string,
-    purchaserTenantId: string,
+    OfferId: string,
+    PlanId: string,
+    PublisherId: string | null,
     quantity: number,
-    state: number,
-    subscriptionId: string,
-    subscriptionName: string
+    SaaSSubscriptionStatus: number,
+    Id: string,
+    Name: string
 }

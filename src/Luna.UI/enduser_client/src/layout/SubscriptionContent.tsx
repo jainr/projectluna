@@ -42,10 +42,10 @@ const SubscriptionContent: React.FunctionComponent<SubscriptionProps> = (props) 
   }
 
   const [subscriptionModel, setSubscriptionModel] = useState<ISubscriptionsModel>({
-    subscriptionId: '',
-  name: '',
-  offerName: '',
-  planName: '',
+    Id: '',
+  Name: '',
+  OfferId: '',
+  PlanId: '',
   owner: '',
   quantity: 0,
   beneficiaryTenantId: '',
@@ -64,8 +64,8 @@ const SubscriptionContent: React.FunctionComponent<SubscriptionProps> = (props) 
   primaryKey: '',
   secondaryKey: '',
 
-  publisherId: '',
-  status: '',
+  PublisherId: '',
+  SaaSSubscriptionStatus: '',
   isTest: false,
   allowedCustomerOperationsMask: 0,
   sessionMode: '',
@@ -154,7 +154,7 @@ const SubscriptionContent: React.FunctionComponent<SubscriptionProps> = (props) 
               Subscription Name:
             </span>
               <span style={{marginLeft: 8}}>
-              {subscriptionModel.name}
+              {subscriptionModel.Name}
             </span>              
           </Stack.Item>
           <Stack.Item styles={{

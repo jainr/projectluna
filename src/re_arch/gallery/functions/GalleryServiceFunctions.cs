@@ -1738,8 +1738,7 @@ namespace Luna.Gallery.Functions
                     // Validate the token avoid people creating subscriptions randomly
                     if (!result.PlanId.Equals(subscription.PlanId) || 
                         !result.OfferId.Equals(subscription.OfferId) ||
-                        !result.Id.Equals(subscription.Id) ||
-                        !result.PublisherId.Equals(subscription.PublisherId))
+                        !result.Id.Equals(subscription.Id))
                     {
                         throw new LunaBadRequestUserException(ErrorMessages.INVALID_MARKETPLACE_TOKEN, UserErrorCode.InvalidToken);
                     }
@@ -1772,12 +1771,22 @@ namespace Luna.Gallery.Functions
 
                     if (plan.Mode == MarketplacePlanMode.IaaS.ToString())
                     {
-                        if (!JumpboxParameterConstants.VerifyJumpboxParameterNames(subscription.InputParameters.Select(x => x.Name).ToList()))
+                        if (!IaaSParameterConstants.VerifyIaaSParameters(subscription.InputParameters.Select(x => x.Name).ToList()))
                         {
                             throw new LunaBadRequestUserException(
-                                string.Format(ErrorMessages.REQUIRED_PARAMETER_NOT_PROVIDED, "jumpbox"),
+                                string.Format(ErrorMessages.REQUIRED_PARAMETER_NOT_PROVIDED, "IaaS"),
                                 UserErrorCode.ParameterNotProvided);
                         }
+                        CopyParameter(subscription, IaaSParameterConstants.REGION_PARAM_NAME, JumpboxParameterConstants.JUMPBOX_VM_LOCATION_PARAM_NAME);
+                        CopyParameter(subscription, IaaSParameterConstants.SUBSCRIPTION_ID_PARAM_NAME, JumpboxParameterConstants.JUMPBOX_VM_SUB_ID_PARAM_NAME);
+                        CopyParameter(subscription, IaaSParameterConstants.RESOURCE_GROUP_PARAM_NAME, JumpboxParameterConstants.JUMPBOX_VM_RG_PARAM_NAME);
+                        subscription.InputParameters.Add(new MarketplaceSubscriptionParameter
+                        {
+                            Name = JumpboxParameterConstants.JUMPBOX_VM_NAME_PARAM_NAME,
+                            Value = Guid.NewGuid().ToString(),
+                            IsSystemParameter = true,
+                            Type = MarketplaceParameterValueType.String.ToString()
+                        });
                     }
 
                     var subDb = new AzureMarketplaceSubscriptionDB(subscription, lunaHeaders.UserId, plan.CreatedByEventId);
@@ -1814,6 +1823,15 @@ namespace Luna.Gallery.Functions
                 {
                     _logger.LogMethodEnd(nameof(this.CreateMarketplaceSubscription));
                 }
+            }
+        }
+
+        private void CopyParameter(MarketplaceSubscription subscription, string copyFrom, string newParamName)
+        {
+            var param = subscription.InputParameters.SingleOrDefault(x => x.Name == copyFrom);
+            if (param != null)
+            {
+                subscription.InputParameters.Add(param.Copy(newParamName));
             }
         }
 
@@ -1950,6 +1968,126 @@ namespace Luna.Gallery.Functions
                 }
             }
         }
+
+        /// <summary>
+        /// Get Azure Marketplace subscriptions
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/subscriptions/{subscriptionId}</url>
+        /// <param name="subscriptionId" required="true" cref="string" in="path">ID of the subscription</param>
+        /// <param name="req">request</param>
+        /// <response code="200">
+        ///     <see cref="MarketplaceSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a marketplace subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetMarketplaceSubscription")]
+        public async Task<IActionResult> GetMarketplaceSubscription(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/subscriptions/{subscriptionId}")]
+            HttpRequest req,
+            Guid subscriptionId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetMarketplaceSubscription));
+
+                try
+                {
+                    var subscriptionDb = await _dbContext.AzureMarketplaceSubscriptions.
+                        SingleOrDefaultAsync(x => x.SubscriptionId == subscriptionId &&
+                        x.SaaSSubscriptionStatus != MarketplaceSubscriptionStatus.UNSUBSCRIBED &&
+                        x.OwnerId == lunaHeaders.UserId);
+
+                    if (subscriptionDb == null)
+                    {
+                        throw new LunaNotFoundUserException(string.Format(ErrorMessages.SUBSCIRPTION_DOES_NOT_EXIST, subscriptionId));
+                    }
+
+                    var result = subscriptionDb.ToMarketplaceSubscription();
+
+                    return new OkObjectResult(result);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetMarketplaceSubscription));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List Azure Marketplace subscriptions
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/subscriptions</url>
+        /// <param name="req">request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is<see cref="MarketplaceSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a marketplace subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListMarketplaceSubscription")]
+        public async Task<IActionResult> ListMarketplaceSubscription(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/subscriptions")]
+            HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListMarketplaceSubscription));
+
+                try
+                {
+                    var subscriptions = await _dbContext.AzureMarketplaceSubscriptions.
+                        Where(x => x.OwnerId == lunaHeaders.UserId && 
+                        x.SaaSSubscriptionStatus != MarketplaceSubscriptionStatus.UNSUBSCRIBED).
+                        Select(x => x.ToMarketplaceSubscription()).
+                        ToListAsync();
+
+                    return new OkObjectResult(subscriptions);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListMarketplaceSubscription));
+                }
+            }
+        }
+
         #endregion
 
         #region private methods

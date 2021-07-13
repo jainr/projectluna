@@ -139,13 +139,13 @@ const Subscriptions: React.FunctionComponent = () => {
         } else {
           return <span>{item.name}</span>;
         }*/
-        if (item.status.toLowerCase() === "subscribed") {
+        if (item.SaaSSubscriptionStatus.toLowerCase() === "subscribed") {
           return <span style={{cursor: 'pointer', color: 'rgb(0, 120, 212)'}}
                        onClick={() => {
-                         editdetailsV2(item.subscriptionId, item.name, item.baseUrl, item.primaryKey, item.secondaryKey, item.offerName, item.planName)
-                       }}>{item.name}</span>;
+                         editdetailsV2(item.Id, item.Name, item.baseUrl, item.primaryKey, item.secondaryKey, item.OfferId, item.PlanId)
+                       }}>{item.Name}</span>;
         } else {
-          return <span>{item.name}</span>;
+          return <span>{item.Name}</span>;
         }
       }
     },
@@ -168,7 +168,7 @@ const Subscriptions: React.FunctionComponent = () => {
       sortDescendingAriaLabel: 'Sorted Z to A',
       isPadded: true,
       onRender: (item: ISubscriptionsModel) => {
-        return <span>{item.subscriptionId}</span>;
+        return <span>{item.Id}</span>;
       }
     },
     {
@@ -190,7 +190,7 @@ const Subscriptions: React.FunctionComponent = () => {
       sortDescendingAriaLabel: 'Sorted Z to A',
       isPadded: true,
       onRender: (item: ISubscriptionsModel) => {
-        return <span>{item.offerName}</span>;
+        return <span>{item.OfferId}</span>;
       }
     },
     {
@@ -212,7 +212,7 @@ const Subscriptions: React.FunctionComponent = () => {
       sortDescendingAriaLabel: 'Sorted Z to A',
       isPadded: true,
       onRender: (item: ISubscriptionsModel) => {
-        return <span>{item.planName}</span>;
+        return <span>{item.PlanId}</span>;
       }
     },
     {
@@ -256,7 +256,7 @@ const Subscriptions: React.FunctionComponent = () => {
       sortDescendingAriaLabel: 'Sorted Z to A',
       isPadded: true,
       onRender: (item: ISubscriptionsModel) => {
-        return <span>{item.status}</span>;
+        return <span>{item.SaaSSubscriptionStatus}</span>;
       }
     },
     {
@@ -285,18 +285,18 @@ const Subscriptions: React.FunctionComponent = () => {
             }}
           >
 
-            {item.status === "Subscribed" && item.provisioningStatus === "Succeeded" ?
+            {item.SaaSSubscriptionStatus === "Subscribed" && item.provisioningStatus === "Succeeded" ?
               <FontIcon style={{lineHeight: '20px'}} iconName="Edit" className="deleteicon" onClick={() => {
-                updatePlan(item.subscriptionId, item.name, item)
+                updatePlan(item.Id, item.Name, item)
               }}/> : null}
 
             <FontIcon style={{lineHeight: '20px'}} iconName="History" className="deleteicon" onClick={() => {
-              showHistory(item.subscriptionId)
+              showHistory(item.Id)
             }}/>
 
-            {item.status === "Subscribed" && item.provisioningStatus === "Succeeded" ?
+            {item.SaaSSubscriptionStatus === "Subscribed" && item.provisioningStatus === "Succeeded" ?
               <FontIcon style={{lineHeight: '20px'}} iconName="Cancel" className="deleteicon" onClick={() => {
-                deleteSubscription(item.subscriptionId, item.name)
+                deleteSubscription(item.Id, item.Name)
               }}/> : null}
           </Stack>
         )
@@ -565,7 +565,7 @@ const Subscriptions: React.FunctionComponent = () => {
     statusarray.map((value, index) => {
       return (
         statusDropDown.push(
-          {key: value.toLowerCase(), text: value},
+          {key: value, text: value},
         ))
     })
     setStatusList(statusDropDown);
@@ -636,15 +636,15 @@ const Subscriptions: React.FunctionComponent = () => {
   }, []);
 
   const updatePlan = async (subscriptionId: string, subscriptionName: string, selectedSubscription: ISubscriptionsModel) => {
-    await getPlans(selectedSubscription.offerName)
+    await getPlans(selectedSubscription.OfferId)
     setloadingSubcriptionPost(true);
     console.log('openconfirmCancellationPopUp: ' + subscriptionId);
     setSubscriptionPost(
       {
         SubscriptionId: subscriptionId,
-        CurrentPlanName: selectedSubscription.planName,
+        CurrentPlanName: selectedSubscription.PlanId,
         PlanName: "",
-        OfferName: selectedSubscription.offerName,
+        OfferName: selectedSubscription.OfferId,
         SubscriptionName: subscriptionName,
         SubscriptionVerifiedName: "",
         isUpdatePlan: true

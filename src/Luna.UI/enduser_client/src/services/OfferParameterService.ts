@@ -5,10 +5,10 @@ import {v4 as uuid} from "uuid";
 
 export default class OfferParameterService extends ServiceBase {
 
-  public static async list(offerName: string): Promise<Result<IOfferParameterModel[]>> {
+  public static async list(offerName: string, planName: string): Promise<Result<IOfferParameterModel[]>> {
 
     var result = await this.requestJson<IOfferParameterModel[]>({
-      url: `/offers/${offerName}/offerParameters`,
+      url: `gallery/offers/${offerName}/plans/${planName}/parameters`,
       method: "GET"
     });
 
@@ -33,7 +33,7 @@ export default class OfferParameterService extends ServiceBase {
 
   public static async update(offerName: string, model: IOfferParameterModel): Promise<Result<IOfferParameterModel>> {
     var result = await this.requestJson<IOfferParameterModel>({
-      url: `/offers/${offerName}/offerParameters/${model.parameterName}`,
+      url: `/offers/${offerName}/offerParameters/${model.ParameterName}`,
       method: "PUT",
       data: model
     });
@@ -55,7 +55,7 @@ export default class OfferParameterService extends ServiceBase {
   public static async create(offerName: string, model: IOfferParameterModel): Promise<Result<IOfferParameterModel>> {
 
     var result = await this.requestJson<IOfferParameterModel>({
-      url: `/offers/${offerName}/offerParameters/${model.parameterName}`,
+      url: `/offers/${offerName}/offerParameters/${model.ParameterName}`,
       method: "PUT",
       data: model
     });

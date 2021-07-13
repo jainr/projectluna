@@ -13,5 +13,16 @@ namespace Luna.Gallery.Public.Client
         public string Value { get; set; }
 
         public bool IsSystemParameter { get; set; }
+
+        public MarketplaceSubscriptionParameter Copy(string name)
+        {
+            return new MarketplaceSubscriptionParameter
+            {
+                Name = name,
+                Type = this.Type,
+                Value = this.Value,
+                IsSystemParameter = this.IsSystemParameter
+            };
+        }
     }
 }

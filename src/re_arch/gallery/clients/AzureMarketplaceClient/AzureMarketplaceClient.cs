@@ -52,6 +52,12 @@ namespace Luna.Gallery.Clients
         {
             Uri requestUri = new Uri(@$"https://marketplaceapi.microsoft.com/api/saas/subscriptions/resolve?api-version={API_VERSION}");
 
+            //Remove the quotes if exist
+            if (token.StartsWith("\"") && token.EndsWith("\""))
+            {
+                token = token.Substring(1, token.Length - 2);
+            }
+
             Dictionary<string, string> additionalHeaders = new Dictionary<string, string>();
             additionalHeaders.Add(MARKETPLACE_TOKEN_HEADER_NAME, token);
 

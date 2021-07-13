@@ -450,6 +450,43 @@ namespace Luna.Gallery.Public.Client
         }
 
         /// <summary>
+        /// Get a marketplace subscription
+        /// </summary>
+        /// <param name="subscriptionId">The subscription id</param>
+        /// <param name="headers">The Luna request header</param>
+        /// <returns></returns>
+        public async Task<MarketplaceSubscription> GetMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"marketplace/subscriptions/{subscriptionId}");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            var result = JsonConvert.DeserializeObject<MarketplaceSubscription>(await response.Content.ReadAsStringAsync());
+
+            return result;
+        }
+
+        /// <summary>
+        /// List marketplace subscriptions
+        /// </summary>
+        /// <param name="headers">The Luna request header</param>
+        /// <returns></returns>
+        public async Task<List<MarketplaceSubscription>> ListMarketplaceSubscriptionsAsync(LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"marketplace/subscriptions");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            var result = JsonConvert.DeserializeObject<List<MarketplaceSubscription>>(await response.Content.ReadAsStringAsync());
+
+            return result;
+        }
+
+        /// <summary>
         /// Get parameters for the specified offer and plan
         /// </summary>
         /// <param name="offerId">The offer id</param>

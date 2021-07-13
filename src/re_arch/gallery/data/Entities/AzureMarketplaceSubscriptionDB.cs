@@ -27,6 +27,21 @@ namespace Luna.Gallery.Data
             this.OwnerId = ownerId;
         }
 
+        public MarketplaceSubscription ToMarketplaceSubscription()
+        {
+            var sub = new MarketplaceSubscription
+            {
+                Id = this.SubscriptionId,
+                Name = this.SubscriptionName,
+                OfferId = this.OfferId,
+                PlanId = this.PlanId,
+                PublisherId = this.Publisher,
+                SaaSSubscriptionStatus = this.SaaSSubscriptionStatus
+            };
+
+            return sub;
+        }
+
         public MarketplaceSubscriptionEventContent ToEventContent()
         {
             return new MarketplaceSubscriptionEventContent()

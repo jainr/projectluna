@@ -1023,6 +1023,111 @@ namespace Luna.Gateway.Functions
             }
         }
 
+        /// <summary>
+        /// Get Azure Marketplace subscription
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/subscriptions/{subscriptionId}</url>
+        /// <param name="subscriptionId" required="true" cref="string" in="path">ID of the subscription</param>
+        /// <param name="req">req</param>
+        /// <response code="200">
+        ///     <see cref="MarketplaceSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a marketplace subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetMarketplaceSubscription")]
+        public async Task<IActionResult> GetMarketplaceSubscription(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/subscriptions/{subscriptionId}")]
+            HttpRequest req,
+            Guid subscriptionId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetMarketplaceSubscription));
+
+                try
+                {
+                    var result = await _galleryServiceClient.GetMarketplaceSubscriptionAsync(subscriptionId, lunaHeaders);
+                    return new OkObjectResult(result);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetMarketplaceSubscription));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List Azure Marketplace subscriptions
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/subscriptions</url>
+        /// <param name="req">req</param>
+        /// <response code="200">
+        /// <see cref="List{T}"/>
+        ///     where T is <see cref="MarketplaceSubscription"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceSubscription.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a marketplace subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListMarketplaceSubscriptions")]
+        public async Task<IActionResult> ListMarketplaceSubscriptions(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/subscriptions")]
+            HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListMarketplaceSubscriptions));
+
+                try
+                {
+                    var result = await _galleryServiceClient.ListMarketplaceSubscriptionsAsync(lunaHeaders);
+                    return new OkObjectResult(result);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListMarketplaceSubscriptions));
+                }
+            }
+        }
+
         #endregion
 
         #region publish - Luna application

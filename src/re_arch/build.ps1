@@ -122,6 +122,8 @@ if ($publishLocalSettings) {
 	$galleryFx = az functionapp keys list -g $config.resourceGroupName -n $galleryFxAppName | ConvertFrom-Json
 	$galleryFxKey = $galleryFx.functionKeys.default
 	
+	$deployJbArmTemplateUrl = "https://github.com/Azure/projectluna/raw/re-arch/src/re_arch/resources/arm.json"
+	
 	$publishServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
 	$publishServiceConfig.Values | add-member -name "AzureWebJobsStorage" -value $storageConnectionString -MemberType NoteProperty
 	$publishServiceConfig.Values | add-member -name "PUBSUB_SERVICE_BASE_URL" -value $pubsubFxUrl -MemberType NoteProperty
@@ -192,5 +194,6 @@ if ($publishLocalSettings) {
 	$provisionServiceConfig.Values | add-member -name "GALLERY_SERVICE_KEY" -value $galleryFxKey -MemberType NoteProperty	
 	$provisionServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty	
 	$provisionServiceConfig.Values | add-member -name "KEY_VAULT_NAME" -value $keyVaultName -MemberType NoteProperty	
+	$provisionServiceConfig.Values | add-member -name "DEPLOY_JB_ARM_TEMPLATE" -value $deployJbArmTemplateUrl -MemberType NoteProperty	
 	$provisionServiceConfig | ConvertTo-Json -depth 3 | Out-File .\provision\functions\local.settings.json
 }
