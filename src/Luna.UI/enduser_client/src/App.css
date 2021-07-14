@@ -394,6 +394,18 @@ div.is-selected > button::after {
   cursor: pointer;
 }
 
+.signinicon {
+  font-size: 25px;
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+}
+
+.signInbutton i {
+  /* margin-right: 16px; */
+  font-size: 15px;
+  padding: 8px;
+}
+
 .addbutton i {
   /* margin-right: 16px; */
   font-size: 15px;
@@ -451,12 +463,13 @@ table.offer thead tr th {
   padding: 0 20px 20px 20px;
 }
 .mainlanding td {
+  vertical-align: top;
   text-align: left;
   line-height: 30px;
 }
 
 .mainlanding {
-  width: 570px;
+  width: 370px;
 }
 .mainlanding td:first-child {
   text-align: left;
@@ -473,8 +486,10 @@ table.offer thead tr th {
   border: 1px solid #00af66;
 }
 .mainlanding .ms-TextField .ms-TextField-fieldGroup {
-  border-color: transparent;
+  border-color: #999999;
 }
+
+
 .mainlanding .graydropdown {
   color: #2288d8;
 }

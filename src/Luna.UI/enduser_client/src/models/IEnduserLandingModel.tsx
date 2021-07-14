@@ -33,7 +33,10 @@ export interface ILandingModel {
     parameterValues: [],
     isUpdatePlan:boolean,
     availablePlanName:string,
-    planlist: IDropdownOption[]
+    planlist: IDropdownOption[],
+    deviceCode: string | undefined,
+    userCode: string | undefined,
+    accessToken: string | undefined
 }
 
 export interface IResolveTokenModel {

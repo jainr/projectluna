@@ -4,6 +4,24 @@ export interface IParamModel {
   value: any
 }
 
+export interface IDeviceTokenModel{
+  user_code: string,
+  device_code: string,
+  verification_url: string,
+  expires_in: number,
+  interval: number,
+  message: string
+}
+
+export interface IAccessTokenModel{
+  token_type: string,
+  scope: string,
+  expires_in: string,
+  ext_expires_in: string,
+  expires_on: string,
+  access_token: string
+}
+
 export interface ISubscriptionsModel {
 
   Id: string,

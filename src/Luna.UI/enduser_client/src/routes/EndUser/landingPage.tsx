@@ -12,7 +12,10 @@ import {
   Stack,
   TextField,
   ChoiceGroup,
+  DefaultButton,
+  FontIcon,
 } from 'office-ui-fabric-react';
+import FormLabel from "../../shared/components/FormLabel";
 import { Form, Formik } from 'formik';
 import { ILandingModel, IParameterModel } from '../../models/IEnduserLandingModel';
 import { Loading } from '../../shared/components/Loading';
@@ -45,6 +48,7 @@ const LandingPage: React.FunctionComponent = (props) => {
   const [formState, setFormState] = useState<ILandingModel>(getInitialLandingModel());
   const [formError, setFormError] = useState<string | null>(null);
   const [loadingFormData, setLoadingFormData] = useState<boolean>(true);
+  const [accessTokenObtained, setAccessTokenObtained] = useState<boolean>(false);
   const location = useLocation();
   const DayPickerStrings: IDatePickerStrings = {
     months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
@@ -117,12 +121,19 @@ const LandingPage: React.FunctionComponent = (props) => {
       formData.subscriptionName = data.value.Name;
 
       const [
+        deviceCodeResponse,
         offerParametersResponse,
         subscriptionResponse,
       ] = await Promise.all([
+        SubscriptionsService.getDeviceCode(),
         OfferParameterService.list(data.value.OfferId, data.value.PlanId),
         SubscriptionsService.list(formData.email)
       ]);
+
+      if (deviceCodeResponse.success && deviceCodeResponse.value){
+        formData.deviceCode = deviceCodeResponse.value.device_code
+        formData.userCode = deviceCodeResponse.value.user_code
+      }
 
       // redirect to the subscription list because the user already has the subscription
       if ((subscriptionResponse.value && subscriptionResponse.success
@@ -150,17 +161,6 @@ const LandingPage: React.FunctionComponent = (props) => {
             maximum: item.Maximum,
             minimum: item.Minimum
           }))
-        });
-
-        Parametersarray.push({
-          parameterName: "luna-jumpbox-access-token",
-          displayName: "Access token",
-          description: "Access token to create jumpbox in the Azure resource group",
-          valueType: "String",
-          fromList: false,
-          valueList: "",
-          maximum: 0,
-          minimum: 0
         });
 
         formData.inputParameters = Parametersarray;
@@ -259,7 +259,7 @@ const LandingPage: React.FunctionComponent = (props) => {
             onChange={handleChange}
             onBlur={handleBlur}
             // errorMessage={arrayItemErrorMessage(errors, touched, 'offerParameters', idx, 'description')}
-            placeholder={Parameter.displayName} />)
+            placeholder={Parameter.description} />)
       } else {
         return (
           <Dropdown options={dropDownValues(Parameter.valueList)}
@@ -365,7 +365,30 @@ const LandingPage: React.FunctionComponent = (props) => {
     let hdf = document.getElementById(fieldKey) as HTMLElement;
     hdf.setAttribute('value', option);
   }
+  /*
+  function copyText(text){
+    let input = document.createElement("input");
+  
+    input.style.opacity="0";
+    input.style["pointer-events"] = "none";
+    document.body.appendChild(input);
+    input.value = text;
+    input.focus();
+    input.select();
+    document.execCommand('copy');
+  }
+*/
+function copyText(text){
+  let input = document.querySelector("#usercode");
 
+  if (input && input instanceof HTMLInputElement){
+    input.focus();
+    input.select();
+    document.execCommand('copy');
+    input.blur();
+  }
+
+}
   return (
     <Stack
       verticalAlign="start"
@@ -415,6 +438,10 @@ const LandingPage: React.FunctionComponent = (props) => {
               // validationSchema={landingInfoValidationSchema}
               onSubmit={async (values, { setSubmitting, setErrors }) => {
 
+                if (!accessTokenObtained){
+                  toast.error("Access Token is not abtained.");
+                  return;
+                }
                 globalContext.showProcessing();
                 const input = { ...values };
 
@@ -458,6 +485,13 @@ const LandingPage: React.FunctionComponent = (props) => {
                       }))
                   }
                 })
+                
+                subscriptionsModel.InputParameters.push(
+                  {
+                    name: 'luna-jumpbox-access-token',
+                    type: 'String',
+                    value: input.accessToken
+                  })
 
                 let createSubscriptionsResult = await SubscriptionsService.create(subscriptionsModel);
 
@@ -484,70 +518,104 @@ const LandingPage: React.FunctionComponent = (props) => {
                       <div className="landingpagecontainner">
                         <div style={{ borderBottom: '1px solid #efefef', minHeight: '55px' }} className="headertitle">
                           <div style={{ textAlign: 'left' }}>
-                            <span>Configure Subscription</span>
+                            <span><h2>Configure and activate SaaS Subscription</h2></span>
                           </div>
                           <div style={{ textAlign: 'right' }}>
                             <PrimaryButton type="submit" id="btnsubmit" style={{ width: '100px' }}
-                              className="button">Submit</PrimaryButton>
+                              className="button">Activate</PrimaryButton>
+                          </div>
+                          <div style={{ textAlign: 'left' }}>
+                            <span><h4></h4></span>
                           </div>
                         </div>
                         <table className="mainlanding">
                           <tbody>
                             <tr>
                               <td>
-                                <span>Email:</span>
+                                <span><h4 style={{backgroundColor: '#dddddd', paddingLeft: '5px'}}>1. Review SaaS subscription info</h4></span>
                               </td>
                               <td>
-                                <span>{values.email}</span>
+                                <span><h4 style={{backgroundColor: '#dddddd', paddingLeft: '5px'}}>2. Fill in parameters</h4></span>
+                              </td>
+                              <td>
+                                <span><h4 style={{backgroundColor: '#dddddd', paddingLeft: '5px'}}>3. Get Azure access token</h4></span>
                               </td>
                             </tr>
                             <tr>
                               <td>
-                                <span>Subscriber full name:</span>
+                                <table className="mainlanding">
+                                  <tbody>
+                                    <tr>
+                                      <td>
+                                        <span><b>Email:</b></span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <span>{values.email}</span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <span><b>Subscriber full name:</b></span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <span>{values.fullName}</span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <span><b>Offer Id:</b></span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <span>{values.offerName}</span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <span><b>Current Plan:</b></span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td><span>{values.planName}</span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <span><b>SaaS Subscription ID:</b></span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <span>{values.subscriptionId}</span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <span><b>SaaS Subscription Name:</b></span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>
+                                        <span>{values.subscriptionName}</span>
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
                               </td>
                               <td>
-                                <span>{values.fullName}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <span>OfferId:</span>
-                              </td>
-                              <td>
-                                <span>{values.offerName}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <span>Current Plan:</span>
-                              </td>
-                              <td><span>{values.planName}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <span>Saas Subscription ID:</span>
-                              </td>
-                              <td>
-                                <span>{values.subscriptionId}</span>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <span>Subscription Name:</span>
-                              </td>
-                              <td>
-                                <span>{values.subscriptionName}</span>
-                              </td>
-                            </tr>
+                        <table className="mainlanding">
+                          <tbody>
                             {values.inputParameters ?
                               values.inputParameters.map((item, index) => {
                                 return (
                                   <tr key={index}>
                                     <td>
-                                      <span>{item.displayName}</span>
-                                    </td>
-                                    <td>
+                                      <span><b>{item.displayName}</b></span>
                                       {
                                         renderControls(item, index, handleChange, handleBlur, setFieldValue, touched)
                                       }
@@ -556,6 +624,77 @@ const LandingPage: React.FunctionComponent = (props) => {
                                 )
                               })
                               : null}
+                              </tbody>
+                              </table>
+                              </td>
+                              <td>
+                        <table className="mainlanding">
+                          <tbody>
+                              <tr>
+                                <td>
+                                  <span><b>3.1 Sign in to Azure CLI with device code</b></span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                <PrimaryButton type="button" id="btnsubmit" className="signInbutton"
+                onClick={(e) => {
+                  if (values.userCode){
+                    copyText(values.userCode)
+                    window.open("https://microsoft.com/devicelogin", "_blank")
+                  }
+                }}>
+                <FontIcon iconName="Signin" className="signinicon" />Copy code and sign in
+              </PrimaryButton>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <span><FormLabel title={"If the link above does not work, "}/><br/>
+                                    <FormLabel title={"use a web browser to open the page "}/><br/>
+                                  <a href="https://microsoft.com/devicelogin" target="_blank">https://microsoft.com/devicelogin</a><br/>
+                                  <FormLabel title={"and enter following code "}/></span>
+                                                        
+                                  <TextField
+                                    id={`usercode`}
+                                    value={values.userCode}
+                                    borderless={true}
+                                    style={{paddingLeft: '0px', height: '15px'}}/>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <span><b>3.2 Get Azure access token</b></span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <span><PrimaryButton type="button" id="btnsubmit" className="signInbutton"
+                onClick={() => {
+                  if (values.deviceCode){
+                    SubscriptionsService.getAccessToken(values.deviceCode).then(response => { 
+                      if (response.value) {
+                        values.accessToken = response.value.access_token
+                        setAccessTokenObtained(true)
+                      }
+                      })
+                  }
+
+                }}>
+                <FontIcon iconName="PasswordField" className="signinicon" />Get Access Token
+              </PrimaryButton>
+              </span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <span><FormLabel title={accessTokenObtained?"Access token obtained!":""}/></span>
+                                </td>
+                              </tr>
+                          </tbody>
+                        </table>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
                       </div>

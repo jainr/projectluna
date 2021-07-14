@@ -25,6 +25,9 @@ export const getInitialLandingModel = (): ILandingModel => {
     parameterValues: [],
     availablePlanName: '',
     isUpdatePlan: false,
+    deviceCode: '',
+    accessToken: '',
+    userCode: '',
     planlist: []
   }
 };

@@ -111,7 +111,7 @@ export abstract class ServiceBase {
     return result;
   }
 
-  public static async sendRequest<T>(opts: IRequestOptions) : Promise<Result<T>> {
+  public static async sendRequest<T>(baseUrl: string, headers: any, opts: IRequestOptions) : Promise<Result<T>> {
 
     let axiosResponse: AxiosResponse | null = null;
 
@@ -124,12 +124,9 @@ export abstract class ServiceBase {
       return url;
     };
 
-    var token = await ServiceBase.getTokenWithRetry();
-    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-
     var axiosRequestConfig: AxiosRequestConfig;
     axiosRequestConfig = {
-      baseURL: window.Configs.API_ENDPOINT,
+      baseURL: baseUrl,
       headers: headers
     };
 

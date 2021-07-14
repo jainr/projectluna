@@ -1,7 +1,8 @@
 import {ServiceBase} from "../services/ServiceBase";
 import {
     ICreateSubscriptionModel,
-    
+    IAccessTokenModel,
+    IDeviceTokenModel,
     IOperationHistoryModel,
     ISubscriptionsModel,
     ISubscriptionWarningsModel, IUpdateSubscriptionModel,
@@ -12,14 +13,25 @@ import {
 
 export default class SubscriptionsService extends ServiceBase {
 
-    public static async getDeviceCode(): Promise<string>{
+    public static async getDeviceCode(): Promise<Result<IDeviceTokenModel>>{
 
-        var result = await this.sendRequest<ISubscriptionsModel[]>({
-            url: `/marketplace/subscriptions`,
+        var result = await this.requestJson<IDeviceTokenModel>({
+            url: `/manage/devicecode`,
             method: "GET"
         });
 
-        return "";
+        return result;
+    }
+
+
+    public static async getAccessToken(code: string): Promise<Result<IAccessTokenModel>>{
+
+        var result = await this.requestJson<IAccessTokenModel>({
+            url: `/manage/accessToken?device_code=${code}`,
+            method: "GET"
+        });
+
+        return result;
     }
 
     public static async list(email: string): Promise<Result<ISubscriptionsModel[]>> {
