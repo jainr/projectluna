@@ -49,6 +49,7 @@ const LandingPage: React.FunctionComponent = (props) => {
   const [formError, setFormError] = useState<string | null>(null);
   const [loadingFormData, setLoadingFormData] = useState<boolean>(true);
   const [accessTokenObtained, setAccessTokenObtained] = useState<boolean>(false);
+  const [enableGetAccessToken, setEnableGetAccessToken] = useState<boolean>(false);
   const location = useLocation();
   const DayPickerStrings: IDatePickerStrings = {
     months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
@@ -360,6 +361,10 @@ const LandingPage: React.FunctionComponent = (props) => {
     hdf.setAttribute('value', key);
   }
 
+  function sleep (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+  }
+  
   function setDefaultRBTValue(fieldKey: string, setFieldValue, option: any): void {
     setFieldValue(fieldKey, option, true);
     let hdf = document.getElementById(fieldKey) as HTMLElement;
@@ -521,8 +526,6 @@ function copyText(text){
                             <span><h2>Configure and activate SaaS Subscription</h2></span>
                           </div>
                           <div style={{ textAlign: 'right' }}>
-                            <PrimaryButton type="submit" id="btnsubmit" style={{ width: '100px' }}
-                              className="button">Activate</PrimaryButton>
                           </div>
                           <div style={{ textAlign: 'left' }}>
                             <span><h4></h4></span>
@@ -641,7 +644,11 @@ function copyText(text){
                 onClick={(e) => {
                   if (values.userCode){
                     copyText(values.userCode)
-                    window.open("https://microsoft.com/devicelogin", "_blank")
+                    toast.success("Code copied! Opening login page...")
+                    sleep(3000).then(() => {
+                      window.open("https://microsoft.com/devicelogin", "_blank")
+                      setEnableGetAccessToken(true)
+                    })
                   }
                 }}>
                 <FontIcon iconName="Signin" className="signinicon" />Copy code and sign in
@@ -669,12 +676,13 @@ function copyText(text){
                               </tr>
                               <tr>
                                 <td>
-                                  <span><PrimaryButton type="button" id="btnsubmit" className="signInbutton"
+                                  <span><PrimaryButton disabled={!enableGetAccessToken} type="button" id="btnsubmit" className="signInbutton"
                 onClick={() => {
                   if (values.deviceCode){
                     SubscriptionsService.getAccessToken(values.deviceCode).then(response => { 
                       if (response.value) {
                         values.accessToken = response.value.access_token
+                        toast.success("Access token obtained!")
                         setAccessTokenObtained(true)
                       }
                       })
@@ -688,7 +696,14 @@ function copyText(text){
                               </tr>
                               <tr>
                                 <td>
-                                  <span><FormLabel title={accessTokenObtained?"Access token obtained!":""}/></span>
+                                  <span><b>3.3 Activate your SaaS subscription</b></span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>
+                                  <span>
+                            <PrimaryButton disabled={!accessTokenObtained} type="submit" id="btnsubmit" className="signInbutton">
+                              <FontIcon iconName="PasswordField" className="PowerButton" />Activate</PrimaryButton></span>
                                 </td>
                               </tr>
                           </tbody>

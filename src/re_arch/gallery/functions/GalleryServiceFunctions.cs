@@ -1042,7 +1042,9 @@ namespace Luna.Gallery.Functions
                 {
                     var subscriptions = await _dbContext.LunaApplicationSubscriptions.
                         Include(x => x.Owners).
-                        Where(x => x.ApplicationName == appName && x.Owners.Any(o => o.UserId == lunaHeaders.UserId)).
+                        Where(x => x.ApplicationName == appName && 
+                            x.Status == LunaApplicationSubscriptionStatus.SUBCRIBED &&
+                            x.Owners.Any(o => o.UserId == lunaHeaders.UserId)).
                         ToListAsync();
 
                     return new OkObjectResult(subscriptions);
