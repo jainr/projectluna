@@ -21,7 +21,7 @@ namespace Luna.Common.Utils
 
         }
 
-        public static JsonResult HandleExceptions(Exception ex, ILogger logger, string traceId)
+        public static ContentResult HandleExceptions(Exception ex, ILogger logger, string traceId)
         {
             var errorModel = new ErrorModel(ex, traceId);
             logger.LogError(errorModel.ToString());

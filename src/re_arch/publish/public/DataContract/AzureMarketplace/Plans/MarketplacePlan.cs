@@ -8,6 +8,9 @@ namespace Luna.Publish.Public.Client
 {
     public class MarketplacePlan
     {
+
+        public static string example = "{}";
+
         public MarketplacePlan()
         {
             this.Parameters = new List<MarketplaceParameter>();

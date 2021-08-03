@@ -198,8 +198,8 @@ namespace Luna.Publish.Public.Client
         /// <param name="offer">The offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer created</returns>
-        Task<AzureMarketplaceOffer> CreateMarketplaceOfferAsync(string name, 
-            AzureMarketplaceOffer offer, 
+        Task<MarketplaceOffer> CreateMarketplaceOfferAsync(string name,
+            MarketplaceOffer offer, 
             LunaRequestHeaders headers);
 
         /// <summary>
@@ -209,8 +209,8 @@ namespace Luna.Publish.Public.Client
         /// <param name="offer">The offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer created</returns>
-        Task<AzureMarketplaceOffer> UpdateMarketplaceOfferAsync(string name,
-            AzureMarketplaceOffer offer,
+        Task<MarketplaceOffer> UpdateMarketplaceOfferAsync(string name,
+            MarketplaceOffer offer,
             LunaRequestHeaders headers);
 
         /// <summary>
@@ -254,9 +254,9 @@ namespace Luna.Publish.Public.Client
         /// <param name="plan">The plan</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The plan created</returns>
-        Task<AzureMarketplacePlan> CreateMarketplacePlanAsync(string offerName,
+        Task<MarketplacePlan> CreateMarketplacePlanAsync(string offerName,
             string planName,
-            AzureMarketplacePlan plan,
+            MarketplacePlan plan,
             LunaRequestHeaders headers);
 
         /// Update a plan in Azure marketplace offer
@@ -266,9 +266,9 @@ namespace Luna.Publish.Public.Client
         /// <param name="plan">The plan</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The plan created</returns>
-        Task<AzureMarketplacePlan> UpdateMarketplacePlanAsync(string offerName,
+        Task<MarketplacePlan> UpdateMarketplacePlanAsync(string offerName,
             string planName,
-            AzureMarketplacePlan plan,
+            MarketplacePlan plan,
             LunaRequestHeaders headers);
 
         /// Delete a plan in Azure marketplace offer
@@ -287,7 +287,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="planName">Name of the plan</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The plan</returns>
-        Task<AzureMarketplacePlan> GetMarketplacePlanAsync(string offerName,
+        Task<MarketplacePlan> GetMarketplacePlanAsync(string offerName,
             string planName,
             LunaRequestHeaders headers);
 
@@ -296,7 +296,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="offerName">Name of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The plans</returns>
-        Task<List<AzureMarketplacePlan>> ListMarketplacePlansAsync(string offerName,
+        Task<List<MarketplacePlan>> ListMarketplacePlansAsync(string offerName,
             LunaRequestHeaders headers);
 
         /// <summary>

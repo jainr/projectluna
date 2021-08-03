@@ -124,62 +124,6 @@ paths:
       security:
         - x-functions-key: [ ]
   '/api/marketplace/offers/{offerId}':
-    put:
-      tags:
-        - Azure Marketplace
-      summary: Create an Azure Marketplace SaaS offer
-      operationId: putApiMarketplaceOffersByOfferId
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: offerId
-          description: Id of marketplace SaaS offer
-          required: true
-          type: string
-        - in: body
-          name: body
-          description: Request contract
-          required: true
-          schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
-      security:
-        - x-functions-key: [ ]
-    patch:
-      tags:
-        - Azure Marketplace
-      summary: Update an Azure Marketplace SaaS offer
-      operationId: patchApiMarketplaceOffersByOfferId
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: offerId
-          description: Id of marketplace SaaS offer
-          required: true
-          type: string
-        - in: body
-          name: body
-          description: Request contract
-          required: true
-          schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
-      security:
-        - x-functions-key: [ ]
     delete:
       tags:
         - Azure Marketplace
@@ -194,26 +138,6 @@ paths:
       responses:
         '204':
           description: Success
-      security:
-        - x-functions-key: [ ]
-    get:
-      tags:
-        - Azure Marketplace
-      summary: Get an Azure Marketplace SaaS offer
-      operationId: getApiMarketplaceOffersByOfferId
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: offerId
-          description: Id of marketplace SaaS offer
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
       security:
         - x-functions-key: [ ]
   '/api/marketplace/offers/{offerId}/publish':
@@ -231,33 +155,6 @@ paths:
       responses:
         '204':
           description: Success
-      security:
-        - x-functions-key: [ ]
-  /api/marketplace/offers:
-    get:
-      tags:
-        - Azure Marketplace
-      summary: List Azure Marketplace SaaS offers
-      operationId: getApiMarketplaceOffers
-      produces:
-        - application/json
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplaceOffer'
-            example:
-              MarketplaceOfferId: myoffer
-              DisplayName: My Offer
-              Description: This is my offer
-              Status: Draft
-              CreatedTime: '2021-06-09T17:23:13.1352800-07:00'
-              LastUpdatedTime: '2021-06-09T17:23:13.1352800-07:00'
-              DeletedTime: 
-              IsManualActivation: true
-              Plans: [ ]
       security:
         - x-functions-key: [ ]
   '/api/marketplace/offers/{offerId}/plans/{planId}':
@@ -286,12 +183,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
+            $ref: '#/definitions/Luna.Publish.Public.Client.MarketplacePlan'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
+            $ref: '#/definitions/Luna.Publish.Public.Client.MarketplacePlan'
       security:
         - x-functions-key: [ ]
     patch:
@@ -319,12 +216,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
+            $ref: '#/definitions/Luna.Publish.Public.Client.MarketplacePlan'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
+            $ref: '#/definitions/Luna.Publish.Public.Client.MarketplacePlan'
       security:
         - x-functions-key: [ ]
     delete:
@@ -370,7 +267,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
+            $ref: '#/definitions/Luna.Publish.Public.Client.MarketplacePlan'
       security:
         - x-functions-key: [ ]
   '/api/marketplace/offers/{offerId}/plans':
@@ -393,16 +290,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
-            example:
-              MarketplaceOfferId: myoffer
-              MarketplacePlanId: myplan
-              Description: This is my plan
-              IsLocalDeployment: true
-              ManagementKitDownloadUrl: https://aka.ms/lunamgmtkit
-              ManagementKitDownloadUrlSecretName: 
-              CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
-              LastUpdatedTime: '0001-01-01T00:00:00.0000000-08:00'
+              $ref: '#/definitions/Luna.Publish.Public.Client.MarketplacePlan'
       security:
         - x-functions-key: [ ]
   /api/applicationss:
@@ -935,80 +823,6 @@ definitions:
         type: boolean
       Description:
         type: string
-  Luna.Publish.Public.Client.AzureMarketplaceOffer:
-    required:
-      - MarketplaceOfferId
-      - DisplayName
-      - Description
-    type: object
-    properties:
-      MarketplaceOfferId:
-        type: string
-      DisplayName:
-        type: string
-      Description:
-        type: string
-      Status:
-        type: string
-      CreatedTime:
-        format: date-time
-        type: string
-      LastUpdatedTime:
-        format: date-time
-        type: string
-      DeletedTime:
-        format: date-time
-        type: string
-      IsManualActivation:
-        type: boolean
-      Plans:
-        type: array
-        items:
-          $ref: '#/definitions/Luna.Publish.Public.Client.AzureMarketplacePlan'
-    example:
-      MarketplaceOfferId: myoffer
-      DisplayName: My Offer
-      Description: This is my offer
-      Status: Draft
-      CreatedTime: '2021-06-09T17:23:13.1352800-07:00'
-      LastUpdatedTime: '2021-06-09T17:23:13.1352800-07:00'
-      DeletedTime: 
-      IsManualActivation: true
-      Plans: [ ]
-  Luna.Publish.Public.Client.AzureMarketplacePlan:
-    required:
-      - MarketplaceOfferId
-      - MarketplacePlanId
-      - Description
-    type: object
-    properties:
-      MarketplaceOfferId:
-        type: string
-      MarketplacePlanId:
-        type: string
-      Description:
-        type: string
-      IsLocalDeployment:
-        type: boolean
-      ManagementKitDownloadUrl:
-        type: string
-      ManagementKitDownloadUrlSecretName:
-        type: string
-      CreatedTime:
-        format: date-time
-        type: string
-      LastUpdatedTime:
-        format: date-time
-        type: string
-    example:
-      MarketplaceOfferId: myoffer
-      MarketplacePlanId: myplan
-      Description: This is my plan
-      IsLocalDeployment: true
-      ManagementKitDownloadUrl: https://aka.ms/lunamgmtkit
-      ManagementKitDownloadUrlSecretName: 
-      CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
-      LastUpdatedTime: '0001-01-01T00:00:00.0000000-08:00'
   Luna.Publish.Public.Client.LunaApplication:
     required:
       - Name

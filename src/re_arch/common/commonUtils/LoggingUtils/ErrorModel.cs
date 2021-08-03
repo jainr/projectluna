@@ -59,23 +59,30 @@ namespace Luna.Common.Utils
                 this.StackTrace);
         }
 
-        public JsonResult GetHttpResult()
+        public ContentResult GetHttpResult()
         {
-            JsonResult result = null;
+            ErrorModel content = null;
             if (this.HttpStatusCode == HttpStatusCode.InternalServerError)
             {
-                result = new JsonResult(new ErrorModel()
+                content = new ErrorModel()
                 {
                     Message = ErrorMessages.INTERNAL_SERVER_ERROR,
                     TraceId = this.TraceId,
                     ErrorCode = this.ErrorCode,
                     HttpStatusCode = this.HttpStatusCode
-                });
+                };
             }
             else
             {
-                result = new JsonResult(this);
+                content = this;
             }
+
+            ContentResult result = new ContentResult()
+            {
+                Content = JsonConvert.SerializeObject(content),
+                ContentType = "application/json",
+                StatusCode = (int)this.HttpStatusCode
+            };
 
             result.StatusCode = (int)this.HttpStatusCode;
             return result;

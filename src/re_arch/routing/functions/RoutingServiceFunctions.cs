@@ -275,7 +275,7 @@ namespace Luna.Routing.Functions
 
             using (_logger.BeginRoutingNamedScope(appName, apiName, versionName, operationId, lunaHeaders, operationName))
             {
-                IStatusCodeActionResult result = null;
+                IActionResult result = null;
 
                 _logger.LogRoutingRequestBegin(nameof(this.CallEndpoint));
 
@@ -299,8 +299,12 @@ namespace Luna.Routing.Functions
                             lunaHeaders.GetPassThroughHeaders());
                         var content = await response.Content.ReadAsStringAsync();
                         // workaround the escape string issue from AML
-                        //content = content.Replace("\\\"", "\"");
-                        //content = content.Substring(1, content.Length - 2);
+                        if (content.Contains("\\\""))
+                        {
+                            content = content.Replace("\\\"", "\"");
+                            content = content.Substring(1, content.Length - 2);
+                        }
+
                         result = new ContentResult()
                         {
                             Content = content,
@@ -339,7 +343,7 @@ namespace Luna.Routing.Functions
                 {
                     sw.Stop();
                     _logger.LogRoutingRequestEnd(nameof(this.CallEndpoint), 
-                        result.StatusCode, 
+                        result, 
                         lunaHeaders.SubscriptionId, 
                         sw.ElapsedMilliseconds);
                 }
@@ -364,7 +368,7 @@ namespace Luna.Routing.Functions
 
             using (_logger.BeginRoutingNamedScope(appName, apiName, "all", null, lunaHeaders))
             {
-                IStatusCodeActionResult result = null;
+                IActionResult result = null;
 
                 _logger.LogRoutingRequestBegin(nameof(this.GetAPIMetadata));
 
@@ -421,7 +425,7 @@ namespace Luna.Routing.Functions
                 {
                     sw.Stop();
                     _logger.LogRoutingRequestEnd(nameof(this.GetAPIMetadata),
-                        result.StatusCode,
+                        result,
                         lunaHeaders.SubscriptionId,
                         sw.ElapsedMilliseconds);
                 }
@@ -446,7 +450,7 @@ namespace Luna.Routing.Functions
             var versionName = GetAPIVersion(req);
             using (_logger.BeginRoutingNamedScope(appName, apiName, versionName, null, lunaHeaders))
             {
-                IStatusCodeActionResult result = null;
+                IActionResult result = null;
 
                 _logger.LogRoutingRequestBegin(nameof(this.ListOperations));
 
@@ -483,7 +487,7 @@ namespace Luna.Routing.Functions
                 {
                     sw.Stop();
                     _logger.LogRoutingRequestEnd(nameof(this.ListOperations),
-                        result.StatusCode,
+                        result,
                         lunaHeaders.SubscriptionId,
                         sw.ElapsedMilliseconds);
                 }
@@ -510,7 +514,7 @@ namespace Luna.Routing.Functions
             var versionName = GetAPIVersion(req);
             using (_logger.BeginRoutingNamedScope(appName, apiName, versionName, operationId, lunaHeaders))
             {
-                IStatusCodeActionResult result = null;
+                IActionResult result = null;
 
                 _logger.LogRoutingRequestBegin(nameof(this.CancelOperation));
 
@@ -549,7 +553,7 @@ namespace Luna.Routing.Functions
                 {
                     sw.Stop();
                     _logger.LogRoutingRequestEnd(nameof(this.CancelOperation),
-                        result.StatusCode,
+                        result,
                         lunaHeaders.SubscriptionId,
                         sw.ElapsedMilliseconds);
                 }
@@ -576,7 +580,7 @@ namespace Luna.Routing.Functions
             var versionName = GetAPIVersion(req);
             using (_logger.BeginRoutingNamedScope(appName, apiName, versionName, operationId, lunaHeaders))
             {
-                IStatusCodeActionResult result = null;
+                IActionResult result = null;
 
                 _logger.LogRoutingRequestBegin(nameof(this.GetOperationStatus));
 
@@ -614,7 +618,7 @@ namespace Luna.Routing.Functions
                 {
                     sw.Stop();
                     _logger.LogRoutingRequestEnd(nameof(this.GetOperationStatus),
-                        result.StatusCode,
+                        result,
                         lunaHeaders.SubscriptionId,
                         sw.ElapsedMilliseconds);
                 }
@@ -642,7 +646,7 @@ namespace Luna.Routing.Functions
             var versionName = GetAPIVersion(req);
             using (_logger.BeginRoutingNamedScope(appName, apiName, versionName, operationId, lunaHeaders))
             {
-                IStatusCodeActionResult result = null;
+                IActionResult result = null;
 
                 _logger.LogRoutingRequestBegin(nameof(this.GetOperationOutput));
 
@@ -679,7 +683,7 @@ namespace Luna.Routing.Functions
                 {
                     sw.Stop();
                     _logger.LogRoutingRequestEnd(nameof(this.GetOperationOutput),
-                        result.StatusCode,
+                        result,
                         lunaHeaders.SubscriptionId,
                         sw.ElapsedMilliseconds);
                 }
@@ -755,7 +759,7 @@ namespace Luna.Routing.Functions
                     var secretName = _secretCacheClient.SecretCache.SubscriptionKeys[lunaHeaders.LunaSubscriptionKey].SecretName;
                     var sub = await _dbContext.LunaApplicationSubscriptions.
                         Where(x => (x.PrimaryKeySecretName == secretName || x.SecondaryKeySecretName == secretName) &&
-                        x.ApplicationName == apiVersion.ApplicationName).
+                        x.ApplicationName == apiVersion.ApplicationName && x.Status == LunaApplicationSubscriptionStatus.SUBCRIBED).
                         SingleOrDefaultAsync();
 
                     if (sub == null)

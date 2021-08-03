@@ -362,7 +362,7 @@ namespace Luna.Gateway.Functions
                         RBACActions.CREATE_MARKETPLACE_OFFER,
                         lunaHeaders))
                     {
-                        var content = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplaceOffer>(req);
+                        var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceOffer>(req);
                         var result = await _publishServiceClient.CreateMarketplaceOfferAsync(offerId, content, lunaHeaders);
                         return new OkObjectResult(result);
                     }
@@ -435,7 +435,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        var content = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplaceOffer>(req);
+                        var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceOffer>(req);
                         var result = await _publishServiceClient.UpdateMarketplaceOfferAsync(offerId, content, lunaHeaders);
                         return new OkObjectResult(result);
                     }
@@ -732,7 +732,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        var content = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplacePlan>(req);
+                        var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplacePlan>(req);
                         var result = await _publishServiceClient.CreateMarketplacePlanAsync(offerId, planId, content, lunaHeaders);
                         return new OkObjectResult(result);
                     }
@@ -807,7 +807,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        var content = await HttpUtils.DeserializeRequestBodyAsync<AzureMarketplacePlan>(req);
+                        var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplacePlan>(req);
                         var result = await _publishServiceClient.UpdateMarketplacePlanAsync(offerId, planId, content, lunaHeaders);
                         return new OkObjectResult(result);
                     }

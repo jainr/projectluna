@@ -11,6 +11,7 @@ namespace Luna.Publish.Public.Client
     {
         public ScriptProvisioningStepProp()
         {
+            this.IsSynchronized = false;
         }
 
         [OnDeserialized]

@@ -11,6 +11,7 @@ namespace Luna.Publish.Public.Client
     {
         public ARMTemplateProvisioningStepProp()
         {
+            this.IsSynchronized = false;
         }
 
         [OnDeserialized]

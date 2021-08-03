@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Storage.Queue;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Storage.Queue;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -65,17 +66,31 @@ namespace Luna.Common.Utils
 
         public static void LogRoutingRequestEnd(this ILogger logger, 
             string methodName, 
-            int? statusCode, 
+            IActionResult result, 
             string subscriptionId,
             long elapsedTimeInMS)
         {
+            int statusCode = -1;
+            if (result is ContentResult)
+            {
+                statusCode = ((ContentResult)result).StatusCode ?? -1;
+            }
+            else if (result is ObjectResult)
+            {
+                statusCode = ((ObjectResult)result).StatusCode ?? -1;
+            }
+            else if (result is StatusCodeResult)
+            {
+                statusCode = ((StatusCodeResult)result).StatusCode;
+            }
+
             var dict = new Dictionary<string, object>();
             dict.Add("Luna.SubscriptionId", subscriptionId);
-            dict.Add("Luna.HttpStatusCode", statusCode ?? -1);
+            dict.Add("Luna.HttpStatusCode", statusCode);
             dict.Add("Luna.ElapsedTimeInMS", elapsedTimeInMS);
             using (logger.BeginScope(dict))
             {
-                logger.LogInformation($"[FxEnd][{methodName}] Request {methodName} ends with HttpStatusCode {statusCode ?? -1} in {elapsedTimeInMS} ms.");
+                logger.LogInformation($"[FxEnd][{methodName}] Request {methodName} ends with HttpStatusCode {statusCode} in {elapsedTimeInMS} ms.");
             }
         }
     }

@@ -988,10 +988,10 @@ namespace Luna.Publish.Functions
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
         /// <param name="req" in="body">
-        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <see cref="MarketplacePlan"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlan.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Azure marketplace plan
@@ -1000,10 +1000,10 @@ namespace Luna.Publish.Functions
         ///     Request contract
         /// </param>
         /// <response code="200">
-        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <see cref="MarketplacePlan"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlan.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Azure marketplace plan
@@ -1016,8 +1016,8 @@ namespace Luna.Publish.Functions
         ///     <in>header</in>
         /// </security>
         /// <returns></returns>
-        [FunctionName("CreateAzureMarketplacePlan")]
-        public async Task<IActionResult> CreateAzureMarketplacePlan(
+        [FunctionName("CreateMarketplacePlan")]
+        public async Task<IActionResult> CreateMarketplacePlan(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
             string offerId,
             string planId)
@@ -1025,7 +1025,7 @@ namespace Luna.Publish.Functions
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.CreateAzureMarketplacePlan));
+                _logger.LogMethodBegin(nameof(this.CreateMarketplacePlan));
 
                 try
                 {
@@ -1038,7 +1038,7 @@ namespace Luna.Publish.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.CreateAzureMarketplacePlan));
+                    _logger.LogMethodEnd(nameof(this.CreateMarketplacePlan));
                 }
             }
         }
@@ -1052,10 +1052,10 @@ namespace Luna.Publish.Functions
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
         /// <param name="req" in="body">
-        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <see cref="MarketplacePlan"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlan.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Azure marketplace plan
@@ -1064,10 +1064,10 @@ namespace Luna.Publish.Functions
         ///     Request contract
         /// </param>
         /// <response code="200">
-        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <see cref="MarketplacePlan"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlan.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Azure marketplace plan
@@ -1080,8 +1080,8 @@ namespace Luna.Publish.Functions
         ///     <in>header</in>
         /// </security>
         /// <returns></returns>
-        [FunctionName("UpdateAzureMarketplacePlan")]
-        public async Task<IActionResult> UpdateAzureMarketplacePlan(
+        [FunctionName("UpdateMarketplacePlan")]
+        public async Task<IActionResult> UpdateMarketplacePlan(
             [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
             string offerId,
             string planId)
@@ -1089,7 +1089,7 @@ namespace Luna.Publish.Functions
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.UpdateAzureMarketplacePlan));
+                _logger.LogMethodBegin(nameof(this.UpdateMarketplacePlan));
 
                 try
                 {
@@ -1101,7 +1101,7 @@ namespace Luna.Publish.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.UpdateAzureMarketplacePlan));
+                    _logger.LogMethodEnd(nameof(this.UpdateMarketplacePlan));
                 }
             }
         }
@@ -1121,8 +1121,8 @@ namespace Luna.Publish.Functions
         ///     <in>header</in>
         /// </security>
         /// <returns></returns>
-        [FunctionName("DeleteAzureMarketplacePlan")]
-        public async Task<IActionResult> DeleteAzureMarketplacePlan(
+        [FunctionName("DeleteMarketplacePlan")]
+        public async Task<IActionResult> DeleteMarketplacePlan(
             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
             string offerId,
             string planId)
@@ -1130,7 +1130,7 @@ namespace Luna.Publish.Functions
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.DeleteAzureMarketplacePlan));
+                _logger.LogMethodBegin(nameof(this.DeleteMarketplacePlan));
 
                 try
                 {
@@ -1142,7 +1142,7 @@ namespace Luna.Publish.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.DeleteAzureMarketplacePlan));
+                    _logger.LogMethodEnd(nameof(this.DeleteMarketplacePlan));
                 }
             }
         }
@@ -1157,10 +1157,10 @@ namespace Luna.Publish.Functions
         /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
         /// <param name="req">http request</param>
         /// <response code="200">
-        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <see cref="MarketplacePlan"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlan.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Azure marketplace plan
@@ -1173,8 +1173,8 @@ namespace Luna.Publish.Functions
         ///     <in>header</in>
         /// </security>
         /// <returns></returns>
-        [FunctionName("GetAzureMarketplacePlan")]
-        public async Task<IActionResult> GetAzureMarketplacePlan(
+        [FunctionName("GetMarketplacePlan")]
+        public async Task<IActionResult> GetMarketplacePlan(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
             string offerId,
             string planId)
@@ -1182,7 +1182,7 @@ namespace Luna.Publish.Functions
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.GetAzureMarketplacePlan));
+                _logger.LogMethodBegin(nameof(this.GetMarketplacePlan));
 
                 try
                 {
@@ -1194,7 +1194,7 @@ namespace Luna.Publish.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.GetAzureMarketplacePlan));
+                    _logger.LogMethodEnd(nameof(this.GetMarketplacePlan));
                 }
             }
         }
@@ -1209,10 +1209,10 @@ namespace Luna.Publish.Functions
         /// <param name="req">http request</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
-        ///     where T is<see cref="AzureMarketplacePlan"/>
+        ///     where T is<see cref="MarketplacePlan"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlan.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Azure marketplace plan
@@ -1225,15 +1225,15 @@ namespace Luna.Publish.Functions
         ///     <in>header</in>
         /// </security>
         /// <returns></returns>
-        [FunctionName("ListAzureMarketplacePlans")]
-        public async Task<IActionResult> ListAzureMarketplacePlans(
+        [FunctionName("ListMarketplacePlans")]
+        public async Task<IActionResult> ListMarketplacePlans(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}/plans")] HttpRequest req,
             string offerId)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.ListAzureMarketplacePlans));
+                _logger.LogMethodBegin(nameof(this.ListMarketplacePlans));
 
                 try
                 {
@@ -1245,7 +1245,7 @@ namespace Luna.Publish.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.ListAzureMarketplacePlans));
+                    _logger.LogMethodEnd(nameof(this.ListMarketplacePlans));
                 }
             }
         }
