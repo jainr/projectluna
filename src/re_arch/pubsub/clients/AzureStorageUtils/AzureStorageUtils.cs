@@ -69,6 +69,12 @@ namespace Luna.PubSub.Clients
         {
             Expression<Func<LunaBaseEventEntity, bool>> expr = null;
             CloudTable table = _tableClient.GetTableReference(tableName);
+
+            if (!await table.ExistsAsync())
+            {
+                return new List<LunaBaseEventEntity>();
+            }
+
             if (eventType == null)
             {
                 if (partitionKey == null)

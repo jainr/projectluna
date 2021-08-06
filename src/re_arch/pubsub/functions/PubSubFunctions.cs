@@ -22,17 +22,14 @@ namespace Luna.PubSub.Functions
     /// </summary>
     public class PubSubFunctions
     {
-        private readonly IEventStoreClient _eventStoreClient;
-        private readonly IAzureStorageUtils _storageUtils;
+        private readonly IPubSubFunctionsImpl _functionImpl;
         private readonly ILogger<PubSubFunctions> _logger;
 
         public PubSubFunctions(
-            IEventStoreClient eventStoreClient,
-            IAzureStorageUtils storageUtils,
+            IPubSubFunctionsImpl functionImpl,
             ILogger<PubSubFunctions> logger)
         {
-            this._eventStoreClient = eventStoreClient ?? throw new ArgumentNullException(nameof(eventStoreClient));
-            this._storageUtils = storageUtils ?? throw new ArgumentNullException(nameof(storageUtils));
+            this._functionImpl = functionImpl ?? throw new ArgumentNullException(nameof(functionImpl));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -61,19 +58,19 @@ namespace Luna.PubSub.Functions
         ///     <in>header</in>
         /// </security>
         /// <returns></returns>
-        [FunctionName("GetEventStoreConnectionString")]
-        public async Task<IActionResult> GetEventStoreConnectionString(
+        [FunctionName("GetEventStoreInfo")]
+        public async Task<IActionResult> GetEventStoreInfo(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "eventStores/{name}")] HttpRequest req,
             string name)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.GetEventStoreConnectionString));
+                _logger.LogMethodBegin(nameof(this.GetEventStoreInfo));
 
                 try
                 {
-                    var eventStore = await _eventStoreClient.GetEventStoreConnectionInfo(name);
+                    var eventStore = await _functionImpl.GetEventStoreInfoAsync(name);
 
                     return new OkObjectResult(eventStore);
 
@@ -84,7 +81,7 @@ namespace Luna.PubSub.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.GetEventStoreConnectionString));
+                    _logger.LogMethodEnd(nameof(this.GetEventStoreInfo));
                 }
             }
         }
@@ -118,15 +115,15 @@ namespace Luna.PubSub.Functions
         ///     <in>header</in>
         /// </security>
         /// <returns></returns>
-        [FunctionName("GetSortedEvents")]
-        public async Task<IActionResult> GetSortedEvents(
+        [FunctionName("ListSortedEvents")]
+        public async Task<IActionResult> ListSortedEvents(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "eventStores/{name}/events")] HttpRequest req,
             string name)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.GetSortedEvents));
+                _logger.LogMethodBegin(nameof(this.ListSortedEvents));
 
                 try
                 {
@@ -152,7 +149,7 @@ namespace Luna.PubSub.Functions
                         partitionKey = req.Query[PubSubServiceQueryParameters.PARTITION_KEY].ToString();
                     }
 
-                    var events = await _eventStoreClient.ListEvents(name, eventType, eventsAfter, partitionKey);
+                    var events = await _functionImpl.ListSortedEventsAsync(name, eventType, eventsAfter, partitionKey);
 
                     return new OkObjectResult(events);
 
@@ -163,7 +160,7 @@ namespace Luna.PubSub.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.GetSortedEvents));
+                    _logger.LogMethodEnd(nameof(this.ListSortedEvents));
                 }
             }
         }
@@ -218,7 +215,7 @@ namespace Luna.PubSub.Functions
                 {
                     var content = await HttpUtils.GetRequestBodyAsync(req);
 
-                    var ev = await _eventStoreClient.PublishEvent(name, content);
+                    var ev = await _functionImpl.PublishEventAsync(name, content);
 
                     return new OkObjectResult(ev);
 

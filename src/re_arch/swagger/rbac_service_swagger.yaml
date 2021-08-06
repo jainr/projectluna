@@ -20,7 +20,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignment'
+              $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignmentRequest'
             example:
               Uid: b46324b3-6a92-4e35-84be-fa1b2919af69
               UserName: FirstName LastName
@@ -44,12 +44,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignment'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignmentRequest'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignment'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignmentResponse'
       security:
         - x-functions-key: [ ]
   /api/roleassignments/remove:
@@ -66,7 +66,7 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignment'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.RoleAssignmentRequest'
       responses:
         '204':
           description: Success
@@ -88,12 +88,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.Ownership'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.OwnershipRequest'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.Ownership'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.OwnershipResponse'
       security:
         - x-functions-key: [ ]
   /api/ownership/remove:
@@ -110,7 +110,7 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.Ownership'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.OwnershipRequest'
       responses:
         '204':
           description: Success
@@ -132,16 +132,16 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.RBACQuery'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.RBACQueryRequest'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.RBAC.Public.Client.RBACQueryResult'
+            $ref: '#/definitions/Luna.RBAC.Public.Client.RBACQueryResultResponse'
       security:
         - x-functions-key: [ ]
 definitions:
-  Luna.RBAC.Public.Client.RoleAssignment:
+  Luna.RBAC.Public.Client.RoleAssignmentRequest:
     required:
       - Uid
       - UserName
@@ -162,7 +162,28 @@ definitions:
       UserName: FirstName LastName
       Role: SystemAdmin
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
-  Luna.RBAC.Public.Client.Ownership:
+  Luna.RBAC.Public.Client.RoleAssignmentResponse:
+    required:
+      - Uid
+      - UserName
+      - Role
+    type: object
+    properties:
+      Uid:
+        type: string
+      UserName:
+        type: string
+      Role:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+    example:
+      Uid: b46324b3-6a92-4e35-84be-fa1b2919af69
+      UserName: FirstName LastName
+      Role: SystemAdmin
+      CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
+  Luna.RBAC.Public.Client.OwnershipRequest:
     required:
       - Uid
       - ResourceId
@@ -179,7 +200,24 @@ definitions:
       Uid: fcd14a2a-31d3-49c1-9e1b-39063da1ac6a
       ResourceId: applications/myapp
       CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
-  Luna.RBAC.Public.Client.RBACQuery:
+  Luna.RBAC.Public.Client.OwnershipResponse:
+    required:
+      - Uid
+      - ResourceId
+    type: object
+    properties:
+      Uid:
+        type: string
+      ResourceId:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+    example:
+      Uid: fcd14a2a-31d3-49c1-9e1b-39063da1ac6a
+      ResourceId: applications/myapp
+      CreatedTime: '0001-01-01T00:00:00.0000000-08:00'
+  Luna.RBAC.Public.Client.RBACQueryRequest:
     required:
       - Uid
       - ResourceId
@@ -195,14 +233,14 @@ definitions:
       Uid: b46324b3-6a92-4e35-84be-fa1b2919af69
       ResourceId: applications/myapp
       Action: 
-  Luna.RBAC.Public.Client.RBACQueryResult:
+  Luna.RBAC.Public.Client.RBACQueryResultResponse:
     required:
       - Query
       - CanAccess
     type: object
     properties:
       Query:
-        $ref: '#/definitions/Luna.RBAC.Public.Client.RBACQuery'
+        $ref: '#/definitions/Luna.RBAC.Public.Client.RBACQueryRequest'
       CanAccess:
         type: boolean
       Role:

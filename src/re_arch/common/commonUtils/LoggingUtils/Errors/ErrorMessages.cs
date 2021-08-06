@@ -70,5 +70,8 @@ namespace Luna.Common.Utils
         public const string INTERNAL_SERVER_ERROR = "The server encountered an internal error and was unable to complete your request.";
         public const string REQUIRED_PARAMETER_NOT_PROVIDED = "The value of required parameter {0} is not provided.";
         public const string ROLE_ASSIGNMENT_ALREADY_EXIST = "User {0} with role {1} already exists.";
+        public const string ROLE_ASSIGNMENT_DOES_NOT_EXIST = "User {0} with role {1} does not exists.";
+        public const string OWNERSHIP_ALREADY_EXIST = "User {0} is already an owner of resource {1}.";
+        public const string OWNERSHIP_DOES_NOT_EXIST = "User {0} is not an owner of resource {1}.";
     }
 }

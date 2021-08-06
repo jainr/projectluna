@@ -15,7 +15,7 @@ namespace Luna.RBAC.Public.Client
         /// <param name="roleAssignment">The role assignment</param>
         /// <param name="headers">The luna request headers</param>
         /// <returns>True if the role assignment is added, false otherwise</returns>
-        Task<bool> AddRoleAssignment(RoleAssignment roleAssignment, LunaRequestHeaders headers);
+        Task<bool> AddRoleAssignment(RoleAssignmentRequest roleAssignment, LunaRequestHeaders headers);
 
         /// <summary>
         /// Remove a role assignment
@@ -23,7 +23,7 @@ namespace Luna.RBAC.Public.Client
         /// <param name="roleAssignment">The role assignment</param>
         /// <param name="headers">The luna request headers</param>
         /// <returns>True if the role assignment is removed, false otherwise</returns>
-        Task<bool> RemoveRoleAssignment(RoleAssignment roleAssignment, LunaRequestHeaders headers);
+        Task<bool> RemoveRoleAssignment(RoleAssignmentRequest roleAssignment, LunaRequestHeaders headers);
 
         /// <summary>
         /// Add a user as admin
@@ -96,13 +96,13 @@ namespace Luna.RBAC.Public.Client
         /// <param name="action">The action</param>
         /// <param name="headers">The Luna request header</param>
         /// <returns>The RBAC Query result</returns>
-        Task<RBACQueryResult> GetRBACQueryResult(string uid, string resourceId, string action, LunaRequestHeaders headers);
+        Task<RBACQueryResultResponse> GetRBACQueryResult(string uid, string resourceId, string action, LunaRequestHeaders headers);
 
         /// <summary>
         /// List all role assignments
         /// </summary>
         /// <param name="headers"></param>
         /// <returns>The role assignments</returns>
-        Task<List<RoleAssignment>> ListRoleAssignments(LunaRequestHeaders headers);
+        Task<List<RoleAssignmentResponse>> ListRoleAssignments(LunaRequestHeaders headers);
     }
 }

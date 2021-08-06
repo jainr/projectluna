@@ -35,7 +35,7 @@ namespace Luna.RBAC.Public.Client
         /// <param name="roleAssignment">The role assignment</param>
         /// <param name="headers">The luna request headers</param>
         /// <returns>True if the role assignment is added, false otherwise</returns>
-        public async Task<bool> AddRoleAssignment(RoleAssignment roleAssignment, LunaRequestHeaders headers)
+        public async Task<bool> AddRoleAssignment(RoleAssignmentRequest roleAssignment, LunaRequestHeaders headers)
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"roleassignments/add");
@@ -53,7 +53,7 @@ namespace Luna.RBAC.Public.Client
         /// <param name="roleAssignment">The role assignment</param>
         /// <param name="headers">The luna request headers</param>
         /// <returns>True if the role assignment is removed, false otherwise</returns>
-        public async Task<bool> RemoveRoleAssignment(RoleAssignment roleAssignment, LunaRequestHeaders headers)
+        public async Task<bool> RemoveRoleAssignment(RoleAssignmentRequest roleAssignment, LunaRequestHeaders headers)
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"roleassignments/remove");
@@ -77,7 +77,7 @@ namespace Luna.RBAC.Public.Client
             ValidationUtils.ValidateObjectId(uid, nameof(uid));
             ValidationUtils.ValidateStringValueLength(userName, ValidationUtils.OBJECT_NAME_STRING_MAX_LENGTH, nameof(userName));
 
-            var role = new RoleAssignment()
+            var role = new RoleAssignmentRequest()
             {
                 Uid = uid,
                 UserName = userName,
@@ -97,7 +97,7 @@ namespace Luna.RBAC.Public.Client
         {
             ValidationUtils.ValidateObjectId(uid, nameof(uid));
 
-            var role = new RoleAssignment()
+            var role = new RoleAssignmentRequest()
             {
                 Uid = uid,
                 UserName = string.Empty,
@@ -120,7 +120,7 @@ namespace Luna.RBAC.Public.Client
             ValidationUtils.ValidateObjectId(uid, nameof(uid));
             ValidationUtils.ValidateStringValueLength(userName, ValidationUtils.OBJECT_NAME_STRING_MAX_LENGTH, nameof(userName));
 
-            var role = new RoleAssignment()
+            var role = new RoleAssignmentRequest()
             {
                 Uid = uid,
                 UserName = userName,
@@ -140,7 +140,7 @@ namespace Luna.RBAC.Public.Client
         {
             ValidationUtils.ValidateObjectId(uid, nameof(uid));
 
-            var role = new RoleAssignment()
+            var role = new RoleAssignmentRequest()
             {
                 Uid = uid,
                 Role = RBACRole.Publisher.ToString()
@@ -163,7 +163,7 @@ namespace Luna.RBAC.Public.Client
 
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"ownerships/add");
-            var ownership = new Ownership()
+            var ownership = new OwnershipRequest()
             {
                 Uid = uid,
                 ResourceId = resourceId
@@ -190,7 +190,7 @@ namespace Luna.RBAC.Public.Client
 
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"ownerships/remove");
-            var ownership = new Ownership()
+            var ownership = new OwnershipRequest()
             {
                 Uid = uid,
                 ResourceId = resourceId
@@ -232,7 +232,7 @@ namespace Luna.RBAC.Public.Client
         /// <param name="action">The action</param>
         /// <param name="headers">The Luna request header</param>
         /// <returns>The RBAC Query result</returns>
-        public async Task<RBACQueryResult> GetRBACQueryResult(string uid, string resourceId, string action, LunaRequestHeaders headers)
+        public async Task<RBACQueryResultResponse> GetRBACQueryResult(string uid, string resourceId, string action, LunaRequestHeaders headers)
         {
             // TODO: validate resource id
             ValidationUtils.ValidateObjectId(uid, nameof(uid));
@@ -243,7 +243,7 @@ namespace Luna.RBAC.Public.Client
 
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"canaccess");
-            var query = new RBACQuery()
+            var query = new RBACQueryRequest()
             {
                 Uid = uid,
                 ResourceId = resourceId,
@@ -254,7 +254,7 @@ namespace Luna.RBAC.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Post, uri, content, headers);
 
-            var responseContent = JsonConvert.DeserializeObject<RBACQueryResult>(
+            var responseContent = JsonConvert.DeserializeObject<RBACQueryResultResponse>(
                 await response.Content.ReadAsStringAsync());
 
             return responseContent;
@@ -265,14 +265,14 @@ namespace Luna.RBAC.Public.Client
         /// </summary>
         /// <param name="headers"></param>
         /// <returns>The role assignments</returns>
-        public async Task<List<RoleAssignment>> ListRoleAssignments(LunaRequestHeaders headers)
+        public async Task<List<RoleAssignmentResponse>> ListRoleAssignments(LunaRequestHeaders headers)
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"roleassignments");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            var responseContent = JsonConvert.DeserializeObject<List<RoleAssignment>>(
+            var responseContent = JsonConvert.DeserializeObject<List<RoleAssignmentResponse>>(
                 await response.Content.ReadAsStringAsync());
 
             return responseContent;

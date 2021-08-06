@@ -19,6 +19,7 @@ namespace Luna.PubSub.Functions
 
             builder.Services.AddSingleton<IAzureStorageUtils, AzureStorageUtils>();
             builder.Services.AddSingleton<IEventStoreClient, EventStoreClient>();
+            builder.Services.AddSingleton<IPubSubFunctionsImpl, PubSubFunctionsImpl>();
 
             builder.Services.AddApplicationInsightsTelemetry();
         }

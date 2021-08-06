@@ -24,11 +24,13 @@ namespace Luna.RBAC
     {
         private readonly ISqlDbContext _dbContext;
         private readonly ILogger<RBACFunctions> _logger;
+        private readonly IRBACFunctionsImpl _functionImpl;
 
-        public RBACFunctions(ISqlDbContext dbContext, ILogger<RBACFunctions> logger)
+        public RBACFunctions(ISqlDbContext dbContext, ILogger<RBACFunctions> logger, IRBACFunctionsImpl functionImpl)
         {
-            this._dbContext = dbContext;
-            this._logger = logger;
+            this._dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this._functionImpl = functionImpl ?? throw new ArgumentNullException(nameof(functionImpl));
         }
 
         /// <summary>
@@ -40,10 +42,10 @@ namespace Luna.RBAC
         /// <param name="req">The http request</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
-        ///     where T is <see cref="RoleAssignment"/>
+        ///     where T is <see cref="RoleAssignmentRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="RoleAssignment.example"/>
+        ///             <see cref="RoleAssignmentRequest.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of role assignment
@@ -67,7 +69,7 @@ namespace Luna.RBAC
 
                 try
                 {
-                    var assignments = await _dbContext.RoleAssignments.ToListAsync();
+                    var assignments = await _functionImpl.ListRoleAssignmentsAsync(lunaHeaders);
                     return new OkObjectResult(assignments);
                 }
                 catch (Exception ex)
@@ -88,10 +90,10 @@ namespace Luna.RBAC
         /// <verb>POST</verb>
         /// <url>http://localhost:7071/api/roleassignments/add</url>
         /// <param name="req" in="body">
-        ///     <see cref="RoleAssignment"/>
+        ///     <see cref="RoleAssignmentRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="RoleAssignment.example"/>
+        ///             <see cref="RoleAssignmentRequest.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of role assignment
@@ -99,7 +101,16 @@ namespace Luna.RBAC
         ///     </example>
         ///     Request contract
         /// </param>
-        /// <response code="200"><see cref="RoleAssignment"/>Success</response>
+        /// <response code="200"><see cref="RoleAssignmentResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="RoleAssignmentResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of role assignment
+        ///         </summary>
+        ///     </example>
+        /// Success</response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
         ///     <in>header</in>
@@ -116,20 +127,11 @@ namespace Luna.RBAC
 
                 try
                 {
-                    var assignment = await DeserializeRequestBody<RoleAssignmentDb>(req);
+                    var assignment = await HttpUtils.DeserializeRequestBodyAsync<RoleAssignmentRequest>(req);
 
-                    if (await _dbContext.RoleAssignments.AnyAsync(x => x.Uid == assignment.Uid && x.Role == assignment.Role))
-                    {
-                        throw new LunaConflictUserException(
-                            string.Format(ErrorMessages.ROLE_ASSIGNMENT_ALREADY_EXIST, assignment.Uid, assignment.Role));
-                    }
+                    var response = await this._functionImpl.AddRoleAssignmentAsync(assignment, lunaHeaders);
 
-                    assignment.CreatedTime = DateTime.UtcNow;
-
-                    _dbContext.RoleAssignments.Add(assignment);
-                    await _dbContext._SaveChangesAsync();
-
-                    return new OkObjectResult(assignment);
+                    return new OkObjectResult(response);
                 }
                 catch (Exception ex)
                 {
@@ -149,10 +151,10 @@ namespace Luna.RBAC
         /// <verb>POST</verb>
         /// <url>http://localhost:7071/api/roleassignments/remove</url>
         /// <param name="req" in="body">
-        ///     <see cref="RoleAssignment"/>
+        ///     <see cref="RoleAssignmentRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="RoleAssignment.example"/>
+        ///             <see cref="RoleAssignmentRequest.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of role assignment
@@ -177,13 +179,8 @@ namespace Luna.RBAC
 
                 try
                 {
-                    var assignment = await DeserializeRequestBody<RoleAssignmentDb>(req);
-                    var roleAssignments = await _dbContext.RoleAssignments.
-                        Where(r => r.Uid == assignment.Uid && r.Role == assignment.Role).ToListAsync();
-
-                    _dbContext.RoleAssignments.RemoveRange(roleAssignments);
-                    await _dbContext._SaveChangesAsync();
-
+                    var assignment = await HttpUtils.DeserializeRequestBodyAsync<RoleAssignmentRequest>(req);
+                    await this._functionImpl.RemoveRoleAssignmentAsync(assignment, lunaHeaders);
                     return new NoContentResult();
                 }
                 catch (Exception ex)
@@ -204,10 +201,10 @@ namespace Luna.RBAC
         /// <verb>POST</verb>
         /// <url>http://localhost:7071/api/ownership/add</url>
         /// <param name="req" in="body">
-        ///     <see cref="Ownership"/>
+        ///     <see cref="OwnershipRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="Ownership.example"/>
+        ///             <see cref="OwnershipRequest.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of ownership
@@ -215,7 +212,16 @@ namespace Luna.RBAC
         ///     </example>
         ///     Request contract
         /// </param>
-        /// <response code="200"><see cref="Ownership"/>Success</response>
+        /// <response code="200"><see cref="OwnershipResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="OwnershipResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of ownership
+        ///         </summary>
+        ///     </example>
+        ///     Success</response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
         ///     <in>header</in>
@@ -232,13 +238,10 @@ namespace Luna.RBAC
 
                 try
                 {
-                    var ownership = await DeserializeRequestBody<OwnershipDb>(req);
-                    ownership.CreatedTime = DateTime.UtcNow;
+                    var ownership = await HttpUtils.DeserializeRequestBodyAsync<OwnershipRequest>(req);
+                    var request = await this._functionImpl.AssignOwnershipAsync(ownership, lunaHeaders);
 
-                    _dbContext.Ownerships.Add(ownership);
-                    await _dbContext._SaveChangesAsync();
-
-                    return new OkObjectResult(ownership);
+                    return new OkObjectResult(request);
                 }
                 catch (Exception ex)
                 {
@@ -258,10 +261,10 @@ namespace Luna.RBAC
         /// <verb>POST</verb>
         /// <url>http://localhost:7071/api/ownership/remove</url>
         /// <param name="req" in="body">
-        ///     <see cref="Ownership"/>
+        ///     <see cref="OwnershipRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="Ownership.example"/>
+        ///             <see cref="OwnershipRequest.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of ownership
@@ -286,12 +289,9 @@ namespace Luna.RBAC
 
                 try
                 {
-                    var ownership = await DeserializeRequestBody<OwnershipDb>(req);
-                    var ownerships = await _dbContext.Ownerships.
-                        Where(o => o.Uid == ownership.Uid && o.ResourceId == ownership.ResourceId).ToListAsync();
+                    var ownership = await HttpUtils.DeserializeRequestBodyAsync<OwnershipRequest>(req);
 
-                    _dbContext.Ownerships.RemoveRange(ownerships);
-                    await _dbContext._SaveChangesAsync();
+                    await this._functionImpl.RemoveOwnershipAsync(ownership, lunaHeaders);
 
                     return new NoContentResult();
                 }
@@ -313,10 +313,10 @@ namespace Luna.RBAC
         /// <verb>POST</verb>
         /// <url>http://localhost:7071/api/canaccess</url>
         /// <param name="req" in="body">
-        ///     <see cref="RBACQuery"/>
+        ///     <see cref="RBACQueryRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="RBACQuery.example"/>
+        ///             <see cref="RBACQueryRequest.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of RBAC query
@@ -325,10 +325,10 @@ namespace Luna.RBAC
         ///     Request contract
         /// </param>
         /// <response code="200">
-        ///     <see cref="RBACQueryResult"/>
+        ///     <see cref="RBACQueryResultResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="RBACQueryResult.example"/>
+        ///             <see cref="RBACQueryResultResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of RBAC query result
@@ -352,36 +352,8 @@ namespace Luna.RBAC
 
                 try
                 {
-                    var query = await DeserializeRequestBody<RBACQuery>(req);
-                    var result = new RBACQueryResult()
-                    {
-                        Query = query,
-                        CanAccess = false,
-                        Role = RBACRole.Unknown.ToString()
-                    };
-
-                    if (await _dbContext.RoleAssignments.AnyAsync(x => x.Uid == query.Uid && x.Role == RBACRole.SystemAdmin.ToString()))
-                    {
-                        result.CanAccess = true;
-                        result.Role = RBACRole.SystemAdmin.ToString();
-                    }
-                    else if (await _dbContext.RoleAssignments.AnyAsync(x => x.Uid == query.Uid && x.Role == RBACRole.Publisher.ToString()))
-                    {
-                        if (await _dbContext.Ownerships.AnyAsync(x => x.Uid == query.Uid && x.ResourceId == query.ResourceId) || 
-                            (!string.IsNullOrEmpty(query.Action) && RBACActions.PublisherAllowedActions.Contains(query.Action))) 
-                        {
-                            result.CanAccess = true;
-                            result.Role = RBACRole.Publisher.ToString();
-                        }
-                    }
-
-                    _logger.LogInformation("User {0} with role {1} {2} access resource {3} with action {4}",
-                        result.Query.Uid,
-                        result.Role,
-                        result.CanAccess ? "can" : "can not",
-                        result.Query.ResourceId,
-                        result.Query.Action ?? "All");
-
+                    var query = await HttpUtils.DeserializeRequestBodyAsync<RBACQueryRequest>(req);
+                    var result = await this._functionImpl.CanAccessAsync(query, lunaHeaders);
                     return new OkObjectResult(result);
                 }
                 catch (Exception ex)
@@ -393,13 +365,6 @@ namespace Luna.RBAC
                     _logger.LogMethodEnd(nameof(this.CanAccess));
                 }
             }
-        }
-
-        private async Task<T> DeserializeRequestBody<T>(HttpRequest req)
-        {
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            T obj = (T)JsonConvert.DeserializeObject(requestBody, typeof(T));
-            return obj;
         }
     }
 }

@@ -2161,10 +2161,10 @@ namespace Luna.Gateway.Functions
         /// <verb>POST</verb>
         /// <url>http://localhost:7071/manage/rbac/roleassignments/remove</url>
         /// <param name="req" in="body">
-        ///     <see cref="RoleAssignment"/>
+        ///     <see cref="RoleAssignmentRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="RoleAssignment.example"/>
+        ///             <see cref="RoleAssignmentRequest.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of role assignment
@@ -2194,7 +2194,7 @@ namespace Luna.Gateway.Functions
                     if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
                         await this._rbacClient.CanAccess(lunaHeaders.UserId, $"rbac", null, lunaHeaders))
                     {
-                        var roleAssignment = await HttpUtils.DeserializeRequestBodyAsync<RoleAssignment>(req);
+                        var roleAssignment = await HttpUtils.DeserializeRequestBodyAsync<RoleAssignmentRequest>(req);
 
                         if (roleAssignment.Uid.Equals(lunaHeaders.UserId) &&
                             roleAssignment.Role.Equals(RBACRole.SystemAdmin.ToString()))
@@ -2231,10 +2231,10 @@ namespace Luna.Gateway.Functions
         /// <verb>POST</verb>
         /// <url>http://localhost:7071/manage/rbac/roleassignments/add</url>
         /// <param name="req" in="body">
-        ///     <see cref="RoleAssignment"/>
+        ///     <see cref="RoleAssignmentRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="RoleAssignment.example"/>
+        ///             <see cref="RoleAssignmentRequest.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of role assignment
@@ -2244,10 +2244,10 @@ namespace Luna.Gateway.Functions
         /// </param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
-        ///     where T is <see cref="RoleAssignment"/>
+        ///     where T is <see cref="RoleAssignmentResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="RoleAssignment.example"/>
+        ///             <see cref="RoleAssignmentResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of role assignment
@@ -2323,7 +2323,7 @@ namespace Luna.Gateway.Functions
                     if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
                         await this._rbacClient.CanAccess(lunaHeaders.UserId, $"rbac", null, lunaHeaders))
                     {
-                        var roleAssignment = await HttpUtils.DeserializeRequestBodyAsync<RoleAssignment>(req);
+                        var roleAssignment = await HttpUtils.DeserializeRequestBodyAsync<RoleAssignmentRequest>(req);
                         var result = await _rbacClient.AddRoleAssignment(roleAssignment, lunaHeaders);
 
                         if (result)

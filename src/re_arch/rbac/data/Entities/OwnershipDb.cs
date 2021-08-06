@@ -6,14 +6,19 @@ using System.Text;
 
 namespace Luna.RBAC.Data
 {
-    public class OwnershipDb : Ownership
+    public class OwnershipDb
     {
         public OwnershipDb()
         {
-
+            CreatedTime = DateTime.UtcNow;
         }
 
-        [JsonIgnore]
         public long Id { get; set; }
+
+        public string Uid { get; set; }
+
+        public string ResourceId { get; set; }
+
+        public DateTime CreatedTime { get; set; }
     }
 }

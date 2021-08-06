@@ -13,6 +13,11 @@ namespace Luna.RBAC.Data
     /// </summary>
     public class SqlDbContext : DbContext, ISqlDbContext
     {
+        public SqlDbContext()
+        {
+
+        }
+
         public SqlDbContext(DbContextOptions<SqlDbContext> options)
             : base(options)
         {
