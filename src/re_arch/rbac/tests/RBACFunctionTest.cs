@@ -18,7 +18,6 @@ namespace Luna.RBAC.Test
     public class RBACFunctionTest
     {
         private LunaRequestHeaders _headers;
-        private DbContextOptions<SqlDbContext> _options;
         private ILogger<RBACFunctionsImpl> _logger;
 
         private const string admin1 = "admin1";
@@ -53,7 +52,6 @@ namespace Luna.RBAC.Test
         public void TestInitialize()
         {
             _headers = new LunaRequestHeaders();
-
 
             var mock = new Mock<ILogger<RBACFunctionsImpl>>();
             this._logger = mock.Object;
@@ -158,8 +156,8 @@ namespace Luna.RBAC.Test
         {
             var builder = new DbContextOptionsBuilder<SqlDbContext>();
             builder.UseInMemoryDatabase(Guid.NewGuid().ToString());
-            _options = builder.Options;
-            using (var context = new SqlDbContext(this._options))
+            var options = builder.Options;
+            using (var context = new SqlDbContext(options))
             {
                 IRBACFunctionsImpl function = new RBACFunctionsImpl(context, this._logger, new RoleAssignmentMapper(), new OwnershipMapper());
                 
@@ -214,8 +212,8 @@ namespace Luna.RBAC.Test
         {
             var builder = new DbContextOptionsBuilder<SqlDbContext>();
             builder.UseInMemoryDatabase(Guid.NewGuid().ToString());
-            _options = builder.Options;
-            using (var context = new SqlDbContext(this._options))
+            var options = builder.Options;
+            using (var context = new SqlDbContext(options))
             {
                 IRBACFunctionsImpl function = new RBACFunctionsImpl(context, this._logger, new RoleAssignmentMapper(), new OwnershipMapper());
 
@@ -298,8 +296,8 @@ namespace Luna.RBAC.Test
         {
             var builder = new DbContextOptionsBuilder<SqlDbContext>();
             builder.UseInMemoryDatabase(Guid.NewGuid().ToString());
-            _options = builder.Options;
-            using (var context = new SqlDbContext(this._options))
+            var options = builder.Options;
+            using (var context = new SqlDbContext(options))
             {
                 IRBACFunctionsImpl function = new RBACFunctionsImpl(context, this._logger, new RoleAssignmentMapper(), new OwnershipMapper());
 
