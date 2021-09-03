@@ -140,6 +140,7 @@ class ScenarioTest(HttpUser):
                 }
         self._assert_success(self.client.put(uri, headers=self.headerData, data=json.dumps(body)))
         self._assert_success(self.client.patch(uri, headers=self.headerData, data=json.dumps(body)))
+        self._assert_success(self.client.get(uri, headers=self.headerData))
 
         # 4.	Create Luna API Version [PUT]
         uri = self.app_url + resource_name + "/apis/myapi/versions/v1"

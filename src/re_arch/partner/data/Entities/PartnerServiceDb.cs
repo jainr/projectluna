@@ -11,9 +11,9 @@ namespace Luna.Partner.Data
     /// <summary>
     /// The database entity for partner services
     /// </summary>
-    public class PartnerServiceInternal
+    public class PartnerServiceDb
     {
-        public PartnerServiceInternal()
+        public PartnerServiceDb()
         {
 
         }
@@ -26,9 +26,9 @@ namespace Luna.Partner.Data
             this.LastUpdatedTime = DateTime.UtcNow;
         }
 
-        public static PartnerServiceInternal CreateFromConfig(string name, BasePartnerServiceConfiguration config)
+        public static PartnerServiceDb CreateFromConfig(string name, BasePartnerServiceConfiguration config)
         {
-            var service = new PartnerServiceInternal();
+            var service = new PartnerServiceDb();
             // Copy non-updatable fields
             service.UniqueName = name;
             service.Type = config.Type;
@@ -42,9 +42,9 @@ namespace Luna.Partner.Data
             return service;
         }
 
-        public PartnerService ToPublicPartnerService()
+        public PartnerServiceOutlineResponse ToPublicPartnerService()
         {
-            var service = new PartnerService()
+            var service = new PartnerServiceOutlineResponse()
             {
                 DisplayName = this.DisplayName,
                 UniqueName = this.UniqueName,

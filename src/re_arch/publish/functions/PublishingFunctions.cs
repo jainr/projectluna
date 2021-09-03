@@ -33,6 +33,8 @@ namespace Luna.Publish.Functions
         private readonly ISqlDbContext _dbContext;
         private readonly IAzureKeyVaultUtils _keyVaultUtils;
         private readonly IPubSubServiceClient _pubSubClient;
+        private readonly IDataMapper<LunaApplicationRequest, LunaApplicationResponse, LunaApplicationProp> _lunaApplicationDataMapper;
+        private readonly IDataMapper<BaseLunaAPIRequest, BaseLunaAPIResponse, BaseLunaAPIProp> _lunaAPIMapper;
         private readonly ILogger<PublishingFunctions> _logger;
 
         public PublishingFunctions(IAppEventContentGenerator appEventGenerator, 
@@ -43,6 +45,8 @@ namespace Luna.Publish.Functions
             ISqlDbContext dbContext,
             IAzureKeyVaultUtils keyVaultUtils,
             IPubSubServiceClient pubSubClient,
+            IDataMapper<LunaApplicationRequest, LunaApplicationResponse, LunaApplicationProp> lunaApplicationDataMapper,
+            IDataMapper<BaseLunaAPIRequest, BaseLunaAPIResponse, BaseLunaAPIProp> lunaAPIMapper,
             ILogger<PublishingFunctions> logger)
         {
             this._appEventGenerator = appEventGenerator ?? throw new ArgumentNullException(nameof(appEventGenerator));
@@ -53,6 +57,8 @@ namespace Luna.Publish.Functions
             this._dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             this._keyVaultUtils = keyVaultUtils ?? throw new ArgumentNullException(nameof(keyVaultUtils));
             this._pubSubClient = pubSubClient ?? throw new ArgumentNullException(nameof(pubSubClient));
+            this._lunaApplicationDataMapper = lunaApplicationDataMapper ?? throw new ArgumentNullException(nameof(lunaApplicationDataMapper));
+            this._lunaAPIMapper = lunaAPIMapper ?? throw new ArgumentNullException(nameof(lunaAPIMapper));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -1319,10 +1325,10 @@ namespace Luna.Publish.Functions
         /// <url>http://localhost:7071/api/applicationss/{name}/masterkeys</url>
         /// <param name="name" required="true" cref="string" in="path">The name of the application</param>
         /// <response code="200">
-        ///     <see cref="LunaApplicationMasterKeys"/>
+        ///     <see cref="LunaApplicationMasterKeysResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="LunaApplicationMasterKeys.example"/>
+        ///             <see cref="LunaApplicationMasterKeysResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Luna application master keys
@@ -1350,7 +1356,7 @@ namespace Luna.Publish.Functions
                     var app = await _dbContext.LunaApplications.SingleOrDefaultAsync(x => x.ApplicationName == name);
                     if (app != null)
                     {
-                        var keys = new LunaApplicationMasterKeys()
+                        var keys = new LunaApplicationMasterKeysResponse()
                         {
                             PrimaryMasterKey = await _keyVaultUtils.GetSecretAsync(app.PrimaryMasterKeySecretName),
                             SecondaryMasterKey = await _keyVaultUtils.GetSecretAsync(app.SecondaryMasterKeySecretName)
@@ -1382,10 +1388,10 @@ namespace Luna.Publish.Functions
         /// <url>http://localhost:7071/api/applications/{name}</url>
         /// <param name="name" required="true" cref="string" in="path">The name of the application</param>
         /// <response code="200">
-        ///     <see cref="LunaApplication"/>
+        ///     <see cref="LunaApplicationResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="LunaApplication.example"/>
+        ///             <see cref="LunaApplicationResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Luna application
@@ -1410,7 +1416,10 @@ namespace Luna.Publish.Functions
 
                 try
                 {
-                    if (!await IsApplicationExist(name))
+
+                    var appDb = await _dbContext.LunaApplications.SingleOrDefaultAsync(x => x.ApplicationName == name);
+
+                    if (appDb == null)
                     {
                         throw new LunaNotFoundUserException(
                             string.Format(ErrorMessages.APPLICATION_DOES_NOT_EXIST, name));
@@ -1434,7 +1443,13 @@ namespace Luna.Publish.Functions
                             string.Format(ErrorMessages.APPLICATION_DOES_NOT_EXIST, name));
                     }
 
-                    return new OkObjectResult(lunaApp);
+                    var response = this._lunaApplicationDataMapper.Map(lunaApp.Properties);
+                    response.CreatedTime = appDb.CreatedTime;
+                    response.LastUpdatedTime = appDb.LastUpdatedTime;
+                    response.Name = appDb.ApplicationName;
+                    response.Status = appDb.Status;
+
+                    return new OkObjectResult(response);
                 }
                 catch (Exception ex)
                 {
@@ -1528,14 +1543,15 @@ namespace Luna.Publish.Functions
                         currentEvent: publishingEvent,
                         isNewApp: true);
 
-                    using (var transaction = await _dbContext.BeginTransactionAsync())
-                    {
-                        _dbContext.LunaApplications.Add(
-                            new LunaApplicationDB(
+                    var appDb = new LunaApplicationDB(
                                 name,
                                 lunaHeaders.UserId,
                                 application.PrimaryMasterKeySecretName,
-                                application.SecondaryMasterKeySecretName));
+                                application.SecondaryMasterKeySecretName);
+
+                    using (var transaction = await _dbContext.BeginTransactionAsync())
+                    {
+                        _dbContext.LunaApplications.Add(appDb);
                         await _dbContext._SaveChangesAsync();
 
                         _dbContext.ApplicationEvents.Add(publishingEvent);
@@ -1548,7 +1564,13 @@ namespace Luna.Publish.Functions
                         transaction.Commit();
                     }
 
-                    return new OkObjectResult(application);
+                    var response = this._lunaApplicationDataMapper.Map(application);
+                    response.CreatedTime = appDb.CreatedTime;
+                    response.LastUpdatedTime = appDb.LastUpdatedTime;
+                    response.Name = appDb.ApplicationName;
+                    response.Status = appDb.Status;
+
+                    return new OkObjectResult(response);
                 }
                 catch (Exception ex)
                 {
@@ -1640,11 +1662,16 @@ namespace Luna.Publish.Functions
                         _dbContext.ApplicationEvents.Add(publishingEvent);
                         await _dbContext._SaveChangesAsync();
 
-
                         transaction.Commit();
                     }
 
-                    return new OkObjectResult(application);
+                    var response = this._lunaApplicationDataMapper.Map(application);
+                    response.CreatedTime = appToUpdate.CreatedTime;
+                    response.LastUpdatedTime = appToUpdate.LastUpdatedTime;
+                    response.Name = appToUpdate.ApplicationName;
+                    response.Status = appToUpdate.Status;
+
+                    return new OkObjectResult(response);
                 }
                 catch (Exception ex)
                 {
@@ -1765,10 +1792,10 @@ namespace Luna.Publish.Functions
         ///     The key name. Valid values are PrimaryKey or SecondaryKey
         /// </param>
         /// <response code="200">
-        ///     <see cref="LunaApplicationMasterKeys"/>
+        ///     <see cref="LunaApplicationMasterKeysResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="LunaApplicationMasterKeys.example"/>
+        ///             <see cref="LunaApplicationMasterKeysResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Luna application master keys
@@ -1827,7 +1854,7 @@ namespace Luna.Publish.Functions
                             throw new LunaNotSupportedUserException(string.Format(ErrorMessages.KEY_NAME_NOT_SUPPORTED, keyName));
                         }
 
-                        var keys = new LunaApplicationMasterKeys()
+                        var keys = new LunaApplicationMasterKeysResponse()
                         {
                             PrimaryMasterKey = await _keyVaultUtils.GetSecretAsync(app.PrimaryMasterKeySecretName),
                             SecondaryMasterKey = await _keyVaultUtils.GetSecretAsync(app.SecondaryMasterKeySecretName)
@@ -1997,6 +2024,95 @@ namespace Luna.Publish.Functions
         }
 
         /// <summary>
+        /// Get a Luna API
+        /// </summary>
+        /// <group>Application</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/applications/{appName}/apis/{apiName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">The name of the application</param>
+        /// <param name="apiName" required="true" cref="string" in="path">The name of the api</param>
+        /// <response code="200">
+        ///     <see cref="BaseLunaAPIResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseLunaAPIResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Luna API
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetLunaAPI")]
+        public async Task<IActionResult> GetLunaAPI(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "applications/{appName}/apis/{apiName}")] HttpRequest req,
+            string appName,
+            string apiName)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetLunaAPI));
+
+                try
+                {
+                    var apiDb = await _dbContext.LunaAPIs.SingleOrDefaultAsync(x => x.ApplicationName == appName && x.APIName == apiName);
+
+                    if (apiDb == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.API_DOES_NOT_EXIST, apiName, appName));
+                    }
+
+                    var snapshot = _dbContext.ApplicationSnapshots.
+                        Where(x => x.ApplicationName == appName).
+                        OrderByDescending(x => x.LastAppliedEventId).FirstOrDefault();
+
+                    var events = await _dbContext.ApplicationEvents.
+                        Where(x => x.Id > snapshot.LastAppliedEventId && x.ResourceName == appName).
+                        OrderBy(x => x.Id).
+                        Select(x => x.GetEventObject()).
+                        ToListAsync();
+
+                    var lunaApp = _appEventProcessor.GetLunaApplication(appName, events, snapshot);
+
+                    if (lunaApp == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.APPLICATION_DOES_NOT_EXIST, appName));
+                    }
+
+                    var lunaAPI = lunaApp.APIs.SingleOrDefault(x => x.Name == apiName);
+
+                    if (lunaAPI == null)
+                    {
+                        throw new LunaNotFoundUserException(
+                            string.Format(ErrorMessages.API_DOES_NOT_EXIST, apiName, appName));
+                    }
+
+                    var response = this._lunaAPIMapper.Map(lunaAPI.Properties);
+                    response.Name = apiName;
+                    response.ApplicationName = appName;
+
+                    return new OkObjectResult(response);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetLunaAPI));
+                }
+            }
+        }
+
+        /// <summary>
         /// Create an API in the specified Luna application
         /// </summary>
         /// <group>API</group>
@@ -2081,7 +2197,10 @@ namespace Luna.Publish.Functions
                         transaction.Commit();
                     }
 
-                    return new OkObjectResult(api);
+                    var response = _lunaAPIMapper.Map(api);
+                    response.ApplicationName = appName;
+                    response.Name = apiName;
+                    return new OkObjectResult(response);
                 }
                 catch (Exception ex)
                 {
@@ -2182,7 +2301,10 @@ namespace Luna.Publish.Functions
                         transaction.Commit();
                     }
 
-                    return new OkObjectResult(api);
+                    var response = _lunaAPIMapper.Map(api);
+                    response.ApplicationName = appName;
+                    response.Name = apiName;
+                    return new OkObjectResult(response);
                 }
                 catch (Exception ex)
                 {

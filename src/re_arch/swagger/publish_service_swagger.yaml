@@ -328,7 +328,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationMasterKeys'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationMasterKeysResponse'
       security:
         - x-functions-key: [ ]
   '/api/applications/{name}':
@@ -349,7 +349,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplication'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationResponse'
       security:
         - x-functions-key: [ ]
     put:
@@ -447,7 +447,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationMasterKeys'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationMasterKeysResponse'
       security:
         - x-functions-key: [ ]
   '/api/applications/{name}/publish':
@@ -946,7 +946,7 @@ definitions:
       Type: AzureML
       Description: API version from Azure ML workspace
       AdvancedSettings: 
-  Luna.Publish.Public.Client.LunaApplicationMasterKeys:
+  Luna.Publish.Public.Client.LunaApplicationMasterKeysResponse:
     required:
       - PrimaryMasterKey
       - SecondaryMasterKey
@@ -959,6 +959,66 @@ definitions:
     example:
       PrimaryMasterKey: 92d3dd2a428540e7871aee92af26fc7d
       SecondaryMasterKey: 60158cd36c464531bf40a6c7efc629cd
+  Luna.Publish.Public.Client.LunaApplicationResponse:
+    required:
+      - DisplayName
+      - Description
+      - DocumentationUrl
+      - LogoImageUrl
+      - Publisher
+      - Tags
+      - Status
+      - CreatedTime
+      - LastUpdatedTime
+    type: object
+    properties:
+      Name:
+        type: string
+      OwnerUserId:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      DocumentationUrl:
+        type: string
+      LogoImageUrl:
+        type: string
+      Publisher:
+        type: string
+      Tags:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.LunaTagResponse'
+      Status:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+      LastUpdatedTime:
+        format: date-time
+        type: string
+    example:
+      Name: myapp
+      OwnerUserId: 43ebb35e-be1a-4dbf-92da-fb8a069d6a2c
+      DisplayName: My App
+      Description: This is my application
+      DocumentationUrl: https://aka.ms/lunadoc
+      LogoImageUrl: https://aka.ms/lunalogo.png
+      Publisher: Microsoft
+      Tags:
+        - Key: Department
+          Value: HR
+      Status: Published
+      CreatedTime: '2021-01-01T12:00:00.0000000-08:00'
+      LastUpdatedTime: '2021-01-01T12:00:00.0000000-08:00'
+  Luna.Publish.Public.Client.LunaTagResponse:
+    type: object
+    properties:
+      Key:
+        type: string
+      Value:
+        type: string
 securityDefinitions:
   x-functions-key:
     type: apiKey

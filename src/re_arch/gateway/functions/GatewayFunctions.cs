@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
+using System.Net;
 
 namespace Luna.Gateway.Functions
 {
@@ -1228,6 +1229,45 @@ namespace Luna.Gateway.Functions
             }
         }
 
+
+        /// <summary>
+        /// Marketplace webhooks
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>POST</verb>
+        /// <url>http://localhost:7071/api/marketplace/webhook</url>
+        /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("AzureMarketplaceWebhook")]
+        public async Task<IActionResult> AzureMarketplaceWebhook(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "marketplace/webhook")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.AzureMarketplaceWebhook));
+
+                try
+                {
+                    return new OkResult();
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.AzureMarketplaceWebhook));
+                }
+            }
+        }
+
         #endregion
 
         #region publish - Luna application
@@ -1242,10 +1282,10 @@ namespace Luna.Gateway.Functions
         /// <param name="key-name" required="true" cref="string" in="query">Name of key</param>
         /// <param name="req">The http request</param>
         /// <response code="200">
-        ///     <see cref="LunaApplicationMasterKeys"/>
+        ///     <see cref="LunaApplicationMasterKeysResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="LunaApplicationMasterKeys.example"/>
+        ///             <see cref="LunaApplicationMasterKeysResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Luna application master keys
@@ -1370,6 +1410,63 @@ namespace Luna.Gateway.Functions
         }
 
         /// <summary>
+        /// List Luna APIs in the specified application
+        /// </summary>
+        /// <group>API</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{name}/apis</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of Luna application</param>
+        /// <param name="req">The http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is <see cref="LunaAPI"/>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListLunaAPIs")]
+        public async Task<IActionResult> ListLunaAPIs(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "manage/applications/{appName}/apis")] HttpRequest req,
+            string appName)
+        {
+            var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListLunaAPIs));
+
+                try
+                {
+                    if (string.IsNullOrEmpty(lunaHeaders.UserId))
+                    {
+                        throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                    }
+
+                    var rbacResult = await _rbacClient.GetRBACQueryResult(lunaHeaders.UserId, $"/applications/{appName}", null, lunaHeaders);
+
+                    if (rbacResult.CanAccess)
+                    {
+                        var result = await _publishServiceClient.ListLunaApplications(rbacResult.Role.Equals(RBACRole.SystemAdmin.ToString()), lunaHeaders);
+                        return new OkObjectResult(result);
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListLunaAPIs));
+                }
+            }
+        }
+
+        /// <summary>
         /// Get application master keys
         /// </summary>
         /// <group>Applications</group>
@@ -1378,10 +1475,10 @@ namespace Luna.Gateway.Functions
         /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
         /// <param name="req">The http request</param>
         /// <response code="200">
-        ///     <see cref="LunaApplicationMasterKeys"/>
+        ///     <see cref="LunaApplicationMasterKeysResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="LunaApplicationMasterKeys.example"/>
+        ///             <see cref="LunaApplicationMasterKeysResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Luna application master keys
@@ -1437,10 +1534,10 @@ namespace Luna.Gateway.Functions
         /// <url>http://localhost:7071/api/manage/applications/{name}</url>
         /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
         /// <param name="req" in="body">
-        ///     <see cref="LunaApplicationProp"/>
+        ///     <see cref="LunaApplicationRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="LunaApplicationProp.example"/>
+        ///             <see cref="LunaApplicationRequest.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of luna application properties
@@ -1449,10 +1546,10 @@ namespace Luna.Gateway.Functions
         ///     Request contract
         /// </param>
         /// <response code="200">
-        ///     <see cref="LunaApplicationProp"/>
+        ///     <see cref="LunaApplicationResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="LunaApplicationProp.example"/>
+        ///             <see cref="LunaApplicationResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of luna application properties
@@ -1484,9 +1581,16 @@ namespace Luna.Gateway.Functions
                     {
                         var content = await HttpUtils.GetRequestBodyAsync(req);
                         var result = await _publishServiceClient.CreateLunaApplication(name, content, lunaHeaders);
+
+                        // TODO: Should this being moved to publishing service? Maybe...
                         if (await _rbacClient.AddApplicationOwner(lunaHeaders.UserId, $"/applications/{name}", lunaHeaders))
                         {
-                            return new OkObjectResult(result);
+                            return new ContentResult
+                            {
+                                Content = result,
+                                ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                                StatusCode = (int)HttpStatusCode.OK
+                            };
                         }
                         else
                         {
@@ -1564,7 +1668,13 @@ namespace Luna.Gateway.Functions
                     {
                         var content = await HttpUtils.GetRequestBodyAsync(req);
                         var result = await _publishServiceClient.UpdateLunaApplication(name, content, lunaHeaders);
-                        return new OkObjectResult(result);
+
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -1633,6 +1743,74 @@ namespace Luna.Gateway.Functions
         }
 
         /// <summary>
+        /// Get an API in a Luna application
+        /// </summary>
+        /// <group>Applications</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/manage/applications/{appName}/apis/{apiName}</url>
+        /// <param name="appName" required="true" cref="string" in="path">Name of the application</param>
+        /// <param name="apiName" required="true" cref="string" in="path">Name of the API</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="BaseLunaAPIResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseLunaAPIResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of luna API properties
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="http" name="http-bearer">
+        ///     <description>Test security</description>
+        ///     <scheme>bearer</scheme>
+        ///     <bearerFormat>JWT</bearerFormat>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetLunaAPI")]
+        public async Task<IActionResult> GetLunaAPI(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "manage/applications/{appName}/apis/{apiName}")] HttpRequest req,
+            string appName,
+            string apiName)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetLunaAPI));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId, $"/applications/{appName}", null, lunaHeaders))
+                    {
+                        var result = await _publishServiceClient.GetLunaAPI(appName, apiName, lunaHeaders);
+
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetLunaAPI));
+                }
+            }
+
+        }
+
+        /// <summary>
         /// Create an API in a Luna application
         /// </summary>
         /// <group>Applications</group>
@@ -1689,7 +1867,13 @@ namespace Luna.Gateway.Functions
                     {
                         var content = await HttpUtils.GetRequestBodyAsync(req);
                         var result = await _publishServiceClient.CreateLunaAPI(appName, apiName, content, lunaHeaders);
-                        return new OkObjectResult(result);
+
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -2099,10 +2283,10 @@ namespace Luna.Gateway.Functions
         /// <param name="name" required="true" cref="string" in="path">Name of the application</param>
         /// <param name="req">Http request</param>
         /// <response code="200">
-        ///     <see cref="LunaApplicationProp"/>
+        ///     <see cref="LunaApplicationResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="LunaApplicationProp.example"/>
+        ///             <see cref="LunaApplicationResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of luna application properties
@@ -2134,7 +2318,12 @@ namespace Luna.Gateway.Functions
                     {
                         var result = await _publishServiceClient.GetLunaApplication(name, lunaHeaders);
 
-                        return new OkObjectResult(result);
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -2555,10 +2744,10 @@ namespace Luna.Gateway.Functions
         /// <param name="type" required="true" cref="string" in="query">Type of partner service</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
-        ///     where T is <see cref="PartnerService"/>
+        ///     where T is <see cref="PartnerServiceOutlineResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="PartnerService.example"/>
+        ///             <see cref="PartnerServiceOutlineResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Azure ML workspace as partner services
@@ -3118,10 +3307,10 @@ namespace Luna.Gateway.Functions
         /// <param name="req">Http request</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
-        ///     where T is <see cref="PartnerService"/>
+        ///     where T is <see cref="PartnerServiceOutlineResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="PartnerService.example"/>
+        ///             <see cref="PartnerServiceOutlineResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of Azure ML workspace as partner services

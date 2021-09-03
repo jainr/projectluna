@@ -202,7 +202,7 @@ namespace Luna.Partner.Functions
                 try
                 {
                     var partnerServiceInternal = _dbContext.PartnerServices.
-                        Where(p => p.UniqueName == serviceName).SingleOrDefault<PartnerServiceInternal>();
+                        Where(p => p.UniqueName == serviceName).SingleOrDefault<PartnerServiceDb>();
 
                     if (partnerServiceInternal == null)
                     {
@@ -280,7 +280,7 @@ namespace Luna.Partner.Functions
                 try
                 {
                     var partnerServiceInternal = _dbContext.PartnerServices.
-                        Where(p => p.UniqueName == name).SingleOrDefault<PartnerServiceInternal>();
+                        Where(p => p.UniqueName == name).SingleOrDefault<PartnerServiceDb>();
 
                     if (partnerServiceInternal == null)
                     {
@@ -318,7 +318,7 @@ namespace Luna.Partner.Functions
         /// <param name="type" cref="string" in="query">Partner service type</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
-        ///     where T is <see cref="BasePartnerServiceConfiguration"/>
+        ///     where T is <see cref="PartnerServiceOutlineResponse"/>
         ///     Success
         /// </response>
         /// <security type="apiKey" name="x-functions-key">
@@ -515,7 +515,7 @@ namespace Luna.Partner.Functions
 
                     await _keyVaultUtils.SetSecretAsync(secretName, requestBody);
 
-                    var serviceInternal = PartnerServiceInternal.CreateFromConfig(name, config);
+                    var serviceInternal = PartnerServiceDb.CreateFromConfig(name, config);
                     serviceInternal.ConfigurationSecretName = secretName;
                     _dbContext.PartnerServices.Add(serviceInternal);
                     await _dbContext._SaveChangesAsync();
@@ -561,7 +561,7 @@ namespace Luna.Partner.Functions
                 try
                 {
                     var partnerServiceInternal = _dbContext.PartnerServices.
-                        Where(p => p.UniqueName == name).SingleOrDefault<PartnerServiceInternal>();
+                        Where(p => p.UniqueName == name).SingleOrDefault<PartnerServiceDb>();
 
                     if (partnerServiceInternal == null)
                     {

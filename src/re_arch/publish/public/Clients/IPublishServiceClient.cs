@@ -15,7 +15,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="keyName">The key name</param>
         /// <param name="headers">the luna request header</param>
         /// <returns></returns>
-        Task<LunaApplicationMasterKeys> RegenerateApplicationMasterKeys(string appName, string keyName, LunaRequestHeaders headers);
+        Task<LunaApplicationMasterKeysResponse> RegenerateApplicationMasterKeys(string appName, string keyName, LunaRequestHeaders headers);
 
         /// <summary>
         /// List Luna applications owned by the caller
@@ -31,7 +31,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">The application name</param>
         /// <param name="headers">The luna request header</param>
         /// <returns>The application master keys</returns>
-        Task<LunaApplicationMasterKeys> GetApplicationMasterKeys(
+        Task<LunaApplicationMasterKeysResponse> GetApplicationMasterKeys(
             string name,
             LunaRequestHeaders headers);
 
@@ -41,8 +41,8 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">The application name</param>
         /// <param name="properties">The properties</param>
         /// <param name="headers">The luna request header</param>
-        /// <returns>The API Version properties</returns>
-        Task<LunaApplicationProp> CreateLunaApplication(
+        /// <returns>The Luna application response</returns>
+        Task<string> CreateLunaApplication(
             string name,
             string properties,
             LunaRequestHeaders headers);
@@ -55,7 +55,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="properties">The properties</param>
         /// <param name="headers">The luna request header</param>
         /// <returns>The API properties</returns>
-        Task<BaseLunaAPIProp> CreateLunaAPI(
+        Task<string> CreateLunaAPI(
             string appName,
             string apiName,
             string properties,
@@ -85,7 +85,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="properties">The properties</param>
         /// <param name="headers">The luna request header</param>
         /// <returns>The application properties</returns>
-        Task<LunaApplicationProp> UpdateLunaApplication(
+        Task<string> UpdateLunaApplication(
             string name,
             string properties,
             LunaRequestHeaders headers);
@@ -176,8 +176,19 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">The application name</param>
         /// <param name="headers">The luna request header</param>
         /// <returns>The Luna application properties</returns>
-        Task<LunaApplication> GetLunaApplication(
+        Task<string> GetLunaApplication(
             string name,
+            LunaRequestHeaders headers);
+
+        /// Get a Luna API
+        /// </summary>
+        /// <param name="appName">The application name</param>
+        /// <param name="apiName">The api name</param>
+        /// <param name="headers">The luna request header</param>
+        /// <returns>The Luna api properties</returns>
+        Task<string> GetLunaAPI(
+            string appName,
+            string apiName,
             LunaRequestHeaders headers);
 
         /// <summary>

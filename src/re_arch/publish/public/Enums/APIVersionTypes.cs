@@ -14,8 +14,6 @@ namespace Luna.Publish.Public.Client
 
     public enum MLProjectAPIVersionType
     {
-        AzureML,
-        AzureDatabricks,
-        AzureSynapse
+        GitHub
     }
 }

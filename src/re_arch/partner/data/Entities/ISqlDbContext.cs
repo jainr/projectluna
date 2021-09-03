@@ -13,7 +13,7 @@ namespace Luna.Partner.Data
     public interface ISqlDbContext
     {
 
-        DbSet<PartnerServiceInternal> PartnerServices { get; set; }
+        DbSet<PartnerServiceDb> PartnerServices { get; set; }
 
         /// <summary>
         /// Save the changes to database

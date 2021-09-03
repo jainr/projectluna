@@ -73,5 +73,6 @@ namespace Luna.Common.Utils
         public const string ROLE_ASSIGNMENT_DOES_NOT_EXIST = "User {0} with role {1} does not exists.";
         public const string OWNERSHIP_ALREADY_EXIST = "User {0} is already an owner of resource {1}.";
         public const string OWNERSHIP_DOES_NOT_EXIST = "User {0} is not an owner of resource {1}.";
+        public const string INVALID_LUNA_API_TYPE = "Luna API type {0} is not supported.";
     }
 }

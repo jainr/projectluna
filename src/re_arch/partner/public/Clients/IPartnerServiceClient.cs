@@ -21,7 +21,7 @@ namespace Luna.Partner.Public.Client
         /// </summary>
         /// <param name="headers">The luna request headers</param>
         /// <returns>All registered partner services</returns>
-        Task<List<PartnerService>> ListPartnerServicesAsync(LunaRequestHeaders headers, string type = null);
+        Task<List<PartnerServiceOutlineResponse>> ListPartnerServicesAsync(LunaRequestHeaders headers, string type = null);
 
         /// <summary>
         /// Register a new partner service
@@ -70,7 +70,7 @@ namespace Luna.Partner.Public.Client
         /// </summary>
         /// <param name="headers">The luna request headers</param>
         /// <returns>All registered Azure ML workspaces</returns>
-        Task<List<PartnerService>> ListAzureMLWorkspaces(LunaRequestHeaders headers);
+        Task<List<PartnerServiceOutlineResponse>> ListAzureMLWorkspaces(LunaRequestHeaders headers);
 
         /// <summary>
         /// Register a new AML workspace as partner service

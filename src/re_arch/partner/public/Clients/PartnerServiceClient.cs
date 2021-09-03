@@ -88,7 +88,7 @@ namespace Luna.Partner.Public.Client
         /// </summary>
         /// <param name="headers">The luna request headers</param>
         /// <returns>All registered partner services</returns>
-        public async Task<List<PartnerService>> ListPartnerServicesAsync(LunaRequestHeaders headers, string type = null)
+        public async Task<List<PartnerServiceOutlineResponse>> ListPartnerServicesAsync(LunaRequestHeaders headers, string type = null)
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
 
@@ -103,8 +103,8 @@ namespace Luna.Partner.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            List<PartnerService> services =
-                JsonConvert.DeserializeObject<List<PartnerService>>(
+            List<PartnerServiceOutlineResponse> services =
+                JsonConvert.DeserializeObject<List<PartnerServiceOutlineResponse>>(
                     await response.Content.ReadAsStringAsync());
 
             return services;
@@ -191,7 +191,7 @@ namespace Luna.Partner.Public.Client
         /// </summary>
         /// <param name="headers">The luna request headers</param>
         /// <returns>All registered Azure ML workspaces</returns>
-        public async Task<List<PartnerService>> ListAzureMLWorkspaces(LunaRequestHeaders headers)
+        public async Task<List<PartnerServiceOutlineResponse>> ListAzureMLWorkspaces(LunaRequestHeaders headers)
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
@@ -199,8 +199,8 @@ namespace Luna.Partner.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            List<PartnerService> services =
-                JsonConvert.DeserializeObject<List<PartnerService>>(
+            List<PartnerServiceOutlineResponse> services =
+                JsonConvert.DeserializeObject<List<PartnerServiceOutlineResponse>>(
                     await response.Content.ReadAsStringAsync());
 
             return services;

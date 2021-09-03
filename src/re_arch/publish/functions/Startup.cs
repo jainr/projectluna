@@ -9,6 +9,7 @@ using Luna.Publish.Data;
 using Luna.Publish.Clients;
 using Luna.Common.Utils;
 using Luna.PubSub.Public.Client;
+using Luna.Publish.Public.Client;
 
 [assembly: FunctionsStartup(typeof(Luna.Publish.Functions.Startup))]
 
@@ -35,6 +36,9 @@ namespace Luna.Publish.Functions
                 });
 
             builder.Services.AddSingleton<IPubSubServiceClient, PubSubServiceClient>();
+
+            builder.Services.TryAddSingleton<IDataMapper<BaseLunaAPIRequest, BaseLunaAPIResponse, BaseLunaAPIProp>, LunaAPIMapper>();
+            builder.Services.TryAddSingleton<IDataMapper<LunaApplicationRequest, LunaApplicationResponse, LunaApplicationProp>, LunaApplicationMapper>();
 
             builder.Services.AddSingleton<IAppEventContentGenerator, AppEventContentGenerator>();
             builder.Services.AddSingleton<IAppEventProcessor, AppEventProcessor>();

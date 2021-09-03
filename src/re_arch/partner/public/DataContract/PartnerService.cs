@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Luna.Partner.Public.Client
 {
-    public class PartnerService
+    public class PartnerServiceOutlineResponse
     {
-        public static string example = JsonConvert.SerializeObject(new PartnerService()
+        public static string example = JsonConvert.SerializeObject(new PartnerServiceOutlineResponse()
         {
             UniqueName = "amlworkspace",
             DisplayName = "My AML workspace",

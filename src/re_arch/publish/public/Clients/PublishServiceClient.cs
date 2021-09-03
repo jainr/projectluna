@@ -35,7 +35,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="keyName">The key name</param>
         /// <param name="headers">the luna request header</param>
         /// <returns></returns>
-        public async Task<LunaApplicationMasterKeys> RegenerateApplicationMasterKeys(
+        public async Task<LunaApplicationMasterKeysResponse> RegenerateApplicationMasterKeys(
             string appName, 
             string keyName, 
             LunaRequestHeaders headers)
@@ -49,7 +49,7 @@ namespace Luna.Publish.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Post, uri, null, headers);
 
-            return await GetResponseObject<LunaApplicationMasterKeys>(response);
+            return await GetResponseObject<LunaApplicationMasterKeysResponse>(response);
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">The application name</param>
         /// <param name="headers">The luna request header</param>
         /// <returns>The application master keys</returns>
-        public async Task<LunaApplicationMasterKeys> GetApplicationMasterKeys(
+        public async Task<LunaApplicationMasterKeysResponse> GetApplicationMasterKeys(
             string name,
             LunaRequestHeaders headers)
         {
@@ -93,7 +93,7 @@ namespace Luna.Publish.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            return await GetResponseObject<LunaApplicationMasterKeys>(response);
+            return await GetResponseObject<LunaApplicationMasterKeysResponse>(response);
         }
 
         /// <summary>
@@ -103,20 +103,20 @@ namespace Luna.Publish.Public.Client
         /// <param name="properties">The properties</param>
         /// <param name="headers">The luna request header</param>
         /// <returns>The application properties</returns>
-        public async Task<LunaApplicationProp> CreateLunaApplication(
+        public async Task<string> CreateLunaApplication(
             string name,
             string properties,
             LunaRequestHeaders headers)
         {
             ValidationUtils.ValidateObjectId(name, nameof(name));
-            ValidationUtils.ValidateInput<LunaApplicationProp>(properties);
+            ValidationUtils.ValidateInput<LunaApplicationRequest>(properties);
 
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Put, uri, properties, headers);
-
-            return await GetResponseObject<LunaApplicationProp>(response);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="properties">The properties</param>
         /// <param name="headers">The luna request header</param>
         /// <returns>The API properties</returns>
-        public async Task<BaseLunaAPIProp> CreateLunaAPI(
+        public async Task<string> CreateLunaAPI(
             string appName,
             string apiName,
             string properties,
@@ -143,7 +143,8 @@ namespace Luna.Publish.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Put, uri, properties, headers);
 
-            return await GetResponseObject<BaseLunaAPIProp>(response);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
         }
 
         /// <summary>
@@ -183,20 +184,21 @@ namespace Luna.Publish.Public.Client
         /// <param name="properties">The properties</param>
         /// <param name="headers">The luna request header</param>
         /// <returns>The application properties</returns>
-        public async Task<LunaApplicationProp> UpdateLunaApplication(
+        public async Task<string> UpdateLunaApplication(
             string name,
             string properties,
             LunaRequestHeaders headers)
         {
             ValidationUtils.ValidateObjectId(name, nameof(name));
-            ValidationUtils.ValidateInput<LunaApplicationProp>(properties);
+            ValidationUtils.ValidateInput<LunaApplicationRequest>(properties);
 
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{name}");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Patch, uri, properties, headers);
 
-            return await GetResponseObject<LunaApplicationProp>(response);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
         }
 
         /// <summary>
@@ -356,7 +358,7 @@ namespace Luna.Publish.Public.Client
         /// <param name="name">The application name</param>
         /// <param name="headers">The luna request header</param>
         /// <returns>The Luna application properties</returns>
-        public async Task<LunaApplication> GetLunaApplication(
+        public async Task<string> GetLunaApplication(
             string name,
             LunaRequestHeaders headers)
         {
@@ -367,7 +369,33 @@ namespace Luna.Publish.Public.Client
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
-            return await GetResponseObject<LunaApplication>(response);
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
+        }
+
+        /// Get a Luna API
+        /// </summary>
+        /// <param name="appName">The application name</param>
+        /// <param name="apiName">The api name</param>
+        /// <param name="headers">The luna request header</param>
+        /// <returns>The Luna api properties</returns>
+        public async Task<string> GetLunaAPI(
+            string appName,
+            string apiName,
+            LunaRequestHeaders headers)
+        {
+            ValidationUtils.ValidateObjectId(appName, nameof(appName));
+            ValidationUtils.ValidateObjectId(apiName, nameof(apiName));
+
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl + $"applications/{appName}/apis/{apiName}");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
         }
 
         /// <summary>

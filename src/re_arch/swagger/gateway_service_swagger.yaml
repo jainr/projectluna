@@ -183,6 +183,17 @@ paths:
               InputParameters: [ ]
       security:
         - x-functions-key: [ ]
+  /api/marketplace/webhook:
+    post:
+      tags:
+        - Azure Marketplace
+      summary: Marketplace webhooks
+      operationId: postApiMarketplaceWebhook
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
   '/api/manage/applications/{name}/regeneratemasterkeys':
     post:
       tags:
@@ -206,7 +217,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationMasterKeys'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationMasterKeysResponse'
       security:
         - http-bearer: [ ]
   /api/manage/applications:
@@ -244,7 +255,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationMasterKeys'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationMasterKeysResponse'
       security:
         - http-bearer: [ ]
   '/api/manage/applications/{name}':
@@ -268,12 +279,12 @@ paths:
           description: Request contract
           required: true
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationRequest'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationResponse'
       security:
         - http-bearer: [ ]
     patch:
@@ -337,7 +348,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationProp'
+            $ref: '#/definitions/Luna.Publish.Public.Client.LunaApplicationResponse'
       security:
         - http-bearer: [ ]
   '/api/manage/applications/{appName}/apis/{apiName}':
@@ -723,7 +734,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.Public.Client.PartnerService'
+              $ref: '#/definitions/Luna.Partner.Public.Client.PartnerServiceOutlineResponse'
             example:
               UniqueName: amlworkspace
               DisplayName: My AML workspace
@@ -939,7 +950,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Partner.Public.Client.PartnerService'
+              $ref: '#/definitions/Luna.Partner.Public.Client.PartnerServiceOutlineResponse'
             example:
               UniqueName: amlworkspace
               DisplayName: My AML workspace
@@ -1802,7 +1813,7 @@ definitions:
         type: string
       IsSystemParameter:
         type: boolean
-  Luna.Publish.Public.Client.LunaApplicationMasterKeys:
+  Luna.Publish.Public.Client.LunaApplicationMasterKeysResponse:
     required:
       - PrimaryMasterKey
       - SecondaryMasterKey
@@ -1938,6 +1949,109 @@ definitions:
       Type: AzureML
       Description: API version from Azure ML workspace
       AdvancedSettings: 
+  Luna.Publish.Public.Client.LunaApplicationRequest:
+    required:
+      - displayName
+      - description
+      - documentationUrl
+      - logoImageUrl
+      - publisher
+      - tags
+    type: object
+    properties:
+      ownerUserId:
+        type: string
+      displayName:
+        type: string
+      description:
+        type: string
+      documentationUrl:
+        type: string
+      logoImageUrl:
+        type: string
+      publisher:
+        type: string
+      tags:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.LunaTagRequest'
+    example:
+      ownerUserId: 43ebb35e-be1a-4dbf-92da-fb8a069d6a2c
+      displayName: My App
+      description: This is my application
+      documentationUrl: https://aka.ms/lunadoc
+      logoImageUrl: https://aka.ms/lunalogo.png
+      publisher: Microsoft
+      tags:
+        - key: Department
+          value: HR
+  Luna.Publish.Public.Client.LunaTagRequest:
+    type: object
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+  Luna.Publish.Public.Client.LunaApplicationResponse:
+    required:
+      - DisplayName
+      - Description
+      - DocumentationUrl
+      - LogoImageUrl
+      - Publisher
+      - Tags
+      - Status
+      - CreatedTime
+      - LastUpdatedTime
+    type: object
+    properties:
+      Name:
+        type: string
+      OwnerUserId:
+        type: string
+      DisplayName:
+        type: string
+      Description:
+        type: string
+      DocumentationUrl:
+        type: string
+      LogoImageUrl:
+        type: string
+      Publisher:
+        type: string
+      Tags:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Publish.Public.Client.LunaTagResponse'
+      Status:
+        type: string
+      CreatedTime:
+        format: date-time
+        type: string
+      LastUpdatedTime:
+        format: date-time
+        type: string
+    example:
+      Name: myapp
+      OwnerUserId: 43ebb35e-be1a-4dbf-92da-fb8a069d6a2c
+      DisplayName: My App
+      Description: This is my application
+      DocumentationUrl: https://aka.ms/lunadoc
+      LogoImageUrl: https://aka.ms/lunalogo.png
+      Publisher: Microsoft
+      Tags:
+        - Key: Department
+          Value: HR
+      Status: Published
+      CreatedTime: '2021-01-01T12:00:00.0000000-08:00'
+      LastUpdatedTime: '2021-01-01T12:00:00.0000000-08:00'
+  Luna.Publish.Public.Client.LunaTagResponse:
+    type: object
+    properties:
+      Key:
+        type: string
+      Value:
+        type: string
   Luna.RBAC.Public.Client.RoleAssignmentRequest:
     required:
       - Uid
@@ -1995,7 +2109,7 @@ definitions:
       Description: Azure ML workspace
       Type: AzureML
       Tags: ''
-  Luna.Partner.Public.Client.PartnerService:
+  Luna.Partner.Public.Client.PartnerServiceOutlineResponse:
     required:
       - UniqueName
       - DisplayName

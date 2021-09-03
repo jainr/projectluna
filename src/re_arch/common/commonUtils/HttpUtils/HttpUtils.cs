@@ -10,6 +10,8 @@ namespace Luna.Common.Utils
 {
     public class HttpUtils
     {
+        public static readonly string JSON_CONTENT_TYPE = "application/json";
+
         public static async Task<T> DeserializeRequestBodyAsync<T>(HttpRequest req)
         {
             string requestBody = await GetRequestBodyAsync(req);

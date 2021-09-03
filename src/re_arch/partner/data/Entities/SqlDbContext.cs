@@ -25,7 +25,7 @@ namespace Luna.Partner.Data
             }
         }
 
-        public DbSet<PartnerServiceInternal> PartnerServices { get; set; }
+        public DbSet<PartnerServiceDb> PartnerServices { get; set; }
 
         /// <summary>
         /// Save changes to database

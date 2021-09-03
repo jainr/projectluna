@@ -12,6 +12,17 @@ namespace Luna.Publish.Clients
 {
     public class HttpRequestParser : IHttpRequestParser
     {
+        private readonly IDataMapper<LunaApplicationRequest, LunaApplicationResponse, LunaApplicationProp> _lunaApplicationDataMapper;
+        private readonly IDataMapper<BaseLunaAPIRequest, BaseLunaAPIResponse, BaseLunaAPIProp> _lunaAPIMapper;
+
+        public HttpRequestParser(
+            IDataMapper<LunaApplicationRequest, LunaApplicationResponse, LunaApplicationProp> lunaApplicationDataMapper,
+            IDataMapper<BaseLunaAPIRequest, BaseLunaAPIResponse, BaseLunaAPIProp> lunaAPIMapper)
+        {
+            this._lunaApplicationDataMapper = lunaApplicationDataMapper ?? throw new ArgumentNullException(nameof(lunaApplicationDataMapper));
+            this._lunaAPIMapper = lunaAPIMapper ?? throw new ArgumentNullException(nameof(lunaAPIMapper));
+        }
+
         /// <summary>
         /// Parse and validate a Luna application from request body
         /// </summary>
@@ -19,9 +30,10 @@ namespace Luna.Publish.Clients
         /// <returns>A LunaApplication instance</returns>
         public async Task<LunaApplicationProp> ParseAndValidateLunaApplicationAsync(string requestBody)
         {
-            var app = DeserializeRequestBodyAsync<LunaApplicationProp>(requestBody);
+            var app = DeserializeRequestBodyAsync<LunaApplicationRequest>(requestBody);
+
             //TODO: validation
-            return app;
+            return this._lunaApplicationDataMapper.Map(app);
         }
 
         /// <summary>
@@ -31,33 +43,10 @@ namespace Luna.Publish.Clients
         /// <returns>A BaseLunaAPIProp instance</returns>
         public async Task<BaseLunaAPIProp> ParseAndValidateLunaAPIAsync(string requestBody)
         {
-            var api = DeserializeRequestBodyAsync<BaseLunaAPIProp>(requestBody);
+            var api = DeserializeRequestBodyAsync<BaseLunaAPIRequest>(requestBody);
 
-            LunaAPIType apiType;
-            if (!Enum.TryParse<LunaAPIType>(api.Type, out apiType))
-            {
-                throw new LunaBadRequestUserException(
-                    string.Format(ErrorMessages.API_TYPE_NOT_SUPPORTED, api.Type),
-                    UserErrorCode.InvalidParameter);
-            }
-            switch (apiType)
-            {
-                case LunaAPIType.Realtime:
-                    api = DeserializeRequestBodyAsync<RealtimeEndpointLunaAPIProp>(requestBody);
-                    break;
-                case LunaAPIType.Pipeline:
-                    api = DeserializeRequestBodyAsync<PipelineEndpointLunaAPIProp>(requestBody);
-                    break;
-                case LunaAPIType.MLProject:
-                    api = DeserializeRequestBodyAsync<MLProjectLunaAPIProp>(requestBody);
-                    break;
-                default:
-                    throw new LunaBadRequestUserException(
-                        string.Format(ErrorMessages.API_TYPE_NOT_SUPPORTED, api.Type),
-                        UserErrorCode.InvalidParameter);
-            }
             //TODO: validation
-            return api;
+            return this._lunaAPIMapper.Map(api);
         }
 
         /// <summary>
