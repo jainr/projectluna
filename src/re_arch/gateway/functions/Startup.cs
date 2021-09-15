@@ -10,6 +10,7 @@ using Luna.PubSub.Public.Client;
 using Luna.Gallery.Public.Client;
 using Luna.Common.Utils;
 using Luna.Partner.Public.Client;
+using Luna.Marketplace.Public.Client;
 
 [assembly: FunctionsStartup(typeof(Luna.Gateway.Functions.Startup))]
 
@@ -72,6 +73,15 @@ namespace Luna.Gateway.Functions
                 });
 
             builder.Services.AddSingleton<IGalleryServiceClient, GalleryServiceClient>();
+
+            builder.Services.AddOptions<MarketplaceServiceClientConfiguration>().Configure(
+                options =>
+                {
+                    options.ServiceBaseUrl = Environment.GetEnvironmentVariable("MARKETPLACE_SERVICE_BASE_URL");
+                    options.AuthenticationKey = Environment.GetEnvironmentVariable("MARKETPLACE_SERVICE_KEY");
+                });
+
+            builder.Services.AddSingleton<IMarketplaceServiceClient, MarketplaceServiceClient>();
 
             string connectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING");
 

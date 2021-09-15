@@ -149,66 +149,6 @@ namespace Luna.Gallery.Public.Client
             LunaRequestHeaders headers);
 
         /// <summary>
-        /// Resolve a marketplace token
-        /// </summary>
-        /// <param name="token">The subscription token</param>
-        /// <param name="headers">The Luna request header</param>
-        /// <returns>The resolved subscription</returns>
-        Task<MarketplaceSubscription> ResolveMarketplaceTokenAsync(string token, LunaRequestHeaders headers);
-
-        /// <summary>
-        /// Create a markplace subscription
-        /// </summary>
-        /// <param name="subscriptionId">The subscription id</param>
-        /// <param name="subscription">The subscription</param>
-        /// <param name="headers">The Luna request header</param>
-        /// <returns>The created subscription</returns>
-        Task<MarketplaceSubscription> CreateMarketplaceSubscriptionAsync(
-            Guid subscriptionId,
-            MarketplaceSubscription subscription,
-            LunaRequestHeaders headers);
-
-        /// <summary>
-        /// Activate a marketplace subscription
-        /// </summary>
-        /// <param name="subscriptionId">The subscription id</param>
-        /// <param name="headers">The Luna request header</param>
-        /// <returns></returns>
-        Task ActivateMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers);
-
-        /// <summary>
-        /// Unsubscribe a marketplace subscription
-        /// </summary>
-        /// <param name="subscriptionId">The subscription id</param>
-        /// <param name="headers">The Luna request header</param>
-        /// <returns></returns>
-        Task UnsubscribeMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers);
-
-        /// <summary>
-        /// Get a marketplace subscription
-        /// </summary>
-        /// <param name="subscriptionId">The subscription id</param>
-        /// <param name="headers">The Luna request header</param>
-        /// <returns></returns>
-        Task<MarketplaceSubscription> GetMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers);
-
-        /// <summary>
-        /// List marketplace subscriptions
-        /// </summary>
-        /// <param name="headers">The Luna request header</param>
-        /// <returns></returns>
-        Task<List<MarketplaceSubscription>> ListMarketplaceSubscriptionsAsync(LunaRequestHeaders headers);
-
-        /// <summary>
-        /// Get parameters for the specified offer and plan
-        /// </summary>
-        /// <param name="offerId">The offer id</param>
-        /// <param name="planId">The plan id</param>
-        /// <param name="headers">The Luna request headers</param>
-        /// <returns>The parameters</returns>
-        Task<List<MarketplaceParameter>> GetMarketplaceParametersAsync(string offerId, string planId, LunaRequestHeaders headers);
-
-        /// <summary>
         /// Create a application publisher
         /// </summary>
         /// <param name="name">Name of the application publisher</param>

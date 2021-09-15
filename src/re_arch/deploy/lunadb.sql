@@ -16,6 +16,9 @@ GO
 /****** Object:  Schema [provision]    Script Date: 4/29/2021 11:07:14 AM ******/
 CREATE SCHEMA [provision]
 GO
+/****** Object:  Schema [marketplace]    Script Date: 4/29/2021 11:07:14 AM ******/
+CREATE SCHEMA [marketplace]
+GO
 /****** Object:  Table [partner].[PartnerServices]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
@@ -62,50 +65,6 @@ CREATE TABLE [publish].[AutomationWebhooks](
 	[isEnabled] [bit] NOT NULL,
 	[createdTime] [datetime2](7) NOT NULL,
 	[lastUpdatedTime] [datetime2](7) NOT NULL,
-PRIMARY KEY CLUSTERED 
-(
-	[id] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
-/****** Object:  Table [publish].[AzureMarketplaceOffers]    Script Date: 4/29/2021 11:07:14 AM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [publish].[AzureMarketplaceOffers](
-	[id] [bigint] IDENTITY(1,1) NOT NULL,
-	[marketplaceOfferId] [nvarchar](50) NOT NULL,
-	[displayName] [nvarchar](128) NOT NULL,
-	[description] [nvarchar](1024) NOT NULL,
-	[status] [nvarchar](64) NOT NULL,
-	[isManualActivation] [bit] NOT NULL,
-	[createdTime] [datetime2](7) NOT NULL,
-	[lastUpdatedTime] [datetime2](7) NOT NULL,
-	[deletedTime] [datetime2](7) NULL,
-PRIMARY KEY CLUSTERED 
-(
-	[id] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
-/****** Object:  Table [publish].[AzureMarketplacePlans]    Script Date: 4/29/2021 11:07:14 AM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [publish].[AzureMarketplacePlans](
-	[id] [bigint] IDENTITY(1,1) NOT NULL,
-	[offerId] [bigint] NOT NULL,
-	[marketplacePlanId] [nvarchar](50) NOT NULL,
-	[description] [nvarchar](1024) NOT NULL,
-	[isLocalDeployment] [bit] NOT NULL,
-	[managementKitDownloadUrlSecretName] [nvarchar](64) NOT NULL,
-	[createdTime] [datetime2](7) NOT NULL,
-	[lastUpdatedTime] [datetime2](7) NOT NULL,
-    CONSTRAINT FK_marketplace_offer_id_plans FOREIGN KEY (offerId) REFERENCES publish.AzureMarketplaceOffers(id),
 PRIMARY KEY CLUSTERED 
 (
 	[id] ASC
@@ -215,12 +174,12 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
-/****** Object:  Table [publish].[MarketplaceOfferSnapshots]    Script Date: 4/29/2021 11:07:14 AM ******/
+/****** Object:  Table [marketplace].[MarketplaceOfferSnapshots]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [publish].[MarketplaceOfferSnapshots](
+CREATE TABLE [marketplace].[MarketplaceOfferSnapshots](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
 	[snapshotId] [uniqueidentifier] NOT NULL,
 	[lastAppliedEventId] [bigint] NOT NULL,
@@ -237,12 +196,12 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
-/****** Object:  Table [publish].[MarketplaceOfferEvents]    Script Date: 4/29/2021 11:07:14 AM ******/
+/****** Object:  Table [marketplace].[MarketplaceEvents]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [publish].[MarketplaceOfferEvents](
+CREATE TABLE [marketplace].[MarketplaceEvents](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
 	[eventId] [uniqueidentifier] NOT NULL,
 	[eventType] [nvarchar](64) NOT NULL,
@@ -258,21 +217,84 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
-/****** Object:  Table [publish].[MarketplaceOffers]    Script Date: 4/29/2021 11:07:14 AM ******/
+/****** Object:  Table [marketplace].[MarketplaceOffers]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [publish].[MarketplaceOffers](
+CREATE TABLE [marketplace].[MarketplaceOffers](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
 	[offerId] [nvarchar](50) NOT NULL,
 	[status] [nvarchar](64) NOT NULL,
+	[createdBy] [nvarchar](128) NOT NULL,
 	[displayName] [nvarchar](128) NOT NULL,
 	[description] [nvarchar](1024) NOT NULL,
 	[createdTime] [datetime2](7) NOT NULL,
 	[lastUpdatedTime] [datetime2](7) NOT NULL,
 	[lastPublishedTime] [datetime2](7) NULL,
 	[deletedTime] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [marketplace].[MarketplacePlans]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [marketplace].[MarketplacePlans](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[offerId] [nvarchar](50) NOT NULL,
+	[planId] [nvarchar](50) NOT NULL,
+	[displayName] [nvarchar](128) NOT NULL,
+	[mode] [nvarchar](64) NOT NULL,
+	[description] [nvarchar](1024) NOT NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+	[lastUpdatedTime] [datetime2](7) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [marketplace].[MarketplaceParameters]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [marketplace].[MarketplaceParameters](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[offerId] [nvarchar](50) NOT NULL,
+	[parameterName] [nvarchar](50) NOT NULL,
+	[displayName] [nvarchar](128) NOT NULL,
+	[mode] [nvarchar](64) NOT NULL,
+	[description] [nvarchar](1024) NOT NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+	[lastUpdatedTime] [datetime2](7) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [marketplace].[MarketplaceProvisioningSteps]    Script Date: 4/29/2021 11:07:14 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [marketplace].[MarketplaceProvisioningSteps](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[offerId] [nvarchar](50) NOT NULL,
+	[stepName] [nvarchar](50) NOT NULL,
+	[type] [nvarchar](128) NOT NULL,
+	[description] [nvarchar](1024) NOT NULL,
+	[createdTime] [datetime2](7) NOT NULL,
+	[lastUpdatedTime] [datetime2](7) NOT NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[id] ASC
@@ -472,12 +494,12 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
-/****** Object:  Table [gallery].[AzureMarketplaceSubscriptions]    Script Date: 4/29/2021 11:07:14 AM ******/
+/****** Object:  Table [marketplace].[AzureMarketplaceSubscriptions]    Script Date: 4/29/2021 11:07:14 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [gallery].[AzureMarketplaceSubscriptions](
+CREATE TABLE [marketplace].[AzureMarketplaceSubscriptions](
 	[SubscriptionId] [uniqueidentifier] NOT NULL,
 	[SubscriptionName] [nvarchar](50) NOT NULL,
 	[OwnerId] [nvarchar](128) NOT NULL,

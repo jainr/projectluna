@@ -1,4 +1,4 @@
-﻿using Luna.Gallery.Public.Client;
+﻿using Luna.Marketplace.Public.Client;
 using Luna.Provision.Data;
 using System;
 using System.Collections.Generic;

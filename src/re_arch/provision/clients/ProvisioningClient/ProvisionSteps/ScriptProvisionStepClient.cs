@@ -1,6 +1,6 @@
-﻿using Luna.Gallery.Public.Client;
+﻿using Luna.Marketplace.Public.Client;
 using Luna.Provision.Data;
-using Luna.Publish.Public.Client;
+using Luna.Marketplace.Public.Client;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

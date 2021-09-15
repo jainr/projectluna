@@ -17,12 +17,6 @@ namespace Luna.Publish.Data
 
         DbSet<ApplicationEventDB> ApplicationEvents { get; set; }
 
-        DbSet<MarketplaceOfferSnapshotDB> MarketplaceOfferSnapshots { get; set; }
-
-        DbSet<MarketplaceOfferEventDB> MarketplaceOfferEvents { get; set; }
-
-        DbSet<MarketplaceOfferDB> MarketplaceOffers { get; set; }
-
         DbSet<LunaApplicationDB> LunaApplications { get; set; }
 
         DbSet<LunaAPIDB> LunaAPIs { get; set; }

@@ -1,8 +1,9 @@
 using Luna.Common.Utils;
-using Luna.Gallery.Public.Client;
+using Luna.Marketplace.Public.Client;
 using Luna.Provision.Clients;
 using Luna.Provision.Data;
 using Luna.Publish.Public.Client;
+using Luna.Marketplace.Public.Client;
 using Luna.PubSub.Public.Client;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +37,7 @@ namespace Luna.Provision.Functions
         private readonly ISqlDbContext _dbContext;
         private readonly ILogger<ProvisionServiceFunctions> _logger;
         private readonly IPubSubServiceClient _pubSubClient;
-        private readonly IGalleryServiceClient _galleryClient;
+        private readonly IMarketplaceServiceClient _marketplaceClient;
         private readonly IAzureKeyVaultUtils _keyVaultUtils;
         private readonly ISwaggerClient _swaggerClient;
         private readonly IProvisionStepClientFactory _provisionStepClientFactory;
@@ -45,14 +46,14 @@ namespace Luna.Provision.Functions
             ILogger<ProvisionServiceFunctions> logger, 
             IAzureKeyVaultUtils keyVaultUtils,
             IPubSubServiceClient pubSubClient,
-            IGalleryServiceClient galleryClient,
+            IMarketplaceServiceClient marketplaceClient,
             ISwaggerClient swaggerClient,
             IProvisionStepClientFactory provisionStepClientFactory)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(dbContext));
             this._pubSubClient = pubSubClient ?? throw new ArgumentNullException(nameof(pubSubClient));
-            this._galleryClient = galleryClient ?? throw new ArgumentNullException(nameof(galleryClient));
+            this._marketplaceClient = marketplaceClient ?? throw new ArgumentNullException(nameof(marketplaceClient));
             this._keyVaultUtils = keyVaultUtils ?? throw new ArgumentNullException(nameof(keyVaultUtils));
             this._swaggerClient = swaggerClient ?? throw new ArgumentNullException(nameof(swaggerClient));
             this._provisionStepClientFactory = provisionStepClientFactory ?? throw new ArgumentNullException(nameof(provisionStepClientFactory));
@@ -569,7 +570,7 @@ namespace Luna.Provision.Functions
                                     }
                                     else
                                     {
-                                        await this._galleryClient.ActivateMarketplaceSubscriptionAsync(job.SubscriptionId, new LunaRequestHeaders());
+                                        await this._marketplaceClient.ActivateMarketplaceSubscriptionAsync(job.SubscriptionId, new LunaRequestHeaders());
                                         job.Status = ProvisionStatus.Completed.ToString();
                                         job.IsActive = false;
                                         job.CompletedTime = DateTime.UtcNow;

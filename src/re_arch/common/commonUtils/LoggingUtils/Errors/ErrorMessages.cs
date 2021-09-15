@@ -11,6 +11,8 @@ namespace Luna.Common.Utils
         public const string APPLICATION_ALREADY_EXIST = "Name of {0} is being used by other applications. Please choose a different name and try again.";
         public const string MARKETPLACE_OFFER_ALREADY_EXIST = "Id of {0} is being used by other Azure marketplace offers. Please choose a different name and try again.";
         public const string MARKETPLACE_PLAN_ALREADY_EXIST = "Id of {0} is being used by other Azure marketplace plans in offer {1}. Please choose a different name and try again.";
+        public const string MARKETPLACE_PARAMETER_ALREADY_EXIST = "Id of {0} is being used by other Azure marketplace parameter in offer {1}. Please choose a different name and try again.";
+        public const string MARKETPLACE_STEP_ALREADY_EXIST = "Id of {0} is being used by other Azure marketplace provisioning step in offer {1}. Please choose a different name and try again.";
         public const string API_ALREADY_EXIST = "Name of {0} is being used by other APIs in current application {1}. Please choose a different name and try again.";
         public const string API_VERSION_ALREADY_EXIST = "Name of {0} is being used by other versions in current API {1}. Please choose a different name and try again.";
         public const string PARTNER_SERVICE_ALREADY_EXIST = "Name of {0} is being used by other partner services. Please choose a different name and try again.";
@@ -19,6 +21,8 @@ namespace Luna.Common.Utils
         public const string AUTOMATION_WEBHOOK_DOES_NOT_EXIST = "Automation webhook {0} does not exist or you do not have permission to access it.";
         public const string MARKETPLACE_OFFER_DOES_NOT_EXIST = "Azure marketplace offer {0} does not exist or you do not have permission to access it.";
         public const string MARKETPLACE_PLAN_DOES_NOT_EXIST = "Azure marketplace plan {0} in offer {1} does not exist or you do not have permission to access it.";
+        public const string MARKETPLACE_PARAMETER_DOES_NOT_EXIST = "Azure marketplace parameter {0} in offer {1} does not exist or you do not have permission to access it.";
+        public const string MARKETPLACE_STEP_DOES_NOT_EXIST = "Azure marketplace provisioning step {0} in offer {1} does not exist or you do not have permission to access it.";
         public const string API_DOES_NOT_EXIST = "API {0} in application {1} does not exist or you do not have permission to access it.";
         public const string API_VERSION_DOES_NOT_EXIST = "API version {0} in API {1} does not exist or you do not have permission to access it.";
         public const string PARTNER_SERVICE_DOES_NOT_EXIST = "Partner service {0} does not exist or you do not have permission to access it.";
@@ -63,6 +67,8 @@ namespace Luna.Common.Utils
         public const string MARKETPLACE_SUBSCRIPTION_DOES_NOT_EXIST = "The Azure marketplace subscription {0} does not exist or you don't have permission to access it.";
         public const string MARKETPLACE_SUB_ID_DOES_NOT_MATCH = "The subscription id {0} in request path does not match the subscription id in request body {1}.";
         public const string MARKETPLACE_OFFER_NAME_DOES_NOT_MATCH = "The offer id {0} in request path does not match the offer id in request body {1}.";
+        public const string MARKETPLACE_PARAMETER_NAME_DOES_NOT_MATCH = "The parameter name {0} in request path does not match the parameter name in request body {1}.";
+        public const string MARKETPLACE_STEP_NAME_DOES_NOT_MATCH = "The provisioning step name {0} in request path does not match the name in request body {1}.";
         public const string APP_PUBLISHER_NAME_DOES_NOT_MATCH = "The application publisher name {0} in request path does not match the name in request body {1}.";
         public const string AUTOMATION_WEBHOOK_NAME_DOES_NOT_MATCH = "The webhook name {0} in request path does not match the webhook name in request body {1}.";
         public const string MARKETPLACE_PLAN_NAME_DOES_NOT_MATCH = "The plan id {0} in request path does not match the plan id in request body {1}.";
@@ -74,5 +80,6 @@ namespace Luna.Common.Utils
         public const string OWNERSHIP_ALREADY_EXIST = "User {0} is already an owner of resource {1}.";
         public const string OWNERSHIP_DOES_NOT_EXIST = "User {0} is not an owner of resource {1}.";
         public const string INVALID_LUNA_API_TYPE = "Luna API type {0} is not supported.";
+        public const string INVALID_PROVISIONING_STEP_TYPE = "The provisioning step type {0} is not supported.";
     }
 }

@@ -468,6 +468,31 @@ paths:
       security:
         - x-functions-key: [ ]
   '/api/applications/{appName}/apis/{apiName}':
+    get:
+      tags:
+        - Application
+      summary: Get a Luna API
+      operationId: getApiApplicationsByAppNameApisByApiName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: appName
+          description: The name of the application
+          required: true
+          type: string
+        - in: path
+          name: apiName
+          description: The name of the api
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Luna.Publish.Public.Client.BaseLunaAPIResponse'
+      security:
+        - x-functions-key: [ ]
     put:
       tags:
         - API
@@ -1019,6 +1044,34 @@ definitions:
         type: string
       Value:
         type: string
+  Luna.Publish.Public.Client.BaseLunaAPIResponse:
+    required:
+      - applicationName
+      - name
+      - displayName
+      - type
+      - description
+    type: object
+    properties:
+      applicationName:
+        type: string
+      name:
+        type: string
+      displayName:
+        type: string
+      type:
+        type: string
+      description:
+        type: string
+      advancedSettings:
+        type: string
+    example:
+      applicationName: myapp
+      name: api
+      displayName: My API
+      type: Realtime
+      description: This is my API
+      advancedSettings: 
 securityDefinitions:
   x-functions-key:
     type: apiKey

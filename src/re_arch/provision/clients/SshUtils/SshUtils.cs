@@ -1,4 +1,4 @@
-﻿using Luna.Gallery.Public.Client;
+﻿using Luna.Marketplace.Public.Client;
 using Luna.Publish.Public.Client;
 using Renci.SshNet;
 using System;

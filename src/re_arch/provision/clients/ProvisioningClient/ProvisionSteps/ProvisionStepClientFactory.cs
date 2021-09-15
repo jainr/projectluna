@@ -1,5 +1,5 @@
 ﻿using Luna.Common.Utils;
-using Luna.Publish.Public.Client;
+using Luna.Marketplace.Public.Client;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

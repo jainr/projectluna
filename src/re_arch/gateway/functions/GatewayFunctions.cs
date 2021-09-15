@@ -4,6 +4,7 @@ using Luna.Publish.Public.Client;
 using Luna.PubSub.Public.Client;
 using Luna.Partner.Public.Client;
 using Luna.RBAC.Public.Client;
+using Luna.Marketplace.Public.Client;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
@@ -31,12 +32,14 @@ namespace Luna.Gateway.Functions
         private readonly IPublishServiceClient _publishServiceClient;
         private readonly IPubSubServiceClient _pubSubServiceClient;
         private readonly IGalleryServiceClient _galleryServiceClient;
+        private readonly IMarketplaceServiceClient _marketplaceServiceClient;
 
         public GatewayFunctions(IPartnerServiceClient partnerServiceClient,
             IRBACClient rbacClient,
             IPublishServiceClient publishServiceClient,
             IPubSubServiceClient pubSubServiceClient,
             IGalleryServiceClient galleryServiceClient,
+            IMarketplaceServiceClient marketplaceClient,
             ILogger<GatewayFunctions> logger)
         {
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -45,6 +48,7 @@ namespace Luna.Gateway.Functions
             this._partnerServiceClient = partnerServiceClient ?? throw new ArgumentNullException(nameof(partnerServiceClient));
             this._pubSubServiceClient = pubSubServiceClient ?? throw new ArgumentNullException(nameof(pubSubServiceClient));
             this._galleryServiceClient = galleryServiceClient ?? throw new ArgumentNullException(nameof(galleryServiceClient));
+            this._marketplaceServiceClient = marketplaceClient ?? throw new ArgumentNullException(nameof(marketplaceClient));
         }
 
         [FunctionName("GetAccessToken")]
@@ -290,7 +294,7 @@ namespace Luna.Gateway.Functions
                         lunaHeaders))
                     {
                         var content = await HttpUtils.GetRequestBodyAsync(req);
-                        var result = await _publishServiceClient.
+                        var result = await _marketplaceServiceClient.
                             CreateOrUpdateMarketplaceOfferFromTemplateAsync(offerId, content, lunaHeaders);
                         return new OkObjectResult(result);
                     }
@@ -364,7 +368,7 @@ namespace Luna.Gateway.Functions
                         lunaHeaders))
                     {
                         var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceOffer>(req);
-                        var result = await _publishServiceClient.CreateMarketplaceOfferAsync(offerId, content, lunaHeaders);
+                        var result = await _marketplaceServiceClient.CreateMarketplaceOfferAsync(offerId, content, lunaHeaders);
                         return new OkObjectResult(result);
                     }
 
@@ -437,7 +441,7 @@ namespace Luna.Gateway.Functions
                         lunaHeaders))
                     {
                         var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceOffer>(req);
-                        var result = await _publishServiceClient.UpdateMarketplaceOfferAsync(offerId, content, lunaHeaders);
+                        var result = await _marketplaceServiceClient.UpdateMarketplaceOfferAsync(offerId, content, lunaHeaders);
                         return new OkObjectResult(result);
                     }
 
@@ -488,7 +492,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        await _publishServiceClient.PublishMarketplaceOfferAsync(offerId, lunaHeaders);
+                        await _marketplaceServiceClient.PublishMarketplaceOfferAsync(offerId, lunaHeaders);
                         return new NoContentResult();
                     }
 
@@ -538,7 +542,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        await _publishServiceClient.DeleteMarketplaceOfferAsync(offerId, lunaHeaders);
+                        await _marketplaceServiceClient.DeleteMarketplaceOfferAsync(offerId, lunaHeaders);
                         return new NoContentResult();
                     }
 
@@ -599,7 +603,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        var result = await _publishServiceClient.GetMarketplaceOfferAsync(offerId, lunaHeaders);
+                        var result = await _marketplaceServiceClient.GetMarketplaceOfferAsync(offerId, lunaHeaders);
                         return new OkObjectResult(result);
                     }
 
@@ -659,7 +663,7 @@ namespace Luna.Gateway.Functions
                         RBACActions.LIST_MARKETPLACE_OFFER,
                         lunaHeaders))
                     {
-                        var result = await _publishServiceClient.ListMarketplaceOffersAsync(lunaHeaders);
+                        var result = await _marketplaceServiceClient.ListMarketplaceOffersAsync(lunaHeaders);
                         return new OkObjectResult(result);
                     }
 
@@ -734,7 +738,7 @@ namespace Luna.Gateway.Functions
                         lunaHeaders))
                     {
                         var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplacePlan>(req);
-                        var result = await _publishServiceClient.CreateMarketplacePlanAsync(offerId, planId, content, lunaHeaders);
+                        var result = await _marketplaceServiceClient.CreateMarketplacePlanAsync(offerId, planId, content, lunaHeaders);
                         return new OkObjectResult(result);
                     }
 
@@ -809,7 +813,7 @@ namespace Luna.Gateway.Functions
                         lunaHeaders))
                     {
                         var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplacePlan>(req);
-                        var result = await _publishServiceClient.UpdateMarketplacePlanAsync(offerId, planId, content, lunaHeaders);
+                        var result = await _marketplaceServiceClient.UpdateMarketplacePlanAsync(offerId, planId, content, lunaHeaders);
                         return new OkObjectResult(result);
                     }
 
@@ -861,7 +865,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        await _publishServiceClient.DeleteMarketplacePlanAsync(offerId, planId, lunaHeaders);
+                        await _marketplaceServiceClient.DeleteMarketplacePlanAsync(offerId, planId, lunaHeaders);
                         return new NoContentResult();
                     }
 
@@ -924,7 +928,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        var result = await _publishServiceClient.GetMarketplacePlanAsync(offerId, planId, lunaHeaders);
+                        var result = await _marketplaceServiceClient.GetMarketplacePlanAsync(offerId, planId, lunaHeaders);
                         return new OkObjectResult(result);
                     }
 
@@ -986,7 +990,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        var result = await _publishServiceClient.ListMarketplacePlansAsync(offerId, lunaHeaders);
+                        var result = await _marketplaceServiceClient.ListMarketplacePlansAsync(offerId, lunaHeaders);
                         return new OkObjectResult(result);
                     }
 
@@ -1042,7 +1046,7 @@ namespace Luna.Gateway.Functions
                 {
                     // This should be a public endpoint
                     var token = await HttpUtils.GetRequestBodyAsync(req);
-                    var result = await _galleryServiceClient.ResolveMarketplaceTokenAsync(token, lunaHeaders);
+                    var result = await _marketplaceServiceClient.ResolveMarketplaceTokenAsync(token, lunaHeaders);
 
                     // TODO: verify the ownership
 
@@ -1110,7 +1114,7 @@ namespace Luna.Gateway.Functions
                 try
                 {
                     var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceSubscription>(req);
-                    var result = await _galleryServiceClient.CreateMarketplaceSubscriptionAsync(subscriptionId, content, lunaHeaders);
+                    var result = await _marketplaceServiceClient.CreateMarketplaceSubscriptionAsync(subscriptionId, content, lunaHeaders);
                     return new OkObjectResult(result);
                 }
                 catch (Exception ex)
@@ -1163,7 +1167,7 @@ namespace Luna.Gateway.Functions
 
                 try
                 {
-                    var result = await _galleryServiceClient.GetMarketplaceSubscriptionAsync(subscriptionId, lunaHeaders);
+                    var result = await _marketplaceServiceClient.GetMarketplaceSubscriptionAsync(subscriptionId, lunaHeaders);
                     return new OkObjectResult(result);
                 }
                 catch (Exception ex)
@@ -1215,7 +1219,7 @@ namespace Luna.Gateway.Functions
 
                 try
                 {
-                    var result = await _galleryServiceClient.ListMarketplaceSubscriptionsAsync(lunaHeaders);
+                    var result = await _marketplaceServiceClient.ListMarketplaceSubscriptionsAsync(lunaHeaders);
                     return new OkObjectResult(result);
                 }
                 catch (Exception ex)
@@ -3466,7 +3470,7 @@ namespace Luna.Gateway.Functions
                 try
                 {
                     // This should be a public endpoint
-                    var result = await _galleryServiceClient.GetMarketplaceParametersAsync(offerId, planId, lunaHeaders);
+                    var result = await _marketplaceServiceClient.GetMarketplaceParametersAsync(offerId, planId, lunaHeaders);
                     return new OkObjectResult(result);
                 }
                 catch (Exception ex)

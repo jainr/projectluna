@@ -1,5 +1,5 @@
 ﻿using Luna.Common.Utils;
-using Luna.Gallery.Public.Client;
+using Luna.Marketplace.Public.Client;
 using Luna.Provision.Data;
 using Luna.Publish.Public.Client;
 using Microsoft.AspNetCore.Http;

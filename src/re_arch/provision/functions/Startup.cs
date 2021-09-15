@@ -9,7 +9,7 @@ using Luna.Common.Utils;
 using Luna.PubSub.Public.Client;
 using Luna.Provision.Data;
 using Luna.Provision.Clients;
-using Luna.Gallery.Public.Client;
+using Luna.Marketplace.Public.Client;
 
 [assembly: FunctionsStartup(typeof(Luna.Provision.Functions.Startup))]
 
@@ -37,14 +37,14 @@ namespace Luna.Provision.Functions
 
             builder.Services.AddSingleton<IPubSubServiceClient, PubSubServiceClient>();
 
-            builder.Services.AddOptions<GalleryServiceClientConfiguration>().Configure(
+            builder.Services.AddOptions<MarketplaceServiceClientConfiguration>().Configure(
                 options =>
                 {
-                    options.ServiceBaseUrl = Environment.GetEnvironmentVariable("GALLERY_SERVICE_BASE_URL");
-                    options.AuthenticationKey = Environment.GetEnvironmentVariable("GALLERY_SERVICE_KEY");
+                    options.ServiceBaseUrl = Environment.GetEnvironmentVariable("MARKETPLACE_SERVICE_BASE_URL");
+                    options.AuthenticationKey = Environment.GetEnvironmentVariable("MARKETPLACE_SERVICE_KEY");
                 });
 
-            builder.Services.AddSingleton<IGalleryServiceClient, GalleryServiceClient>();
+            builder.Services.AddSingleton<IMarketplaceServiceClient, MarketplaceServiceClient>();
             builder.Services.AddSingleton<ISwaggerClient, SwaggerClient>();
             builder.Services.AddSingleton<IProvisionStepClientFactory, ProvisionStepClientFactory>();
 

@@ -1,0 +1,18 @@
+<config>
+  <subscriptionId>Azure subscription id</subscriptionId>
+  <resourceGroupName>Azure resource group name</resourceGroupName>
+  <namePrefix>Name prefix for Azure services</namePrefix>
+  <region>Azure region</region>
+  <sqlUserName>SQL username</sqlUserName>
+  <sqlPassword>SQL password (for test only)</sqlPassword>
+  <tenantId>AAD tenant id</tenantId>
+  <clientId>AAD application client id</clientId>
+  <clientSecret>AAD application secret</clientSecret>
+  <adminUserId>Luna service admin user id</adminUserId>
+  <adminUserName>Luna service admin user name (no space allowed)</adminUserName>
+  <createNewResource>"y" if create new Azure resources; "n" if deploy to existing Azure resources</createNewResource>
+  <marketplaceTenantId>Azure marketplace API AAD tenant id</marketplaceTenantId>
+  <marketplaceClientId>Azure marketpalce API AAD application client id</marketplaceClientId>
+  <marketplaceClientSecret>Azure marketplace API AAD application secret</marketplaceClientSecret>
+  <useManagedIdentity>"y" if use user defined managed identity; "n" otherwise</useManagedIdentity>
+</config>

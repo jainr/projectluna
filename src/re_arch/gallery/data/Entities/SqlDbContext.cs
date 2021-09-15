@@ -29,9 +29,6 @@ namespace Luna.Gallery.Data
         public DbSet<LunaApplicationSubscriptionDB> LunaApplicationSubscriptions { get; set; }
         public DbSet<LunaApplicationSubscriptionOwnerDB> LunaApplicationSubscriptionOwners { get; set; }
 
-        public DbSet<AzureMarketplaceSubscriptionDB> AzureMarketplaceSubscriptions { get; set; }
-        public DbSet<PublishedAzureMarketplacePlanDB> PublishedAzureMarketplacePlans { get; set; }
-
         public DbSet<ApplicationPublisherDB> ApplicationPublishers { get; set; }
 
         public DbSet<LunaApplicationSwaggerDBView> LunaApplicationSwaggers { get; set; }

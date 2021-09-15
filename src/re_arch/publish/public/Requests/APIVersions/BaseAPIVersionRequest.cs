@@ -7,13 +7,16 @@ namespace Luna.Publish.Public.Client
 {
     public class BaseAPIVersionRequest
     {
-        [JsonProperty(PropertyName = "Type", Required = Required.Always)]
-        public string Type { get; set; }
+        [JsonProperty(PropertyName = "apiType", Required = Required.Always)]
+        public string APIType { get; set; }
 
-        [JsonProperty(PropertyName = "Description", Required = Required.Always)]
+        [JsonProperty(PropertyName = "type", Required = Required.Always)]
+        public string VersionType { get; set; }
+
+        [JsonProperty(PropertyName = "description", Required = Required.Always)]
         public string Description { get; set; }
 
-        [JsonProperty(PropertyName = "AdvancedSettings", Required = Required.Default)]
+        [JsonProperty(PropertyName = "advancedSettings", Required = Required.Default)]
         public string AdvancedSettings { get; set; }
     }
 }
