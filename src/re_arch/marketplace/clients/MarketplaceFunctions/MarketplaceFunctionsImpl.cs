@@ -1,8 +1,10 @@
 ﻿using Luna.Common.Utils;
 using Luna.Marketplace.Data;
 using Luna.Marketplace.Public.Client;
+using Luna.PubSub.Public.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,30 +17,47 @@ namespace Luna.Marketplace.Clients
     {
         private readonly IOfferEventContentGenerator _offerEventGenerator;
         private readonly IOfferEventProcessor _offerEventProcessor;
+        private readonly IAzureMarketplaceSaaSClient _marketplaceClient;
         private readonly ISqlDbContext _dbContext;
+        private readonly IAzureKeyVaultUtils _keyVaultUtils;
+        private readonly IPubSubServiceClient _pubSubClient;
         private readonly ILogger<MarketplaceFunctionsImpl> _logger;
 
         private IDataMapper<MarketplaceOfferRequest, MarketplaceOfferResponse, MarketplaceOfferProp> _offerDataMapper;
         private IDataMapper<MarketplacePlanRequest, MarketplacePlanResponse, MarketplacePlanProp> _planDataMapper;
         private IDataMapper<MarketplaceParameterRequest, MarketplaceParameterResponse, MarketplaceParameter> _parameterDataMapper;
         private IDataMapper<BaseProvisioningStepRequest, BaseProvisioningStepResponse, BaseProvisioningStepProp> _provisioningStepDataMapper;
+        private IDataMapper<MarketplaceSubscriptionRequest, MarketplaceSubscriptionResponse, MarketplaceSubscriptionDB> _subscriptionMapper;
+        private IDataMapper<MarketplaceSubscriptionDB, MarketplaceSubscriptionEventContent> _subscriptionEventMapper;
 
         public MarketplaceFunctionsImpl(
             IOfferEventProcessor offerEventProcessor,
             IOfferEventContentGenerator offerEventContentGenerator,
+            IAzureMarketplaceSaaSClient marketplaceClient,
+            IAzureKeyVaultUtils keyVaultUtils,
+            IPubSubServiceClient pubSubServiceClient,
             IDataMapper<MarketplaceOfferRequest, MarketplaceOfferResponse, MarketplaceOfferProp> offerDataMapper,
             IDataMapper<MarketplacePlanRequest, MarketplacePlanResponse, MarketplacePlanProp> planDataMapper,
             IDataMapper<MarketplaceParameterRequest, MarketplaceParameterResponse, MarketplaceParameter> parameterDataMapper,
             IDataMapper<BaseProvisioningStepRequest, BaseProvisioningStepResponse, BaseProvisioningStepProp> provisioningStepDataMappter,
+            IDataMapper<MarketplaceSubscriptionRequest, MarketplaceSubscriptionResponse, MarketplaceSubscriptionDB> subscriptionMapper,
+            IDataMapper<MarketplaceSubscriptionDB, MarketplaceSubscriptionEventContent> subscriptionEventMapper,
             ISqlDbContext dbContext,
             ILogger<MarketplaceFunctionsImpl> logger)
         {
             this._offerEventProcessor = offerEventProcessor ?? throw new ArgumentNullException(nameof(offerEventProcessor));
             this._offerEventGenerator = offerEventContentGenerator ?? throw new ArgumentNullException(nameof(offerEventContentGenerator));
+            this._marketplaceClient = marketplaceClient ?? throw new ArgumentNullException(nameof(marketplaceClient));
+            this._keyVaultUtils = keyVaultUtils ?? throw new ArgumentNullException(nameof(keyVaultUtils));
+            this._pubSubClient = pubSubServiceClient ?? throw new ArgumentNullException(nameof(keyVaultUtils));
+
             this._planDataMapper = planDataMapper ?? throw new ArgumentNullException(nameof(planDataMapper));
             this._offerDataMapper = offerDataMapper ?? throw new ArgumentNullException(nameof(offerDataMapper));
             this._parameterDataMapper = parameterDataMapper ?? throw new ArgumentNullException(nameof(parameterDataMapper));
             this._provisioningStepDataMapper = provisioningStepDataMappter ?? throw new ArgumentNullException(nameof(provisioningStepDataMappter));
+            this._subscriptionMapper = subscriptionMapper ?? throw new ArgumentNullException(nameof(subscriptionMapper));
+            this._subscriptionEventMapper = subscriptionEventMapper ?? throw new ArgumentNullException(nameof(subscriptionEventMapper));
+
             this._dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -361,6 +380,7 @@ namespace Luna.Marketplace.Clients
                         PlanId = planId,
                         DisplayName = plan.DisplayName,
                         Description = plan.Description,
+                        LastUpdatedEventId = ev.Id,
                         Mode = plan.Mode,
                         CreatedTime = createdTime,
                         LastUpdatedTime = createdTime
@@ -412,6 +432,7 @@ namespace Luna.Marketplace.Clients
                 _dbContext.MarketplaceEvents.Add(ev);
                 await _dbContext._SaveChangesAsync();
 
+                planDb.LastUpdatedEventId = ev.Id;
                 _dbContext.MarketplacePlans.Update(planDb);
                 await _dbContext._SaveChangesAsync();
 
@@ -914,6 +935,256 @@ namespace Luna.Marketplace.Clients
             return newSnapshot;
         }
 
+
+        #endregion
+
+        #region marketplace subscriptions
+
+        public async Task<MarketplaceSubscriptionResponse> ResolveMarketplaceSubscriptionAsync(string token, LunaRequestHeaders headers)
+        {
+            var result = await this._marketplaceClient.ResolveMarketplaceSubscriptionAsync(token, headers);
+
+            if (await _dbContext.MarketplaceSubscriptions.AnyAsync(x => x.SubscriptionId == result.Id))
+            {
+                throw new LunaConflictUserException(
+                    string.Format(ErrorMessages.MARKETPLACE_SUBSCIRPTION_ALREADY_EXIST, result.Id));
+            }
+
+            var offer = await _dbContext.MarketplaceOffers.
+                SingleOrDefaultAsync(x => x.OfferId == result.OfferId && x.Status == MarketplaceOfferStatus.Published.ToString());
+
+            if (offer == null)
+            {
+                throw new LunaNotFoundUserException(
+                    string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, result.OfferId));
+            }
+
+            var plan = await _dbContext.MarketplacePlans.
+                SingleOrDefaultAsync(x => x.OfferId == result.OfferId && x.PlanId == result.PlanId);
+
+            if (plan == null)
+            {
+                throw new LunaNotFoundUserException(
+                    string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, result.PlanId, result.OfferId));
+            }
+
+            return result;
+        }
+
+        public async Task<MarketplaceSubscriptionResponse> CreateMarketplaceSubscriptionAsync(Guid subscriptionId, MarketplaceSubscriptionRequest subRequest, LunaRequestHeaders headers)
+        {
+            if (subRequest.Id != subscriptionId)
+            {
+                throw new LunaBadRequestUserException(
+                    string.Format(ErrorMessages.MARKETPLACE_SUB_ID_DOES_NOT_MATCH, subscriptionId, subRequest.Id),
+                    UserErrorCode.NameMismatch);
+            }
+
+            if (await _dbContext.MarketplaceSubscriptions.AnyAsync(x => x.SubscriptionId == subscriptionId))
+            {
+                throw new LunaConflictUserException(
+                    string.Format(ErrorMessages.MARKETPLACE_SUBSCIRPTION_ALREADY_EXIST, subscriptionId));
+            }
+
+            if (string.IsNullOrEmpty(subRequest.Token))
+            {
+                throw new LunaBadRequestUserException(ErrorMessages.INVALID_MARKETPLACE_TOKEN, UserErrorCode.InvalidToken);
+            }
+
+            var result = await _marketplaceClient.ResolveMarketplaceSubscriptionAsync(subRequest.Token, headers);
+
+            // Validate the token avoid people creating subscriptions randomly
+            if (!result.PlanId.Equals(subRequest.PlanId) ||
+                !result.OfferId.Equals(subRequest.OfferId) ||
+                !result.Id.Equals(subRequest.Id))
+            {
+                throw new LunaBadRequestUserException(ErrorMessages.INVALID_MARKETPLACE_TOKEN, UserErrorCode.InvalidToken);
+            }
+
+            var offer = await _dbContext.MarketplaceOffers.
+                SingleOrDefaultAsync(x => x.OfferId == subRequest.OfferId && x.Status == MarketplaceOfferStatus.Published.ToString());
+
+            if (offer == null)
+            {
+                throw new LunaNotFoundUserException(
+                    string.Format(ErrorMessages.MARKETPLACE_OFFER_DOES_NOT_EXIST, subRequest.OfferId));
+            }
+
+            var plan = await _dbContext.MarketplacePlans.
+                SingleOrDefaultAsync(x => x.OfferId == subRequest.OfferId && x.PlanId == subRequest.PlanId);
+
+            if (plan == null)
+            {
+                throw new LunaNotFoundUserException(
+                    string.Format(ErrorMessages.MARKETPLACE_PLAN_DOES_NOT_EXIST, subRequest.PlanId, subRequest.OfferId));
+            }
+
+            var subDb = this._subscriptionMapper.Map(subRequest);
+            subDb.OwnerId = headers.UserId;
+
+            var requiredParameters = await this.ListParametersAsync(subDb.OfferId, headers);
+
+            foreach (var param in requiredParameters)
+            {
+                if (param.IsRequired && !subRequest.InputParameters.Any(x => x.Name == param.ParameterName))
+                {
+                    throw new LunaBadRequestUserException(
+                        string.Format(ErrorMessages.REQUIRED_PARAMETER_NOT_PROVIDED, param.ParameterName),
+                        UserErrorCode.ParameterNotProvided,
+                        target: param.ParameterName);
+                }
+            }
+
+            if (plan.Mode == MarketplacePlanMode.IaaS.ToString())
+            {
+                if (!IaaSParameterConstants.VerifyIaaSParameters(subRequest.InputParameters.Select(x => x.Name).ToList()))
+                {
+                    throw new LunaBadRequestUserException(
+                        string.Format(ErrorMessages.REQUIRED_PARAMETER_NOT_PROVIDED, "IaaS"),
+                        UserErrorCode.ParameterNotProvided);
+                }
+                CopyParameter(subDb, IaaSParameterConstants.REGION_PARAM_NAME, JumpboxParameterConstants.JUMPBOX_VM_LOCATION_PARAM_NAME);
+                CopyParameter(subDb, IaaSParameterConstants.SUBSCRIPTION_ID_PARAM_NAME, JumpboxParameterConstants.JUMPBOX_VM_SUB_ID_PARAM_NAME);
+                CopyParameter(subDb, IaaSParameterConstants.RESOURCE_GROUP_PARAM_NAME, JumpboxParameterConstants.JUMPBOX_VM_RG_PARAM_NAME);
+                subDb.InputParameters.Add(new MarketplaceSubscriptionParameter
+                {
+                    Name = JumpboxParameterConstants.JUMPBOX_VM_NAME_PARAM_NAME,
+                    Value = Guid.NewGuid().ToString(),
+                    IsSystemParameter = true,
+                    Type = MarketplaceParameterValueType.String.ToString()
+                });
+            }
+
+            subDb.ParameterSecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.MARKETPLACE_SUBCRIPTION_PARAMETERS);
+
+            var paramContent = JsonConvert.SerializeObject(subDb.InputParameters);
+            await _keyVaultUtils.SetSecretAsync(subDb.ParameterSecretName, paramContent);
+
+            using (var transaction = await _dbContext.BeginTransactionAsync())
+            {
+                _dbContext.MarketplaceSubscriptions.Add(subDb);
+                await _dbContext._SaveChangesAsync();
+
+                await _pubSubClient.PublishEventAsync(
+                    LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE,
+                    new CreateAzureMarketplaceSubscriptionEventEntity(subscriptionId,
+                    JsonConvert.SerializeObject(this._subscriptionEventMapper.Map(subDb), new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.All
+                    })),
+                    headers);
+
+                transaction.Commit();
+            }
+
+            var response = this._subscriptionMapper.Map(subDb);
+
+            return response;
+        }
+
+        public async Task<MarketplaceSubscriptionResponse> UpdateMarketplaceSubscriptionAsync(Guid subscriptionId, MarketplaceSubscriptionRequest subRequest, LunaRequestHeaders headers)
+        {
+            var subscription = this._subscriptionMapper.Map(subRequest);
+
+            var response = this._subscriptionMapper.Map(subscription);
+            return response;
+        }
+
+        public async Task DeleteMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers)
+        {
+            var subDb = await _dbContext.MarketplaceSubscriptions.
+                SingleOrDefaultAsync(x => x.SubscriptionId == subscriptionId);
+
+            if (subDb == null || subDb.OwnerId != headers.UserId)
+            {
+                throw new LunaNotFoundUserException(string.Format(ErrorMessages.SUBSCIRPTION_DOES_NOT_EXIST, subscriptionId));
+            }
+
+            if (!subDb.SaaSSubscriptionStatus.Equals(MarketplaceSubscriptionStatus.SUBSCRIBED))
+            {
+                throw new LunaConflictUserException(string.Format(ErrorMessages.MARKETPLACE_SUBSCRIPTION_CAN_NOT_BE_ACTIVATED,
+                    subscriptionId, subDb.SaaSSubscriptionStatus));
+            }
+
+            await _marketplaceClient.UnsubscribeMarketplaceSubscriptionAsync(subscriptionId, headers);
+
+            subDb.UnsubscribedTime = DateTime.UtcNow;
+            subDb.SaaSSubscriptionStatus = MarketplaceSubscriptionStatus.UNSUBSCRIBED;
+
+            using (var transaction = await _dbContext.BeginTransactionAsync())
+            {
+                _dbContext.MarketplaceSubscriptions.Update(subDb);
+                await _dbContext._SaveChangesAsync();
+
+                await _pubSubClient.PublishEventAsync(
+                    LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE,
+                    new DeleteAzureMarketplaceSubscriptionEventEntity(subscriptionId,
+                    JsonConvert.SerializeObject(this._subscriptionEventMapper.Map(subDb), new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.All
+                    })),
+                    headers);
+
+                transaction.Commit();
+            }
+
+            return;
+        }
+
+        public async Task ActivateMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers)
+        {
+            var subDb = await _dbContext.MarketplaceSubscriptions.
+                SingleOrDefaultAsync(x => x.SubscriptionId == subscriptionId);
+
+            if (subDb == null)
+            {
+                throw new LunaNotFoundUserException(string.Format(ErrorMessages.SUBSCIRPTION_DOES_NOT_EXIST, subscriptionId));
+            }
+
+            if (!subDb.SaaSSubscriptionStatus.Equals(MarketplaceSubscriptionStatus.PENDING_FULFILLMENT_START))
+            {
+                throw new LunaConflictUserException(string.Format(ErrorMessages.MARKETPLACE_SUBSCRIPTION_CAN_NOT_BE_ACTIVATED,
+                    subscriptionId, subDb.SaaSSubscriptionStatus));
+            }
+
+            await _marketplaceClient.ActivateMarketplaceSubscriptionAsync(subscriptionId, subDb.PlanId, headers);
+
+            subDb.ActivatedTime = DateTime.UtcNow;
+            subDb.SaaSSubscriptionStatus = MarketplaceSubscriptionStatus.SUBSCRIBED;
+            _dbContext.MarketplaceSubscriptions.Update(subDb);
+            await _dbContext._SaveChangesAsync();
+
+            return;
+        }
+
+        public async Task<MarketplaceSubscriptionResponse> GetMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers)
+        {
+            // TODO: validate the subscription status from Marketplace API
+            var subDb = await this._dbContext.MarketplaceSubscriptions.SingleOrDefaultAsync(x => x.SubscriptionId == subscriptionId);
+
+            if (subDb == null || subDb.OwnerId != headers.UserId)
+            {
+                throw new LunaNotFoundUserException(string.Format(ErrorMessages.MARKETPLACE_SUBSCRIPTION_DOES_NOT_EXIST, subscriptionId));
+            }
+
+            return this._subscriptionMapper.Map(subDb);
+        }
+
+        public async Task<List<MarketplaceSubscriptionResponse>> ListMarketplaceSubscriptionsAsync(LunaRequestHeaders headers)
+        {
+            var subList = await this._dbContext.MarketplaceSubscriptions.
+                Where(x => x.OwnerId == headers.UserId &&
+                x.SaaSSubscriptionStatus != MarketplaceSubscriptionStatus.UNSUBSCRIBED).
+                Select(x => this._subscriptionMapper.Map(x)).
+                ToListAsync();
+
+            return subList;
+        }
+
+        #endregion
+
+        #region private methods
+
         private async Task<MarketplaceOffer> GetMarketplaceOfferInternalAsync(string offerId)
         {
             var snapshot = await _dbContext.MarketplaceOfferSnapshots.
@@ -929,6 +1200,20 @@ namespace Luna.Marketplace.Clients
             var offer = _offerEventProcessor.GetMarketplaceOffer(offerId, events, snapshot);
 
             return offer;
+        }
+        private void CopyParameter(MarketplaceSubscriptionDB subscription, string copyFrom, string newParamName)
+        {
+            var param = subscription.InputParameters.SingleOrDefault(x => x.Name == copyFrom);
+            if (param != null)
+            {
+                subscription.InputParameters.Add(new MarketplaceSubscriptionParameter
+                {
+                    Name = newParamName,
+                    Value = param.Value,
+                    IsSystemParameter = true,
+                    Type = param.Type,
+                });
+            }
         }
 
         #endregion

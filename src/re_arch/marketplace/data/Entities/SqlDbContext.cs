@@ -37,7 +37,7 @@ namespace Luna.Marketplace.Data
 
         public DbSet<MarketplaceProvisioningStepDB> MarketplaceProvisioningSteps { get; set; }
 
-        public DbSet<AzureMarketplaceSubscriptionDB> AzureMarketplaceSubscriptions { get; set; }
+        public DbSet<MarketplaceSubscriptionDB> MarketplaceSubscriptions { get; set; }
 
         public DbSet<PublishedAzureMarketplacePlanDB> PublishedAzureMarketplacePlans { get; set; }
 

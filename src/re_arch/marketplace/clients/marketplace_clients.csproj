@@ -12,7 +12,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\common\commonUtils\common_utils.csproj" />
+    <ProjectReference Include="..\..\pubsub\public\pubsub_public_client.csproj" />
     <ProjectReference Include="..\data\marketplace_data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DataContracts\" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
 ﻿using Luna.Common.Utils;
+using Luna.Marketplace.Data;
 using Luna.Marketplace.Public.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,16 +26,19 @@ namespace Luna.Marketplace.Clients
         private const string AUTHENTICATION_RESOURCE_ID = "20e940b3-4c77-4b0b-9a53-9e16a1b010a7";
 
         private readonly HttpClient _httpClient;
+        private readonly IDataMapper<InternalMarketplaceSubscriptionResponse, MarketplaceSubscriptionResponse> _resolvedSubMapper;
         private readonly ILogger<AzureMarketplaceSaaSClient> _logger;
         private readonly AzureMarketplaceSaaSClientConfiguration _config;
 
         [ActivatorUtilitiesConstructor]
         public AzureMarketplaceSaaSClient(IOptionsMonitor<AzureMarketplaceSaaSClientConfiguration> option,
             HttpClient httpClient,
+            IDataMapper<InternalMarketplaceSubscriptionResponse, MarketplaceSubscriptionResponse> resolvedSubMapper,
             ILogger<AzureMarketplaceSaaSClient> logger) :
             base(option, httpClient, logger)
         {
             this._httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            this._resolvedSubMapper = resolvedSubMapper ?? throw new ArgumentNullException(nameof(resolvedSubMapper));
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this._config = option.CurrentValue ?? throw new ArgumentNullException(nameof(option.CurrentValue));
         }
@@ -45,7 +49,7 @@ namespace Luna.Marketplace.Clients
         /// <param name="token">The token</param>
         /// <param name="headers">The request headers</param>
         /// <returns>The marketplace subscription</returns>
-        public async Task<MarketplaceSubscription> ResolveMarketplaceSubscriptionAsync(
+        public async Task<MarketplaceSubscriptionResponse> ResolveMarketplaceSubscriptionAsync(
             string token, 
             LunaRequestHeaders headers)
         {
@@ -69,7 +73,7 @@ namespace Luna.Marketplace.Clients
 
                 if (resolvedSub != null && resolvedSub.Subscription != null)
                 {
-                    return resolvedSub.ToMarketplaceSubscription();
+                    return _resolvedSubMapper.Map(resolvedSub.Subscription);
                 }
             }
             else if (response.StatusCode == HttpStatusCode.BadRequest)
@@ -122,7 +126,7 @@ namespace Luna.Marketplace.Clients
         /// <param name="subscriptionId">The subscription id</param>
         /// <param name="headers">The request header</param>
         /// <returns>The marketplace subscription</returns>
-        public async Task<MarketplaceSubscription> GetMarketplaceSubscriptionAsync(
+        public async Task<MarketplaceSubscriptionResponse> GetMarketplaceSubscriptionAsync(
             Guid subscriptionId, 
             LunaRequestHeaders headers)
         {
@@ -134,11 +138,11 @@ namespace Luna.Marketplace.Clients
             if (!response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var sub = JsonConvert.DeserializeObject<MarketplaceSubscriptionResponse>(content);
+                var sub = JsonConvert.DeserializeObject<InternalMarketplaceSubscriptionResponse>(content);
 
                 if (sub != null)
                 {
-                    return sub.ToMarketplaceSubscription();
+                    return _resolvedSubMapper.Map(sub);
                 }
             }
 

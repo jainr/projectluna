@@ -20,9 +20,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\common\test_utils\test_utils.csproj" />
     <ProjectReference Include="..\clients\marketplace_clients.csproj" />
     <ProjectReference Include="..\data\marketplace_data.csproj" />
     <ProjectReference Include="..\public\marketplace_public_client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Mock\" />
   </ItemGroup>
 
 </Project>

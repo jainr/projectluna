@@ -18,6 +18,8 @@ namespace Luna.Marketplace.Data
 
         public string Description { get; set; }
 
+        public long LastUpdatedEventId { get; set; }
+
         public string Mode { get; set; }
 
         public DateTime CreatedTime { get; set; }

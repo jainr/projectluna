@@ -13,7 +13,7 @@ namespace Luna.Marketplace.Clients
         /// <param name="token">The token</param>
         /// <param name="headers">The request headers</param>
         /// <returns>The marketplace subscription</returns>
-        Task<MarketplaceSubscription> ResolveMarketplaceSubscriptionAsync(string token, LunaRequestHeaders headers);
+        Task<MarketplaceSubscriptionResponse> ResolveMarketplaceSubscriptionAsync(string token, LunaRequestHeaders headers);
 
         /// <summary>
         /// Activate a marketplace subscription
@@ -33,7 +33,7 @@ namespace Luna.Marketplace.Clients
         /// <param name="subscriptionId">The subscription id</param>
         /// <param name="headers">The request header</param>
         /// <returns>The marketplace subscription</returns>
-        Task<MarketplaceSubscription> GetMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers);
+        Task<MarketplaceSubscriptionResponse> GetMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers);
 
         /// <summary>
         /// Unsubscribe a marketplace subscription

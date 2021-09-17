@@ -23,41 +23,41 @@ namespace Luna.Marketplace.Public.Client
         /// <summary>
         /// Create an Azure marketplace offer
         /// </summary>
-        /// <param name="name">Name of the offer</param>
-        /// <param name="offer">The offer</param>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="offer">The offer request content</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer created</returns>
-        Task<MarketplaceOffer> CreateMarketplaceOfferAsync(string name,
-            MarketplaceOffer offer, 
+        Task<string> CreateMarketplaceOfferAsync(string offerId,
+            string offer, 
             LunaRequestHeaders headers);
 
         /// <summary>
         /// Update an Azure marketplace offer
         /// </summary>
-        /// <param name="name">Name of the offer</param>
-        /// <param name="offer">The offer</param>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="offer">The offer request content</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer created</returns>
-        Task<MarketplaceOffer> UpdateMarketplaceOfferAsync(string name,
-            MarketplaceOffer offer,
+        Task<string> UpdateMarketplaceOfferAsync(string offerId,
+            string offer,
             LunaRequestHeaders headers);
 
         /// <summary>
         /// Publish an Azure marketplace offer
         /// </summary>
-        /// <param name="name">Name of the offer</param>
+        /// <param name="offerId">Id of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer created</returns>
-        Task PublishMarketplaceOfferAsync(string name,
+        Task PublishMarketplaceOfferAsync(string offerId,
             LunaRequestHeaders headers);
 
         /// <summary>
         /// Get an Azure marketplace offer
         /// </summary>
-        /// <param name="name">Name of the offer</param>
+        /// <param name="offerId">Id of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer</returns>
-        Task<JObject> GetMarketplaceOfferAsync(string name,
+        Task<string> GetMarketplaceOfferAsync(string offerId,
             LunaRequestHeaders headers);
 
         /// <summary>
@@ -65,67 +65,186 @@ namespace Luna.Marketplace.Public.Client
         /// </summary>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The offer</returns>
-        Task<List<MarketplaceOffer>> ListMarketplaceOffersAsync(LunaRequestHeaders headers);
+        Task<string> ListMarketplaceOffersAsync(LunaRequestHeaders headers);
 
         /// <summary>
         /// Delete an Azure marketplace offer
         /// </summary>
-        /// <param name="name">Name of the offer</param>
+        /// <param name="offerId">Id of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns></returns>
-        Task DeleteMarketplaceOfferAsync(string name,
+        Task DeleteMarketplaceOfferAsync(string offerId,
             LunaRequestHeaders headers);
 
+        /// <summary>
         /// Create a plan in Azure marketplace offer
         /// </summary>
-        /// <param name="offerName">Name of the offer</param>
-        /// <param name="planName">Name of the plan</param>
-        /// <param name="plan">The plan</param>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="planId">Id of the plan</param>
+        /// <param name="plan">The plan request content</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The plan created</returns>
-        Task<MarketplacePlan> CreateMarketplacePlanAsync(string offerName,
-            string planName,
-            MarketplacePlan plan,
+        Task<string> CreateMarketplacePlanAsync(string offerId,
+            string planId,
+            string plan,
             LunaRequestHeaders headers);
 
+        /// <summary>
         /// Update a plan in Azure marketplace offer
         /// </summary>
-        /// <param name="offerName">Name of the offer</param>
-        /// <param name="planName">Name of the plan</param>
-        /// <param name="plan">The plan</param>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="planId">Id of the plan</param>
+        /// <param name="plan">The plan request content</param>
         /// <param name="headers">The Luna request headers</param>
-        /// <returns>The plan created</returns>
-        Task<MarketplacePlan> UpdateMarketplacePlanAsync(string offerName,
-            string planName,
-            MarketplacePlan plan,
+        /// <returns>The plan updated</returns>
+        Task<string> UpdateMarketplacePlanAsync(string offerId,
+            string planId,
+            string plan,
             LunaRequestHeaders headers);
 
+        /// <summary>
         /// Delete a plan in Azure marketplace offer
         /// </summary>
-        /// <param name="offerName">Name of the offer</param>
-        /// <param name="planName">Name of the plan</param>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="planId">Id of the plan</param>
         /// <param name="headers">The Luna request headers</param>
-        /// <returns>The plan created</returns>
-        Task DeleteMarketplacePlanAsync(string offerName,
-            string planName,
+        /// <returns>Success</returns>
+        Task DeleteMarketplacePlanAsync(string offerId,
+            string planId,
             LunaRequestHeaders headers);
 
+        /// <summary>
         /// Get a plan in Azure marketplace offer
         /// </summary>
-        /// <param name="offerName">Name of the offer</param>
-        /// <param name="planName">Name of the plan</param>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="planId">Id of the plan</param>
         /// <param name="headers">The Luna request headers</param>
-        /// <returns>The plan</returns>
-        Task<MarketplacePlan> GetMarketplacePlanAsync(string offerName,
-            string planName,
+        /// <returns>The plan response content</returns>
+        Task<string> GetMarketplacePlanAsync(string offerId,
+            string planId,
             LunaRequestHeaders headers);
 
+        /// <summary>
         /// List plans in Azure marketplace offer
         /// </summary>
-        /// <param name="offerName">Name of the offer</param>
+        /// <param name="offerId">Id of the offer</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The plans</returns>
-        Task<List<MarketplacePlan>> ListMarketplacePlansAsync(string offerName,
+        Task<string> ListMarketplacePlansAsync(string offerId,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Create a parameter in Azure marketplace offer
+        /// </summary>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="paramName">Name of the parameter</param>
+        /// <param name="param">The parameter request content</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The parameter created</returns>
+        Task<string> CreateOfferParameterAsync(string offerId,
+            string paramName,
+            string param,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Update a parameter in Azure marketplace offer
+        /// </summary>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="paramName">Name of the parameter</param>
+        /// <param name="param">The parameter request content</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The parameter updated</returns>
+        Task<string> UpdateOfferParameterAsync(string offerId,
+            string paramName,
+            string param,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Delete a parameter in Azure marketplace offer
+        /// </summary>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="paramName">Name of the parameter</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>Success</returns>
+        Task DeleteOfferParameterAsync(string offerId,
+            string paramName,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Get a parameter in Azure marketplace offer
+        /// </summary>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="paramName">Name of the parameter</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The parameter response content</returns>
+        Task<string> GetOfferParameterAsync(string offerId,
+            string paramName,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// List parameters in Azure marketplace offer
+        /// </summary>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The offer parameters</returns>
+        Task<string> ListOfferParametersAsync(string offerId,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Create a provisioning step in Azure marketplace offer
+        /// </summary>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="stepName">Name of the provisioning step</param>
+        /// <param name="step">The provisioning step request content</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The provisioning step created</returns>
+        Task<string> CreateProvisioningStepAsync(string offerId,
+            string stepName,
+            string step,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Update a provisioning step in Azure marketplace offer
+        /// </summary>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="stepName">Name of the provisioning step</param>
+        /// <param name="step">The provisioning step request content</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The provisioning step updated</returns>
+        Task<string> UpdateProvisioningStepAsync(string offerId,
+            string stepName,
+            string step,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Delete a provisioning step in Azure marketplace offer
+        /// </summary>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="stepName">Name of the provisioning step</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>Success</returns>
+        Task DeleteProvisioningStepAsync(string offerId,
+            string stepName,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// Get a provisioning step in Azure marketplace offer
+        /// </summary>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="stepName">Name of the provisioning step</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The provisioning step</returns>
+        Task<string> GetProvisioningStepAsync(string offerId,
+            string stepName,
+            LunaRequestHeaders headers);
+
+        /// <summary>
+        /// List a provisioning step in Azure marketplace offer
+        /// </summary>
+        /// <param name="offerId">Id of the offer</param>
+        /// <param name="headers">The Luna request headers</param>
+        /// <returns>The provisioning step</returns>
+        Task<string> ListProvisioningStepsAsync(string offerId,
             LunaRequestHeaders headers);
 
         #region subscriptions
@@ -136,7 +255,7 @@ namespace Luna.Marketplace.Public.Client
         /// <param name="token">The subscription token</param>
         /// <param name="headers">The Luna request header</param>
         /// <returns>The resolved subscription</returns>
-        Task<MarketplaceSubscription> ResolveMarketplaceTokenAsync(string token, LunaRequestHeaders headers);
+        Task<string> ResolveMarketplaceTokenAsync(string token, LunaRequestHeaders headers);
 
         /// <summary>
         /// Create a markplace subscription
@@ -145,9 +264,9 @@ namespace Luna.Marketplace.Public.Client
         /// <param name="subscription">The subscription</param>
         /// <param name="headers">The Luna request header</param>
         /// <returns>The created subscription</returns>
-        Task<MarketplaceSubscription> CreateMarketplaceSubscriptionAsync(
+        Task<string> CreateMarketplaceSubscriptionAsync(
             Guid subscriptionId,
-            MarketplaceSubscription subscription,
+            string subscription,
             LunaRequestHeaders headers);
 
         /// <summary>
@@ -172,14 +291,14 @@ namespace Luna.Marketplace.Public.Client
         /// <param name="subscriptionId">The subscription id</param>
         /// <param name="headers">The Luna request header</param>
         /// <returns></returns>
-        Task<MarketplaceSubscription> GetMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers);
+        Task<string> GetMarketplaceSubscriptionAsync(Guid subscriptionId, LunaRequestHeaders headers);
 
         /// <summary>
         /// List marketplace subscriptions
         /// </summary>
         /// <param name="headers">The Luna request header</param>
         /// <returns></returns>
-        Task<List<MarketplaceSubscription>> ListMarketplaceSubscriptionsAsync(LunaRequestHeaders headers);
+        Task<string> ListMarketplaceSubscriptionsAsync(LunaRequestHeaders headers);
 
         /// <summary>
         /// Get parameters for the specified offer and plan
@@ -188,7 +307,7 @@ namespace Luna.Marketplace.Public.Client
         /// <param name="planId">The plan id</param>
         /// <param name="headers">The Luna request headers</param>
         /// <returns>The parameters</returns>
-        Task<List<MarketplaceParameter>> GetMarketplaceParametersAsync(string offerId, string planId, LunaRequestHeaders headers);
+        Task<string> GetMarketplaceParametersAsync(string offerId, string planId, LunaRequestHeaders headers);
 
         #endregion
     }

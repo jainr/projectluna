@@ -499,15 +499,15 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [marketplace].[AzureMarketplaceSubscriptions](
+CREATE TABLE [marketplace].[MarketplaceSubscriptions](
 	[SubscriptionId] [uniqueidentifier] NOT NULL,
-	[SubscriptionName] [nvarchar](50) NOT NULL,
+	[Name] [nvarchar](50) NOT NULL,
 	[OwnerId] [nvarchar](128) NOT NULL,
 	[SaaSSubscriptionStatus] [nvarchar](64) NOT NULL,
 	[OfferId] [nvarchar](50) NOT NULL,
 	[PlanId] [nvarchar](50) NOT NULL,
 	[PlanCreatedByEventId] [bigint] NOT NULL,
-	[Publisher] [nvarchar](128) NOT NULL,
+	[PublisherId] [nvarchar](128) NOT NULL,
 	[ParameterSecretName] [nvarchar](64) NOT NULL,
 	[CreatedTime] [datetime2](7) NOT NULL,
 	[LastUpdatedTime] [datetime2](7) NOT NULL,
@@ -534,6 +534,7 @@ CREATE TABLE provision.[MarketplaceSubProvisionJobs](
 	[Mode] [nvarchar](64) NOT NULL,
 	[Status] [nvarchar](64) NOT NULL,
 	[EventType] [nvarchar](64) NOT NULL,
+	[LunaApplicationName] [nvarchar](64) NOT NULL,
 	[ProvisioningStepIndex] [int] NOT NULL,
 	[IsSynchronizedStep] [bit] NOT NULL,
 	[ProvisioningStepStatus] [nvarchar](64) NOT NULL,
@@ -583,6 +584,7 @@ CREATE TABLE [provision].[MarketplacePlans](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
 	[offerId] [nvarchar](50) NOT NULL,
 	[planId] [nvarchar](50) NOT NULL,
+	[LunaApplicationName] [nvarchar](64) NOT NULL,
 	[parameters] [nvarchar](max) NOT NULL,
 	[mode] [nvarchar](64) NOT NULL,
 	[properties] [nvarchar](max) NOT NULL,

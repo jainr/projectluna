@@ -24,7 +24,7 @@ namespace Luna.Marketplace.Data
 
         DbSet<MarketplaceProvisioningStepDB> MarketplaceProvisioningSteps { get; set; }
 
-        DbSet<AzureMarketplaceSubscriptionDB> AzureMarketplaceSubscriptions { get; set; }
+        DbSet<MarketplaceSubscriptionDB> MarketplaceSubscriptions { get; set; }
 
         DbSet<PublishedAzureMarketplacePlanDB> PublishedAzureMarketplacePlans { get; set; }
 

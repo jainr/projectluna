@@ -27,6 +27,8 @@ namespace Luna.Provision.Data
 
         public string EventType { get; set; }
 
+        public string LunaApplicationName { get; set; }
+
         public int ProvisioningStepIndex { get; set; }
 
         public bool IsSynchronizedStep { get; set; }

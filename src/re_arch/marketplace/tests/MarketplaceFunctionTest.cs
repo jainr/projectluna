@@ -1,8 +1,9 @@
+using Luna.Common.Test;
 using Luna.Common.Utils;
 using Luna.Marketplace.Clients;
 using Luna.Marketplace.Data;
 using Luna.Marketplace.Public.Client;
-using Luna.Marketplace.Test.Mock;
+using Luna.PubSub.Public.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,10 @@ namespace Luna.Marketplace.Test
         private ScriptProvisioningStepRequest _updatedScriptStepRequest;
         private ARMTemplateProvisioningStepRequest _armStepRequest;
         private WebhookProvisioningStepRequest _webhookStepRequest;
+
+        private MarketplaceSubscriptionRequest _subRequest;
+
+        private IPubSubServiceClient _pubSubClient;
 
         [TestInitialize]
         public void TestInitialize()
@@ -75,7 +80,7 @@ namespace Luna.Marketplace.Test
                 PlanId = "testplan",
                 DisplayName = "Test plan",
                 Description = "This is a test plan",
-                Mode = MarketplacePlanMode.IaaS.ToString(),
+                Mode = MarketplacePlanMode.PaaS.ToString(),
                 LunaApplicationName = "myapp",
             };
 
@@ -191,6 +196,46 @@ namespace Luna.Marketplace.Test
                 InputParameterNames = new List<string>(new string[] { "parameter" }),
             };
 
+            this._subRequest = new MarketplaceSubscriptionRequest
+            {
+                Id = Guid.NewGuid(),
+                PublisherId = "testpublisher",
+                OfferId = this._offerRequest.OfferId,
+                PlanId = this._planRequest.PlanId,
+                Name = "testsubname",
+                Token = Guid.NewGuid().ToString(),
+                InputParameters = new List<MarketplaceSubscriptionParameterRequest>()
+            };
+
+            this._subRequest.InputParameters.Add(new MarketplaceSubscriptionParameterRequest
+            {
+                Name = this._paramRequest.ParameterName,
+                Type = this._paramRequest.ValueType,
+                Value = "testvalue",
+            });
+
+            this._pubSubClient = new MockPubSubServiceClient();
+
+        }
+
+        private IMarketplaceFunctionsImpl GetMarketplaceFunctionsImpl(ISqlDbContext context)
+        {
+            var keyVaultUtils = new MockKeyVaultUtils();
+
+            return new MarketplaceFunctionsImpl(
+                    new OfferEventProcessor(),
+                    new OfferEventContentGenerator(keyVaultUtils, this._contentGeneratorLogger),
+                    new MockAzureMarketplaceSaaSClient(new List<MarketplaceSubscriptionRequest>(new MarketplaceSubscriptionRequest[] { this._subRequest })),
+                    keyVaultUtils,
+                    this._pubSubClient,
+                    new MarketplaceOfferMapper(),
+                    new MarketplacePlanMapper(),
+                    new MarketplaceParameterMapper(),
+                    new MarketplaceProvisioningStepMapper(),
+                    new MarketplaceSubscriptionMapper(),
+                    new MarketplaceSubscriptionEventMapper(),
+                    context,
+                    this._logger);
         }
 
         [TestMethod]
@@ -202,15 +247,7 @@ namespace Luna.Marketplace.Test
             var options = builder.Options;
             using (var context = new SqlDbContext(options))
             {
-                IMarketplaceFunctionsImpl function = new MarketplaceFunctionsImpl(
-                    new OfferEventProcessor(),
-                    new OfferEventContentGenerator(new MockKeyVaultUtils(), this._contentGeneratorLogger),
-                    new MarketplaceOfferMapper(),
-                    new MarketplacePlanMapper(),
-                    new MarketplaceParameterMapper(),
-                    new MarketplaceProvisioningStepMapper(),
-                    context,
-                    this._logger);
+                IMarketplaceFunctionsImpl function = GetMarketplaceFunctionsImpl(context);
 
                 var offerResponse = await function.CreateMarketplaceOfferAsync(this._offerRequest.OfferId, this._offerRequest, this._headers);
                 Assert.IsInstanceOfType(offerResponse, typeof(MarketplaceOfferResponse));
@@ -257,15 +294,7 @@ namespace Luna.Marketplace.Test
             var options = builder.Options;
             using (var context = new SqlDbContext(options))
             {
-                IMarketplaceFunctionsImpl function = new MarketplaceFunctionsImpl(
-                    new OfferEventProcessor(),
-                    new OfferEventContentGenerator(new MockKeyVaultUtils(), this._contentGeneratorLogger),
-                    new MarketplaceOfferMapper(),
-                    new MarketplacePlanMapper(),
-                    new MarketplaceParameterMapper(),
-                    new MarketplaceProvisioningStepMapper(),
-                    context,
-                    this._logger);
+                IMarketplaceFunctionsImpl function = GetMarketplaceFunctionsImpl(context);
 
                 var offerResponse = await function.CreateMarketplaceOfferAsync(this._offerRequest.OfferId, this._offerRequest, this._headers);
                 Assert.IsInstanceOfType(offerResponse, typeof(MarketplaceOfferResponse));
@@ -302,15 +331,7 @@ namespace Luna.Marketplace.Test
             var options = builder.Options;
             using (var context = new SqlDbContext(options))
             {
-                IMarketplaceFunctionsImpl function = new MarketplaceFunctionsImpl(
-                    new OfferEventProcessor(),
-                    new OfferEventContentGenerator(new MockKeyVaultUtils(), this._contentGeneratorLogger),
-                    new MarketplaceOfferMapper(),
-                    new MarketplacePlanMapper(),
-                    new MarketplaceParameterMapper(),
-                    new MarketplaceProvisioningStepMapper(),
-                    context,
-                    this._logger);
+                IMarketplaceFunctionsImpl function = GetMarketplaceFunctionsImpl(context);
 
                 var offerResponse = await function.CreateMarketplaceOfferAsync(this._offerRequest.OfferId, this._offerRequest, this._headers);
                 Assert.IsInstanceOfType(offerResponse, typeof(MarketplaceOfferResponse));
@@ -346,15 +367,7 @@ namespace Luna.Marketplace.Test
             var options = builder.Options;
             using (var context = new SqlDbContext(options))
             {
-                IMarketplaceFunctionsImpl function = new MarketplaceFunctionsImpl(
-                    new OfferEventProcessor(),
-                    new OfferEventContentGenerator(new MockKeyVaultUtils(), this._contentGeneratorLogger),
-                    new MarketplaceOfferMapper(),
-                    new MarketplacePlanMapper(),
-                    new MarketplaceParameterMapper(),
-                    new MarketplaceProvisioningStepMapper(),
-                    context,
-                    this._logger);
+                IMarketplaceFunctionsImpl function = GetMarketplaceFunctionsImpl(context);
 
                 var offerResponse = await function.CreateMarketplaceOfferAsync(this._offerRequest.OfferId, this._offerRequest, this._headers);
                 Assert.IsInstanceOfType(offerResponse, typeof(MarketplaceOfferResponse));
@@ -417,5 +430,65 @@ namespace Luna.Marketplace.Test
                 Assert.AreEqual(2, steps.Count);
             }
         }
+
+        [TestMethod]
+        public async Task BasicSubscriptionTest()
+        {
+            var builder = new DbContextOptionsBuilder<SqlDbContext>();
+            builder.UseInMemoryDatabase(Guid.NewGuid().ToString()).
+                ConfigureWarnings(warnings => warnings.Default(WarningBehavior.Ignore).Log(InMemoryEventId.TransactionIgnoredWarning));
+            var options = builder.Options;
+            using (var context = new SqlDbContext(options))
+            {
+                IMarketplaceFunctionsImpl function = GetMarketplaceFunctionsImpl(context);
+
+                var offerResponse = await function.CreateMarketplaceOfferAsync(this._offerRequest.OfferId, this._offerRequest, this._headers);
+                Assert.IsInstanceOfType(offerResponse, typeof(MarketplaceOfferResponse));
+                Assert.AreEqual(offerResponse.DisplayName, this._offerRequest.DisplayName);
+
+                var planResponse = await function.CreateMarketplacePlanAsync(offerResponse.OfferId, this._planRequest.PlanId, this._planRequest, this._headers);
+                Assert.IsInstanceOfType(planResponse, typeof(MarketplacePlanResponse));
+                Assert.AreEqual(planResponse.DisplayName, this._planRequest.DisplayName);
+
+                var paramResponse = await function.CreateParameterAsync(offerResponse.OfferId, this._paramRequest.ParameterName, this._paramRequest, this._headers);
+                Assert.IsInstanceOfType(paramResponse, typeof(MarketplaceParameterResponse));
+                Assert.AreEqual(this._paramRequest.DisplayName, paramResponse.DisplayName);
+
+                await Assert.ThrowsExceptionAsync<LunaNotFoundUserException>(() => function.ResolveMarketplaceSubscriptionAsync(this._subRequest.Token, this._headers));
+
+                await function.PublishMarketplaceOfferAsync(this._offerRequest.OfferId, this._headers);
+
+                var subResponse = await function.ResolveMarketplaceSubscriptionAsync(this._subRequest.Token, this._headers);
+                Assert.AreEqual(this._subRequest.Id, subResponse.Id);
+
+                subResponse = await function.CreateMarketplaceSubscriptionAsync(this._subRequest.Id, this._subRequest, this._headers);
+                Assert.AreEqual(this._subRequest.Id, subResponse.Id);
+                Assert.AreEqual(MarketplaceSubscriptionStatus.PENDING_FULFILLMENT_START, subResponse.SaaSSubscriptionStatus);
+
+                var events = await this._pubSubClient.ListEventsAsync(LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE, this._headers);
+                Assert.AreEqual(1, events.Count);
+
+                subResponse = await function.GetMarketplaceSubscriptionAsync(this._subRequest.Id, this._headers);
+                Assert.AreEqual(this._subRequest.Id, subResponse.Id);
+                Assert.AreEqual(MarketplaceSubscriptionStatus.PENDING_FULFILLMENT_START, subResponse.SaaSSubscriptionStatus);
+
+                var subs = await function.ListMarketplaceSubscriptionsAsync(this._headers);
+                Assert.AreEqual(1, subs.Count);
+
+                await function.ActivateMarketplaceSubscriptionAsync(this._subRequest.Id, this._headers);
+                subResponse = await function.GetMarketplaceSubscriptionAsync(this._subRequest.Id, this._headers);
+                Assert.AreEqual(this._subRequest.Id, subResponse.Id);
+                Assert.AreEqual(MarketplaceSubscriptionStatus.SUBSCRIBED, subResponse.SaaSSubscriptionStatus);
+
+                await function.DeleteMarketplaceSubscriptionAsync(this._subRequest.Id, this._headers);
+                subResponse = await function.GetMarketplaceSubscriptionAsync(this._subRequest.Id, this._headers);
+                Assert.AreEqual(this._subRequest.Id, subResponse.Id);
+                Assert.AreEqual(MarketplaceSubscriptionStatus.UNSUBSCRIBED, subResponse.SaaSSubscriptionStatus);
+
+                events = await this._pubSubClient.ListEventsAsync(LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE, this._headers);
+                Assert.AreEqual(2, events.Count);
+            }
+        }
+
     }
 }

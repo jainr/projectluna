@@ -37,8 +37,11 @@ namespace Luna.Marketplace.Public.Client
         [JsonProperty(PropertyName = "TimeoutInSeconds", Required = Required.Always)]
         public int TimeoutInSeconds { get; set; }
 
-        [JsonProperty(PropertyName = "InputParameterNames", Required = Required.Always)]
+        [JsonProperty(PropertyName = "InputParameterNames", Required = Required.Default)]
         public List<string> InputParameterNames { get; set; }
+
+        [JsonProperty(PropertyName = "OutputParameterNames", Required = Required.Default)]
+        public List<string> OutputParameterNames { get; set; }
 
     }
 }

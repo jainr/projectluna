@@ -43,6 +43,7 @@ namespace Luna.Marketplace.Data
                     WebhookAuthValue = ((WebhookProvisioningStepRequest)request).WebhookAuthValue,
                     TimeoutInSeconds = ((WebhookProvisioningStepRequest)request).TimeoutInSeconds,
                     InputParameterNames = ((WebhookProvisioningStepRequest)request).InputParameterNames,
+                    OutputParameterNames = ((WebhookProvisioningStepRequest)request).OutputParameterNames,
                 };
             }
             else if (request is ScriptProvisioningStepRequest)
@@ -105,6 +106,7 @@ namespace Luna.Marketplace.Data
                     WebhookAuthValue = ((WebhookProvisioningStepProp)prop).WebhookAuthValue,
                     TimeoutInSeconds = ((WebhookProvisioningStepProp)prop).TimeoutInSeconds,
                     InputParameterNames = ((WebhookProvisioningStepProp)prop).InputParameterNames,
+                    OutputParameterNames = ((WebhookProvisioningStepProp)prop).OutputParameterNames,
                 };
             }
             else if (prop is ScriptProvisioningStepProp)

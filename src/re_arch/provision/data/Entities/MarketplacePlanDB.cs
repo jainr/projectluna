@@ -12,6 +12,8 @@ namespace Luna.Provision.Data
 
         public string PlanId { get; set; }
 
+        public string LunaApplicationName { get; set; }
+
         public string Parameters { get; set; }
 
         public string Mode { get; set; }

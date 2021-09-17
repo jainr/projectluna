@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Luna.Common.Test</AssemblyName>
+    <RootNamespace>Luna.Common.Test</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\marketplace\clients\marketplace_clients.csproj" />
+    <ProjectReference Include="..\commonUtils\common_utils.csproj" />
+  </ItemGroup>
+
+</Project>

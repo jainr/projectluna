@@ -236,7 +236,7 @@ namespace Luna.Gateway.Functions
         }
         #endregion
 
-        #region publish - Azure Marketplace offer
+        #region Azure Marketplace
 
         /// <summary>
         /// Create or update an Azure Marketplace SaaS offer from template
@@ -320,28 +320,28 @@ namespace Luna.Gateway.Functions
         /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req" in="body">
-        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <see cref="MarketplaceOfferRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///             <see cref="MarketplaceOfferRequest.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace offer
+        ///             An example of Azure marketplace offer request
         ///         </summary>
         ///     </example>
-        ///     Request contract
+        ///     Azure Marketplace offer request
         /// </param>
         /// <response code="200">
-        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <see cref="MarketplaceOfferResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///             <see cref="MarketplaceOfferResponse.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace offer
+        ///             An example of Azure marketplace offer response
         ///         </summary>
         ///     </example>
-        ///     Success
+        ///     Azure marketplace offer response
         /// </response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
@@ -367,9 +367,15 @@ namespace Luna.Gateway.Functions
                         RBACActions.CREATE_MARKETPLACE_OFFER,
                         lunaHeaders))
                     {
-                        var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceOffer>(req);
+                        var content = await HttpUtils.GetRequestBodyAsync(req);
                         var result = await _marketplaceServiceClient.CreateMarketplaceOfferAsync(offerId, content, lunaHeaders);
-                        return new OkObjectResult(result);
+
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -389,32 +395,36 @@ namespace Luna.Gateway.Functions
         /// Update an Azure Marketplace SaaS offer
         /// </summary>
         /// <group>Azure Marketplace</group>
+        /// <verb>PATCH</verb>        /// <summary>
+        /// Update an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
         /// <verb>PATCH</verb>
         /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req" in="body">
-        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <see cref="MarketplaceOfferRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///             <see cref="MarketplaceOfferRequest.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace offer
+        ///             An example of Azure marketplace offer request
         ///         </summary>
         ///     </example>
-        ///     Request contract
+        ///     Azure marketplace offer request
         /// </param>
         /// <response code="200">
-        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <see cref="MarketplaceOfferResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///             <see cref="MarketplaceOfferResponse.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace offer
+        ///             An example of Azure marketplace offer request
         ///         </summary>
         ///     </example>
-        ///     Success
+        ///     Azure marketplace offer response
         /// </response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
@@ -440,9 +450,15 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceOffer>(req);
+                        var content = await HttpUtils.GetRequestBodyAsync(req);
                         var result = await _marketplaceServiceClient.UpdateMarketplaceOfferAsync(offerId, content, lunaHeaders);
-                        return new OkObjectResult(result);
+
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -568,16 +584,16 @@ namespace Luna.Gateway.Functions
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req">http request</param>
         /// <response code="200">
-        ///     <see cref="AzureMarketplaceOffer"/>
+        ///     <see cref="MarketplaceOfferResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///             <see cref="MarketplaceOfferResponse.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace offer
+        ///             An example of Azure marketplace offer response
         ///         </summary>
         ///     </example>
-        ///     Success
+        ///     Azure marketplace offer response
         /// </response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
@@ -604,7 +620,13 @@ namespace Luna.Gateway.Functions
                         lunaHeaders))
                     {
                         var result = await _marketplaceServiceClient.GetMarketplaceOfferAsync(offerId, lunaHeaders);
-                        return new OkObjectResult(result);
+
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -629,16 +651,16 @@ namespace Luna.Gateway.Functions
         /// <param name="req">http request</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
-        ///     where T is <see cref="AzureMarketplaceOffer"/>
+        ///     where T is <see cref="MarketplaceOfferResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplaceOffer.example"/>
+        ///             <see cref="MarketplaceOfferResponse.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace offer
+        ///             An example of Azure marketplace offer response
         ///         </summary>
         ///     </example>
-        ///     Success
+        ///     Azure marketplace offer response
         /// </response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
@@ -664,7 +686,13 @@ namespace Luna.Gateway.Functions
                         lunaHeaders))
                     {
                         var result = await _marketplaceServiceClient.ListMarketplaceOffersAsync(lunaHeaders);
-                        return new OkObjectResult(result);
+
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -689,28 +717,28 @@ namespace Luna.Gateway.Functions
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
         /// <param name="req" in="body">
-        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <see cref="MarketplacePlanRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlanRequest.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace plan
+        ///             An example of Azure marketplace plan request
         ///         </summary>
         ///     </example>
-        ///     Request contract
+        ///     Azure marketplace plan request
         /// </param>
         /// <response code="200">
-        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <see cref="MarketplacePlanResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlanResponse.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace plan
+        ///             An example of Azure marketplace plan response
         ///         </summary>
         ///     </example>
-        ///     Success
+        ///     Azure marketplace plan response
         /// </response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
@@ -737,9 +765,15 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplacePlan>(req);
+                        var content = await HttpUtils.GetRequestBodyAsync(req);
                         var result = await _marketplaceServiceClient.CreateMarketplacePlanAsync(offerId, planId, content, lunaHeaders);
-                        return new OkObjectResult(result);
+
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -764,28 +798,28 @@ namespace Luna.Gateway.Functions
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
         /// <param name="req" in="body">
-        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <see cref="MarketplacePlanRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlanRequest.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace plan
+        ///             An example of Azure marketplace plan request
         ///         </summary>
         ///     </example>
-        ///     Request contract
+        ///     Azure marketplace plan request
         /// </param>
         /// <response code="200">
-        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <see cref="MarketplacePlanResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlanResponse.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace plan
+        ///             An example of Azure marketplace plan response
         ///         </summary>
         ///     </example>
-        ///     Success
+        ///     Azure marketplace plan response
         /// </response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
@@ -812,9 +846,14 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplacePlan>(req);
+                        var content = await HttpUtils.GetRequestBodyAsync(req);
                         var result = await _marketplaceServiceClient.UpdateMarketplacePlanAsync(offerId, planId, content, lunaHeaders);
-                        return new OkObjectResult(result);
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -892,16 +931,16 @@ namespace Luna.Gateway.Functions
         /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
         /// <param name="req">http request</param>
         /// <response code="200">
-        ///     <see cref="AzureMarketplacePlan"/>
+        ///     <see cref="MarketplacePlanResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlanResponse.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace plan
+        ///             An example of Azure marketplace plan response
         ///         </summary>
         ///     </example>
-        ///     Success
+        ///     Azure marketplace plan response
         /// </response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
@@ -929,7 +968,12 @@ namespace Luna.Gateway.Functions
                         lunaHeaders))
                     {
                         var result = await _marketplaceServiceClient.GetMarketplacePlanAsync(offerId, planId, lunaHeaders);
-                        return new OkObjectResult(result);
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -955,16 +999,16 @@ namespace Luna.Gateway.Functions
         /// <param name="req">http request</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
-        ///     where T is<see cref="AzureMarketplacePlan"/>
+        ///     where T is<see cref="MarketplacePlanResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="AzureMarketplacePlan.example"/>
+        ///             <see cref="MarketplacePlanResponse.example"/>
         ///         </value>
         ///         <summary>
-        ///             An example of Azure marketplace plan
+        ///             An example of Azure marketplace plan response
         ///         </summary>
         ///     </example>
-        ///     Success
+        ///     Azure marketplace plan response
         /// </response>
         /// <security type="apiKey" name="x-functions-key">
         ///     <description>Azure function key</description>
@@ -991,7 +1035,12 @@ namespace Luna.Gateway.Functions
                         lunaHeaders))
                     {
                         var result = await _marketplaceServiceClient.ListMarketplacePlansAsync(offerId, lunaHeaders);
-                        return new OkObjectResult(result);
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
                     }
 
                     throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
@@ -1008,6 +1057,703 @@ namespace Luna.Gateway.Functions
         }
 
         /// <summary>
+        /// Create a parameter in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/parameters/{parameterName}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="parameterName" required="true" cref="string" in="path">The offer parameter name</param>
+        /// <param name="req" in="body">
+        ///     <see cref="MarketplaceParameterRequest"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceParameterRequest.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace parameter request
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace parameter request
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="MarketplaceParameterResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceParameterResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace parameter response
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace parameter response
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateOfferParameter")]
+        public async Task<IActionResult> CreateOfferParameter(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "marketplace/offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
+            string offerId,
+            string parameterName)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateOfferParameter));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var content = await HttpUtils.GetRequestBodyAsync(req);
+                        var result = await _marketplaceServiceClient.CreateOfferParameterAsync(offerId, parameterName, content, lunaHeaders);
+
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateOfferParameter));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update a parameter in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/parameters/{parameterName}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="parameterName" required="true" cref="string" in="path">The offer parameter name</param>
+        /// <param name="req" in="body">
+        ///     <see cref="MarketplaceParameterRequest"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceParameterRequest.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace parameter request
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace parameter request
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="MarketplaceParameterResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceParameterResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace parameter response
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace parameter response
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdateOfferParameter")]
+        public async Task<IActionResult> UpdateOfferParameter(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "marketplace/offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
+            string offerId,
+            string parameterName)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdateAzureMarketplacePlan));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var content = await HttpUtils.GetRequestBodyAsync(req);
+                        var result = await _marketplaceServiceClient.UpdateOfferParameterAsync(offerId, parameterName, content, lunaHeaders);
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.UpdateOfferParameter));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete a parameter in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/parameters/{parameterName}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="parameterName" required="true" cref="string" in="path">Name of marketplace SaaS offer parameter</param>
+        /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("DeleteOfferParameter")]
+        public async Task<IActionResult> DeleteOfferParameter(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "marketplace/offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
+            string offerId,
+            string parameterName)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.DeleteOfferParameter));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        await _marketplaceServiceClient.DeleteOfferParameterAsync(offerId, parameterName, lunaHeaders);
+                        return new NoContentResult();
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.DeleteOfferParameter));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get a parameter in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/parameters/{parameterName}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="parameterName" required="true" cref="string" in="path">Name of marketplace SaaS offer parameter</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="MarketplaceParameterResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceParameterResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace parameter response
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace parameter response
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetOfferParameter")]
+        public async Task<IActionResult> GetOfferParameter(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "marketplace/offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
+            string offerId,
+            string parameterName)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetOfferParameter));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var result = await _marketplaceServiceClient.GetOfferParameterAsync(offerId, parameterName, lunaHeaders);
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetOfferParameter));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List parameters in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/parameters</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is<see cref="MarketplaceParameterResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceParameterResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace parameter response
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace parameter response
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListOfferParameters")]
+        public async Task<IActionResult> ListOfferParameters(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "marketplace/offers/{offerId}/parameters")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListOfferParameters));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var result = await _marketplaceServiceClient.ListOfferParametersAsync(offerId, lunaHeaders);
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListOfferParameters));
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Create a provisioning step in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PUT</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/provisioningsteps/{stepName}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="stepName" required="true" cref="string" in="path">Name of marketplace SaaS provisioning step</param>
+        /// <param name="req" in="body">
+        ///     <see cref="BaseProvisioningStepRequest"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseProvisioningStepRequest.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace provisioning step request
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace provisioning step request
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="BaseProvisioningStepResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseProvisioningStepResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace provisioning step response
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace provisioning step response
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("CreateProvisioningStep")]
+        public async Task<IActionResult> CreateProvisioningStep(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "marketplace/offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
+            string offerId,
+            string stepName)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateProvisioningStep));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var content = await HttpUtils.GetRequestBodyAsync(req);
+                        var result = await _marketplaceServiceClient.CreateProvisioningStepAsync(offerId, stepName, content, lunaHeaders);
+
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateProvisioningStep));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update a provisioning step in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>PATCH</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/provisioningsteps/{stepName}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="stepName" required="true" cref="string" in="path">Name of marketplace SaaS provisioning step</param>
+        /// <param name="req" in="body">
+        ///     <see cref="BaseProvisioningStepRequest"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseProvisioningStepRequest.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace provisioning step request
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace provisioning step request
+        /// </param>
+        /// <response code="200">
+        ///     <see cref="BaseProvisioningStepResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseProvisioningStepResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace provisioning step response
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace provisioning step response
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("UpdateProvisioningStep")]
+        public async Task<IActionResult> UpdateProvisioningStep(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "marketplace/offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
+            string offerId,
+            string stepName)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.UpdateProvisioningStep));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var content = await HttpUtils.GetRequestBodyAsync(req);
+                        var result = await _marketplaceServiceClient.UpdateProvisioningStepAsync(offerId, stepName, content, lunaHeaders);
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.UpdateProvisioningStep));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete a provisioning step in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>DELETE</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/provisioningsteps/{stepName}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="stepName" required="true" cref="string" in="path">Name of marketplace SaaS provisioning step</param>
+        /// <param name="req">The http request</param>
+        /// <response code="204">Success</response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("DeleteProvisioningStep")]
+        public async Task<IActionResult> DeleteProvisioningStep(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "marketplace/offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
+            string offerId,
+            string stepName)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.DeleteProvisioningStep));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        await _marketplaceServiceClient.DeleteOfferParameterAsync(offerId, stepName, lunaHeaders);
+                        return new NoContentResult();
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.DeleteProvisioningStep));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get a provisioning step in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/provisioningsteps/{stepName}</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="stepName" required="true" cref="string" in="path">Name of marketplace SaaS provisioning step</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="BaseProvisioningStepResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseProvisioningStepResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace provisioning step response
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace provisioning step response
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("GetProvisioningStep")]
+        public async Task<IActionResult> GetProvisioningStep(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "marketplace/offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
+            string offerId,
+            string stepName)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetProvisioningStep));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var result = await _marketplaceServiceClient.GetOfferParameterAsync(offerId, stepName, lunaHeaders);
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetProvisioningStep));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List provisioning steps in an Azure Marketplace SaaS offer
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/provisioningsteps</url>
+        /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
+        /// <param name="req">http request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is<see cref="BaseProvisioningStepResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="BaseProvisioningStepResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of Azure marketplace provisioning response
+        ///         </summary>
+        ///     </example>
+        ///     Azure marketplace provisioning response
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListProvisioningSteps")]
+        public async Task<IActionResult> ListProvisioningSteps(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "marketplace/offers/{offerId}/provisioningsteps")] HttpRequest req,
+            string offerId)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListProvisioningSteps));
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(lunaHeaders.UserId) &&
+                        await this._rbacClient.CanAccess(lunaHeaders.UserId,
+                        $"/offers/{offerId}",
+                        null,
+                        lunaHeaders))
+                    {
+                        var result = await _marketplaceServiceClient.ListOfferParametersAsync(offerId, lunaHeaders);
+                        return new ContentResult
+                        {
+                            Content = result,
+                            ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                            StatusCode = (int)HttpStatusCode.OK
+                        };
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListProvisioningSteps));
+                }
+            }
+        }
+
+        /// <summary>
         /// Resolve Azure Marketplace subscription from token
         /// </summary>
         /// <group>Azure Marketplace</group>
@@ -1015,10 +1761,10 @@ namespace Luna.Gateway.Functions
         /// <url>http://localhost:7071/api/marketplace/subscriptions/resolveToken</url>
         /// <param name="req" in="body"><see cref="string"/>Token</param>
         /// <response code="200">
-        ///     <see cref="MarketplaceSubscription"/>
+        ///     <see cref="MarketplaceSubscriptionResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="MarketplaceSubscription.example"/>
+        ///             <see cref="MarketplaceSubscriptionResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of a marketplace subscription
@@ -1050,7 +1796,12 @@ namespace Luna.Gateway.Functions
 
                     // TODO: verify the ownership
 
-                    return new OkObjectResult(result);
+                    return new ContentResult
+                    {
+                        Content = result,
+                        ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                        StatusCode = (int)HttpStatusCode.OK
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -1071,10 +1822,10 @@ namespace Luna.Gateway.Functions
         /// <url>http://localhost:7071/api/marketplace/subscriptions/{subscriptionId}</url>
         /// <param name="subscriptionId" required="true" cref="string" in="path">ID of the subscription</param>
         /// <param name="req" in="body">
-        ///     <see cref="MarketplaceSubscription"/>
+        ///     <see cref="MarketplaceSubscriptionRequest"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="MarketplaceSubscription.example"/>
+        ///             <see cref="MarketplaceSubscriptionRequest.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of a marketplace subscription
@@ -1083,10 +1834,10 @@ namespace Luna.Gateway.Functions
         ///     The subscription
         /// </param>
         /// <response code="200">
-        ///     <see cref="MarketplaceSubscription"/>
+        ///     <see cref="MarketplaceSubscriptionResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="MarketplaceSubscription.example"/>
+        ///             <see cref="MarketplaceSubscriptionResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of a marketplace subscription
@@ -1113,9 +1864,15 @@ namespace Luna.Gateway.Functions
 
                 try
                 {
-                    var content = await HttpUtils.DeserializeRequestBodyAsync<MarketplaceSubscription>(req);
+                    var content = await HttpUtils.GetRequestBodyAsync(req);
                     var result = await _marketplaceServiceClient.CreateMarketplaceSubscriptionAsync(subscriptionId, content, lunaHeaders);
-                    return new OkObjectResult(result);
+
+                    return new ContentResult
+                    {
+                        Content = result,
+                        ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                        StatusCode = (int)HttpStatusCode.OK
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -1137,10 +1894,10 @@ namespace Luna.Gateway.Functions
         /// <param name="subscriptionId" required="true" cref="string" in="path">ID of the subscription</param>
         /// <param name="req">req</param>
         /// <response code="200">
-        ///     <see cref="MarketplaceSubscription"/>
+        ///     <see cref="MarketplaceSubscriptionResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="MarketplaceSubscription.example"/>
+        ///             <see cref="MarketplaceSubscriptionResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of a marketplace subscription
@@ -1168,7 +1925,13 @@ namespace Luna.Gateway.Functions
                 try
                 {
                     var result = await _marketplaceServiceClient.GetMarketplaceSubscriptionAsync(subscriptionId, lunaHeaders);
-                    return new OkObjectResult(result);
+
+                    return new ContentResult
+                    {
+                        Content = result,
+                        ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                        StatusCode = (int)HttpStatusCode.OK
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -1190,10 +1953,10 @@ namespace Luna.Gateway.Functions
         /// <param name="req">req</param>
         /// <response code="200">
         /// <see cref="List{T}"/>
-        ///     where T is <see cref="MarketplaceSubscription"/>
+        ///     where T is <see cref="MarketplaceSubscriptionResponse"/>
         ///     <example>
         ///         <value>
-        ///             <see cref="MarketplaceSubscription.example"/>
+        ///             <see cref="MarketplaceSubscriptionResponse.example"/>
         ///         </value>
         ///         <summary>
         ///             An example of a marketplace subscription
@@ -1220,7 +1983,13 @@ namespace Luna.Gateway.Functions
                 try
                 {
                     var result = await _marketplaceServiceClient.ListMarketplaceSubscriptionsAsync(lunaHeaders);
-                    return new OkObjectResult(result);
+
+                    return new ContentResult
+                    {
+                        Content = result,
+                        ContentType = HttpUtils.JSON_CONTENT_TYPE,
+                        StatusCode = (int)HttpStatusCode.OK
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -1233,44 +2002,6 @@ namespace Luna.Gateway.Functions
             }
         }
 
-
-        /// <summary>
-        /// Marketplace webhooks
-        /// </summary>
-        /// <group>Azure Marketplace</group>
-        /// <verb>POST</verb>
-        /// <url>http://localhost:7071/api/marketplace/webhook</url>
-        /// <param name="req">The http request</param>
-        /// <response code="204">Success</response>
-        /// <security type="apiKey" name="x-functions-key">
-        ///     <description>Azure function key</description>
-        ///     <in>header</in>
-        /// </security>
-        /// <returns></returns>
-        [FunctionName("AzureMarketplaceWebhook")]
-        public async Task<IActionResult> AzureMarketplaceWebhook(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "marketplace/webhook")] HttpRequest req)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.AzureMarketplaceWebhook));
-
-                try
-                {
-                    return new OkResult();
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.AzureMarketplaceWebhook));
-                }
-            }
-        }
 
         #endregion
 

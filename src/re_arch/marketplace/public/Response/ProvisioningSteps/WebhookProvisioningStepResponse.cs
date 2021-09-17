@@ -24,5 +24,8 @@ namespace Luna.Marketplace.Public.Client
 
         [JsonProperty(PropertyName = "inputParameterNames", Required = Required.Always)]
         public List<string> InputParameterNames { get; set; }
+
+        [JsonProperty(PropertyName = "outputParameterNames", Required = Required.Default)]
+        public List<string> OutputParameterNames { get; set; }
     }
 }
