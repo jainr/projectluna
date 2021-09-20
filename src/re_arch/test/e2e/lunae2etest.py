@@ -23,6 +23,7 @@ class ScenarioTest(HttpUser):
         self.routing_url = os.environ['ROUTING_URL']
         self.host_url = os.environ['GATEWAY_URL']
         self.tenant_id = os.environ['AZURE_TENANT_ID']
+        self.azure_client_secret = os.environ['AZURE_CLIENT_SECRET']
         self.aml_spn_client_id = os.environ['AML_SPN_CLIENT_ID']
         self.aml_spn_client_secret = os.environ['AML_SPN_CLIENT_SECRET']
         self.resourceId = os.environ['AML_RESOURCE_ID']
@@ -62,7 +63,7 @@ class ScenarioTest(HttpUser):
 
         print(os.environ['AZURE_TENANT_ID'])
         print(os.environ['AZURE_CLIENT_ID'])
-        print(os.environ['AZURE_CLIENT_SECRET'] != "")
+        os.environ['AZURE_CLIENT_SECRET'] = self.azure_client_secret
 
         uri = "https://management.azure.com/subscriptions/a6c2a7cc-d67e-4a1a-b765-983f08c0423a/resourcegroups/xiwutest/providers/Microsoft.Resources/deployments/MarketplaceSaaS_" +str(uuid.uuid1())+"?api-version=2020-06-01"
         
