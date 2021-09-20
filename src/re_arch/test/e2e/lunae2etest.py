@@ -60,6 +60,10 @@ class ScenarioTest(HttpUser):
         resource_name = "test" + str(uuid.uuid1())
         uid = str(uuid.uuid1())
 
+        print(os.environ['AZURE_TENANT_ID'])
+        print(os.environ['AZURE_CLIENT_ID'])
+        print(os.environ['AZURE_CLIENT_SECRET'] != "")
+
         uri = "https://management.azure.com/subscriptions/a6c2a7cc-d67e-4a1a-b765-983f08c0423a/resourcegroups/xiwutest/providers/Microsoft.Resources/deployments/MarketplaceSaaS_" +str(uuid.uuid1())+"?api-version=2020-06-01"
         
         
