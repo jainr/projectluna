@@ -36,7 +36,15 @@ namespace Luna.Provision.Clients
 
         public ISyncProvisionStepClient GetSyncProvisionStepClient(MarketplaceProvisioningStep step)
         {
-            throw new NotImplementedException();
+            if (step.Type.Equals(MarketplaceProvisioningStepType.Webhook.ToString()))
+            {
+                var client = new WebhookProvisionStepClient((WebhookProvisioningStepProp)step.Properties, this._logger);
+                return client;
+            }
+            else
+            {
+                throw new LunaServerException($"invalid step with type {step.Type}");
+            }
         }
     }
 }

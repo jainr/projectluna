@@ -16,8 +16,4 @@
     <ProjectReference Include="..\data\marketplace_data.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DataContracts\" />
-  </ItemGroup>
-
 </Project>

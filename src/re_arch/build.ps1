@@ -1,6 +1,6 @@
 param (
     [Alias("s")]
-    [string[]]$services = @('gateway','partner','publish','rbac','routing','gallery','pubsub','provision'), 
+    [string[]]$services = @('gateway','partner','publish','rbac','routing','gallery','pubsub','provision','marketplace'), 
 	
     [Alias("n")]
 	[switch] $deployNew = $false,
@@ -14,7 +14,7 @@ param (
 
 New-Item -ItemType Directory -Force -Path testbuild
 
-$servicesWithSwaggerConfiged = @('partner','publish','rbac','gallery','pubsub','gateway')
+$servicesWithSwaggerConfiged = @('partner','publish','rbac','gallery','pubsub','gateway','marketplace')
 
 $config = ([xml](Get-Content build.config)).config
 
@@ -101,6 +101,7 @@ if ($publishLocalSettings) {
 	$pubsubFxUrl = "https://" + $config.namePrefix + "-pubsub.azurewebsites.net/api/"
 	$routingFxUrl = "https://" + $config.namePrefix + "-routing.azurewebsites.net/api/"
 	$galleryFxUrl = "https://" + $config.namePrefix + "-gallery.azurewebsites.net/api/"
+	$marketplaceFxUrl = "https://" + $config.namePrefix + "-marketplace.azurewebsites.net/api/"
 
 	$rbacFxAppName = $config.namePrefix + "-rbac"
 	$rbacFx = az functionapp keys list -g $config.resourceGroupName -n $rbacFxAppName | ConvertFrom-Json
@@ -121,6 +122,10 @@ if ($publishLocalSettings) {
 	$galleryFxAppName = $config.namePrefix + "-gallery"
 	$galleryFx = az functionapp keys list -g $config.resourceGroupName -n $galleryFxAppName | ConvertFrom-Json
 	$galleryFxKey = $galleryFx.functionKeys.default
+	
+	$marketplaceFxAppName = $config.namePrefix + "-marketplace"
+	$marketplaceFx = az functionapp keys list -g $config.resourceGroupName -n $marketplaceFxAppName | ConvertFrom-Json
+	$marketplaceFxKey = $marketplaceFx.functionKeys.default
 	
 	$deployJbArmTemplateUrl = "https://github.com/Azure/projectluna/raw/re-arch/src/re_arch/resources/arm.json"
 	
@@ -144,6 +149,8 @@ if ($publishLocalSettings) {
 	$gatewayServiceConfig.Values | add-member -name "PARTNER_SERVICE_KEY" -value $partnerFxKey -MemberType NoteProperty	
 	$gatewayServiceConfig.Values | add-member -name "GALLERY_SERVICE_BASE_URL" -value $galleryFxUrl -MemberType NoteProperty
 	$gatewayServiceConfig.Values | add-member -name "GALLERY_SERVICE_KEY" -value $galleryFxKey -MemberType NoteProperty	
+	$gatewayServiceConfig.Values | add-member -name "MARKETPLACE_SERVICE_BASE_URL" -value $marketplaceFxUrl -MemberType NoteProperty
+	$gatewayServiceConfig.Values | add-member -name "MARKETPLACE_SERVICE_KEY" -value $marketplaceFxKey -MemberType NoteProperty	
 	$gatewayServiceConfig.Values | add-member -name "ENCRYPTION_ASYMMETRIC_KEY" -value $encryptionKey -MemberType NoteProperty	
 	$gatewayServiceConfig | ConvertTo-Json -depth 3 | Out-File .\gateway\functions\local.settings.json
 	
@@ -179,9 +186,6 @@ if ($publishLocalSettings) {
 	$galleryServiceConfig.Values | add-member -name "PUBSUB_SERVICE_BASE_URL" -value $pubsubFxUrl -MemberType NoteProperty
 	$galleryServiceConfig.Values | add-member -name "PUBSUB_SERVICE_KEY" -value $pubsubFxKey -MemberType NoteProperty	
 	$galleryServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty	
-	$galleryServiceConfig.Values | add-member -name "MARKETPLACE_AUTH_TENANT_ID" -value $config.marketplaceTenantId -MemberType NoteProperty	
-	$galleryServiceConfig.Values | add-member -name "MARKETPLACE_AUTH_CLIENT_ID" -value $config.marketplaceClientId -MemberType NoteProperty	
-	$galleryServiceConfig.Values | add-member -name "MARKETPLACE_AUTH_CLIENT_SECRET" -value $config.marketplaceClientSecret -MemberType NoteProperty	
 	$galleryServiceConfig.Values | add-member -name "KEY_VAULT_NAME" -value $keyVaultName -MemberType NoteProperty	
 	$galleryServiceConfig | ConvertTo-Json -depth 3 | Out-File .\gallery\functions\local.settings.json
 	
@@ -192,8 +196,21 @@ if ($publishLocalSettings) {
 	$provisionServiceConfig.Values | add-member -name "PUBSUB_SERVICE_KEY" -value $pubsubFxKey -MemberType NoteProperty	
 	$provisionServiceConfig.Values | add-member -name "GALLERY_SERVICE_BASE_URL" -value $galleryFxUrl -MemberType NoteProperty
 	$provisionServiceConfig.Values | add-member -name "GALLERY_SERVICE_KEY" -value $galleryFxKey -MemberType NoteProperty	
+	$provisionServiceConfig.Values | add-member -name "MARKETPLACE_SERVICE_BASE_URL" -value $marketplaceFxUrl -MemberType NoteProperty
+	$provisionServiceConfig.Values | add-member -name "MARKETPLACE_SERVICE_KEY" -value $marketplaceFxKey -MemberType NoteProperty	
 	$provisionServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty	
 	$provisionServiceConfig.Values | add-member -name "KEY_VAULT_NAME" -value $keyVaultName -MemberType NoteProperty	
 	$provisionServiceConfig.Values | add-member -name "DEPLOY_JB_ARM_TEMPLATE" -value $deployJbArmTemplateUrl -MemberType NoteProperty	
 	$provisionServiceConfig | ConvertTo-Json -depth 3 | Out-File .\provision\functions\local.settings.json
+	
+	$MarketplaceServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
+	$MarketplaceServiceConfig.Values | add-member -name "AzureWebJobsStorage" -value $storageConnectionString -MemberType NoteProperty
+	$MarketplaceServiceConfig.Values | add-member -name "PUBSUB_SERVICE_BASE_URL" -value $pubsubFxUrl -MemberType NoteProperty
+	$MarketplaceServiceConfig.Values | add-member -name "PUBSUB_SERVICE_KEY" -value $pubsubFxKey -MemberType NoteProperty	
+	$MarketplaceServiceConfig.Values | add-member -name "SQL_CONNECTION_STRING" -value $sqlConnectionSring -MemberType NoteProperty	
+	$MarketplaceServiceConfig.Values | add-member -name "KEY_VAULT_NAME" -value $keyVaultName -MemberType NoteProperty
+	$MarketplaceServiceConfig.Values | add-member -name "MARKETPLACE_AUTH_TENANT_ID" -value $config.marketplaceTenantId -MemberType NoteProperty	
+	$MarketplaceServiceConfig.Values | add-member -name "MARKETPLACE_AUTH_CLIENT_ID" -value $config.marketplaceClientId -MemberType NoteProperty	
+	$MarketplaceServiceConfig.Values | add-member -name "MARKETPLACE_AUTH_CLIENT_SECRET" -value $config.marketplaceClientSecret -MemberType NoteProperty		
+	$MarketplaceServiceConfig | ConvertTo-Json -depth 3 | Out-File .\marketplace\functions\local.settings.json
 }

@@ -1,0 +1,103 @@
+{
+  "properties": {
+    "mode": "Incremental",
+    "parameters": {
+      "name": {
+        "value": "<subscription-name>"
+      },
+      "planId": {
+        "value": "standard"
+      },
+      "offerId": {
+        "value": "knowledge_mining_accelarator"
+      },
+      "publisherId": {
+        "value": "microsoftaace"
+      },
+      "quantity": {
+        "value": 1
+      },
+      "termId": {
+        "value": "hjdtn7tfnxcy"
+      },
+      "azureSubscriptionId": {
+        "value": "a6c2a7cc-d67e-4a1a-b765-983f08c0423a"
+      },
+      "publisherTestEnvironment": {
+        "value": ""
+      },
+      "autoRenew": {
+        "value": true
+      },
+      "location": {
+        "value": "global"
+      },
+      "tags": {
+        "value": {}
+      }
+    },
+    "template": {
+      "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "name": {
+          "type": "string"
+        },
+        "planId": {
+          "type": "string"
+        },
+        "offerId": {
+          "type": "string"
+        },
+        "publisherId": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "int"
+        },
+        "termId": {
+          "type": "string"
+        },
+        "azureSubscriptionId": {
+          "type": "string"
+        },
+        "publisherTestEnvironment": {
+          "type": "string"
+        },
+        "autoRenew": {
+          "type": "bool"
+        },
+        "location": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "object"
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2018-03-01-beta",
+          "name": "[parameters('name')]",
+          "type": "Microsoft.SaaS/resources",
+          "location": "[parameters('location')]",
+          "tags": "[parameters('tags')]",
+          "properties": {
+            "saasResourceName": "[parameters('name')]",
+            "publisherId": "[parameters('publisherId')]",
+            "SKUId": "[parameters('planId')]",
+            "offerId": "[parameters('offerId')]",
+            "quantity": "[parameters('quantity')]",
+            "termId": "[parameters('termId')]",
+            "autoRenew": "[parameters('autoRenew')]",
+            "paymentChannelType": "SubscriptionDelegated",
+            "paymentChannelMetadata": {
+              "AzureSubscriptionId": "[parameters('azureSubscriptionId')]"
+            },
+            "publisherTestEnvironment": "[parameters('publisherTestEnvironment')]",
+            "storeFront": "AzurePortal"
+          }
+        }
+      ]
+    }
+  }
+}

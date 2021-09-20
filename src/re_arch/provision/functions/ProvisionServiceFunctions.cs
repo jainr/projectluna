@@ -223,39 +223,7 @@ namespace Luna.Provision.Functions
 
                     foreach (var ev in events)
                     {
-                        if (ev.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
-                        {
-                            MarketplaceOffer offer = JsonConvert.DeserializeObject<MarketplaceOffer>(ev.EventContent, new JsonSerializerSettings()
-                            {
-                                TypeNameHandling = TypeNameHandling.Auto
-                            });
-
-                            foreach (var plan in offer.Plans)
-                            {
-                                var planDb = new MarketplacePlanDB();
-                                planDb.OfferId = offer.OfferId;
-                                planDb.PlanId = plan.PlanId;
-                                planDb.LunaApplicationName = plan.Properties.LunaApplicationName;
-                                planDb.Mode = plan.Properties.Mode;
-                                planDb.Properties = JsonConvert.SerializeObject(plan.Properties, new JsonSerializerSettings()
-                                {
-                                    TypeNameHandling = TypeNameHandling.All
-                                });
-                                var parameters = new List<MarketplaceParameter>();
-                                parameters.AddRange(offer.Parameters);
-                                parameters.AddRange(plan.Parameters);
-                                planDb.Parameters = JsonConvert.SerializeObject(parameters, new JsonSerializerSettings()
-                                {
-                                    TypeNameHandling = TypeNameHandling.All
-                                });
-                                planDb.CreatedByEventId = ev.EventSequenceId;
-                                planDb.ProvisioningStepsSecretName = offer.ProvisioningStepsSecretName;
-
-                                _dbContext.MarketplacePlans.Add(planDb);
-                            }
-
-                            await _dbContext._SaveChangesAsync();
-                        }
+                        await this._provisionFunctions.ProcessMarketplaceOfferEventAsync(ev);
                     }
 
                 }
@@ -311,56 +279,7 @@ namespace Luna.Provision.Functions
 
                     foreach (var ev in events)
                     {
-                        if (ev.EventType.Equals(LunaEventType.CREATE_AZURE_MARKETPLACE_SUBSCRIPTION))
-                        {
-                            var sub = JsonConvert.DeserializeObject<MarketplaceSubscriptionEventContent>(ev.EventContent);
-
-                            var plan = await _dbContext.MarketplacePlans.
-                                SingleOrDefaultAsync(x => x.OfferId == sub.OfferId &&
-                                x.PlanId == sub.PlanId && x.CreatedByEventId == sub.PlanCreatedByEventId);
-
-                            if (plan == null)
-                            {
-                                throw new LunaServerException($"Plan {sub.PlanId} in offer {sub.OfferId} created by event {sub.PlanCreatedByEventId} does not exist.");
-                            }
-
-                            var currentTime = DateTime.UtcNow;
-
-                            var jobDb = new MarketplaceSubProvisionJobDB()
-                            {
-                                SubscriptionId = sub.Id,
-                                OfferId = sub.OfferId,
-                                PlanId = sub.PlanId,
-                                PlanCreatedByEventId = sub.PlanCreatedByEventId,
-                                Mode = plan.Mode,
-                                Status = ProvisionStatus.Queued.ToString(),
-                                EventType = ev.EventType,
-                                LunaApplicationName = plan.LunaApplicationName,
-                                ProvisioningStepIndex = -1,
-                                IsSynchronizedStep = false,
-                                ProvisioningStepStatus = ProvisionStepStatus.NotStarted.ToString(),
-                                ParametersSecretName = sub.ParametersSecretName,
-                                ProvisionStepsSecretName = plan.ProvisioningStepsSecretName,
-                                IsActive = false,
-                                RetryCount = 0,
-                                CreatedByEventId = ev.EventSequenceId,
-                                CreatedTime = currentTime,
-                                LastUpdatedTime = currentTime,
-                            };
-
-                            using (var transaction = await _dbContext.BeginTransactionAsync())
-                            {
-                                // Can have only one create job for a subscription
-                                if (!await _dbContext.MarketplaceSubProvisionJobs.
-                                    AnyAsync(x => x.SubscriptionId == sub.Id && x.EventType == ev.EventType))
-                                {
-                                    this._dbContext.MarketplaceSubProvisionJobs.Add(jobDb);
-                                    await this._dbContext._SaveChangesAsync();
-                                }
-
-                                transaction.Commit();
-                            }
-                        }
+                        await this._provisionFunctions.ProcessMarketplaceSubscriptionEventAsync(ev);
                     }
 
                 }
@@ -412,9 +331,6 @@ namespace Luna.Provision.Functions
                     }
                 }
             }
-
-            _dbContext.MarketplaceSubProvisionJobs.UpdateRange(queuedJobs);
-            await _dbContext._SaveChangesAsync();
         }
 
 

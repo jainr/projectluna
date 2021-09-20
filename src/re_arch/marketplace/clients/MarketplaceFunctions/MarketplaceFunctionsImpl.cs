@@ -220,13 +220,43 @@ namespace Luna.Marketplace.Clients
                 EventContent = await _offerEventGenerator.GeneratePublishMarketplaceOfferEventContentAsync(offerId)
             };
 
+            var snapshot = await this.CreateMarketplaceOfferSnapshotAsync(offerId,
+                    MarketplaceOfferStatus.Published,
+                    offerEvent,
+                    "",
+                    false);
+
+            var publishEvent = new PublishAzureMarketplaceOfferEventEntity(offerId, snapshot.SnapshotContent);
+
             offerDb.LastUpdatedTime = DateTime.UtcNow;
             offerDb.LastPublishedTime = offerDb.LastUpdatedTime;
             offerDb.Status = MarketplaceOfferStatus.Published.ToString();
+
             using (var transaction = await _dbContext.BeginTransactionAsync())
             {
                 _dbContext.MarketplaceEvents.Add(offerEvent);
                 await _dbContext._SaveChangesAsync();
+
+                _dbContext.MarketplaceOffers.Update(offerDb);
+                await _dbContext._SaveChangesAsync();
+
+                if (snapshot != null)
+                {
+                    snapshot.LastAppliedEventId = offerEvent.Id;
+                    _dbContext.MarketplaceOfferSnapshots.Add(snapshot);
+                    await _dbContext._SaveChangesAsync();
+                }
+                else
+                {
+                    throw new LunaServerException($"Snapshot for offer {offerId} does not exist.");
+                }
+
+                var publishedEv = await _pubSubClient.PublishEventAsync(
+                    LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE,
+                    publishEvent,
+                    headers);
+
+                offerDb.LastPublishedEventId = publishedEv.EventSequenceId;
 
                 _dbContext.MarketplaceOffers.Update(offerDb);
                 await _dbContext._SaveChangesAsync();
@@ -367,12 +397,12 @@ namespace Luna.Marketplace.Clients
                 CreatedTime = DateTime.UtcNow
             };
 
+            var createdTime = DateTime.UtcNow;
             using (var transaction = await _dbContext.BeginTransactionAsync())
             {
                 _dbContext.MarketplaceEvents.Add(ev);
                 await _dbContext._SaveChangesAsync();
 
-                var createdTime = DateTime.UtcNow;
                 _dbContext.MarketplacePlans.Add(
                     new MarketplacePlanDB
                     {
@@ -391,6 +421,10 @@ namespace Luna.Marketplace.Clients
             }
 
             var response = this._planDataMapper.Map(planProp);
+            response.OfferId = offerId;
+            response.PlanId = planId;
+            response.CreatedTime = createdTime;
+            response.LastUpdatedTime = createdTime;
 
             return response;
         }
@@ -440,6 +474,9 @@ namespace Luna.Marketplace.Clients
             }
 
             var response = this._planDataMapper.Map(planProp);
+            response.OfferId = offerId;
+            response.PlanId = planId;
+            response.LastUpdatedTime = planDb.LastUpdatedTime;
 
             return response;
         }
@@ -460,6 +497,7 @@ namespace Luna.Marketplace.Clients
             response.CreatedTime = planDb.CreatedTime;
             response.LastUpdatedTime = planDb.LastUpdatedTime;
             response.OfferId = offerId;
+            response.PlanId = planId;
 
             return response;
         }
@@ -551,12 +589,12 @@ namespace Luna.Marketplace.Clients
                 CreatedTime = DateTime.UtcNow
             };
 
+            var createdTime = DateTime.UtcNow;
             using (var transaction = await _dbContext.BeginTransactionAsync())
             {
                 _dbContext.MarketplaceEvents.Add(ev);
                 await _dbContext._SaveChangesAsync();
 
-                var createdTime = DateTime.UtcNow;
                 _dbContext.MarketplaceParameters.Add(
                     new MarketplaceParameterDB
                     {
@@ -573,6 +611,9 @@ namespace Luna.Marketplace.Clients
             }
 
             var response = this._parameterDataMapper.Map(parameterProp);
+            response.OfferId = offerId;
+            response.CreatedTime = createdTime;
+            response.LastUpdatedTime = createdTime;
 
             return response;
         }
@@ -623,6 +664,8 @@ namespace Luna.Marketplace.Clients
             }
 
             var response = this._parameterDataMapper.Map(parameterProp);
+            response.OfferId = offerId;
+            response.LastUpdatedTime = paramDb.LastUpdatedTime;
 
             return response;
         }
@@ -738,12 +781,12 @@ namespace Luna.Marketplace.Clients
                 CreatedTime = DateTime.UtcNow
             };
 
+            var createdTime = DateTime.UtcNow;
             using (var transaction = await this._dbContext.BeginTransactionAsync())
             {
                 this._dbContext.MarketplaceEvents.Add(ev);
                 await _dbContext._SaveChangesAsync();
 
-                var createdTime = DateTime.UtcNow;
                 this._dbContext.MarketplaceProvisioningSteps.Add(
                     new MarketplaceProvisioningStepDB
                     {
@@ -761,6 +804,10 @@ namespace Luna.Marketplace.Clients
             }
 
             var response = this._provisioningStepDataMapper.Map(stepProp);
+            response.OfferId = offerId;
+            response.Name = stepName;
+            response.CreatedTime = createdTime;
+            response.LastUpdatedTime = createdTime;
             return response;
         }
 
@@ -811,6 +858,9 @@ namespace Luna.Marketplace.Clients
             }
 
             var response = this._provisioningStepDataMapper.Map(stepProp);
+            response.OfferId = offerId;
+            response.Name = stepName;
+            response.LastUpdatedTime = stepDb.LastUpdatedTime;
             return response;
         }
 
@@ -832,9 +882,11 @@ namespace Luna.Marketplace.Clients
             response.CreatedTime = stepDb.CreatedTime;
             response.LastUpdatedTime = stepDb.LastUpdatedTime;
             response.OfferId = offerId;
+            response.Name = stepName;
 
             return response;
         }
+
         public async Task<List<BaseProvisioningStepResponse>> ListProvisioningStepsAsync(string offerId, LunaRequestHeaders headers)
         {
             var stepsDb = await _dbContext.MarketplaceProvisioningSteps.Where(x => x.OfferId == offerId).ToListAsync();
@@ -925,7 +977,7 @@ namespace Luna.Marketplace.Clients
             {
                 SnapshotId = Guid.NewGuid(),
                 OfferId = offerId,
-                SnapshotContent = _offerEventProcessor.GetMarketplaceOfferJSONString(offerId, events, snapshot),
+                SnapshotContent = await _offerEventProcessor.GetMarketplaceOfferJSONStringAsync(offerId, events, snapshot),
                 Status = status.ToString(),
                 Tags = "",
                 CreatedTime = DateTime.UtcNow,
@@ -934,7 +986,6 @@ namespace Luna.Marketplace.Clients
 
             return newSnapshot;
         }
-
 
         #endregion
 
@@ -1057,6 +1108,9 @@ namespace Luna.Marketplace.Clients
 
             subDb.ParameterSecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.MARKETPLACE_SUBCRIPTION_PARAMETERS);
 
+            // Update the plan published event id so updates on the plan won't impact in progress provisioning
+            subDb.PlanPublishedByEventId = offer.LastPublishedEventId.Value;
+
             var paramContent = JsonConvert.SerializeObject(subDb.InputParameters);
             await _keyVaultUtils.SetSecretAsync(subDb.ParameterSecretName, paramContent);
 
@@ -1065,13 +1119,15 @@ namespace Luna.Marketplace.Clients
                 _dbContext.MarketplaceSubscriptions.Add(subDb);
                 await _dbContext._SaveChangesAsync();
 
-                await _pubSubClient.PublishEventAsync(
-                    LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE,
-                    new CreateAzureMarketplaceSubscriptionEventEntity(subscriptionId,
+                var eventEntity = new CreateAzureMarketplaceSubscriptionEventEntity(subscriptionId,
                     JsonConvert.SerializeObject(this._subscriptionEventMapper.Map(subDb), new JsonSerializerSettings()
                     {
                         TypeNameHandling = TypeNameHandling.All
-                    })),
+                    }));
+
+                await _pubSubClient.PublishEventAsync(
+                    LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE,
+                    eventEntity,
                     headers);
 
                 transaction.Commit();
@@ -1167,7 +1223,28 @@ namespace Luna.Marketplace.Clients
                 throw new LunaNotFoundUserException(string.Format(ErrorMessages.MARKETPLACE_SUBSCRIPTION_DOES_NOT_EXIST, subscriptionId));
             }
 
-            return this._subscriptionMapper.Map(subDb);
+            var response = this._subscriptionMapper.Map(subDb);
+
+            var paramSecret = await this._keyVaultUtils.GetSecretAsync(subDb.ParameterSecretName);
+
+            var inputParameters = JsonConvert.DeserializeObject<List<MarketplaceSubscriptionParameter>>(paramSecret);
+
+            response.Parameters = new List<MarketplaceSubscriptionParameterResponse>();
+
+            foreach(var param in inputParameters)
+            {
+                if (!param.IsSystemParameter)
+                {
+                    response.Parameters.Add(new MarketplaceSubscriptionParameterResponse
+                    {
+                        Name = param.Name,
+                        Value = param.Value,
+                        Type = param.Type
+                    });
+                }
+            }
+
+            return response;
         }
 
         public async Task<List<MarketplaceSubscriptionResponse>> ListMarketplaceSubscriptionsAsync(LunaRequestHeaders headers)
@@ -1197,7 +1274,7 @@ namespace Luna.Marketplace.Clients
                 Select(x => x.GetEventObject()).
                 ToListAsync();
 
-            var offer = _offerEventProcessor.GetMarketplaceOffer(offerId, events, snapshot);
+            var offer = await _offerEventProcessor.GetMarketplaceOfferAsync(offerId, events, snapshot);
 
             return offer;
         }

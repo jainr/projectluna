@@ -424,8 +424,15 @@ namespace Luna.Marketplace.Clients
             {
                 OfferId = offerId,
                 StepName = stepName,
-                Step = step,
+                StepSecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.PROVISIONING_STEPS),
             };
+
+            var secret = JsonConvert.SerializeObject(step, new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.All
+            });
+
+            await this._keyVaultUtils.SetSecretAsync(ev.StepSecretName, secret);
 
             var content = JsonConvert.SerializeObject(ev, new JsonSerializerSettings
             {
@@ -460,8 +467,15 @@ namespace Luna.Marketplace.Clients
             {
                 OfferId = offerId,
                 StepName = stepName,
-                Step = step,
+                StepSecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.PROVISIONING_STEPS),
             };
+
+            var secret = JsonConvert.SerializeObject(step, new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.All
+            });
+
+            await this._keyVaultUtils.SetSecretAsync(ev.StepSecretName, secret);
 
             var content = JsonConvert.SerializeObject(ev, new JsonSerializerSettings
             {

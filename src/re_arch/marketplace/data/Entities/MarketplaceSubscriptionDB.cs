@@ -29,7 +29,7 @@ namespace Luna.Marketplace.Data
 
         public string PlanId { get; set; }
 
-        public long PlanCreatedByEventId { get; set; }
+        public long PlanPublishedByEventId { get; set; }
 
         public string PublisherId { get; set; }
 

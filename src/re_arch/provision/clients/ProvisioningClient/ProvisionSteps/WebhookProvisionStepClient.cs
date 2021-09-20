@@ -9,7 +9,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.Provision.Clients.ProvisioningClient.ProvisionSteps
+namespace Luna.Provision.Clients
 {
     public class WebhookProvisionStepClient : BaseProvisionStepClient, ISyncProvisionStepClient
     {

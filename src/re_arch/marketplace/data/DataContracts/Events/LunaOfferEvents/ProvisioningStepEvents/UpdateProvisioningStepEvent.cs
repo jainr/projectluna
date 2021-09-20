@@ -12,7 +12,7 @@ namespace Luna.Marketplace.Data
         {
         }
 
-        public MarketplaceProvisioningStep Step { get; set; }
+        public string StepSecretName { get; set; }
         
     }
 }

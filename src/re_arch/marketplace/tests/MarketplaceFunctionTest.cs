@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -80,7 +81,7 @@ namespace Luna.Marketplace.Test
                 PlanId = "testplan",
                 DisplayName = "Test plan",
                 Description = "This is a test plan",
-                Mode = MarketplacePlanMode.PaaS.ToString(),
+                Mode = MarketplacePlanMode.SaaS.ToString(),
                 LunaApplicationName = "myapp",
             };
 
@@ -98,7 +99,7 @@ namespace Luna.Marketplace.Test
                 PlanId = "testplan2",
                 DisplayName = "Test plan 2",
                 Description = "This is another test plan",
-                Mode = MarketplacePlanMode.PaaS.ToString(),
+                Mode = MarketplacePlanMode.SaaS.ToString(),
                 LunaApplicationName = "myapp2",
             };
 
@@ -223,7 +224,7 @@ namespace Luna.Marketplace.Test
             var keyVaultUtils = new MockKeyVaultUtils();
 
             return new MarketplaceFunctionsImpl(
-                    new OfferEventProcessor(),
+                    new OfferEventProcessor(keyVaultUtils),
                     new OfferEventContentGenerator(keyVaultUtils, this._contentGeneratorLogger),
                     new MockAzureMarketplaceSaaSClient(new List<MarketplaceSubscriptionRequest>(new MarketplaceSubscriptionRequest[] { this._subRequest })),
                     keyVaultUtils,
@@ -267,7 +268,13 @@ namespace Luna.Marketplace.Test
                 Assert.AreEqual(offerResponse.DisplayName, this._updatedOfferRequest.DisplayName);
                 Assert.AreEqual(MarketplaceOfferStatus.Draft.ToString(), offer.Status);
 
-                await function.PublishMarketplaceOfferAsync(this._offerRequest.OfferId, this._headers); 
+                var events = await this._pubSubClient.ListEventsAsync(LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE, this._headers);
+                Assert.AreEqual(0, events.Count);
+
+                await function.PublishMarketplaceOfferAsync(this._offerRequest.OfferId, this._headers);
+
+                events = await this._pubSubClient.ListEventsAsync(LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE, this._headers);
+                Assert.AreEqual(1, events.Count);
 
                 offer = await function.GetMarketplaceOfferAsync(this._offerRequest.OfferId, this._headers);
                 Assert.IsInstanceOfType(offerResponse, typeof(MarketplaceOfferResponse));
@@ -373,6 +380,10 @@ namespace Luna.Marketplace.Test
                 Assert.IsInstanceOfType(offerResponse, typeof(MarketplaceOfferResponse));
                 Assert.AreEqual(offerResponse.DisplayName, this._offerRequest.DisplayName);
 
+                var planResponse = await function.CreateMarketplacePlanAsync(offerResponse.OfferId, this._planRequest.PlanId, this._planRequest, this._headers);
+                Assert.IsInstanceOfType(planResponse, typeof(MarketplacePlanResponse));
+                Assert.AreEqual(planResponse.DisplayName, this._planRequest.DisplayName);
+
                 BaseProvisioningStepResponse stepResponse = await function.CreateProvisioningStepAsync(
                     offerResponse.OfferId, 
                     this._scriptStepRequest.Name, 
@@ -390,6 +401,8 @@ namespace Luna.Marketplace.Test
                     this._headers);
                 Assert.AreEqual(this._updatedScriptStepRequest.ScriptPackageUrl, ((ScriptProvisioningStepResponse)stepResponse).ScriptPackageUrl);
                 Assert.AreEqual(this._updatedScriptStepRequest.InputArguments.Count, ((ScriptProvisioningStepResponse)stepResponse).InputArguments.Count);
+
+                await function.PublishMarketplaceOfferAsync(this._offerRequest.OfferId, this._headers);
 
                 stepResponse = await function.GetProvisioningStepAsync(
                     offerResponse.OfferId,
@@ -458,6 +471,11 @@ namespace Luna.Marketplace.Test
 
                 await function.PublishMarketplaceOfferAsync(this._offerRequest.OfferId, this._headers);
 
+                var offerEvents = await this._pubSubClient.ListEventsAsync(LunaEventStoreType.AZURE_MARKETPLACE_OFFER_EVENT_STORE, this._headers);
+                Assert.AreEqual(1, offerEvents.Count);
+
+                var lastPublishedEventId = offerEvents[0].EventSequenceId;
+
                 var subResponse = await function.ResolveMarketplaceSubscriptionAsync(this._subRequest.Token, this._headers);
                 Assert.AreEqual(this._subRequest.Id, subResponse.Id);
 
@@ -465,8 +483,14 @@ namespace Luna.Marketplace.Test
                 Assert.AreEqual(this._subRequest.Id, subResponse.Id);
                 Assert.AreEqual(MarketplaceSubscriptionStatus.PENDING_FULFILLMENT_START, subResponse.SaaSSubscriptionStatus);
 
-                var events = await this._pubSubClient.ListEventsAsync(LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE, this._headers);
-                Assert.AreEqual(1, events.Count);
+                var subEvents = await this._pubSubClient.ListEventsAsync(LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE, this._headers);
+                Assert.AreEqual(1, subEvents.Count);
+                var subEvent = JsonConvert.DeserializeObject<MarketplaceSubscriptionEventContent>(subEvents[0].EventContent, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.All
+                });
+
+                Assert.AreEqual(lastPublishedEventId, subEvent.PlanPublishedByEventId);
 
                 subResponse = await function.GetMarketplaceSubscriptionAsync(this._subRequest.Id, this._headers);
                 Assert.AreEqual(this._subRequest.Id, subResponse.Id);
@@ -485,7 +509,7 @@ namespace Luna.Marketplace.Test
                 Assert.AreEqual(this._subRequest.Id, subResponse.Id);
                 Assert.AreEqual(MarketplaceSubscriptionStatus.UNSUBSCRIBED, subResponse.SaaSSubscriptionStatus);
 
-                events = await this._pubSubClient.ListEventsAsync(LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE, this._headers);
+                var events = await this._pubSubClient.ListEventsAsync(LunaEventStoreType.AZURE_MARKETPLACE_SUB_EVENT_STORE, this._headers);
                 Assert.AreEqual(2, events.Count);
             }
         }

@@ -80,7 +80,7 @@ namespace Luna.Common.Swagger
             Console.WriteLine("swaggergenerator.exe -r -s serviceName : generate swagger for the specified service for release build");
         }
 
-        private static string[] services = new string[] { "gallery", "partner", "publish", "pubsub", "rbac", "gateway" };
+        private static string[] services = new string[] { "gallery", "partner", "publish", "pubsub", "rbac", "gateway", "marketplace" };
 
         static void Main(string[] args)
         {

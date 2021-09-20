@@ -40,6 +40,7 @@ routingFxAppName="${namePrefix}-routing"
 pubsubFxAppName="${namePrefix}-pubsub"
 galleryFxAppName="${namePrefix}-gallery"
 provisionFxAppName="${namePrefix}-provision"
+marketplaceFxAppName="${namePrefix}-marketplace"
 managedIdentityName="${namePrefix}-uami"
 
 # Only pop up the login window when neccessary
@@ -196,6 +197,17 @@ then
 	--os-type Linux \
 	--runtime dotnet
 	
+  # Create marketplace service function App
+  az functionapp create \
+    --name $marketplaceFxAppName \
+    --storage-account $storageName \
+    --plan $functionAppPlanName \
+    --resource-group $resourceGroupName \
+    --functions-version 3 \
+	--app-insights $appInsightsName \
+	--os-type Linux \
+	--runtime dotnet
+	
   if [ ${useManagedIdentity} = "y" ];
   then
 	az identity create -g $resourceGroupName -n $managedIdentityName 
@@ -232,6 +244,7 @@ then
   MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $galleryFxAppName --identities $uamiResourceId
   MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $provisionFxAppName --identities $uamiResourceId
   MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $rbacFxAppName --identities $uamiResourceId
+  MSYS_NO_PATHCONV=1 az functionapp identity assign -g $resourceGroupName -n $marketplaceFxAppName --identities $uamiResourceId
   az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $uamiPrincipalId
 else
   az functionapp identity assign -g $resourceGroupName -n $publishFxAppName
@@ -253,6 +266,10 @@ else
   az functionapp identity assign -g $resourceGroupName -n $provisionFxAppName
   provisionServiceIdentity=$(az functionapp identity show --name $provisionFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
   az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $provisionServiceIdentity
+  
+  az functionapp identity assign -g $resourceGroupName -n $marketplaceFxAppName
+  marketplaceServiceIdentity=$(az functionapp identity show --name $marketplaceFxAppName --resource-group $resourceGroupName | ./jq -r '.principalId')
+  az keyvault set-policy --name $keyVaultName --secret-permissions get list set delete --object-id $marketplaceServiceIdentity
 fi
 
 # Deploy provision app
@@ -310,6 +327,13 @@ az webapp deployment source config-zip \
 	-n $routingFxAppName \
     -t 360 \
     --src routingfx.zip
+	
+# Deploy marketplace app
+az webapp deployment source config-zip \
+    -g $resourceGroupName \
+	-n $marketplaceFxAppName \
+    -t 360 \
+    --src marketplacefx.zip
 
 # Set service configuration
 encryptionKey=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32 ; echo '')
@@ -330,12 +354,14 @@ partnerFxUrl="https://${partnerFxAppName}.azurewebsites.net/api/"
 pubsubFxUrl="https://${pubsubFxAppName}.azurewebsites.net/api/"
 routingFxUrl="https://${routingFxAppName}.azurewebsites.net/api/"
 galleryFxUrl="https://${galleryFxAppName}.azurewebsites.net/api/"
+marketplaceFxUrl="https://${marketplaceFxAppName}.azurewebsites.net/api/"
 
 rbacFxKey=$(az functionapp keys list -g $resourceGroupName -n $rbacFxAppName | ./jq -r '.functionKeys.default')
 publishFxKey=$(az functionapp keys list -g $resourceGroupName -n $publishFxAppName | ./jq -r '.functionKeys.default')
 partnerFxKey=$(az functionapp keys list -g $resourceGroupName -n $partnerFxAppName | ./jq -r '.functionKeys.default')
 pubsubFxKey=$(az functionapp keys list -g $resourceGroupName -n $pubsubFxAppName | ./jq -r '.functionKeys.default')
 galleryFxKey=$(az functionapp keys list -g $resourceGroupName -n $galleryFxAppName | ./jq -r '.functionKeys.default')
+marketplaceFxKey=$(az functionapp keys list -g $resourceGroupName -n $marketplaceFxAppName | ./jq -r '.functionKeys.default')
 deployJbArmTemplate="https://github.com/Azure/projectluna/raw/re-arch/src/re_arch/resources/arm.json"
 
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
@@ -351,6 +377,8 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
 			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}" \
 			 "GALLERY_SERVICE_BASE_URL=${galleryFxUrl}" \
 			 "GALLERY_SERVICE_KEY=${galleryFxKey}" \
+			 "MARKETPLACE_SERVICE_BASE_URL=${marketplaceFxUrl}" \
+			 "MARKETPLACE_SERVICE_KEY=${marketplaceFxKey}" \
 			 "ENCRYPTION_ASYMMETRIC_KEY=${encryptionKey}"
 
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
@@ -394,10 +422,7 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
              "KEY_VAULT_NAME=${keyVaultName}" \
 			 "ROUTING_SERVICE_BASE_URL=${routingFxUrl}" \
 			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
-			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}" \
-			 "MARKETPLACE_AUTH_TENANT_ID=${marketplaceTenantId}" \
-			 "MARKETPLACE_AUTH_CLIENT_ID=${marketplaceClientId}" \
-			 "MARKETPLACE_AUTH_CLIENT_SECRET=${marketplaceClientSecret}"
+			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}" 
 			 
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $provisionFxAppName \
@@ -407,9 +432,22 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
 			 "ROUTING_SERVICE_BASE_URL=${routingFxUrl}" \
 			 "GALLERY_SERVICE_BASE_URL=${galleryFxUrl}" \
 			 "GALLERY_SERVICE_KEY=${galleryFxKey}" \
+			 "MARKETPLACE_SERVICE_BASE_URL=${marketplaceFxUrl}" \
+			 "MARKETPLACE_SERVICE_KEY=${marketplaceFxKey}" \
 			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
 			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}" \
 			 "DEPLOY_JB_ARM_TEMPLATE=&{deployJbArmTemplate}"
+
+MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  --name $marketplaceFxAppName \
+  --resource-group $resourceGroupName \
+  --settings "SQL_CONNECTION_STRING=${sqlConnectionSring}" \
+             "KEY_VAULT_NAME=${keyVaultName}" \
+			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
+			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}"\
+			 "MARKETPLACE_AUTH_TENANT_ID=${marketplaceTenantId}" \
+			 "MARKETPLACE_AUTH_CLIENT_ID=${marketplaceClientId}" \
+			 "MARKETPLACE_AUTH_CLIENT_SECRET=${marketplaceClientSecret}"
 
 if [ ${useManagedIdentity} = "y" ];
 then
@@ -440,6 +478,11 @@ then
   
   MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   	--name $publishFxAppName \
+  	--resource-group $resourceGroupName \
+  	--settings "USER_ASSIGNED_MANAGED_IDENTITY=${uamiId}"
+  
+  MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  	--name $marketplaceFxAppName \
   	--resource-group $resourceGroupName \
   	--settings "USER_ASSIGNED_MANAGED_IDENTITY=${uamiId}"
 fi

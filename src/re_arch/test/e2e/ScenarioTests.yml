@@ -8,12 +8,16 @@ pool:
 variables:
   # the test file if you are not running from the Luna repo
   test_file_url: "https://github.com/Azure/projectluna/raw/re-arch/src/re_arch/test/e2e/lunae2etest.py"
+  # the test payload
+  test_payload_url: "https://github.com/Azure/projectluna/raw/re-arch/src/re_arch/test/e2e/CreateSaaSSubscription.json"
   # the routing service url
-  routing_url: "https://lunaaidep2-routing.azurewebsites.net"
+  routing_url: "https://lunaaidep4-routing.azurewebsites.net"
   # the gateway service (management service) url
-  gateway_url: "https://lunaaidep2-gateway.azurewebsites.net"
+  gateway_url: "https://lunaaidep4-gateway.azurewebsites.net"
   # the Azure/AAD tenant id
-  tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+  azure_tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+  # the service principal client id to create and manage SaaS subscriptions
+  azure_client_id: "f0d50d2d-7ff0-40e3-82cc-8c44b176c088"
   # the service principal client id to access AML workspace
   aml_spn_client_id: "f0d50d2d-7ff0-40e3-82cc-8c44b176c088"
   # the AML workspace Azure resource id
@@ -43,11 +47,14 @@ steps:
     addToPath: true
     architecture: 'x64'
 
-- script: pip install Locust  
+- script: pip install Locust,azure-identity
   displayName: 'Installing Locust'
 
 - script: wget $(test_file_url) -O test.py
   displayName: 'Download test file'
+  
+- script: wget $(test_payload_url) -O CreateSaaSSubscription.json
+  displayName: 'Download test payload file'
 
 - script: locust -f test.py --headless --users $(concurrent_workers) --run-time $(timeout) --stop-timeout 99 --exit-code-on-error 0 
   env:

@@ -862,6 +862,102 @@ namespace Luna.Gallery.Functions
                 }
             }
         }
+        [FunctionName("CreateSubscriptionPost")]
+        public async Task<IActionResult> CreateSubscriptionPost(
+            [HttpTrigger(AuthorizationLevel.Function, "Post", Route = "subscriptions/create")]
+            HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.CreateSubscriptionPost));
+
+                try
+                {
+                    var subReq = await HttpUtils.DeserializeRequestBodyAsync<LunaApplicationSubscriptionRequest>(req);
+
+                    if (!await _dbContext.PublishedLunaAppliations.
+                        AnyAsync(x => x.UniqueName == subReq.LunaApplicationName && x.IsEnabled))
+                    {
+                        throw new LunaNotFoundUserException(string.Format(ErrorMessages.APPLICATION_DOES_NOT_EXIST, subReq.LunaApplicationName));
+                    }
+
+                    if (await _dbContext.LunaApplicationSubscriptions.
+                        AnyAsync(x => x.Status == LunaApplicationSubscriptionStatus.SUBCRIBED &&
+                            x.ApplicationName == subReq.LunaApplicationName &&
+                            x.SubscriptionName == subReq.SubscriptionName))
+                    {
+                        throw new LunaConflictUserException(
+                            string.Format(ErrorMessages.SUBSCIRPTION_ALREADY_EXIST, subReq.SubscriptionName, subReq.LunaApplicationName));
+                    }
+
+                    var currentTime = DateTime.UtcNow;
+                    var subscription = new LunaApplicationSubscriptionDB()
+                    {
+                        SubscriptionId = Guid.Parse(subReq.SubscriptionId),
+                        SubscriptionName = subReq.SubscriptionName,
+                        ApplicationName = subReq.LunaApplicationName,
+                        Status = LunaApplicationSubscriptionStatus.SUBCRIBED,
+                        Notes = string.Empty,
+                        CreatedTime = currentTime,
+                        LastUpdatedTime = currentTime
+                    };
+
+                    subscription.PrimaryKeySecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.SUBSCRIPTION_KEY);
+                    subscription.SecondaryKeySecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.SUBSCRIPTION_KEY);
+                    var primaryKey = Guid.NewGuid().ToString("N");
+                    var secondaryKey = Guid.NewGuid().ToString("N");
+                    await _keyVaultUtils.SetSecretAsync(subscription.PrimaryKeySecretName, primaryKey);
+                    await _keyVaultUtils.SetSecretAsync(subscription.SecondaryKeySecretName, secondaryKey);
+
+                    var owner = new LunaApplicationSubscriptionOwnerDB()
+                    {
+                        UserId = subReq.OwnerId,
+                        UserName = subReq.OwnerId,
+                        SubscriptionId = subscription.SubscriptionId,
+                        CreatedTime = currentTime
+                    };
+
+                    using (var transaction = await _dbContext.BeginTransactionAsync())
+                    {
+                        _dbContext.LunaApplicationSubscriptions.Add(subscription);
+                        await _dbContext._SaveChangesAsync();
+
+                        _dbContext.LunaApplicationSubscriptionOwners.Add(owner);
+                        await _dbContext._SaveChangesAsync();
+
+                        await _pubSubClient.PublishEventAsync(
+                            LunaEventStoreType.SUBSCRIPTION_EVENT_STORE,
+                            new CreateSubscriptionEventEntity()
+                            {
+                                SubscriptionId = subscription.SubscriptionId.ToString(),
+                                EventContent = JsonConvert.SerializeObject(subscription.ToEventContent(), new JsonSerializerSettings()
+                                {
+                                    TypeNameHandling = TypeNameHandling.All
+                                })
+                            },
+                            lunaHeaders);
+
+                        transaction.Commit();
+                    }
+
+                    var result = subscription.ToLunaApplicationSubscription();
+                    result.BaseUrl = GetBaseUrl(subReq.LunaApplicationName);
+                    result.PrimaryKey = primaryKey;
+                    result.SecondaryKey = secondaryKey;
+
+                    return new OkObjectResult(result);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.CreateSubscriptionPost));
+                }
+            }
+        }
 
         /// <summary>
         /// List all subscriptions of a published Luna application

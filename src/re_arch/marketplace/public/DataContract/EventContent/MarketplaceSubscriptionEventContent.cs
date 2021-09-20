@@ -12,8 +12,8 @@ namespace Luna.Marketplace.Public.Client
         {
         }
 
-        [JsonProperty(PropertyName = "PlanCreatedByEventId", Required = Required.Default)]
-        public long PlanCreatedByEventId { get; set; }
+        [JsonProperty(PropertyName = "PlanPublishedByEventId", Required = Required.Default)]
+        public long PlanPublishedByEventId { get; set; }
 
         [JsonProperty(PropertyName = "ParametersSecretName", Required = Required.Default)]
         public string ParametersSecretName { get; set; }
@@ -23,6 +23,9 @@ namespace Luna.Marketplace.Public.Client
 
         [JsonProperty(PropertyName = "PublisherId", Required = Required.Always)]
         public string PublisherId { get; set; }
+
+        [JsonProperty(PropertyName = "OwnerId", Required = Required.Always)]
+        public string OwnerId { get; set; }
 
         [JsonProperty(PropertyName = "OfferId", Required = Required.Always)]
         public string OfferId { get; set; }

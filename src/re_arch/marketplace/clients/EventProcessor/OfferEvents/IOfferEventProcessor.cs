@@ -1,6 +1,7 @@
 ﻿using Luna.Marketplace.Data;
 using Luna.Marketplace.Public.Client;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Luna.Marketplace.Clients
 {
@@ -13,7 +14,7 @@ namespace Luna.Marketplace.Clients
         /// <param name="events">The events</param>
         /// <param name="snapshot">The snapshot</param>
         /// <returns></returns>
-        MarketplaceOffer GetMarketplaceOffer(
+        Task<MarketplaceOffer> GetMarketplaceOfferAsync(
             string offerId, 
             List<BaseMarketplaceEvent> events,
             MarketplaceOfferSnapshotDB snapshot = null);
@@ -25,7 +26,7 @@ namespace Luna.Marketplace.Clients
         /// <param name="events">The events</param>
         /// <param name="snapshot">The snapshot</param>
         /// <returns></returns>
-        string GetMarketplaceOfferJSONString(
+        Task<string> GetMarketplaceOfferJSONStringAsync(
             string offerId,
             List<BaseMarketplaceEvent> events,
             MarketplaceOfferSnapshotDB snapshot = null);

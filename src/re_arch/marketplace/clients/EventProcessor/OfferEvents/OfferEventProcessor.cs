@@ -2,13 +2,24 @@
 using Luna.Marketplace.Data;
 using Luna.Marketplace.Public.Client;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Luna.Marketplace.Clients
 {
     public class OfferEventProcessor : IOfferEventProcessor
     {
+
+        private IAzureKeyVaultUtils _keyVaultUtils;
+
+        public OfferEventProcessor(
+            IAzureKeyVaultUtils keyVaultUtils)
+        {
+            this._keyVaultUtils = keyVaultUtils ?? throw new ArgumentNullException(nameof(keyVaultUtils));
+        }
+
         /// <summary>
         /// Get marketplace offer from a snapshot and events
         /// </summary>
@@ -16,7 +27,7 @@ namespace Luna.Marketplace.Clients
         /// <param name="events">The events</param>
         /// <param name="snapshot">The snapshot</param>
         /// <returns></returns>
-        public MarketplaceOffer GetMarketplaceOffer(
+        public async Task<MarketplaceOffer> GetMarketplaceOfferAsync(
             string offerId, 
             List<BaseMarketplaceEvent> events,
             MarketplaceOfferSnapshotDB snapshot = null)
@@ -25,10 +36,18 @@ namespace Luna.Marketplace.Clients
 
             if (snapshot != null)
             {
-                result = (MarketplaceOffer)JsonConvert.DeserializeObject(snapshot.SnapshotContent, new JsonSerializerSettings
+                result = JsonConvert.DeserializeObject<MarketplaceOffer>(snapshot.SnapshotContent, new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.All
                 });
+
+                var provisionStepsSecret = await this._keyVaultUtils.GetSecretAsync(result.ProvisioningStepsSecretName);
+
+                result.ProvisioningSteps = JsonConvert.DeserializeObject<List<MarketplaceProvisioningStep>>(provisionStepsSecret, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.All
+                });
+
             }
             else if (events[0].EventType != MarketplaceEventType.CreateMarketplaceOffer && 
                 events[0].EventType != MarketplaceEventType.CreateMarketplaceOfferFromTemplate)
@@ -83,12 +102,23 @@ namespace Luna.Marketplace.Clients
                         result.Parameters.RemoveAll(x => x.ParameterName == ((DeleteMarketplaceOfferParameterEvent)ev).ParameterName);
                         break;
                     case MarketplaceEventType.CreateMarketplaceProvisioningStep:
-                        result.ProvisioningSteps.Add(((CreateProvisioningStepEvent)ev).Step);
+                        var createStepEv = (CreateProvisioningStepEvent)ev;
+                        var secret = await this._keyVaultUtils.GetSecretAsync(createStepEv.StepSecretName);
+                        var step = JsonConvert.DeserializeObject<MarketplaceProvisioningStep>(secret, new JsonSerializerSettings
+                        {
+                            TypeNameHandling = TypeNameHandling.All,
+                        });
+                        result.ProvisioningSteps.Add(step);
                         break;
                     case MarketplaceEventType.UpdateMarketplaceProvisioningStep:
-                        var stepEv = (UpdateProvisioningStepEvent)ev;
-                        result.ProvisioningSteps.RemoveAll(x => x.Name == stepEv.StepName);
-                        result.ProvisioningSteps.Add(stepEv.Step);
+                        var updateStepEv = (UpdateProvisioningStepEvent)ev;
+                        secret = await this._keyVaultUtils.GetSecretAsync(updateStepEv.StepSecretName);
+                        step = JsonConvert.DeserializeObject<MarketplaceProvisioningStep>(secret, new JsonSerializerSettings
+                        {
+                            TypeNameHandling = TypeNameHandling.All,
+                        });
+                        result.ProvisioningSteps.RemoveAll(x => x.Name == updateStepEv.StepName);
+                        result.ProvisioningSteps.Add(step);
                         break;
                     case MarketplaceEventType.DeleteMarketplaceProvisioningStep:
                         result.ProvisioningSteps.RemoveAll(x => x.Name == ((DeleteProvisioningStepEvent)ev).StepName);
@@ -108,12 +138,21 @@ namespace Luna.Marketplace.Clients
         /// <param name="events">The events</param>
         /// <param name="snapshot">The snapshot</param>
         /// <returns></returns>
-        public string GetMarketplaceOfferJSONString(
+        public async Task<string> GetMarketplaceOfferJSONStringAsync(
             string offerId,
             List<BaseMarketplaceEvent> events,
             MarketplaceOfferSnapshotDB snapshot = null)
         {
-            var offer = GetMarketplaceOffer(offerId, events, snapshot);
+            var offer = await GetMarketplaceOfferAsync(offerId, events, snapshot);
+
+            offer.ProvisioningStepsSecretName = AzureKeyVaultUtils.GenerateSecretName(SecretNamePrefixes.PROVISIONING_STEPS);
+
+            var secret = JsonConvert.SerializeObject(offer.ProvisioningSteps, new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.All
+            });
+
+            await this._keyVaultUtils.SetSecretAsync(offer.ProvisioningStepsSecretName, secret);
 
             return JsonConvert.SerializeObject(offer, new JsonSerializerSettings
             {

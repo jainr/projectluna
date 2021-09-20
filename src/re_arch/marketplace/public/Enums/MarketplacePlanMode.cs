@@ -8,7 +8,7 @@ namespace Luna.Marketplace.Public.Client
 {
     public enum MarketplacePlanMode
     {
-        PaaS,
+        SaaS,
         IaaS
     }
 }

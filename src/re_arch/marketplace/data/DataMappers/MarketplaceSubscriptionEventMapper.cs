@@ -12,11 +12,12 @@ namespace Luna.Marketplace.Data
         {
             return new MarketplaceSubscriptionEventContent()
             {
-                PlanCreatedByEventId = subscription.PlanCreatedByEventId,
+                PlanPublishedByEventId = subscription.PlanPublishedByEventId,
                 Id = subscription.SubscriptionId,
                 Name = subscription.Name,
                 OfferId = subscription.OfferId,
                 PlanId = subscription.PlanId,
+                OwnerId = subscription.OwnerId,
                 SaaSSubscriptionStatus = subscription.SaaSSubscriptionStatus,
                 PublisherId = subscription.PublisherId,
                 ParametersSecretName = subscription.ParameterSecretName

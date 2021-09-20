@@ -13,6 +13,7 @@ namespace Luna.Marketplace.Public.Client
         {
             this.IsSynchronized = false;
             this.TimeoutInSeconds = 30;
+            this.IsSynchronized = true;
         }
 
         [OnDeserialized]

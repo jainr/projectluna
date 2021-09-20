@@ -56,6 +56,8 @@ namespace Luna.Provision.Functions
 
             builder.Services.TryAddScoped<ISqlDbContext, SqlDbContext>();
 
+            builder.Services.TryAddScoped<IProvisionFunctionsImpl, ProvisionFunctionsImpl>();
+
             builder.Services.AddApplicationInsightsTelemetry();
         }
     }

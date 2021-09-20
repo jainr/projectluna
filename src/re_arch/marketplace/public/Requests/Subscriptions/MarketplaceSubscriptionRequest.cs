@@ -22,6 +22,9 @@ namespace Luna.Marketplace.Public.Client
         [JsonProperty(PropertyName = "planId", Required = Required.Always)]
         public string PlanId { get; set; }
 
+        [JsonProperty(PropertyName = "ownerId", Required = Required.Always)]
+        public string OwnerId { get; set; }
+
         [JsonProperty(PropertyName = "token", Required = Required.Default)]
         public string Token { get; set; }
 

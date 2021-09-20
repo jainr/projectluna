@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -7,6 +7,12 @@
 
     <RootNamespace>Luna.Marketplace.Test</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Mock\**" />
+    <EmbeddedResource Remove="Mock\**" />
+    <None Remove="Mock\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.17" />
@@ -21,9 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\common\test_utils\test_utils.csproj" />
-    <ProjectReference Include="..\clients\marketplace_clients.csproj" />
-    <ProjectReference Include="..\data\marketplace_data.csproj" />
-    <ProjectReference Include="..\public\marketplace_public_client.csproj" />
+    <ProjectReference Include="..\clients\provision_clients.csproj" />
   </ItemGroup>
 
 </Project>

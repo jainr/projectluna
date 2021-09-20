@@ -21,6 +21,7 @@ namespace Luna.Marketplace.Data
                 OfferId = request.OfferId,
                 Name = request.Name,
                 PlanId = request.PlanId,
+                OwnerId = request.OwnerId,
                 InputParameters = new List<MarketplaceSubscriptionParameter>(),
             };
 

@@ -28,6 +28,62 @@ paths:
       security:
         - http-bearer: [ ]
   '/api/marketplace/offers/{offerId}':
+    put:
+      tags:
+        - Azure Marketplace
+      summary: Create an Azure Marketplace SaaS offer
+      operationId: putApiMarketplaceOffersByOfferId
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Azure Marketplace offer request
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceOfferRequest'
+      responses:
+        '200':
+          description: Azure marketplace offer response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceOfferResponse'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - Azure Marketplace
+      summary: Update an Azure Marketplace SaaS offer
+      operationId: patchApiMarketplaceOffersByOfferId
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Azure marketplace offer request
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceOfferRequest'
+      responses:
+        '200':
+          description: Azure marketplace offer response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceOfferResponse'
+      security:
+        - x-functions-key: [ ]
     delete:
       tags:
         - Azure Marketplace
@@ -42,6 +98,26 @@ paths:
       responses:
         '204':
           description: Success
+      security:
+        - x-functions-key: [ ]
+    get:
+      tags:
+        - Azure Marketplace
+      summary: Get an Azure Marketplace SaaS offer
+      operationId: getApiMarketplaceOffersByOfferId
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Azure marketplace offer response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceOfferResponse'
       security:
         - x-functions-key: [ ]
   '/api/marketplace/offers/{offerId}/publish':
@@ -61,7 +137,90 @@ paths:
           description: Success
       security:
         - x-functions-key: [ ]
+  /api/marketplace/offers:
+    get:
+      tags:
+        - Azure Marketplace
+      summary: List Azure Marketplace SaaS offers
+      operationId: getApiMarketplaceOffers
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Azure marketplace offer response
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceOfferResponse'
+      security:
+        - x-functions-key: [ ]
   '/api/marketplace/offers/{offerId}/plans/{planId}':
+    put:
+      tags:
+        - Azure Marketplace
+      summary: Create a plan in an Azure Marketplace SaaS offer
+      operationId: putApiMarketplaceOffersByOfferIdPlansByPlanId
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: planId
+          description: Id of marketplace SaaS plan
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Azure marketplace plan request
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplacePlanRequest'
+      responses:
+        '200':
+          description: Azure marketplace plan response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplacePlanResponse'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - Azure Marketplace
+      summary: Update a plan in an Azure Marketplace SaaS offer
+      operationId: patchApiMarketplaceOffersByOfferIdPlansByPlanId
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: planId
+          description: Id of marketplace SaaS plan
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Azure marketplace plan request
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplacePlanRequest'
+      responses:
+        '200':
+          description: Azure marketplace plan response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplacePlanResponse'
+      security:
+        - x-functions-key: [ ]
     delete:
       tags:
         - Azure Marketplace
@@ -81,6 +240,326 @@ paths:
       responses:
         '204':
           description: Success
+      security:
+        - x-functions-key: [ ]
+    get:
+      tags:
+        - Azure Marketplace
+      summary: Get a plan in an Azure Marketplace SaaS offer
+      operationId: getApiMarketplaceOffersByOfferIdPlansByPlanId
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: planId
+          description: Id of marketplace SaaS plan
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Azure marketplace plan response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplacePlanResponse'
+      security:
+        - x-functions-key: [ ]
+  '/api/marketplace/offers/{offerId}/plans':
+    get:
+      tags:
+        - Azure Marketplace
+      summary: List plans in an Azure Marketplace SaaS offer
+      operationId: getApiMarketplaceOffersByOfferIdPlans
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Azure marketplace plan response
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplacePlanResponse'
+      security:
+        - x-functions-key: [ ]
+  '/api/marketplace/offers/{offerId}/parameters/{parameterName}':
+    put:
+      tags:
+        - Azure Marketplace
+      summary: Create a parameter in an Azure Marketplace SaaS offer
+      operationId: putApiMarketplaceOffersByOfferIdParametersByParameterName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: parameterName
+          description: The offer parameter name
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Azure marketplace parameter request
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameterRequest'
+      responses:
+        '200':
+          description: Azure marketplace parameter response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameterResponse'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - Azure Marketplace
+      summary: Update a parameter in an Azure Marketplace SaaS offer
+      operationId: patchApiMarketplaceOffersByOfferIdParametersByParameterName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: parameterName
+          description: The offer parameter name
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Azure marketplace parameter request
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameterRequest'
+      responses:
+        '200':
+          description: Azure marketplace parameter response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameterResponse'
+      security:
+        - x-functions-key: [ ]
+    delete:
+      tags:
+        - Azure Marketplace
+      summary: Delete a parameter in an Azure Marketplace SaaS offer
+      operationId: deleteApiMarketplaceOffersByOfferIdParametersByParameterName
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: parameterName
+          description: Name of marketplace SaaS offer parameter
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+    get:
+      tags:
+        - Azure Marketplace
+      summary: Get a parameter in an Azure Marketplace SaaS offer
+      operationId: getApiMarketplaceOffersByOfferIdParametersByParameterName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: parameterName
+          description: Name of marketplace SaaS offer parameter
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Azure marketplace parameter response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameterResponse'
+      security:
+        - x-functions-key: [ ]
+  '/api/marketplace/offers/{offerId}/parameters':
+    get:
+      tags:
+        - Azure Marketplace
+      summary: List parameters in an Azure Marketplace SaaS offer
+      operationId: getApiMarketplaceOffersByOfferIdParameters
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Azure marketplace parameter response
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameterResponse'
+      security:
+        - x-functions-key: [ ]
+  '/api/marketplace/offers/{offerId}/provisioningsteps/{stepName}':
+    put:
+      tags:
+        - Azure Marketplace
+      summary: Create a provisioning step in an Azure Marketplace SaaS offer
+      operationId: putApiMarketplaceOffersByOfferIdProvisioningstepsByStepName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: stepName
+          description: Name of marketplace SaaS provisioning step
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Azure marketplace provisioning step request
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.BaseProvisioningStepRequest'
+      responses:
+        '200':
+          description: Azure marketplace provisioning step response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.BaseProvisioningStepResponse'
+      security:
+        - x-functions-key: [ ]
+    patch:
+      tags:
+        - Azure Marketplace
+      summary: Update a provisioning step in an Azure Marketplace SaaS offer
+      operationId: patchApiMarketplaceOffersByOfferIdProvisioningstepsByStepName
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: stepName
+          description: Name of marketplace SaaS provisioning step
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Azure marketplace provisioning step request
+          required: true
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.BaseProvisioningStepRequest'
+      responses:
+        '200':
+          description: Azure marketplace provisioning step response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.BaseProvisioningStepResponse'
+      security:
+        - x-functions-key: [ ]
+    delete:
+      tags:
+        - Azure Marketplace
+      summary: Delete a provisioning step in an Azure Marketplace SaaS offer
+      operationId: deleteApiMarketplaceOffersByOfferIdProvisioningstepsByStepName
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: stepName
+          description: Name of marketplace SaaS provisioning step
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Success
+      security:
+        - x-functions-key: [ ]
+    get:
+      tags:
+        - Azure Marketplace
+      summary: Get a provisioning step in an Azure Marketplace SaaS offer
+      operationId: getApiMarketplaceOffersByOfferIdProvisioningstepsByStepName
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+        - in: path
+          name: stepName
+          description: Name of marketplace SaaS provisioning step
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Azure marketplace provisioning step response
+          schema:
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.BaseProvisioningStepResponse'
+      security:
+        - x-functions-key: [ ]
+  '/api/marketplace/offers/{offerId}/provisioningsteps':
+    get:
+      tags:
+        - Azure Marketplace
+      summary: List provisioning steps in an Azure Marketplace SaaS offer
+      operationId: getApiMarketplaceOffersByOfferIdProvisioningsteps
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: offerId
+          description: Id of marketplace SaaS offer
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Azure marketplace provisioning response
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Marketplace.Public.Client.BaseProvisioningStepResponse'
       security:
         - x-functions-key: [ ]
   /api/marketplace/subscriptions/resolveToken:
@@ -104,7 +583,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceSubscriptionResponse'
       security:
         - x-functions-key: [ ]
   '/api/marketplace/subscriptions/{subscriptionId}':
@@ -128,12 +607,12 @@ paths:
           description: The subscription
           required: true
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceSubscriptionRequest'
       responses:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceSubscriptionResponse'
       security:
         - x-functions-key: [ ]
     get:
@@ -153,7 +632,7 @@ paths:
         '200':
           description: Success
           schema:
-            $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
+            $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceSubscriptionResponse'
       security:
         - x-functions-key: [ ]
   /api/marketplace/subscriptions:
@@ -170,28 +649,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscription'
-            example:
-              Id: 7de85fed-9f81-44c0-ab36-d4540064200e
-              PublisherId: ms-ace
-              OfferId: textanalytics
-              Name: My sub
-              SaaSSubscriptionStatus: Subscribed
-              PlanId: default
-              AllowedCustomerOperations: [ ]
-              Token: 
-              InputParameters: [ ]
-      security:
-        - x-functions-key: [ ]
-  /api/marketplace/webhook:
-    post:
-      tags:
-        - Azure Marketplace
-      summary: Marketplace webhooks
-      operationId: postApiMarketplaceWebhook
-      responses:
-        '204':
-          description: Success
+              $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceSubscriptionResponse'
       security:
         - x-functions-key: [ ]
   '/api/manage/applications/{name}/regeneratemasterkeys':
@@ -1011,7 +1469,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Luna.Publish.Public.Client.MarketplaceParameter'
+              $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameter'
             example:
               ParameterName: region
               DisplayName: Region
@@ -1022,6 +1480,8 @@ paths:
               Maximum: 0
               Minimum: 0
               IsRequired: false
+              isUserInput: false
+              defaultValue: 
       security:
         - x-functions-key: [ ]
   '/api/gallery/applications/{appName}':
@@ -1649,7 +2109,7 @@ definitions:
         type: array
         items:
           type: string
-  Luna.Publish.Public.Client.MarketplaceOffer:
+  Luna.Marketplace.Public.Client.MarketplaceOffer:
     required:
       - OfferId
       - Properties
@@ -1662,22 +2122,18 @@ definitions:
       Status:
         type: string
       Properties:
-        $ref: '#/definitions/Luna.Publish.Public.Client.MarketplaceOfferProp'
+        $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceOfferProp'
       Plans:
         type: array
         items:
-          $ref: '#/definitions/Luna.Publish.Public.Client.MarketplacePlan'
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplacePlan'
       Parameters:
         type: array
         items:
-          $ref: '#/definitions/Luna.Publish.Public.Client.MarketplaceParameter'
-      ProvisioningSteps:
-        type: array
-        items:
-          $ref: '#/definitions/Luna.Publish.Public.Client.MarketplaceProvisioningStep'
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameter'
       ProvisioningStepsSecretName:
         type: string
-  Luna.Publish.Public.Client.MarketplaceOfferProp:
+  Luna.Marketplace.Public.Client.MarketplaceOfferProp:
     required:
       - DisplayName
       - Description
@@ -1689,26 +2145,32 @@ definitions:
         type: string
       IsManualActivation:
         type: boolean
-  Luna.Publish.Public.Client.MarketplacePlan:
+  Luna.Marketplace.Public.Client.MarketplacePlan:
     required:
+      - OfferId
       - PlanId
       - Parameters
     type: object
     properties:
+      OfferId:
+        type: string
       PlanId:
         type: string
       Properties:
-        $ref: '#/definitions/Luna.Publish.Public.Client.MarketplacePlanProp'
+        $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplacePlanProp'
       Parameters:
         type: array
         items:
-          $ref: '#/definitions/Luna.Publish.Public.Client.MarketplaceParameter'
-  Luna.Publish.Public.Client.MarketplacePlanProp:
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameter'
+  Luna.Marketplace.Public.Client.MarketplacePlanProp:
     required:
+      - DisplayName
       - Description
       - Mode
     type: object
     properties:
+      DisplayName:
+        type: string
       Description:
         type: string
       Mode:
@@ -1733,7 +2195,9 @@ definitions:
         type: array
         items:
           type: string
-  Luna.Publish.Public.Client.MarketplaceParameter:
+      lunaApplicationName:
+        type: string
+  Luna.Marketplace.Public.Client.MarketplaceParameter:
     required:
       - ParameterName
       - DisplayName
@@ -1761,7 +2225,11 @@ definitions:
         type: integer
       IsRequired:
         type: boolean
-  Luna.Publish.Public.Client.MarketplaceProvisioningStep:
+      isUserInput:
+        type: boolean
+      defaultValue:
+        type: object
+  Luna.Marketplace.Public.Client.MarketplaceProvisioningStep:
     required:
       - Name
       - Type
@@ -1773,8 +2241,8 @@ definitions:
       Type:
         type: string
       Properties:
-        $ref: '#/definitions/Luna.Publish.Public.Client.BaseProvisioningStepProp'
-  Luna.Publish.Public.Client.BaseProvisioningStepProp:
+        $ref: '#/definitions/Luna.Marketplace.Public.Client.BaseProvisioningStepProp'
+  Luna.Marketplace.Public.Client.BaseProvisioningStepProp:
     required:
       - IsSynchronized
       - Description
@@ -1784,59 +2252,348 @@ definitions:
         type: boolean
       Description:
         type: string
-  Luna.Gallery.Public.Client.MarketplaceSubscription:
+  Luna.Marketplace.Public.Client.MarketplaceOfferRequest:
     required:
-      - Id
-      - PublisherId
-      - OfferId
-      - Name
-      - PlanId
+      - offerId
+      - displayName
+      - description
     type: object
     properties:
-      Id:
-        format: uuid
+      offerId:
         type: string
-        example: 00000000-0000-0000-0000-000000000000
-      PublisherId:
+      displayName:
         type: string
-      OfferId:
+      description:
         type: string
-      Name:
+      isManualActivation:
+        type: boolean
+      offerParameters:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameterRequest'
+      plans:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplacePlanRequest'
+      provisioningSteps:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.BaseProvisioningStepRequest'
+  Luna.Marketplace.Public.Client.MarketplaceParameterRequest:
+    required:
+      - parameterName
+      - displayName
+      - description
+      - valueType
+    type: object
+    properties:
+      parameterName:
         type: string
-      SaaSSubscriptionStatus:
+      displayName:
         type: string
-      PlanId:
+      description:
         type: string
-      AllowedCustomerOperations:
+      valueType:
+        type: string
+      fromList:
+        type: boolean
+      valueList:
+        type: string
+      maximum:
+        format: int32
+        type: integer
+      minimum:
+        format: int32
+        type: integer
+      isRequired:
+        type: boolean
+      isUserInput:
+        type: boolean
+      defaultValue:
+        type: object
+  Luna.Marketplace.Public.Client.MarketplacePlanRequest:
+    required:
+      - planId
+      - displayName
+      - description
+      - mode
+    type: object
+    properties:
+      planId:
+        type: string
+      displayName:
+        type: string
+      description:
+        type: string
+      mode:
+        type: string
+      onSubscribe:
         type: array
         items:
           type: string
-      Token:
-        type: string
-      InputParameters:
+      onUpdate:
         type: array
         items:
-          $ref: '#/definitions/Luna.Gallery.Public.Client.MarketplaceSubscriptionParameter'
-    example:
-      Id: 7de85fed-9f81-44c0-ab36-d4540064200e
-      PublisherId: ms-ace
-      OfferId: textanalytics
-      Name: My sub
-      SaaSSubscriptionStatus: Subscribed
-      PlanId: default
-      AllowedCustomerOperations: [ ]
-      Token: 
-      InputParameters: [ ]
-  Luna.Gallery.Public.Client.MarketplaceSubscriptionParameter:
+          type: string
+      onSuspend:
+        type: array
+        items:
+          type: string
+      onDelete:
+        type: array
+        items:
+          type: string
+      onPurge:
+        type: array
+        items:
+          type: string
+      lunaApplicationName:
+        type: string
+  Luna.Marketplace.Public.Client.BaseProvisioningStepRequest:
+    required:
+      - name
+      - type
+      - description
     type: object
     properties:
-      Name:
+      name:
         type: string
-      Type:
+      type:
         type: string
-      Value:
+      isSynchronized:
+        type: boolean
+      description:
         type: string
-      IsSystemParameter:
+  Luna.Marketplace.Public.Client.MarketplaceOfferResponse:
+    required:
+      - offerId
+      - displayName
+      - description
+      - status
+    type: object
+    properties:
+      offerId:
+        type: string
+      displayName:
+        type: string
+      description:
+        type: string
+      status:
+        type: string
+      isManualActivation:
+        type: boolean
+      createdTime:
+        format: date-time
+        type: string
+      lastUpdatedTime:
+        format: date-time
+        type: string
+      lastPublishedTime:
+        format: date-time
+        type: string
+      offerParameters:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceParameterRequest'
+      plans:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplacePlanRequest'
+      provisioningSteps:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.BaseProvisioningStepRequest'
+  Luna.Marketplace.Public.Client.MarketplacePlanResponse:
+    required:
+      - offerId
+      - planId
+      - displayName
+      - description
+      - mode
+    type: object
+    properties:
+      offerId:
+        type: string
+      planId:
+        type: string
+      displayName:
+        type: string
+      description:
+        type: string
+      mode:
+        type: string
+      onSubscribe:
+        type: array
+        items:
+          type: string
+      onUpdate:
+        type: array
+        items:
+          type: string
+      onSuspend:
+        type: array
+        items:
+          type: string
+      onDelete:
+        type: array
+        items:
+          type: string
+      onPurge:
+        type: array
+        items:
+          type: string
+      lunaApplicationName:
+        type: string
+      createdTime:
+        format: date-time
+        type: string
+      lastUpdatedTime:
+        format: date-time
+        type: string
+  Luna.Marketplace.Public.Client.MarketplaceParameterResponse:
+    required:
+      - offerId
+      - parameterName
+      - displayName
+      - description
+    type: object
+    properties:
+      offerId:
+        type: string
+      parameterName:
+        type: string
+      displayName:
+        type: string
+      description:
+        type: string
+      valueType:
+        type: string
+      fromList:
+        type: boolean
+      valueList:
+        type: string
+      maximum:
+        format: int32
+        type: integer
+      minimum:
+        format: int32
+        type: integer
+      isRequired:
+        type: boolean
+      isUserInput:
+        type: boolean
+      defaultValue:
+        type: object
+      createdTime:
+        format: date-time
+        type: string
+      lastUpdatedTime:
+        format: date-time
+        type: string
+  Luna.Marketplace.Public.Client.BaseProvisioningStepResponse:
+    required:
+      - offerId
+      - name
+      - type
+      - description
+    type: object
+    properties:
+      offerId:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+      isSynchronized:
+        type: boolean
+      description:
+        type: string
+      createdTime:
+        format: date-time
+        type: string
+      lastUpdatedTime:
+        format: date-time
+        type: string
+  Luna.Marketplace.Public.Client.MarketplaceSubscriptionResponse:
+    required:
+      - id
+      - publisherId
+      - offerId
+      - name
+      - planId
+      - createdTime
+      - lastUpdatedTime
+    type: object
+    properties:
+      id:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      publisherId:
+        type: string
+      offerId:
+        type: string
+      name:
+        type: string
+      saaSSubscriptionStatus:
+        type: string
+      planId:
+        type: string
+      allowedCustomerOperations:
+        type: array
+        items:
+          type: string
+      createdTime:
+        format: date-time
+        type: string
+      lastUpdatedTime:
+        format: date-time
+        type: string
+      unsubscribedTime:
+        format: date-time
+        type: string
+  Luna.Marketplace.Public.Client.MarketplaceSubscriptionRequest:
+    required:
+      - id
+      - publisherId
+      - offerId
+      - name
+      - planId
+    type: object
+    properties:
+      id:
+        format: uuid
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+      publisherId:
+        type: string
+      offerId:
+        type: string
+      name:
+        type: string
+      planId:
+        type: string
+      token:
+        type: string
+      inputParameters:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceSubscriptionParameterRequest'
+  Luna.Marketplace.Public.Client.MarketplaceSubscriptionParameterRequest:
+    required:
+      - name
+      - type
+      - value
+      - isSystemParameter
+    type: object
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
+      isSystemParameter:
         type: boolean
   Luna.Publish.Public.Client.LunaApplicationMasterKeysResponse:
     required:

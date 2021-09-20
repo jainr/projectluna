@@ -28,6 +28,9 @@ namespace Luna.Marketplace.Public.Client
         [JsonProperty(PropertyName = "allowedCustomerOperations", Required = Required.Default)]
         public List<string> AllowedCustomerOperations { get; set; }
 
+        [JsonProperty(PropertyName = "parameters", Required = Required.Default)]
+        public List<MarketplaceSubscriptionParameterResponse> Parameters { get; set; }
+
         [JsonProperty(PropertyName = "createdTime", Required = Required.Always)]
         public DateTime CreatedTime { get; set; }
 

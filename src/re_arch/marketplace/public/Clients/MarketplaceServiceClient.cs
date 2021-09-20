@@ -452,7 +452,7 @@ namespace Luna.Marketplace.Public.Client
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
-                $"marketplace/subscriptions/resolvetoken");
+                $"subscriptions/resolvetoken");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Post, uri, token, headers);
 
@@ -473,7 +473,7 @@ namespace Luna.Marketplace.Public.Client
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
-                $"marketplace/subscriptions/{subscriptionId}");
+                $"subscriptions/{subscriptionId}");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Put, uri, subscription, headers);
 
@@ -490,7 +490,7 @@ namespace Luna.Marketplace.Public.Client
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
-                $"marketplace/subscriptions/{subscriptionId}/activate");
+                $"subscriptions/{subscriptionId}/activate");
 
             await SendRequestAndVerifySuccess(HttpMethod.Post, uri, null, headers);
 
@@ -507,7 +507,7 @@ namespace Luna.Marketplace.Public.Client
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
-                $"marketplace/subscriptions/{subscriptionId}");
+                $"subscriptions/{subscriptionId}");
 
             await SendRequestAndVerifySuccess(HttpMethod.Delete, uri, null, headers);
 
@@ -524,7 +524,7 @@ namespace Luna.Marketplace.Public.Client
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
-                $"marketplace/subscriptions/{subscriptionId}");
+                $"subscriptions/{subscriptionId}");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
@@ -540,7 +540,7 @@ namespace Luna.Marketplace.Public.Client
         {
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
-                $"marketplace/subscriptions");
+                $"subscriptions");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 
@@ -569,7 +569,7 @@ namespace Luna.Marketplace.Public.Client
 
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
-                $"marketplace/offers/{offerId}/plans/{planId}/parameters");
+                $"offers/{offerId}/plans/{planId}/parameters");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 

@@ -58,19 +58,20 @@ namespace Luna.Provision.Clients
 
                     if (job.ProvisioningStepIndex < 0)
                     {
-                        if (job.Mode.Equals(MarketplacePlanMode.PaaS.ToString()) && job.LunaApplicationName != null)
+                        if (job.Mode.Equals(MarketplacePlanMode.SaaS.ToString()) && job.LunaApplicationName != null)
                         {
+                            var url = Environment.GetEnvironmentVariable("GALLERY_SERVICE_BASE_URL");
                             stepConfig = new MarketplaceProvisioningStep
                             {
                                 Name = "SubscribeLunaApplication",
                                 Type = MarketplaceProvisioningStepType.Webhook.ToString(),
                                 Properties = new WebhookProvisioningStepProp
                                 {
-                                    WebhookUrl = Environment.GetEnvironmentVariable("GALLERY_SERVICE_BASE_URL"),
+                                    WebhookUrl = url != null ? $"{url}subscriptions/create" : null,
                                     WebhookAuthType = WebhookAuthType.ApiKey.ToString(),
                                     WebhookAuthKey = "x-functions-key",
                                     WebhookAuthValue = Environment.GetEnvironmentVariable("GALLERY_SERVICE_KEY"),
-                                    InputParameterNames = new List<string>(new string[] { "SubscriptionId", "SubscriptionName", "OwnerId" }),
+                                    InputParameterNames = new List<string>(new string[] { "SubscriptionId", "SubscriptionName", "OwnerId", "LunaApplicationName" }),
                                     OutputParameterNames = new List<string>(new string[] { "BaseUrl", "PrimaryKey", "SecondaryKey" }),
                                 }
                             };
@@ -144,6 +145,27 @@ namespace Luna.Provision.Clients
                     if (stepConfig.Properties.IsSynchronized)
                     {
                         ISyncProvisionStepClient client = this._provisionStepClientFactory.GetSyncProvisionStepClient(stepConfig);
+                        var newParams = await client.RunAsync(parameters);
+
+                        var content = JsonConvert.SerializeObject(newParams, new JsonSerializerSettings()
+                        {
+                            TypeNameHandling = TypeNameHandling.All
+                        });
+
+                        await this._keyVaultUtils.SetSecretAsync(job.ParametersSecretName, content);
+
+                        if (job.ProvisioningStepIndex + 1 < steps.Count)
+                        {
+                            job.ProvisioningStepIndex = job.ProvisioningStepIndex + 1;
+                            job.ProvisioningStepStatus = ProvisionStepStatus.NotStarted.ToString();
+                        }
+                        else
+                        {
+                            await this._marketplaceClient.ActivateMarketplaceSubscriptionAsync(job.SubscriptionId, new LunaRequestHeaders());
+                            job.Status = ProvisionStatus.Completed.ToString();
+                            job.IsActive = false;
+                            job.CompletedTime = DateTime.UtcNow;
+                        }
                     }
                     else
                     {
@@ -249,7 +271,156 @@ namespace Luna.Provision.Clients
             }
 
             job.LastUpdatedTime = DateTime.UtcNow;
+            _dbContext.MarketplaceSubProvisionJobs.Update(job);
+            await _dbContext._SaveChangesAsync();
+
             return job.SubscriptionId;
+        }
+
+        public async Task ProcessMarketplaceOfferEventAsync(LunaBaseEventEntity ev)
+        {
+            if (ev.EventType.Equals(LunaEventType.PUBLISH_AZURE_MARKETPLACE_OFFER))
+            {
+                MarketplaceOffer offer = JsonConvert.DeserializeObject<MarketplaceOffer>(ev.EventContent, new JsonSerializerSettings()
+                {
+                    TypeNameHandling = TypeNameHandling.Auto
+                });
+
+                foreach (var plan in offer.Plans)
+                {
+                    var planDb = new MarketplacePlanDB();
+                    planDb.OfferId = offer.OfferId;
+                    planDb.PlanId = plan.PlanId;
+                    planDb.LunaApplicationName = plan.Properties.LunaApplicationName;
+                    planDb.Mode = plan.Properties.Mode;
+                    planDb.Properties = JsonConvert.SerializeObject(plan.Properties, new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.All
+                    });
+                    var parameters = new List<MarketplaceParameter>();
+                    parameters.AddRange(offer.Parameters);
+                    parameters.AddRange(plan.Parameters);
+                    planDb.Parameters = JsonConvert.SerializeObject(parameters, new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.All
+                    });
+                    planDb.CreatedByEventId = ev.EventSequenceId;
+                    planDb.ProvisioningStepsSecretName = offer.ProvisioningStepsSecretName;
+
+                    _dbContext.MarketplacePlans.Add(planDb);
+                }
+
+                await _dbContext._SaveChangesAsync();
+            }
+            else
+            {
+                throw new LunaServerException($"Unknown event type {ev.EventType}.");
+            }
+        }
+
+        public async Task ProcessMarketplaceSubscriptionEventAsync(LunaBaseEventEntity ev)
+        {
+            if (ev.EventType.Equals(LunaEventType.CREATE_AZURE_MARKETPLACE_SUBSCRIPTION))
+            {
+                var sub = JsonConvert.DeserializeObject<MarketplaceSubscriptionEventContent>(ev.EventContent);
+
+                var plan = await _dbContext.MarketplacePlans.
+                    SingleOrDefaultAsync(x => x.OfferId == sub.OfferId &&
+                    x.PlanId == sub.PlanId && x.CreatedByEventId == sub.PlanPublishedByEventId);
+
+                if (plan == null)
+                {
+                    throw new LunaServerException($"Plan {sub.PlanId} in offer {sub.OfferId} created by event {sub.PlanPublishedByEventId} does not exist.");
+                }
+
+                var currentTime = DateTime.UtcNow;
+
+                var content = await this._keyVaultUtils.GetSecretAsync(sub.ParametersSecretName);
+                var parameters = JsonConvert.DeserializeObject<List<MarketplaceSubscriptionParameter>>(content, new JsonSerializerSettings()
+                {
+                    TypeNameHandling = TypeNameHandling.Auto
+                });
+
+                parameters.Add(new MarketplaceSubscriptionParameter
+                {
+                    Name = "SubscriptionId",
+                    IsSystemParameter = true,
+                    Value = sub.Id.ToString(),
+                    Type = MarketplaceParameterValueType.String.ToString(),
+                });
+
+                parameters.Add(new MarketplaceSubscriptionParameter
+                {
+                    Name = "SubscriptionName",
+                    IsSystemParameter = true,
+                    Value = sub.Name,
+                    Type = MarketplaceParameterValueType.String.ToString(),
+                });
+
+                parameters.Add(new MarketplaceSubscriptionParameter
+                {
+                    Name = "OwnerId",
+                    IsSystemParameter = true,
+                    Value = sub.OwnerId,
+                    Type = MarketplaceParameterValueType.String.ToString(),
+                });
+
+                if (plan.LunaApplicationName != null)
+                {
+                    parameters.Add(new MarketplaceSubscriptionParameter
+                    {
+                        Name = "LunaApplicationName",
+                        IsSystemParameter = true,
+                        Value = plan.LunaApplicationName,
+                        Type = MarketplaceParameterValueType.String.ToString(),
+                    });
+                }
+
+                await this._keyVaultUtils.SetSecretAsync(sub.ParametersSecretName,
+                    JsonConvert.SerializeObject(parameters, new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.Auto
+                    }));
+
+                var jobDb = new MarketplaceSubProvisionJobDB()
+                {
+                    SubscriptionId = sub.Id,
+                    OfferId = sub.OfferId,
+                    PlanId = sub.PlanId,
+                    PlanCreatedByEventId = sub.PlanPublishedByEventId,
+                    Mode = plan.Mode,
+                    Status = ProvisionStatus.Queued.ToString(),
+                    EventType = ev.EventType,
+                    LunaApplicationName = plan.LunaApplicationName,
+                    ProvisioningStepIndex = -1,
+                    IsSynchronizedStep = false,
+                    ProvisioningStepStatus = ProvisionStepStatus.NotStarted.ToString(),
+                    ParametersSecretName = sub.ParametersSecretName,
+                    ProvisionStepsSecretName = plan.ProvisioningStepsSecretName,
+                    IsActive = false,
+                    RetryCount = 0,
+                    CreatedByEventId = ev.EventSequenceId,
+                    CreatedTime = currentTime,
+                    LastUpdatedTime = currentTime,
+                };
+
+                using (var transaction = await _dbContext.BeginTransactionAsync())
+                {
+                    // Can have only one create job for a subscription
+                    if (!await _dbContext.MarketplaceSubProvisionJobs.
+                        AnyAsync(x => x.SubscriptionId == sub.Id && x.EventType == ev.EventType))
+                    {
+                        this._dbContext.MarketplaceSubProvisionJobs.Add(jobDb);
+                        await this._dbContext._SaveChangesAsync();
+                    }
+
+                    transaction.Commit();
+                }
+            }
+            else
+            {
+                throw new LunaServerException($"Unknown event type {ev.EventType}.");
+            }
         }
 
         #region private methods
@@ -284,7 +455,7 @@ namespace Luna.Provision.Clients
             var prop = JsonConvert.DeserializeObject<MarketplacePlanProp>(plan.Properties);
             if (job.EventType.Equals(LunaEventType.CREATE_AZURE_MARKETPLACE_SUBSCRIPTION))
             {
-                return prop.OnSubscribe;
+                return prop.OnSubscribe == null ? new List<string>() : prop.OnSubscribe;
             }
             else
             {

@@ -59,7 +59,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>PUT</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/template</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/template</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req" in="body">
         ///     <see cref="MarketplaceOffer"/>
@@ -92,7 +92,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("CreateOrUpdateAzureMarketplaceOfferFromTemplate")]
         public async Task<IActionResult> CreateOrUpdateAzureMarketplaceOfferFromTemplate(
-            [HttpTrigger(AuthorizationLevel.Function, "Post", Route = "marketplace/offers/{offerId}/template")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "Post", Route = "offers/{offerId}/template")] HttpRequest req,
             string offerId)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
@@ -205,7 +205,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>PUT</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req" in="body">
         ///     <see cref="MarketplaceOfferRequest"/>
@@ -238,7 +238,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("CreateAzureMarketplaceOffer")]
         public async Task<IActionResult> CreateAzureMarketplaceOffer(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "offers/{offerId}")] HttpRequest req,
             string offerId)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
@@ -269,7 +269,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>PATCH</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req" in="body">
         ///     <see cref="MarketplaceOfferRequest"/>
@@ -302,7 +302,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("UpdateAzureMarketplaceOffer")]
         public async Task<IActionResult> UpdateAzureMarketplaceOffer(
-            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "offers/{offerId}")] HttpRequest req,
             string offerId)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
@@ -333,7 +333,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>POST</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/publish</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/publish</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req">The http request</param>
         /// <response code="204">Success</response>
@@ -344,7 +344,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("PublishAzureMarketplaceOffer")]
         public async Task<IActionResult> PublishAzureMarketplaceOffer(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "marketplace/offers/{offerId}/publish")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "offers/{offerId}/publish")] HttpRequest req,
             string offerId)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
@@ -373,7 +373,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>DELETE</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req">The http request</param>
         /// <response code="204">Success</response>
@@ -384,7 +384,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("DeleteAzureMarketplaceOffer")]
         public async Task<IActionResult> DeleteAzureMarketplaceOffer(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "offers/{offerId}")] HttpRequest req,
             string offerId)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
@@ -413,7 +413,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req">http request</param>
         /// <response code="200">
@@ -435,7 +435,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("GetAzureMarketplaceOffer")]
         public async Task<IActionResult> GetAzureMarketplaceOffer(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "offers/{offerId}")] HttpRequest req,
             string offerId)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
@@ -464,7 +464,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers</url>
+        /// <url>http://localhost:7071/api/offers</url>
         /// <param name="req">http request</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
@@ -486,7 +486,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ListAzureMarketplaceOffers")]
         public async Task<IActionResult> ListAzureMarketplaceOffers(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "offers")] HttpRequest req)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
@@ -518,7 +518,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>PUT</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/plans/{planId}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
         /// <param name="req" in="body">
@@ -552,7 +552,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("CreateMarketplacePlan")]
         public async Task<IActionResult> CreateMarketplacePlan(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "offers/{offerId}/plans/{planId}")] HttpRequest req,
             string offerId,
             string planId)
         {
@@ -583,7 +583,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>PATCH</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/plans/{planId}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
         /// <param name="req" in="body">
@@ -617,7 +617,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("UpdateMarketplacePlan")]
         public async Task<IActionResult> UpdateMarketplacePlan(
-            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "offers/{offerId}/plans/{planId}")] HttpRequest req,
             string offerId,
             string planId)
         {
@@ -648,7 +648,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>DELETE</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/plans/{planId}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
         /// <param name="req">The http request</param>
@@ -660,7 +660,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("DeleteMarketplacePlan")]
         public async Task<IActionResult> DeleteMarketplacePlan(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "offers/{offerId}/plans/{planId}")] HttpRequest req,
             string offerId,
             string planId)
         {
@@ -690,7 +690,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/plans/{planId}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="planId" required="true" cref="string" in="path">Id of marketplace SaaS plan</param>
         /// <param name="req">http request</param>
@@ -713,7 +713,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("GetMarketplacePlan")]
         public async Task<IActionResult> GetMarketplacePlan(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}/plans/{planId}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "offers/{offerId}/plans/{planId}")] HttpRequest req,
             string offerId,
             string planId)
         {
@@ -743,7 +743,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/plans</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req">http request</param>
         /// <response code="200">
@@ -766,7 +766,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ListMarketplacePlans")]
         public async Task<IActionResult> ListMarketplacePlans(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}/plans")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "offers/{offerId}/plans")] HttpRequest req,
             string offerId)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
@@ -798,7 +798,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>PUT</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/parameters/{parameterName}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/parameters/{parameterName}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="parameterName" required="true" cref="string" in="path">The offer parameter name</param>
         /// <param name="req" in="body">
@@ -832,7 +832,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("CreateOfferParameter")]
         public async Task<IActionResult> CreateOfferParameter(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "marketplace/offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
             string offerId,
             string parameterName)
         {
@@ -863,7 +863,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>PATCH</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/parameters/{parameterName}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/parameters/{parameterName}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="parameterName" required="true" cref="string" in="path">The offer parameter name</param>
         /// <param name="req" in="body">
@@ -897,7 +897,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("UpdateOfferParameter")]
         public async Task<IActionResult> UpdateOfferParameter(
-            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "marketplace/offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
             string offerId,
             string parameterName)
         {
@@ -928,7 +928,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>DELETE</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/parameters/{parameterName}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/parameters/{parameterName}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="parameterName" required="true" cref="string" in="path">Name of marketplace SaaS offer parameter</param>
         /// <param name="req">The http request</param>
@@ -940,7 +940,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("DeleteOfferParameter")]
         public async Task<IActionResult> DeleteOfferParameter(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "marketplace/offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
             string offerId,
             string parameterName)
         {
@@ -970,7 +970,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/parameters/{parameterName}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/parameters/{parameterName}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="parameterName" required="true" cref="string" in="path">Name of marketplace SaaS offer parameter</param>
         /// <param name="req">http request</param>
@@ -993,7 +993,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("GetOfferParameter")]
         public async Task<IActionResult> GetOfferParameter(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "offers/{offerId}/parameters/{parameterName}")] HttpRequest req,
             string offerId,
             string parameterName)
         {
@@ -1023,7 +1023,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/parameters</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/parameters</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req">http request</param>
         /// <response code="200">
@@ -1046,7 +1046,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ListOfferParameters")]
         public async Task<IActionResult> ListOfferParameters(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}/parameters")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "offers/{offerId}/parameters")] HttpRequest req,
             string offerId)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
@@ -1078,7 +1078,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>PUT</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/provisioningsteps/{stepName}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/provisioningsteps/{stepName}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="stepName" required="true" cref="string" in="path">Name of marketplace SaaS provisioning step</param>
         /// <param name="req" in="body">
@@ -1112,7 +1112,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("CreateProvisioningStep")]
         public async Task<IActionResult> CreateProvisioningStep(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "marketplace/offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
             string offerId,
             string stepName)
         {
@@ -1143,7 +1143,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>PATCH</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/provisioningsteps/{stepName}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/provisioningsteps/{stepName}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="stepName" required="true" cref="string" in="path">Name of marketplace SaaS provisioning step</param>
         /// <param name="req" in="body">
@@ -1177,7 +1177,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("UpdateProvisioningStep")]
         public async Task<IActionResult> UpdateProvisioningStep(
-            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "marketplace/offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
             string offerId,
             string stepName)
         {
@@ -1208,7 +1208,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>DELETE</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/provisioningsteps/{stepName}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/provisioningsteps/{stepName}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="stepName" required="true" cref="string" in="path">Name of marketplace SaaS provisioning step</param>
         /// <param name="req">The http request</param>
@@ -1220,7 +1220,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("DeleteProvisioningStep")]
         public async Task<IActionResult> DeleteProvisioningStep(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "marketplace/offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
             string offerId,
             string stepName)
         {
@@ -1250,7 +1250,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/provisioningsteps/{stepName}</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/provisioningsteps/{stepName}</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="stepName" required="true" cref="string" in="path">Name of marketplace SaaS provisioning step</param>
         /// <param name="req">http request</param>
@@ -1273,7 +1273,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("GetProvisioningStep")]
         public async Task<IActionResult> GetProvisioningStep(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "offers/{offerId}/provisioningsteps/{stepName}")] HttpRequest req,
             string offerId,
             string stepName)
         {
@@ -1303,7 +1303,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/provisioningsteps</url>
+        /// <url>http://localhost:7071/api/offers/{offerId}/provisioningsteps</url>
         /// <param name="offerId" required="true" cref="string" in="path">Id of marketplace SaaS offer</param>
         /// <param name="req">http request</param>
         /// <response code="200">
@@ -1326,7 +1326,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ListProvisioningSteps")]
         public async Task<IActionResult> ListProvisioningSteps(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "marketplace/offers/{offerId}/provisioningsteps")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "offers/{offerId}/provisioningsteps")] HttpRequest req,
             string offerId)
         {
             var lunaHeaders = HttpUtils.GetLunaRequestHeaders(req);
@@ -1359,7 +1359,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/public/offers/{offerId}/plans/{planId}/parameters</url>
+        /// <url>http://localhost:7071/api/public/offers/{offerId}/plans/{planId}/parameters</url>
         /// <param name="offerId" required="true" cref="string" in="path">The offer ID</param>
         /// <param name="planId" required="true" cref="string" in="path">The plan ID</param>
         /// <param name="req">Http request</param>
@@ -1383,7 +1383,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("GetMarketplaceUserInputParameters")]
         public async Task<IActionResult> GetMarketplaceUserInputParameters(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/public/offers/{offerId}/plans/{planId}/parameters")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "public/offers/{offerId}/plans/{planId}/parameters")]
             HttpRequest req,
             string offerId,
             string planId)
@@ -1417,7 +1417,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>POST</verb>
-        /// <url>http://localhost:7071/api/marketplace/public/subscriptions/resolveToken</url>
+        /// <url>http://localhost:7071/api/public/subscriptions/resolveToken</url>
         /// <param name="req" in="body"><see cref="string"/>Token</param>
         /// <response code="200">
         ///     <see cref="MarketplaceSubscriptionResponse"/>
@@ -1438,7 +1438,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ResolveMarketplaceSubscription")]
         public async Task<IActionResult> ResolveMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "marketplace/public/subscriptions/resolvetoken")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "public/subscriptions/resolvetoken")]
             HttpRequest req)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
@@ -1468,7 +1468,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>PUT</verb>
-        /// <url>http://localhost:7071/api/marketplace/subscriptions/{subscriptionId}</url>
+        /// <url>http://localhost:7071/api/subscriptions/{subscriptionId}</url>
         /// <param name="subscriptionId" required="true" cref="string" in="path">ID of the subscription</param>
         /// <param name="req" in="body">
         ///     <see cref="MarketplaceSubscriptionRequest"/>
@@ -1501,7 +1501,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("CreateMarketplaceSubscription")]
         public async Task<IActionResult> CreateMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Put", Route = "marketplace/subscriptions/{subscriptionId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Put", Route = "subscriptions/{subscriptionId}")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1532,7 +1532,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>POST</verb>
-        /// <url>http://localhost:7071/api/marketplace/subscriptions/{subscriptionId}/activate</url>
+        /// <url>http://localhost:7071/api/subscriptions/{subscriptionId}/activate</url>
         /// <param name="subscriptionId" required="true" cref="string" in="path">ID of the subscription</param>
         /// <param name="req">http request</param>
         /// <response code="204">Success</response>
@@ -1543,7 +1543,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ActivateMarketplaceSubscription")]
         public async Task<IActionResult> ActivateMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "marketplace/subscriptions/{subscriptionId}/activate")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "subscriptions/{subscriptionId}/activate")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1573,7 +1573,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>DELETE</verb>
-        /// <url>http://localhost:7071/api/marketplace/subscriptions/{subscriptionId}</url>
+        /// <url>http://localhost:7071/api/subscriptions/{subscriptionId}</url>
         /// <param name="subscriptionId" required="true" cref="string" in="path">ID of the subscription</param>
         /// <param name="req">http request</param>
         /// <response code="204">Success</response>
@@ -1584,7 +1584,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("UnsubscribeMarketplaceSubscription")]
         public async Task<IActionResult> UnsubscribeMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Delete", Route = "marketplace/subscriptions/{subscriptionId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Delete", Route = "subscriptions/{subscriptionId}")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1614,7 +1614,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/subscriptions/{subscriptionId}</url>
+        /// <url>http://localhost:7071/api/subscriptions/{subscriptionId}</url>
         /// <param name="subscriptionId" required="true" cref="string" in="path">ID of the subscription</param>
         /// <param name="req">request</param>
         /// <response code="200">
@@ -1636,7 +1636,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("GetMarketplaceSubscription")]
         public async Task<IActionResult> GetMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/subscriptions/{subscriptionId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "subscriptions/{subscriptionId}")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1666,7 +1666,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/subscriptions</url>
+        /// <url>http://localhost:7071/api/subscriptions</url>
         /// <param name="req">request</param>
         /// <response code="200">
         ///     <see cref="List{T}"/>
@@ -1688,7 +1688,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ListMarketplaceSubscription")]
         public async Task<IActionResult> ListMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "marketplace/subscriptions")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "subscriptions")]
             HttpRequest req)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
@@ -1721,7 +1721,7 @@ namespace Luna.Marketplace.Functions
         /// </summary>
         /// <group>Azure Marketplace</group>
         /// <verb>POST</verb>
-        /// <url>http://localhost:7071/api/marketplace/webhook</url>
+        /// <url>http://localhost:7071/api/webhook</url>
         /// <param name="req">The http request</param>
         /// <response code="204">Success</response>
         /// <security type="apiKey" name="x-functions-key">
@@ -1731,7 +1731,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("AzureMarketplaceWebhook")]
         public async Task<IActionResult> AzureMarketplaceWebhook(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "marketplace/webhook")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "webhook")] HttpRequest req)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
 
@@ -1787,7 +1787,7 @@ namespace Luna.Marketplace.Functions
             {
                 SnapshotId = Guid.NewGuid(),
                 OfferId = offerId,
-                SnapshotContent = _offerEventProcessor.GetMarketplaceOfferJSONString(offerId, events, snapshot),
+                SnapshotContent = await _offerEventProcessor.GetMarketplaceOfferJSONStringAsync(offerId, events, snapshot),
                 Status = status.ToString(),
                 Tags = "",
                 CreatedTime = DateTime.UtcNow,

@@ -5,6 +5,7 @@ import os
 import requests
 from locust import HttpUser, task, between
 from locust.user.wait_time import constant
+from azure.identity import EnvironmentCredential
 
 class ScenarioTest(HttpUser):
     ### Scenario Test for Publishing a new LunaAPI Realtime Endpoint
@@ -21,7 +22,7 @@ class ScenarioTest(HttpUser):
         
         self.routing_url = os.environ['ROUTING_URL']
         self.host_url = os.environ['GATEWAY_URL']
-        self.tenant_id = os.environ['TENANT_ID']
+        self.tenant_id = os.environ['AZURE_TENANT_ID']
         self.aml_spn_client_id = os.environ['AML_SPN_CLIENT_ID']
         self.aml_spn_client_secret = os.environ['AML_SPN_CLIENT_SECRET']
         self.resourceId = os.environ['AML_RESOURCE_ID']
@@ -51,10 +52,23 @@ class ScenarioTest(HttpUser):
 
         self.headerData = { "Authorization": "Bearer " + access_token }
 
+        azure_cred = EnvironmentCredential()
+        self.azure_headers = { "Authorization": "Bearer " + azure_cred.get_token() }
+
     @task
     def create_and_call_realtime_endpoint(self):
         resource_name = "test" + str(uuid.uuid1())
         uid = str(uuid.uuid1())
+
+        uri = "https://management.azure.com/subscriptions/a6c2a7cc-d67e-4a1a-b765-983f08c0423a/resourcegroups/xiwutest/providers/Microsoft.Resources/deployments/MarketplaceSaaS_" +str(uuid.uuid1())+"?api-version=2020-06-01"
+        
+        
+        with open('CreateSaaSSubscription.json') as f:
+            create_saas_subscription_payload = f.read()
+
+        create_saas_subscription_payload = create_saas_subscription_payload.replace("<subscription-name>", str(uuid.uuid1()));
+
+        self._assert_success(self.client.post(uri, headers=self.azure_headers, data=create_saas_subscription_payload))
 
         # RBAC Tests
         ##############################################

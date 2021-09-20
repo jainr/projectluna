@@ -36,6 +36,13 @@ namespace Luna.Publish.Functions
                 });
 
             builder.Services.AddSingleton<IPubSubServiceClient, PubSubServiceClient>();
+            builder.Services.AddSingleton<IDataMapper<MarketplaceOfferRequest, MarketplaceOfferResponse, MarketplaceOfferProp>, MarketplaceOfferMapper>();
+            builder.Services.AddSingleton<IDataMapper<MarketplacePlanRequest, MarketplacePlanResponse, MarketplacePlanProp>, MarketplacePlanMapper>();
+            builder.Services.AddSingleton<IDataMapper<MarketplaceParameterRequest, MarketplaceParameterResponse, MarketplaceParameter>, MarketplaceParameterMapper>();
+            builder.Services.AddSingleton<IDataMapper<BaseProvisioningStepRequest, BaseProvisioningStepResponse, BaseProvisioningStepProp>, MarketplaceProvisioningStepMapper>();
+            builder.Services.AddSingleton<IDataMapper<MarketplaceSubscriptionRequest, MarketplaceSubscriptionResponse, MarketplaceSubscriptionDB>, MarketplaceSubscriptionMapper>();
+            builder.Services.AddSingleton<IDataMapper<MarketplaceSubscriptionDB, MarketplaceSubscriptionEventContent>, MarketplaceSubscriptionEventMapper>();
+            builder.Services.AddSingleton<IDataMapper<InternalMarketplaceSubscriptionResponse, MarketplaceSubscriptionResponse>, ResolvedMarketplaceSubscriptionMapper>();
 
             builder.Services.AddSingleton<IOfferEventContentGenerator, OfferEventContentGenerator>();
             builder.Services.AddSingleton<IOfferEventProcessor, OfferEventProcessor>();
@@ -58,6 +65,8 @@ namespace Luna.Publish.Functions
                 options.UseSqlServer(connectionString));
 
             builder.Services.TryAddScoped<ISqlDbContext, SqlDbContext>();
+
+            builder.Services.TryAddScoped<IMarketplaceFunctionsImpl, MarketplaceFunctionsImpl>();
 
             builder.Services.AddApplicationInsightsTelemetry();
         }
