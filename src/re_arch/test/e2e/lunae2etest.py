@@ -68,7 +68,7 @@ class ScenarioTest(HttpUser):
 
         create_saas_subscription_payload = create_saas_subscription_payload.replace("<subscription-name>", str(uuid.uuid1()));
 
-        self._assert_success(self.client.post(uri, headers=self.azure_headers, data=create_saas_subscription_payload))
+        self._assert_success(self.client.put(uri, headers=self.azure_headers, data=create_saas_subscription_payload))
 
         # RBAC Tests
         ##############################################
