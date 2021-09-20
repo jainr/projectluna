@@ -54,7 +54,7 @@ class ScenarioTest(HttpUser):
         self.headerData = { "Authorization": "Bearer " + access_token }
 
         azure_cred = EnvironmentCredential()
-        self.azure_headers = { "Authorization": "Bearer " + azure_cred.get_token("https://management.azure.com/.default").token }
+        self.azure_headers = { "Authorization": "Bearer " + azure_cred.get_token("https://management.azure.com/.default").token, "Content-Type": "application/json"}
 
     @task
     def create_and_call_realtime_endpoint(self):
