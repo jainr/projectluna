@@ -70,7 +70,7 @@ class ScenarioTest(HttpUser):
 
         response = requests.put(url = uri, headers=self.azure_headers, data=json.loads(create_saas_subscription_payload))
 
-        print(response)
+        print(response.text)
 
         # RBAC Tests
         ##############################################
