@@ -47,7 +47,7 @@ steps:
     addToPath: true
     architecture: 'x64'
 
-- script: pip install Locust,azure-identity
+- script: pip install Locust azure-identity
   displayName: 'Installing Locust'
 
 - script: wget $(test_file_url) -O test.py
