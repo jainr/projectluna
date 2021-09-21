@@ -8,7 +8,7 @@ namespace Luna.Marketplace.Data
     public class UpdateMarketplaceOfferParameterEvent : MarketplaceOfferParameterEvent
     {
         public UpdateMarketplaceOfferParameterEvent()
-            :base(MarketplaceEventType.CreateMarketplaceOfferParameter)
+            :base(MarketplaceEventType.UpdateMarketplaceOfferParameter)
         {
         }
 

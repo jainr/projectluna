@@ -6,9 +6,9 @@ namespace Luna.Marketplace.Public.Client
 {
     public class IaaSParameterConstants
     {
-        public const string SUBSCRIPTION_ID_PARAM_NAME = "subscriptionId";
-        public const string RESOURCE_GROUP_PARAM_NAME = "resourceGroup";
-        public const string REGION_PARAM_NAME = "region";
+        public const string SUBSCRIPTION_ID_PARAM_NAME = "azuresubscriptionid";
+        public const string RESOURCE_GROUP_PARAM_NAME = "azureresourcegroup";
+        public const string REGION_PARAM_NAME = "azureregion";
 
         public static bool VerifyIaaSParameters(List<string> parameterNames)
         {

@@ -14,7 +14,7 @@ namespace Luna.Provision.Clients
     {
         private const string LOG_FILE_NAME = "log.txt";
         private const string ERROR_LOG_FILE_NAME = "error.txt";
-        private const string WORKING_DIR_PARAM_NAME = "luna-scirpt-working-dir";
+        private const string WORKING_DIR_PARAM_NAME = "luna-script-working-dir";
         private const string STATUS_FILE_NAME = "result.txt";
         private const string COMPLETED_STATUS_CONTENT = "completed";
         private const string FAILED_STATUS_CONTENT = "failed";
@@ -65,11 +65,15 @@ namespace Luna.Provision.Clients
                 LOG_FILE_NAME,
                 ERROR_LOG_FILE_NAME);
 
+            // remove the old working dir names
+            parameters.RemoveAll(x => x.Name == WORKING_DIR_PARAM_NAME);
+
             parameters.Add(new MarketplaceSubscriptionParameter()
             {
                 Name = WORKING_DIR_PARAM_NAME,
                 Type = MarketplaceParameterValueType.String.ToString(),
-                Value = workingDir
+                Value = workingDir,
+                IsSystemParameter = true
             });
 
             return parameters;

@@ -65,6 +65,9 @@ namespace Luna.Marketplace.Clients
 
         Task<List<MarketplaceSubscriptionResponse>> ListMarketplaceSubscriptionsAsync(LunaRequestHeaders headers);
 
+        Task<List<MarketplaceSubscriptionResponse>> ListMarketplaceSubscriptionDetailsAsync(LunaRequestHeaders headers);
+
+        Task<List<MarketplaceParameterResponse>> ListInputParametersAsync(string offerId, LunaRequestHeaders headers);
 
     }
 }

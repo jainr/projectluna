@@ -348,7 +348,15 @@ namespace Luna.Marketplace.Test
                 Assert.IsInstanceOfType(paramResponse, typeof(MarketplaceParameterResponse));
                 Assert.AreEqual(this._paramRequest.DisplayName, paramResponse.DisplayName);
 
+                paramResponse = await function.GetParameterAsync(offerResponse.OfferId, this._paramRequest.ParameterName, this._headers);
+                Assert.IsInstanceOfType(paramResponse, typeof(MarketplaceParameterResponse));
+                Assert.AreEqual(this._paramRequest.DisplayName, paramResponse.DisplayName);
+
                 paramResponse = await function.UpdateParameterAsync(offerResponse.OfferId, this._updatedParamRequest.ParameterName, this._updatedParamRequest, this._headers);
+                Assert.IsInstanceOfType(paramResponse, typeof(MarketplaceParameterResponse));
+                Assert.AreEqual(this._updatedParamRequest.DisplayName, paramResponse.DisplayName);
+
+                paramResponse = await function.GetParameterAsync(offerResponse.OfferId, this._paramRequest.ParameterName, this._headers);
                 Assert.IsInstanceOfType(paramResponse, typeof(MarketplaceParameterResponse));
                 Assert.AreEqual(this._updatedParamRequest.DisplayName, paramResponse.DisplayName);
 

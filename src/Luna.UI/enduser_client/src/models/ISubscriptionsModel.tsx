@@ -1,7 +1,8 @@
 export interface IParamModel {
   name: string,
   type: string,
-  value: any
+  value: any,
+  isSystemParameter: boolean,
 }
 
 export interface IDeviceTokenModel{
@@ -24,11 +25,12 @@ export interface IAccessTokenModel{
 
 export interface ISubscriptionsModel {
 
-  Id: string,
-  Name: string,
-  OfferId: string,
-  PlanId: string,
+  id: string,
+  name: string,
+  offerId: string,
+  planId: string,
   owner: string,
+  ownerId: string,
   quantity: number,
   beneficiaryTenantId: string,
   purchaserTenantId: string,
@@ -46,8 +48,8 @@ export interface ISubscriptionsModel {
   baseUrl: string,
   secondaryKey: string,
 
-  PublisherId: string,
-  SaaSSubscriptionStatus: string,
+  publisherId: string,
+  saaSSubscriptionStatus: string,
   isTest: boolean,
   allowedCustomerOperationsMask: number,
   sessionMode: string,
@@ -64,16 +66,18 @@ export interface ISubscriptionsModel {
   deploymentId: string,
   resourceGroup: string,
   activatedBy: string,
+  parameters: IParamModel[]
 }
 
 export interface ICreateSubscriptionModel {
-  Id: string
-  Name: string
-  OfferId: string
-  PlanId: string
-  PublisherId: string
-  Token: string
-  InputParameters: IParamModel[];
+  id: string
+  name: string
+  offerId: string
+  planId: string
+  publisherId: string
+  token: string
+  ownerId: string
+  inputParameters: IParamModel[];
 }
 
 export interface ISubscriptionFormModel {
@@ -117,8 +121,8 @@ export interface ISubscriptionsV2Model {
   status: string,
   baseUrl: string,
   primaryKey: string,
-  secondaryKey: string
-
+  secondaryKey: string,
+  parameters: IParamModel[]
 }
 
 export interface ISubscriptionsV2RefreshKeyModel {  

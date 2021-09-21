@@ -2543,6 +2543,10 @@ definitions:
         type: array
         items:
           type: string
+      parameters:
+        type: array
+        items:
+          $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceSubscriptionParameterResponse'
       createdTime:
         format: date-time
         type: string
@@ -2552,6 +2556,19 @@ definitions:
       unsubscribedTime:
         format: date-time
         type: string
+  Luna.Marketplace.Public.Client.MarketplaceSubscriptionParameterResponse:
+    required:
+      - name
+      - type
+      - value
+    type: object
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
   Luna.Marketplace.Public.Client.MarketplaceSubscriptionRequest:
     required:
       - id
@@ -2559,6 +2576,7 @@ definitions:
       - offerId
       - name
       - planId
+      - ownerId
     type: object
     properties:
       id:
@@ -2572,6 +2590,8 @@ definitions:
       name:
         type: string
       planId:
+        type: string
+      ownerId:
         type: string
       token:
         type: string

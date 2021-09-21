@@ -1,4 +1,5 @@
-﻿using Luna.Marketplace.Public.Client;
+﻿using Luna.Common.Utils;
+using Luna.Marketplace.Public.Client;
 using Luna.Publish.Public.Client;
 using Renci.SshNet;
 using System;
@@ -140,7 +141,7 @@ namespace Luna.Provision.Clients
 
             foreach (var argument in inputArguments)
             {
-                var param = parameters.SingleOrDefault(x => x.Name == argument.Name);
+                var param = parameters.SingleOrDefault(x => x.Name.ToLower() == argument.Name.ToLower());
                 if (param != null)
                 {
                     if (param.Type.Equals(MarketplaceParameterValueType.String.ToString()))
@@ -156,7 +157,12 @@ namespace Luna.Provision.Clients
 
             result.Append($"1>{logFile} 2>{errorLogFile} &");
 
-            var execResult = client.RunCommand(result.ToString());
+            SshCommand execResult = client.RunCommand(result.ToString());
+
+            if (execResult.ExitStatus != 0)
+            {
+                throw new LunaServerException("Executing command failed with error " + execResult.Result);
+            }
 
         }
 

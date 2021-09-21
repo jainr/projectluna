@@ -1601,7 +1601,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        await _marketplaceServiceClient.DeleteOfferParameterAsync(offerId, stepName, lunaHeaders);
+                        await _marketplaceServiceClient.DeleteProvisioningStepAsync(offerId, stepName, lunaHeaders);
                         return new NoContentResult();
                     }
 
@@ -1664,7 +1664,7 @@ namespace Luna.Gateway.Functions
                         null,
                         lunaHeaders))
                     {
-                        var result = await _marketplaceServiceClient.GetOfferParameterAsync(offerId, stepName, lunaHeaders);
+                        var result = await _marketplaceServiceClient.GetProvisioningStepAsync(offerId, stepName, lunaHeaders);
                         return new ContentResult
                         {
                             Content = result,

@@ -53,11 +53,24 @@ class ScenarioTest(HttpUser):
 
         self.headerData = { "Authorization": "Bearer " + access_token }
 
+        azure_cred = EnvironmentCredential()
+        self.azure_headers = { "Authorization": "Bearer " + azure_cred.get_token("https://management.azure.com/.default").token, "Content-Type": "application/json"}
 
     @task
     def create_and_call_realtime_endpoint(self):
         resource_name = "test" + str(uuid.uuid1())
         uid = str(uuid.uuid1())
+
+        uri = "https://management.azure.com/subscriptions/a6c2a7cc-d67e-4a1a-b765-983f08c0423a/resourcegroups/xiwutest/providers/Microsoft.Resources/deployments/MarketplaceSaaS_" +str(uuid.uuid1())+"?api-version=2020-06-01"
+        
+        with open('CreateSaaSSubscription.json') as f:
+            create_saas_subscription_payload = f.read()
+
+        create_saas_subscription_payload = create_saas_subscription_payload.replace("<subscription-name>", str(uuid.uuid1()));
+
+        response = requests.put(url = uri, headers=self.azure_headers, data=json.loads(create_saas_subscription_payload))
+
+        print(response.text)
 
         # RBAC Tests
         ##############################################

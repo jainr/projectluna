@@ -42,10 +42,11 @@ const SubscriptionContent: React.FunctionComponent<SubscriptionProps> = (props) 
   }
 
   const [subscriptionModel, setSubscriptionModel] = useState<ISubscriptionsModel>({
-    Id: '',
-  Name: '',
-  OfferId: '',
-  PlanId: '',
+    id: '',
+  name: '',
+  ownerId: '',
+  offerId: '',
+  planId: '',
   owner: '',
   quantity: 0,
   beneficiaryTenantId: '',
@@ -64,8 +65,8 @@ const SubscriptionContent: React.FunctionComponent<SubscriptionProps> = (props) 
   primaryKey: '',
   secondaryKey: '',
 
-  PublisherId: '',
-  SaaSSubscriptionStatus: '',
+  publisherId: '',
+  saaSSubscriptionStatus: '',
   isTest: false,
   allowedCustomerOperationsMask: 0,
   sessionMode: '',
@@ -82,6 +83,7 @@ const SubscriptionContent: React.FunctionComponent<SubscriptionProps> = (props) 
   deploymentId: '',
   resourceGroup: '',
   activatedBy: '',
+  parameters: []
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -154,7 +156,7 @@ const SubscriptionContent: React.FunctionComponent<SubscriptionProps> = (props) 
               Subscription Name:
             </span>
               <span style={{marginLeft: 8}}>
-              {subscriptionModel.Name}
+              {subscriptionModel.name}
             </span>              
           </Stack.Item>
           <Stack.Item styles={{

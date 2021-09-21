@@ -692,6 +692,23 @@ paths:
               $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceSubscriptionResponse'
       security:
         - x-functions-key: [ ]
+  /api/subscriptions/details:
+    get:
+      tags:
+        - Azure Marketplace
+      summary: List Azure Marketplace subscriptions with details
+      operationId: getApiSubscriptionsDetails
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Luna.Marketplace.Public.Client.MarketplaceSubscriptionResponse'
+      security:
+        - x-functions-key: [ ]
   /api/webhook:
     post:
       tags:

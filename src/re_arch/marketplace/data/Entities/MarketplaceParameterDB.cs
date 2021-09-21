@@ -18,6 +18,12 @@ namespace Luna.Marketplace.Data
 
         public string Description { get; set; }
 
+        public bool FromList { get; set; }
+
+        public bool IsRequired { get; set; }
+
+        public bool IsUserInput { get; set; }
+
         public DateTime CreatedTime { get; set; }
 
         public DateTime LastUpdatedTime { get; set; }

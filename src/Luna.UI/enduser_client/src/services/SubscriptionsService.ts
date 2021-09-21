@@ -11,6 +11,9 @@ import {
     ISubscriptionsV2Model
 } from "../models";
 
+import {IOfferParameterModel} from "../models/IOfferParameterModel";
+import {v4 as uuid} from "uuid";
+
 export default class SubscriptionsService extends ServiceBase {
 
     public static async getDeviceCode(): Promise<Result<IDeviceTokenModel>>{
@@ -34,10 +37,23 @@ export default class SubscriptionsService extends ServiceBase {
         return result;
     }
 
+    public static async listParameters(offerName: string, planName: string): Promise<Result<IOfferParameterModel[]>> {
+    
+        var result = await this.sendRequest<IOfferParameterModel[]>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
+          url: `offers/${offerName}/plans/${planName}/parameters`,
+          method: "GET"
+      });
+    
+        if (!result.hasErrors && result.value)
+          result.value.map(u => u.clientId = uuid());
+    
+        return result;
+      }
+
     public static async list(email: string): Promise<Result<ISubscriptionsModel[]>> {
 
-        var result = await this.requestJson<ISubscriptionsModel[]>({
-            url: `/marketplace/subscriptions`,
+        var result = await this.sendRequest<ISubscriptionsModel[]>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
+            url: `subscriptiondetails`,
             method: "GET"
         });
 
@@ -46,8 +62,8 @@ export default class SubscriptionsService extends ServiceBase {
 
     public static async get(subscriptionId: string): Promise<Result<ISubscriptionsModel>> {
 
-        var result = await this.requestJson<ISubscriptionsModel>({
-            url: `/marketplace/subscriptions/${subscriptionId}`,
+        var result = await this.sendRequest<ISubscriptionsModel>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
+            url: `subscriptions/${subscriptionId}`,
             method: "GET"
         });
 
@@ -69,8 +85,9 @@ export default class SubscriptionsService extends ServiceBase {
     }
 
     public static async create(model: ICreateSubscriptionModel): Promise<Result<ISubscriptionsModel>> {
-        var result = await this.requestJson<ISubscriptionsModel>({
-            url: `/marketplace/subscriptions/${model.Id}`,
+        
+        var result = await this.sendRequest<ISubscriptionsModel>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
+            url: `subscriptions/${model.id}`,
             method: "PUT",
             data: model
         });

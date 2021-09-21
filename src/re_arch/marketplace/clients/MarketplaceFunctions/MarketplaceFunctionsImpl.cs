@@ -602,6 +602,9 @@ namespace Luna.Marketplace.Clients
                         ParameterName = parameterName,
                         DisplayName = parameter.DisplayName,
                         Description = parameter.Description,
+                        FromList = parameter.FromList,
+                        IsRequired = parameter.IsRequired,
+                        IsUserInput = parameter.IsUserInput,
                         CreatedTime = createdTime,
                         LastUpdatedTime = createdTime
                     });
@@ -654,6 +657,9 @@ namespace Luna.Marketplace.Clients
                 _dbContext.MarketplaceEvents.Add(ev);
                 await _dbContext._SaveChangesAsync();
 
+                paramDb.FromList = parameterProp.FromList;
+                paramDb.IsRequired = parameterProp.IsRequired;
+                paramDb.IsUserInput = parameterProp.IsUserInput;
                 paramDb.DisplayName = parameterProp.DisplayName;
                 paramDb.Description = parameterProp.Description;
                 paramDb.LastUpdatedTime = DateTime.UtcNow;
@@ -705,9 +711,29 @@ namespace Luna.Marketplace.Clients
                     DisplayName = param.DisplayName,
                     Description = param.Description,
                     ParameterName = param.ParameterName,
+                    FromList = param.FromList,
+                    IsRequired = param.IsRequired,
+                    IsUserInput = param.IsUserInput,
                     CreatedTime = param.CreatedTime,
                     LastUpdatedTime = param.LastUpdatedTime
                 });
+            }
+
+            return parameters;
+        }
+
+        public async Task<List<MarketplaceParameterResponse>> ListInputParametersAsync(string offerId, LunaRequestHeaders headers)
+        {
+            var offer = await this.GetMarketplaceOfferInternalAsync(offerId);
+
+            var parameters = offer.Parameters.
+                Where(x => x.IsUserInput).
+                Select(x => this._parameterDataMapper.Map(x)).
+                ToList();
+
+            foreach (var param in parameters)
+            {
+                param.OfferId = offerId;
             }
 
             return parameters;
@@ -808,6 +834,7 @@ namespace Luna.Marketplace.Clients
             response.Name = stepName;
             response.CreatedTime = createdTime;
             response.LastUpdatedTime = createdTime;
+            response.Type = step.Type;
             return response;
         }
 
@@ -861,6 +888,7 @@ namespace Luna.Marketplace.Clients
             response.OfferId = offerId;
             response.Name = stepName;
             response.LastUpdatedTime = stepDb.LastUpdatedTime;
+            response.Type = step.Type;
             return response;
         }
 
@@ -883,6 +911,7 @@ namespace Luna.Marketplace.Clients
             response.LastUpdatedTime = stepDb.LastUpdatedTime;
             response.OfferId = offerId;
             response.Name = stepName;
+            response.Type = stepDb.Type;
 
             return response;
         }
@@ -1256,6 +1285,23 @@ namespace Luna.Marketplace.Clients
                 ToListAsync();
 
             return subList;
+        }
+
+        public async Task<List<MarketplaceSubscriptionResponse>> ListMarketplaceSubscriptionDetailsAsync(LunaRequestHeaders headers)
+        {
+            var subList = await this._dbContext.MarketplaceSubscriptions.
+                Where(x => x.OwnerId == headers.UserId &&
+                x.SaaSSubscriptionStatus != MarketplaceSubscriptionStatus.UNSUBSCRIBED).
+                ToListAsync();
+
+            List<MarketplaceSubscriptionResponse> result = new List<MarketplaceSubscriptionResponse>();
+
+            foreach (var sub in subList)
+            {
+                result.Add(await this.GetMarketplaceSubscriptionAsync(sub.SubscriptionId, headers));
+            }
+
+            return result;
         }
 
         #endregion

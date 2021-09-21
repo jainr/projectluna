@@ -23,6 +23,7 @@ import {Formik} from "formik";
 import {
   ISubscriptionsModel,
   ISubscriptionsV2Model,
+  IParamModel,
   ISubscriptionsV2RefreshKeyModel
 } from '../../models/ISubscriptionsModel';
 import SubscriptionsService from '../../services/SubscriptionsService';
@@ -69,6 +70,7 @@ const Subscriptions: React.FunctionComponent = () => {
   const [subscriptionV2, setsubscriptionV2] = useState<ISubscriptionsV2Model[]>([]);
   const [subscriptionV2Selected, setsubscriptionV2Selected] = useState<ISubscriptionsV2Model>(getInitialSubscriptionV2());
   const [Subscriptionv2DialogVisible, setSubscriptionv2DialogVisible] = useState<boolean>(false);
+  const [SubscriptionDialogVisible, setSubscriptionDialogVisible] = useState<boolean>(false);
   const [subscriptionv2PrimaryKey, setSubscriptionv2PrimaryKey] = useState<string>('');
   const [subscriptionv2SecondaryKey, setSubscriptionv2SecondaryKey] = useState<string>('');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -139,13 +141,13 @@ const Subscriptions: React.FunctionComponent = () => {
         } else {
           return <span>{item.name}</span>;
         }*/
-        if (item.SaaSSubscriptionStatus.toLowerCase() === "subscribed") {
+        if (item.saaSSubscriptionStatus.toLowerCase() === "subscribed") {
           return <span style={{cursor: 'pointer', color: 'rgb(0, 120, 212)'}}
                        onClick={() => {
-                         editdetailsV2(item.Id, item.Name, item.baseUrl, item.primaryKey, item.secondaryKey, item.OfferId, item.PlanId)
-                       }}>{item.Name}</span>;
+                         editdetailsV2(item.id, item.name, item.baseUrl, item.primaryKey, item.secondaryKey, item.parameters, item.offerId, item.planId)
+                       }}>{item.name}</span>;
         } else {
-          return <span>{item.Name}</span>;
+          return <span>{item.name}</span>;
         }
       }
     },
@@ -168,7 +170,7 @@ const Subscriptions: React.FunctionComponent = () => {
       sortDescendingAriaLabel: 'Sorted Z to A',
       isPadded: true,
       onRender: (item: ISubscriptionsModel) => {
-        return <span>{item.Id}</span>;
+        return <span>{item.id}</span>;
       }
     },
     {
@@ -190,7 +192,7 @@ const Subscriptions: React.FunctionComponent = () => {
       sortDescendingAriaLabel: 'Sorted Z to A',
       isPadded: true,
       onRender: (item: ISubscriptionsModel) => {
-        return <span>{item.OfferId}</span>;
+        return <span>{item.offerId}</span>;
       }
     },
     {
@@ -212,7 +214,7 @@ const Subscriptions: React.FunctionComponent = () => {
       sortDescendingAriaLabel: 'Sorted Z to A',
       isPadded: true,
       onRender: (item: ISubscriptionsModel) => {
-        return <span>{item.PlanId}</span>;
+        return <span>{item.planId}</span>;
       }
     },
     {
@@ -256,7 +258,7 @@ const Subscriptions: React.FunctionComponent = () => {
       sortDescendingAriaLabel: 'Sorted Z to A',
       isPadded: true,
       onRender: (item: ISubscriptionsModel) => {
-        return <span>{item.SaaSSubscriptionStatus}</span>;
+        return <span>{item.saaSSubscriptionStatus}</span>;
       }
     },
     {
@@ -285,18 +287,18 @@ const Subscriptions: React.FunctionComponent = () => {
             }}
           >
 
-            {item.SaaSSubscriptionStatus === "Subscribed" && item.provisioningStatus === "Succeeded" ?
+            {item.saaSSubscriptionStatus === "Subscribed" && item.provisioningStatus === "Succeeded" ?
               <FontIcon style={{lineHeight: '20px'}} iconName="Edit" className="deleteicon" onClick={() => {
-                updatePlan(item.Id, item.Name, item)
+                updatePlan(item.id, item.name, item)
               }}/> : null}
 
             <FontIcon style={{lineHeight: '20px'}} iconName="History" className="deleteicon" onClick={() => {
-              showHistory(item.Id)
+              showHistory(item.id)
             }}/>
 
-            {item.SaaSSubscriptionStatus === "Subscribed" && item.provisioningStatus === "Succeeded" ?
+            {item.saaSSubscriptionStatus === "Subscribed" && item.provisioningStatus === "Succeeded" ?
               <FontIcon style={{lineHeight: '20px'}} iconName="Cancel" className="deleteicon" onClick={() => {
-                deleteSubscription(item.Id, item.Name)
+                deleteSubscription(item.id, item.name)
               }}/> : null}
           </Stack>
         )
@@ -329,7 +331,7 @@ const Subscriptions: React.FunctionComponent = () => {
         if (item.status.toLowerCase() === "subscribed") {
           return <span style={{cursor: 'pointer', color: 'rgb(0, 120, 212)'}}
                        onClick={() => {
-                         editdetailsV2(item.subscriptionId, item.name, item.baseUrl, item.primaryKey, item.secondaryKey)
+                         editdetailsV2(item.subscriptionId, item.name, item.baseUrl, item.primaryKey, item.secondaryKey, item.parameters)
                        }}>{item.name}</span>;
         } else {
           return <span>{item.name}</span>;
@@ -636,15 +638,15 @@ const Subscriptions: React.FunctionComponent = () => {
   }, []);
 
   const updatePlan = async (subscriptionId: string, subscriptionName: string, selectedSubscription: ISubscriptionsModel) => {
-    await getPlans(selectedSubscription.OfferId)
+    await getPlans(selectedSubscription.offerId)
     setloadingSubcriptionPost(true);
     console.log('openconfirmCancellationPopUp: ' + subscriptionId);
     setSubscriptionPost(
       {
         SubscriptionId: subscriptionId,
-        CurrentPlanName: selectedSubscription.PlanId,
+        CurrentPlanName: selectedSubscription.planId,
         PlanName: "",
-        OfferName: selectedSubscription.OfferId,
+        OfferName: selectedSubscription.offerId,
         SubscriptionName: subscriptionName,
         SubscriptionVerifiedName: "",
         isUpdatePlan: true
@@ -702,6 +704,10 @@ const Subscriptions: React.FunctionComponent = () => {
   const hideSubscriptionv2Dialog = (): void => {
     setSubscriptionv2DialogVisible(false);
   };
+  
+  const hideSubscriptionDialog = (): void => {
+    setSubscriptionDialogVisible(false);
+  };
 
   const convertToAsterisk = (value: string): string => {
     let returnvalue = '';
@@ -711,9 +717,24 @@ const Subscriptions: React.FunctionComponent = () => {
     return returnvalue;
   }
 
-  const editdetailsV2 = async (subscriptionId: string, subscriptionName: string, baseUrl: string, primaryKey: string, secondaryKey: string, offerName="", planName="") => {
-    setSubscriptionv2PrimaryKey(convertToAsterisk(primaryKey));
-    setSubscriptionv2SecondaryKey(convertToAsterisk(secondaryKey));
+  const editdetailsV2 = async (subscriptionId: string, subscriptionName: string, baseUrl: string, primaryKey: string, secondaryKey: string, parameters: IParamModel[], offerName="", planName="") => {
+    
+    for (let index = 0; index < parameters.length; index++){
+      if (parameters[index].name === "PrimaryKey")
+      {
+        setSubscriptionv2PrimaryKey(convertToAsterisk(parameters[index].value));
+        primaryKey = parameters[index].value;
+      }
+      if (parameters[index].name === "SecondaryKey")
+      {
+        setSubscriptionv2SecondaryKey(convertToAsterisk(parameters[index].value));
+        secondaryKey = parameters[index].value;
+      }
+      if (parameters[index].name === "BaseUrl")
+      {
+        baseUrl = parameters[index].value;
+      } 
+    }
     setsubscriptionV2Selected({
       subscriptionId: subscriptionId,
       name: subscriptionName,
@@ -721,11 +742,18 @@ const Subscriptions: React.FunctionComponent = () => {
       productName: '',
       deploymentName: '',
       status: '',
-      baseUrl: baseUrl+'/apiv2/'+offerName+'/',
+      baseUrl: baseUrl,
       primaryKey: primaryKey,
-      secondaryKey: secondaryKey
+      secondaryKey: secondaryKey,
+      parameters: parameters
     });
-    setSubscriptionv2DialogVisible(true);
+    if (baseUrl != null)
+    {
+      setSubscriptionv2DialogVisible(true);
+    }
+    else{
+      setSubscriptionDialogVisible(true);
+    }
   };
 
   const showKey = (key: string, subscriptionV2Selected: ISubscriptionsV2Model) => {
@@ -872,8 +900,6 @@ const Subscriptions: React.FunctionComponent = () => {
                         onSubmit={async (values, {setSubmitting, setErrors}) => {
                           globalContext.showProcessing();
                           const input = {...values};
-                          console.log('submitted form:');
-                          console.log(input);
 
                           // //Update plan
                           if (values.isUpdatePlan) {
@@ -1020,7 +1046,7 @@ const Subscriptions: React.FunctionComponent = () => {
                           readOnly={true}/>
                       </Stack>
                       <Stack className={"form_row"}>
-                        <FormLabel title={"End Point:"}  toolTip={SubscriptionV2.Subscription.EndPoint}/>
+                        <FormLabel title={"API Base URL:"}  toolTip={SubscriptionV2.Subscription.EndPoint}/>
                         <div style={{width: '100%'}}>
                           <div style={{width: '93%', float: 'left'}}>
                             <TextField
@@ -1043,10 +1069,6 @@ const Subscriptions: React.FunctionComponent = () => {
                                 copied.className = copied.className + " copied";
                                 toast.success("Copied !");
 
-                                /*setTimeout(() => {
-                                  let copied = document.getElementsByClassName('baseurl')[0] as HTMLElement;
-                                  copied.className = copied.className.replace('copied', '');
-                                }, 3000);*/
                               }}/>
                             </CopyToClipboard>
                           </div>
@@ -1166,6 +1188,70 @@ const Subscriptions: React.FunctionComponent = () => {
                             </td>
                           </tr>
                           </tbody>
+                        </table>
+                      </Stack>
+                    </div>
+                  </React.Fragment>
+                </Dialog>
+                <Dialog
+                  hidden={!SubscriptionDialogVisible}
+                  onDismiss={hideSubscriptionDialog}
+
+                  dialogContentProps={{
+                    styles: {
+                      subText: {
+                        paddingTop: 0
+                      },
+                      title: {}
+
+                    },
+                    type: DialogType.close,
+                    title: 'Subscription'
+                  }}
+                  modalProps={{
+                    isDarkOverlay: true,
+                    isBlocking: true,
+                    styles: {
+                      main: {
+                        minWidth: '40% !important',
+                      }
+                    }
+                  }}
+                >
+                  <React.Fragment>
+                    <div id="subscriptionv2">
+                      <Stack className={"form_row"}>
+                        <FormLabel title={"Name:"} toolTip={SubscriptionV2.Subscription.subscriptionName}/>
+                        <TextField
+                          name={'subscriptionName'}
+                          value={subscriptionV2Selected.name}
+                          readOnly={true}/>
+                      </Stack>
+                      <Stack className={"form_row"}>
+                        <FormLabel title={"ID:"}  toolTip={SubscriptionV2.Subscription.ID}/>
+                        <TextField
+                          name={'subscriptionId'}
+                          value={subscriptionV2Selected.subscriptionId}
+                          readOnly={true}/>
+                      </Stack>
+
+                      <Stack className={"form_row"}>
+                        <FormLabel title={"Properties:"}  toolTip={SubscriptionV2.Subscription.ID}/>
+                        <table width={"100%"}>
+                          <thead>
+                            <tr>
+                              <th style={{width: '40%'}}>Name</th>
+                              <th style={{width: '60%'}}>Value</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                          {subscriptionV2Selected.parameters && subscriptionV2Selected.parameters.map(param =>
+                          <tr key={param.name}>
+                              <td>{param.name}</td>
+                              <td>{param.value}</td>
+                          </tr>
+                        )}
+                        </tbody>
                         </table>
                       </Stack>
                     </div>

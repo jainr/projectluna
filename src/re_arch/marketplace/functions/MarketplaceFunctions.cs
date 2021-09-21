@@ -1395,8 +1395,7 @@ namespace Luna.Marketplace.Functions
 
                 try
                 {
-                    var parameters = await this._marketplaceFunction.ListParametersAsync(offerId, lunaHeaders);
-                    parameters = parameters.Where(x => x.IsUserInput).ToList();
+                    var parameters = await this._marketplaceFunction.ListInputParametersAsync(offerId, lunaHeaders);
 
                     return new OkObjectResult(parameters);
                 }
@@ -1501,7 +1500,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("CreateMarketplaceSubscription")]
         public async Task<IActionResult> CreateMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Put", Route = "subscriptions/{subscriptionId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Put", Route = "public/subscriptions/{subscriptionId}")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1543,7 +1542,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ActivateMarketplaceSubscription")]
         public async Task<IActionResult> ActivateMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "subscriptions/{subscriptionId}/activate")]
+            [HttpTrigger(AuthorizationLevel.Function, "Post", Route = "subscriptions/{subscriptionId}/activate")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1584,7 +1583,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("UnsubscribeMarketplaceSubscription")]
         public async Task<IActionResult> UnsubscribeMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Delete", Route = "subscriptions/{subscriptionId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Delete", Route = "public/subscriptions/{subscriptionId}")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1636,7 +1635,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("GetMarketplaceSubscription")]
         public async Task<IActionResult> GetMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "subscriptions/{subscriptionId}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "public/subscriptions/{subscriptionId}")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1686,15 +1685,15 @@ namespace Luna.Marketplace.Functions
         ///     <in>header</in>
         /// </security>
         /// <returns></returns>
-        [FunctionName("ListMarketplaceSubscription")]
-        public async Task<IActionResult> ListMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "subscriptions")]
+        [FunctionName("ListMarketplaceSubscriptions")]
+        public async Task<IActionResult> ListMarketplaceSubscriptions(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "public/subscriptions")]
             HttpRequest req)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
             using (_logger.BeginManagementNamedScope(lunaHeaders))
             {
-                _logger.LogMethodBegin(nameof(this.ListMarketplaceSubscription));
+                _logger.LogMethodBegin(nameof(this.ListMarketplaceSubscriptions));
 
                 try
                 {
@@ -1707,7 +1706,58 @@ namespace Luna.Marketplace.Functions
                 }
                 finally
                 {
-                    _logger.LogMethodEnd(nameof(this.ListMarketplaceSubscription));
+                    _logger.LogMethodEnd(nameof(this.ListMarketplaceSubscriptions));
+                }
+            }
+        }
+
+        /// <summary>
+        /// List Azure Marketplace subscriptions with details
+        /// </summary>
+        /// <group>Azure Marketplace</group>
+        /// <verb>GET</verb>
+        /// <url>http://localhost:7071/api/subscriptions/details</url>
+        /// <param name="req">request</param>
+        /// <response code="200">
+        ///     <see cref="List{T}"/>
+        ///     where T is<see cref="MarketplaceSubscriptionResponse"/>
+        ///     <example>
+        ///         <value>
+        ///             <see cref="MarketplaceSubscriptionResponse.example"/>
+        ///         </value>
+        ///         <summary>
+        ///             An example of a marketplace subscription
+        ///         </summary>
+        ///     </example>
+        ///     Success
+        /// </response>
+        /// <security type="apiKey" name="x-functions-key">
+        ///     <description>Azure function key</description>
+        ///     <in>header</in>
+        /// </security>
+        /// <returns></returns>
+        [FunctionName("ListMarketplaceSubscriptionDetails")]
+        public async Task<IActionResult> ListMarketplaceSubscriptionDetails(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "public/subscriptiondetails")]
+            HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.ListMarketplaceSubscriptionDetails));
+
+                try
+                {
+                    var result = await this._marketplaceFunction.ListMarketplaceSubscriptionDetailsAsync(lunaHeaders);
+                    return new OkObjectResult(result);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.ListMarketplaceSubscriptionDetails));
                 }
             }
         }

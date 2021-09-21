@@ -76,7 +76,7 @@ namespace Luna.Provision.Clients
                                 }
                             };
                         }
-                        else if (!job.Mode.Equals(MarketplacePlanMode.IaaS.ToString()) || IsJumpboxReady(parameters))
+                        else if (job.Mode.Equals(MarketplacePlanMode.IaaS.ToString()) && !IsJumpboxReady(parameters))
                         {
                             // Generate new SSH key pair if not exist
                             if (!parameters.Any(x => x.Name == JumpboxParameterConstants.JUMPBOX_VM_SSH_PUBLIC_KEY_PARAM_NAME))
@@ -126,6 +126,9 @@ namespace Luna.Provision.Clients
                             // skip the jump box preparation step if it is not required
                             job.ProvisioningStepIndex = 0;
                             job.ProvisioningStepStatus = ProvisionStepStatus.NotStarted.ToString();
+                            job.LastUpdatedTime = DateTime.UtcNow;
+                            _dbContext.MarketplaceSubProvisionJobs.Update(job);
+                            await _dbContext._SaveChangesAsync();
                             return;
                         }
 

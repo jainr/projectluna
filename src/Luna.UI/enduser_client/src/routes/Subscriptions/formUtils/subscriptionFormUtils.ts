@@ -7,13 +7,14 @@ import {
 
 export const getInitialCreateSubscriptionModel = (): ICreateSubscriptionModel => {
   return {
-    Id: "",
-    Name: "",
-    OfferId: "",
-    PlanId: "",
-    PublisherId: "",
-    Token: "",
-    InputParameters: []
+    id: "",
+    name: "",
+    offerId: "",
+    planId: "",
+    publisherId: "",
+    ownerId: "",
+    token: "",
+    inputParameters: []
   }
 };
 
@@ -39,7 +40,8 @@ export const getInitialSubscriptionV2 = (): ISubscriptionsV2Model => {
     status: '',
     baseUrl: '',
     primaryKey: '',
-    secondaryKey: ''
+    secondaryKey: '',
+    parameters: []
   }
 };
 

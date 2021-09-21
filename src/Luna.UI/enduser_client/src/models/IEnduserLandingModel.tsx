@@ -41,11 +41,11 @@ export interface ILandingModel {
 
 export interface IResolveTokenModel {
 
-    OfferId: string,
-    PlanId: string,
-    PublisherId: string | null,
+    offerId: string,
+    planId: string,
+    publisherId: string | null,
     quantity: number,
-    SaaSSubscriptionStatus: number,
-    Id: string,
-    Name: string
+    saaSSubscriptionStatus: number,
+    id: string,
+    name: string
 }

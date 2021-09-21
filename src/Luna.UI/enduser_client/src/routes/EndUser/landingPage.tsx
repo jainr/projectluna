@@ -113,13 +113,13 @@ const LandingPage: React.FunctionComponent = (props) => {
       }
 
       // set resolvetoken data
-      formData.planName = data.value.PlanId;
-      formData.offerName = data.value.OfferId;
+      formData.planName = data.value.planId;
+      formData.offerName = data.value.offerId;
       formData.beneficiaryTenantId = "";
       formData.purchaserTenantId = "";
       formData.quantity = 1;
-      formData.subscriptionId = data.value.Id;
-      formData.subscriptionName = data.value.Name;
+      formData.subscriptionId = data.value.id;
+      formData.subscriptionName = data.value.name;
 
       const [
         deviceCodeResponse,
@@ -127,7 +127,7 @@ const LandingPage: React.FunctionComponent = (props) => {
         subscriptionResponse,
       ] = await Promise.all([
         SubscriptionsService.getDeviceCode(),
-        OfferParameterService.list(data.value.OfferId, data.value.PlanId),
+        OfferParameterService.list(data.value.offerId, data.value.planId),
         SubscriptionsService.list(formData.email)
       ]);
 
@@ -139,7 +139,7 @@ const LandingPage: React.FunctionComponent = (props) => {
       // redirect to the subscription list because the user already has the subscription
       if ((subscriptionResponse.value && subscriptionResponse.success
         && (subscriptionResponse.value as ISubscriptionsModel[])
-        && (subscriptionResponse.value as ISubscriptionsModel[]).findIndex(x => x.Id === formData.subscriptionId) >= 0)
+        && (subscriptionResponse.value as ISubscriptionsModel[]).findIndex(x => x.id === formData.subscriptionId) >= 0)
         || !offerParametersResponse.success) {
         history.push("/Subscriptions");
         return;
@@ -153,14 +153,14 @@ const LandingPage: React.FunctionComponent = (props) => {
         offerParameters.map((item, index) => {
           return (
           Parametersarray.push({
-            parameterName: item.ParameterName,
-            displayName: item.DisplayName,
-            description: item.Description,
-            valueType: item.ValueType,
-            fromList: item.FromList,
-            valueList: item.ValueList,
-            maximum: item.Maximum,
-            minimum: item.Minimum
+            parameterName: item.parameterName,
+            displayName: item.displayName,
+            description: item.description,
+            valueType: item.valueType,
+            fromList: item.fromList,
+            valueList: item.valueList,
+            maximum: item.maximum,
+            minimum: item.minimum
           }))
         });
 
@@ -461,41 +461,51 @@ function copyText(text){
                 var token = decodeURI(result.token as string);
 
                 let subscriptionsModel = getInitialCreateSubscriptionModel();
-                subscriptionsModel.Id = input.subscriptionId;
-                subscriptionsModel.Name = input.subscriptionName;
-                subscriptionsModel.OfferId = input.offerName;
-                subscriptionsModel.PlanId = input.planName;
-                subscriptionsModel.PublisherId = "";
-                subscriptionsModel.Token = token;
+                subscriptionsModel.id = input.subscriptionId;
+                subscriptionsModel.name = input.subscriptionName;
+                subscriptionsModel.offerId = input.offerName;
+                subscriptionsModel.planId = input.planName;
+                subscriptionsModel.publisherId = "";
+                subscriptionsModel.token = token;
+                
+                var response = adalContext.AuthContext.getCachedUser();
+                if (response && response.profile && response.profile.oid)
+                    subscriptionsModel.ownerId = response.profile.oid;
+
+                console.log(response.profile);
                 console.log('rendering items');
                 console.log('param values: ', input.parameterValues);
 
                 input.inputParameters.map((item, index) => {  
                   if (item.valueType === 'number') {
                     return (
-                      subscriptionsModel.InputParameters.push(
+                      subscriptionsModel.inputParameters.push(
                         {
                           name: item.parameterName,
                           type: item.valueType,
-                         value: '"'+parseInt(input.parameterValues[index][item.parameterName])+'"'
+                         value: '"'+parseInt(input.parameterValues[index][item.parameterName])+'"',
+                         isSystemParameter: false
                         }))
                   }
                   else{
                     return (
-                    subscriptionsModel.InputParameters.push(
+                    subscriptionsModel.inputParameters.push(
                       {
                         name: item.parameterName,
                         type: item.valueType,
-                        value: input.parameterValues[index][item.parameterName]
+                        value: input.parameterValues[index][item.parameterName],
+                        isSystemParameter: false
                       }))
                   }
                 })
                 
-                subscriptionsModel.InputParameters.push(
+                subscriptionsModel.inputParameters.push(
                   {
                     name: 'luna-jumpbox-access-token',
                     type: 'String',
-                    value: input.accessToken
+                    value: input.accessToken,
+                    isSystemParameter: true
+
                   })
 
                 let createSubscriptionsResult = await SubscriptionsService.create(subscriptionsModel);
