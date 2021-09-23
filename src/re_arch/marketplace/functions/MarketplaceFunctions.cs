@@ -16,6 +16,8 @@ using Luna.Marketplace.Public.Client;
 using Luna.PubSub.Public.Client;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Luna.Marketplace.Functions
 {
@@ -1748,6 +1750,11 @@ namespace Luna.Marketplace.Functions
 
                 try
                 {
+                    if (string.IsNullOrEmpty(lunaHeaders.UserId) && req.Query.ContainsKey("ownerId"))
+                    {
+                        lunaHeaders.UserId = req.Query["ownerId"].ToString();
+                    }
+
                     var result = await this._marketplaceFunction.ListMarketplaceSubscriptionDetailsAsync(lunaHeaders);
                     return new OkObjectResult(result);
                 }
@@ -1803,7 +1810,93 @@ namespace Luna.Marketplace.Functions
                 }
             }
         }
-        #endregion 
+        #endregion
+
+        #region signin CLI
+
+        [FunctionName("GetAccessToken")]
+        public async Task<IActionResult> GetAccessToken(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "public/manage/accessToken")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetAccessToken));
+
+                try
+                {
+                    HttpClient client = new HttpClient();
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://login.microsoftonline.com/common/oauth2/token");
+                    if (!req.Query.ContainsKey("device_code"))
+                    {
+                        throw new LunaBadRequestUserException("device_code is needed", UserErrorCode.MissingQueryParameter);
+                    }
+
+                    var deviceCode = req.Query["device_code"].ToString();
+
+                    request.Content = new StringContent($"grant_type=device_code&client_id=04b07795-8ddb-461a-bbee-02f9e1bf7b46&resource=https%3A%2F%2Fmanagement.core.windows.net%2F&code={deviceCode}");
+                    request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
+                    var response = await client.SendAsync(request);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        return new OkObjectResult(JObject.Parse(content));
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetAccessToken));
+                }
+            }
+        }
+
+
+        [FunctionName("GetDeviceCode")]
+        public async Task<IActionResult> GetDeviceCode(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "public/manage/deviceCode")] HttpRequest req)
+        {
+            var lunaHeaders = new LunaRequestHeaders(req);
+            using (_logger.BeginManagementNamedScope(lunaHeaders))
+            {
+                _logger.LogMethodBegin(nameof(this.GetDeviceCode));
+
+                try
+                {
+                    HttpClient client = new HttpClient();
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://login.microsoftonline.com/common/oauth2/devicecode?api-version-1.0");
+
+                    request.Content = new StringContent("client_id=04b07795-8ddb-461a-bbee-02f9e1bf7b46&resource=https%3A%2F%2Fmanagement.core.windows.net%2F");
+                    request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
+                    var response = await client.SendAsync(request);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        return new OkObjectResult(JObject.Parse(content));
+                    }
+
+                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
+                }
+                catch (Exception ex)
+                {
+                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
+                }
+                finally
+                {
+                    _logger.LogMethodEnd(nameof(this.GetDeviceCode));
+                }
+            }
+        }
+        #endregion
 
         #region Private methods
 

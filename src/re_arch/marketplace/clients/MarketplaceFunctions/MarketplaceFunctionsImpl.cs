@@ -1100,7 +1100,11 @@ namespace Luna.Marketplace.Clients
             }
 
             var subDb = this._subscriptionMapper.Map(subRequest);
-            subDb.OwnerId = headers.UserId;
+
+            if (subDb.OwnerId == null)
+            {
+                subDb.OwnerId = headers.UserId;
+            }
 
             var requiredParameters = await this.ListParametersAsync(subDb.OfferId, headers);
 

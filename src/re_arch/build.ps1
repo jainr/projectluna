@@ -74,7 +74,7 @@ if ($deployNew) {
 	
 	push-location testbuild
 	
-	./deployment.sh -s $config.subscriptionId -r $config.resourceGroupName -l $config.region -n $config.namePrefix -q $config.sqlUserName -p $config.sqlPassword -t $config.tenantId -c $config.clientId -x $config.clientSecret -a $config.adminUserId -u $config.adminUserName -w $config.createNewResource -m $config.useManagedIdentity -e $config.marketplaceTenantId -i $config.marketplaceClientId -y $config.marketplaceClientSecret
+	./deployment.sh -s $config.subscriptionId -r $config.resourceGroupName -l $config.region -n $config.namePrefix -q $config.sqlUserName -p $config.sqlPassword -t $config.tenantId -c $config.clientId -x $config.clientSecret -a $config.adminUserId -u $config.adminUserName -w $config.createNewResource -m $config.useManagedIdentity -e $config.marketplaceTenantId -i $config.marketplaceClientId -b $config.marketplaceClientSecret
 
 	pop-location
 	

@@ -16,7 +16,7 @@ do
 	  m ) useManagedIdentity="$OPTARG" ;;
 	  e ) marketplaceTenantId="$OPTARG" ;;
 	  i ) marketplaceClientId="$OPTARG" ;;
-	  y ) marketplaceClientSecret="$OPTARG" ;;
+	  b ) marketplaceClientSecret="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
@@ -42,6 +42,13 @@ galleryFxAppName="${namePrefix}-gallery"
 provisionFxAppName="${namePrefix}-provision"
 marketplaceFxAppName="${namePrefix}-marketplace"
 managedIdentityName="${namePrefix}-uami"
+
+landingPageUIAppName = "${namePrefix}-landingpage"
+publishingUIAppName = "${namePrefix}-publishing"
+galleryUIAppName = "${namePrefix}-portal"
+
+deployJbArmTemplate = "https://github.com/Azure/projectluna/raw/re-arch/src/re_arch/resources/arm.json"
+
 
 # Only pop up the login window when neccessary
 state=$(az account subscription show --id $subscriptionId --only-show-errors | ./jq -r '.state')
@@ -356,6 +363,10 @@ routingFxUrl="https://${routingFxAppName}.azurewebsites.net/api/"
 galleryFxUrl="https://${galleryFxAppName}.azurewebsites.net/api/"
 marketplaceFxUrl="https://${marketplaceFxAppName}.azurewebsites.net/api/"
 
+landingPageUIUrl = "https://${landingPageUIAppName}.azurewebsites.net"
+publishingUIUrl = "https://${publishingUIAppName}.azurewebsites.net"
+galleryUIUrl = "https://${galleryUIAppName}.azurewebsites.net"
+
 rbacFxKey=$(az functionapp keys list -g $resourceGroupName -n $rbacFxAppName | ./jq -r '.functionKeys.default')
 publishFxKey=$(az functionapp keys list -g $resourceGroupName -n $publishFxAppName | ./jq -r '.functionKeys.default')
 partnerFxKey=$(az functionapp keys list -g $resourceGroupName -n $partnerFxAppName | ./jq -r '.functionKeys.default')
@@ -486,6 +497,11 @@ then
   	--resource-group $resourceGroupName \
   	--settings "USER_ASSIGNED_MANAGED_IDENTITY=${uamiId}"
 fi
+
+# Manage CORS
+az functionapp cors add -g $resourceGroupName -n $marketplaceFxAppName --allowed-origins $landingPageUIUrl
+az functionapp cors add -g $resourceGroupName -n $gatewayFxAppName --allowed-origins $publishingUIUrl
+az functionapp cors add -g $resourceGroupName -n $gatewayFxAppName --allowed-origins $galleryUIUrl
 
 # Setup AAD authentication for gateway service
 tokenIssuerUrl="https://login.microsoftonline.com/${aadTenantId}"

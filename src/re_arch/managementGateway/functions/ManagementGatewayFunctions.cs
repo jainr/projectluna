@@ -22,11 +22,11 @@ using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using System.Net;
 
-namespace Luna.Gateway.Functions
+namespace Luna.ManagementGateway.Functions
 {
-    public class GatewayFunctions
+    public class ManagementGatewayFunctions
     {
-        private readonly ILogger<GatewayFunctions> _logger;
+        private readonly ILogger<ManagementGatewayFunctions> _logger;
         private readonly IPartnerServiceClient _partnerServiceClient;
         private readonly IRBACClient _rbacClient;
         private readonly IPublishServiceClient _publishServiceClient;
@@ -34,13 +34,13 @@ namespace Luna.Gateway.Functions
         private readonly IGalleryServiceClient _galleryServiceClient;
         private readonly IMarketplaceServiceClient _marketplaceServiceClient;
 
-        public GatewayFunctions(IPartnerServiceClient partnerServiceClient,
+        public ManagementGatewayFunctions(IPartnerServiceClient partnerServiceClient,
             IRBACClient rbacClient,
             IPublishServiceClient publishServiceClient,
             IPubSubServiceClient pubSubServiceClient,
             IGalleryServiceClient galleryServiceClient,
             IMarketplaceServiceClient marketplaceClient,
-            ILogger<GatewayFunctions> logger)
+            ILogger<ManagementGatewayFunctions> logger)
         {
             this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this._rbacClient = rbacClient ?? throw new ArgumentNullException(nameof(rbacClient));
@@ -1320,7 +1320,6 @@ namespace Luna.Gateway.Functions
             }
         }
 
-
         /// <summary>
         /// Create a provisioning step in an Azure Marketplace SaaS offer
         /// </summary>
@@ -1665,138 +1664,6 @@ namespace Luna.Gateway.Functions
                 finally
                 {
                     _logger.LogMethodEnd(nameof(this.ListProvisioningSteps));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Resolve Azure Marketplace subscription from token
-        /// </summary>
-        /// <group>Azure Marketplace</group>
-        /// <verb>POST</verb>
-        /// <url>http://localhost:7071/api/marketplace/subscriptions/resolveToken</url>
-        /// <param name="req" in="body"><see cref="string"/>Token</param>
-        /// <response code="200">
-        ///     <see cref="MarketplaceSubscriptionResponse"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="MarketplaceSubscriptionResponse.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of a marketplace subscription
-        ///         </summary>
-        ///     </example>
-        ///     Success
-        /// </response>
-        /// <security type="apiKey" name="x-functions-key">
-        ///     <description>Azure function key</description>
-        ///     <in>header</in>
-        /// </security>
-        /// <returns></returns>
-        [FunctionName("ResolveMarketplaceSubscription")]
-        public async Task<IActionResult> ResolveMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "marketplace/subscriptions/resolvetoken")]
-            HttpRequest req)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.ResolveMarketplaceSubscription));
-
-                try
-                {
-                    // This should be a public endpoint
-                    var token = await HttpUtils.GetRequestBodyAsync(req);
-                    var result = await _marketplaceServiceClient.ResolveMarketplaceTokenAsync(token, lunaHeaders);
-
-                    // TODO: verify the ownership
-
-                    return new ContentResult
-                    {
-                        Content = result,
-                        ContentType = HttpUtils.JSON_CONTENT_TYPE,
-                        StatusCode = (int)HttpStatusCode.OK
-                    };
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.ResolveMarketplaceSubscription));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Create Azure Marketplace subscription
-        /// </summary>
-        /// <group>Azure Marketplace</group>
-        /// <verb>PUT</verb>
-        /// <url>http://localhost:7071/api/marketplace/subscriptions/{subscriptionId}</url>
-        /// <param name="subscriptionId" required="true" cref="string" in="path">ID of the subscription</param>
-        /// <param name="req" in="body">
-        ///     <see cref="MarketplaceSubscriptionRequest"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="MarketplaceSubscriptionRequest.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of a marketplace subscription
-        ///         </summary>
-        ///     </example>
-        ///     The subscription
-        /// </param>
-        /// <response code="200">
-        ///     <see cref="MarketplaceSubscriptionResponse"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="MarketplaceSubscriptionResponse.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of a marketplace subscription
-        ///         </summary>
-        ///     </example>
-        ///     Success
-        /// </response>
-        /// <security type="apiKey" name="x-functions-key">
-        ///     <description>Azure function key</description>
-        ///     <in>header</in>
-        /// </security>
-        /// <returns></returns>
-        [FunctionName("CreateMarketplaceSubscription")]
-        public async Task<IActionResult> CreateMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Put", Route = "marketplace/subscriptions/{subscriptionId}")]
-            HttpRequest req,
-            Guid subscriptionId)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.CreateMarketplaceSubscription));
-
-                try
-                {
-                    var content = await HttpUtils.GetRequestBodyAsync(req);
-                    var result = await _marketplaceServiceClient.CreateMarketplaceSubscriptionAsync(subscriptionId, content, lunaHeaders);
-
-                    return new ContentResult
-                    {
-                        Content = result,
-                        ContentType = HttpUtils.JSON_CONTENT_TYPE,
-                        StatusCode = (int)HttpStatusCode.OK
-                    };
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.CreateMarketplaceSubscription));
                 }
             }
         }
@@ -4074,62 +3941,6 @@ namespace Luna.Gateway.Functions
 
         #region gallery
 
-        /// <summary>
-        /// Get offer parameters
-        /// </summary>
-        /// <group>Gallery</group>
-        /// <verb>GET</verb>
-        /// <url>http://localhost:7071/api/marketplace/offers/{offerId}/plans/{planId}/parameters</url>
-        /// <param name="offerId" required="true" cref="string" in="path">The offer ID</param>
-        /// <param name="planId" required="true" cref="string" in="path">The plan ID</param>
-        /// <param name="req">Http request</param>
-        /// <response code="200">
-        ///     <see cref="List{T}"/>
-        ///     where T is <see cref="MarketplaceParameter"/>
-        ///     <example>
-        ///         <value>
-        ///             <see cref="MarketplaceParameter.example"/>
-        ///         </value>
-        ///         <summary>
-        ///             An example of a marketplace subscription
-        ///         </summary>
-        ///     </example>
-        ///     Success
-        /// </response>
-        /// <security type="apiKey" name="x-functions-key">
-        ///     <description>Azure function key</description>
-        ///     <in>header</in>
-        /// </security>
-        /// <returns></returns>
-        [FunctionName("GetMarketplaceParameters")]
-        public async Task<IActionResult> GetMarketplaceParameters(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "gallery/offers/{offerId}/plans/{planId}/parameters")]
-            HttpRequest req,
-            string offerId,
-            string planId)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.GetMarketplaceParameters));
-
-                try
-                {
-                    // This should be a public endpoint
-                    var result = await _marketplaceServiceClient.GetMarketplaceParametersAsync(offerId, planId, lunaHeaders);
-                    return new OkObjectResult(result);
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.GetMarketplaceParameters));
-                }
-            }
-        }
 
         /// <summary>
         /// Get a published Luna application

@@ -17,8 +17,8 @@ import {v4 as uuid} from "uuid";
 export default class SubscriptionsService extends ServiceBase {
 
     public static async getDeviceCode(): Promise<Result<IDeviceTokenModel>>{
-
-        var result = await this.requestJson<IDeviceTokenModel>({
+        
+        var result = await this.sendRequest<IDeviceTokenModel>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
             url: `/manage/devicecode`,
             method: "GET"
         });
@@ -29,7 +29,7 @@ export default class SubscriptionsService extends ServiceBase {
 
     public static async getAccessToken(code: string): Promise<Result<IAccessTokenModel>>{
 
-        var result = await this.requestJson<IAccessTokenModel>({
+        var result = await this.sendRequest<IAccessTokenModel>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
             url: `/manage/accessToken?device_code=${code}`,
             method: "GET"
         });
@@ -50,10 +50,10 @@ export default class SubscriptionsService extends ServiceBase {
         return result;
       }
 
-    public static async list(email: string): Promise<Result<ISubscriptionsModel[]>> {
+    public static async list(oid: string): Promise<Result<ISubscriptionsModel[]>> {
 
         var result = await this.sendRequest<ISubscriptionsModel[]>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
-            url: `subscriptiondetails`,
+            url: `subscriptiondetails?ownerId=${oid}`,
             method: "GET"
         });
 

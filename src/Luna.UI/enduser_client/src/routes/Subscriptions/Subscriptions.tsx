@@ -86,9 +86,13 @@ const Subscriptions: React.FunctionComponent = () => {
   let usr = adalContext.AuthContext.getCachedUser();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let ownerEmail = "";
+  let oid = "";
   if (usr && usr.profile) {
     if (usr.userName)
       ownerEmail = usr.userName;
+    if (usr.profile.oid){
+      oid = usr.profile.oid;
+    }
   }
 
   const _onColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn): void => {
@@ -576,7 +580,7 @@ const Subscriptions: React.FunctionComponent = () => {
   const getSubscriptions = async () => {
     setLoadingSubscription(true);
     let results: any;
-    results = await SubscriptionsService.list(ownerEmail as string);
+    results = await SubscriptionsService.list(oid as string);
 
     if (results && !results.hasErrors && results.value) {
 
