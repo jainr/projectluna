@@ -65,15 +65,6 @@ namespace Luna.Gateway.Functions
 
             builder.Services.AddSingleton<IPubSubServiceClient, PubSubServiceClient>();
 
-            builder.Services.AddOptions<GalleryServiceClientConfiguration>().Configure(
-                options =>
-                {
-                    options.ServiceBaseUrl = Environment.GetEnvironmentVariable("GALLERY_SERVICE_BASE_URL");
-                    options.AuthenticationKey = Environment.GetEnvironmentVariable("GALLERY_SERVICE_KEY");
-                });
-
-            builder.Services.AddSingleton<IGalleryServiceClient, GalleryServiceClient>();
-
             builder.Services.AddOptions<MarketplaceServiceClientConfiguration>().Configure(
                 options =>
                 {
@@ -82,8 +73,6 @@ namespace Luna.Gateway.Functions
                 });
 
             builder.Services.AddSingleton<IMarketplaceServiceClient, MarketplaceServiceClient>();
-
-            string connectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING");
 
             builder.Services.AddApplicationInsightsTelemetry();
 

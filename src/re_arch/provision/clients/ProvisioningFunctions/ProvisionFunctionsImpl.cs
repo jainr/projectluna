@@ -247,6 +247,10 @@ namespace Luna.Provision.Clients
             catch (Exception e)
             {
                 _logger.LogError(e.Message);
+                job.LastErrorMessage = e.Message;
+                job.LastUpdatedTime = DateTime.UtcNow;
+                _dbContext.MarketplaceSubProvisionJobs.Update(job);
+                await _dbContext._SaveChangesAsync();
             }
         }
 

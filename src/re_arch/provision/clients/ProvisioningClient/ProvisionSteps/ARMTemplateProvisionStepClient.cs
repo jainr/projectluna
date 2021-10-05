@@ -96,6 +96,9 @@ namespace Luna.Provision.Clients
 
             string deploymentName = Guid.NewGuid().ToString();
 
+            // remove the old deployment name
+            parameters.RemoveAll(x => x.Name == DEPLOYMENT_NAME_PARAM_NAME);
+
             parameters.Add(new MarketplaceSubscriptionParameter()
             {
                 Name = DEPLOYMENT_NAME_PARAM_NAME,

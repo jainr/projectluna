@@ -548,6 +548,22 @@ namespace Luna.Marketplace.Public.Client
         }
 
         /// <summary>
+        /// List marketplace subscription details
+        /// </summary>
+        /// <param name="headers">The Luna request header</param>
+        /// <returns></returns>
+        public async Task<string> ListMarketplaceSubscriptionDetailsAsync(LunaRequestHeaders headers)
+        {
+            headers.AzureFunctionKey = this._config.AuthenticationKey;
+            var uri = new Uri(this._config.ServiceBaseUrl +
+                $"subscriptiondetails");
+
+            var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
+
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        /// <summary>
         /// Get parameters for the specified offer and plan
         /// </summary>
         /// <param name="offerId">The offer id</param>
@@ -569,7 +585,7 @@ namespace Luna.Marketplace.Public.Client
 
             headers.AzureFunctionKey = this._config.AuthenticationKey;
             var uri = new Uri(this._config.ServiceBaseUrl +
-                $"offers/{offerId}/plans/{planId}/parameters");
+                $"subscriptions/offers/{offerId}/plans/{planId}/parameters");
 
             var response = await SendRequestAndVerifySuccess(HttpMethod.Get, uri, null, headers);
 

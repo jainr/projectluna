@@ -18,7 +18,7 @@ export default class SubscriptionsService extends ServiceBase {
 
     public static async getDeviceCode(): Promise<Result<IDeviceTokenModel>>{
         
-        var result = await this.sendRequest<IDeviceTokenModel>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
+        var result = await this.requestJson<IDeviceTokenModel>({
             url: `/manage/devicecode`,
             method: "GET"
         });
@@ -29,7 +29,7 @@ export default class SubscriptionsService extends ServiceBase {
 
     public static async getAccessToken(code: string): Promise<Result<IAccessTokenModel>>{
 
-        var result = await this.sendRequest<IAccessTokenModel>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
+        var result = await this.requestJson<IAccessTokenModel>({
             url: `/manage/accessToken?device_code=${code}`,
             method: "GET"
         });
@@ -39,8 +39,8 @@ export default class SubscriptionsService extends ServiceBase {
 
     public static async listParameters(offerName: string, planName: string): Promise<Result<IOfferParameterModel[]>> {
     
-        var result = await this.sendRequest<IOfferParameterModel[]>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
-          url: `offers/${offerName}/plans/${planName}/parameters`,
+        var result = await this.requestJson<IOfferParameterModel[]>({
+          url: `/marketplace/offers/${offerName}/plans/${planName}/parameters`,
           method: "GET"
       });
     
@@ -52,8 +52,8 @@ export default class SubscriptionsService extends ServiceBase {
 
     public static async list(oid: string): Promise<Result<ISubscriptionsModel[]>> {
 
-        var result = await this.sendRequest<ISubscriptionsModel[]>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
-            url: `subscriptiondetails?ownerId=${oid}`,
+        var result = await this.requestJson<ISubscriptionsModel[]>({
+            url: `/marketplace/subscriptiondetails`,
             method: "GET"
         });
 
@@ -62,8 +62,8 @@ export default class SubscriptionsService extends ServiceBase {
 
     public static async get(subscriptionId: string): Promise<Result<ISubscriptionsModel>> {
 
-        var result = await this.sendRequest<ISubscriptionsModel>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
-            url: `subscriptions/${subscriptionId}`,
+        var result = await this.requestJson<ISubscriptionsModel>({
+            url: `/marketplace/subscriptions/${subscriptionId}`,
             method: "GET"
         });
 
@@ -86,8 +86,8 @@ export default class SubscriptionsService extends ServiceBase {
 
     public static async create(model: ICreateSubscriptionModel): Promise<Result<ISubscriptionsModel>> {
         
-        var result = await this.sendRequest<ISubscriptionsModel>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
-            url: `subscriptions/${model.id}`,
+        var result = await this.requestJson<ISubscriptionsModel>({
+            url: `/marketplace/subscriptions/${model.id}`,
             method: "PUT",
             data: model
         });

@@ -2,9 +2,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
-    <AssemblyName>Luna.Manage.Functions</AssemblyName>
-    <RootNamespace>Luna.Manage.Functions</RootNamespace>
-    <DocumentationFile>Luna.Manage.Functions.xml</DocumentationFile>
+    <AssemblyName>Luna.ManageGW.Functions</AssemblyName>
+    <RootNamespace>Luna.ManageGW.Functions</RootNamespace>
+    <DocumentationFile>Luna.ManageGW.Functions.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />

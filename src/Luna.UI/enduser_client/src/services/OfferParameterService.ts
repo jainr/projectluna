@@ -7,8 +7,8 @@ export default class OfferParameterService extends ServiceBase {
 
   public static async list(offerName: string, planName: string): Promise<Result<IOfferParameterModel[]>> {
     
-    var result = await this.sendRequest<IOfferParameterModel[]>(window.Configs.MARKETPLACE_API_ENDPOINT, null, {
-      url: `offers/${offerName}/plans/${planName}/parameters`,
+    var result = await this.requestJson<IOfferParameterModel[]>({
+      url: `/marketplace/offers/${offerName}/plans/${planName}/parameters`,
       method: "GET"
   });
 

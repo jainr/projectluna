@@ -10,6 +10,8 @@ do
 	  t ) aadTenantId="$OPTARG" ;;
 	  c ) aadClientId="$OPTARG" ;;
 	  x ) aadSecret="$OPTARG" ;;
+	  d ) managegwAadClientId="$OPTARG" ;;
+	  g ) managegeAaadSecret="$OPTARG" ;;
 	  a ) adminUserId="$OPTARG" ;;
 	  u ) adminUserName="$OPTARG" ;;
 	  w ) createNew="$OPTARG" ;;
@@ -32,6 +34,7 @@ appInsightsName="${namePrefix}-appinsights"
 
 functionAppPlanName="${namePrefix}-svrplan"
 
+managegwFxAppName="${namePrefix}-managegw"
 gatewayFxAppName="${namePrefix}-gateway"
 rbacFxAppName="${namePrefix}-rbac"
 partnerFxAppName="${namePrefix}-partner"
@@ -152,6 +155,17 @@ then
   # Create gateway service function App
   az functionapp create \
     --name $gatewayFxAppName \
+    --storage-account $storageName \
+    --plan $functionAppPlanName \
+    --resource-group $resourceGroupName \
+    --functions-version 3 \
+	--app-insights $appInsightsName \
+	--os-type Linux \
+	--runtime dotnet
+
+  # Create management gateway service function App
+  az functionapp create \
+    --name $managegwFxAppName \
     --storage-account $storageName \
     --plan $functionAppPlanName \
     --resource-group $resourceGroupName \
@@ -306,6 +320,13 @@ az webapp deployment source config-zip \
 	-n $gatewayFxAppName \
     -t 360 \
     --src gatewayfx.zip
+
+# Deploy management gateway app
+az webapp deployment source config-zip \
+    -g $resourceGroupName \
+	-n $managegwFxAppName \
+    -t 360 \
+    --src managegwfx.zip
 	
 # Deploy publish app
 az webapp deployment source config-zip \
@@ -378,6 +399,16 @@ deployJbArmTemplate="https://github.com/Azure/projectluna/raw/re-arch/src/re_arc
 MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
   --name $gatewayFxAppName \
   --resource-group $resourceGroupName \
+  --settings "GALLERY_SERVICE_BASE_URL=${galleryFxUrl}" \
+			 "GALLERY_SERVICE_KEY=${galleryFxKey}" \
+			 "RBAC_SERVICE_BASE_URL=${rbacFxUrl}" \
+			 "RBAC_SERVICE_KEY=${rbacFxKey}" \
+			 "MARKETPLACE_SERVICE_BASE_URL=${marketplaceFxUrl}" \
+			 "MARKETPLACE_SERVICE_KEY=${marketplaceFxKey}"
+
+MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
+  --name $managegwFxAppName \
+  --resource-group $resourceGroupName \
   --settings "PARTNER_SERVICE_BASE_URL=${partnerFxUrl}" \
              "PARTNER_SERVICE_KEY=${partnerFxKey}" \
 			 "RBAC_SERVICE_BASE_URL=${rbacFxUrl}" \
@@ -386,8 +417,6 @@ MSYS_NO_PATHCONV=1 az functionapp config appsettings set \
 			 "PUBLISH_SERVICE_KEY=${publishFxKey}" \
 			 "PUBSUB_SERVICE_BASE_URL=${pubsubFxUrl}" \
 			 "PUBSUB_SERVICE_KEY=${pubsubFxKey}" \
-			 "GALLERY_SERVICE_BASE_URL=${galleryFxUrl}" \
-			 "GALLERY_SERVICE_KEY=${galleryFxKey}" \
 			 "MARKETPLACE_SERVICE_BASE_URL=${marketplaceFxUrl}" \
 			 "MARKETPLACE_SERVICE_KEY=${marketplaceFxKey}" \
 			 "ENCRYPTION_ASYMMETRIC_KEY=${encryptionKey}"
@@ -499,9 +528,10 @@ then
 fi
 
 # Manage CORS
-az functionapp cors add -g $resourceGroupName -n $marketplaceFxAppName --allowed-origins $landingPageUIUrl
-az functionapp cors add -g $resourceGroupName -n $gatewayFxAppName --allowed-origins $publishingUIUrl
+az functionapp cors add -g $resourceGroupName -n $gatewayFxAppName --allowed-origins $landingPageUIUrl
 az functionapp cors add -g $resourceGroupName -n $gatewayFxAppName --allowed-origins $galleryUIUrl
+
+az functionapp cors add -g $resourceGroupName -n $managegwFxAppName --allowed-origins $publishingUIUrl
 
 # Setup AAD authentication for gateway service
 tokenIssuerUrl="https://login.microsoftonline.com/${aadTenantId}"
@@ -516,6 +546,18 @@ az webapp auth update  \
   --aad-client-secret $aadSecret \
   --aad-token-issuer-url $tokenIssuerUrl
 
+# Setup AAD authentication for management gateway service
+tokenIssuerUrl="https://login.microsoftonline.com/${aadTenantId}"
+audience="api://${managegwAadClientId}"
+az webapp auth update  \
+  -g $resourceGroupName \
+  -n $managegwFxAppName \
+  --enabled true \
+  --action LoginWithAzureActiveDirectory \
+  --aad-allowed-token-audiences $managegwAadClientId $audience \
+  --aad-client-id $managegwAadClientId \
+  --aad-client-secret $managegeAaadSecret \
+  --aad-token-issuer-url $tokenIssuerUrl
   
 echo "Information for testing using Postman collection (variable values):"
 echo "gateway_url: https://${gatewayFxAppName}.azurewebsites.net/api"

@@ -17,13 +17,13 @@ namespace Luna.Common.Swagger
         {
             var assemblyPathList = new List<string>();
 
-            if (serviceName == "gateway")
+            if (serviceName == "gateway" || serviceName == "managegw")
             {
                 assemblyPathList.Add(Path.GetFullPath($@"..\..\..\..\..\{serviceName}\functions\bin\{config}\netcoreapp3.1\Luna.{serviceName}.Functions.dll"));
                 // Gateway service references all other public client libraries
                 foreach (var name in services)
                 {
-                    if (name != "gateway")
+                    if (name != "gateway" && name != "managegw")
                     {
                         assemblyPathList.Add(Path.GetFullPath($@"..\..\..\..\..\{name}\public\bin\{config}\netcoreapp3.1\Luna.{name}.Public.Client.dll"));
                     }
@@ -80,7 +80,7 @@ namespace Luna.Common.Swagger
             Console.WriteLine("swaggergenerator.exe -r -s serviceName : generate swagger for the specified service for release build");
         }
 
-        private static string[] services = new string[] { "gallery", "partner", "publish", "pubsub", "rbac", "gateway", "marketplace" };
+        private static string[] services = new string[] { "gallery", "partner", "publish", "pubsub", "rbac", "gateway", "marketplace", "managegw" };
 
         static void Main(string[] args)
         {

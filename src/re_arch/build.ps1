@@ -14,7 +14,7 @@ param (
 
 New-Item -ItemType Directory -Force -Path testbuild
 
-$servicesWithSwaggerConfiged = @('partner','publish','rbac','gallery','pubsub','gateway','marketplace')
+$servicesWithSwaggerConfiged = @('partner','publish','rbac','gallery','pubsub','gateway','marketplace','managegw')
 
 $config = ([xml](Get-Content build.config)).config
 
@@ -74,7 +74,7 @@ if ($deployNew) {
 	
 	push-location testbuild
 	
-	./deployment.sh -s $config.subscriptionId -r $config.resourceGroupName -l $config.region -n $config.namePrefix -q $config.sqlUserName -p $config.sqlPassword -t $config.tenantId -c $config.clientId -x $config.clientSecret -a $config.adminUserId -u $config.adminUserName -w $config.createNewResource -m $config.useManagedIdentity -e $config.marketplaceTenantId -i $config.marketplaceClientId -b $config.marketplaceClientSecret
+	./deployment.sh -s $config.subscriptionId -r $config.resourceGroupName -l $config.region -n $config.namePrefix -q $config.sqlUserName -p $config.sqlPassword -t $config.tenantId -c $config.clientId -x $config.clientSecret -a $config.adminUserId -u $config.adminUserName -w $config.createNewResource -m $config.useManagedIdentity -e $config.marketplaceTenantId -i $config.marketplaceClientId -b $config.marketplaceClientSecret -d $config.clientId -g $config.clientSecret
 
 	pop-location
 	
@@ -90,11 +90,6 @@ if ($publishLocalSettings) {
 	
 	$sqlConnectionSring = "Server=tcp:" + $config.namePrefix + "-sqlserver.database.windows.net,1433;Initial Catalog=" + $config.namePrefix + "-sqldb;Persist Security Info=False;User ID=" + $config.sqlUserName + ";Password=" + $config.sqlPassword + ";MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 	
-	$gatewayFxAppName = $config.namePrefix + "-gateway"
-	$settings = az functionapp config appsettings list  -g $config.resourceGroupName -n $gatewayFxAppName | ConvertFrom-Json
-	$keySetting = $settings | where { $_.name -eq "ENCRYPTION_ASYMMETRIC_KEY"}
-	$encryptionKey = $keySetting.value
-
 	$rbacFxUrl = "https://" + $config.namePrefix + "-rbac.azurewebsites.net/api/"
 	$publishFxUrl = "https://" + $config.namePrefix + "-publish.azurewebsites.net/api/"
 	$partnerFxUrl = "https://" + $config.namePrefix + "-partner.azurewebsites.net/api/"
@@ -114,6 +109,10 @@ if ($publishLocalSettings) {
 	$partnerFxAppName = $config.namePrefix + "-partner"
 	$partnerFx = az functionapp keys list -g $config.resourceGroupName -n $partnerFxAppName | ConvertFrom-Json
 	$partnerFxKey = $partnerFx.functionKeys.default
+	
+	$settings = az functionapp config appsettings list  -g $config.resourceGroupName -n $partnerFxAppName | ConvertFrom-Json
+	$keySetting = $settings | where { $_.name -eq "ENCRYPTION_ASYMMETRIC_KEY"}
+	$encryptionKey = $keySetting.value
 
 	$pubsubFxAppName = $config.namePrefix + "-pubsub"
 	$pubsubFx = az functionapp keys list -g $config.resourceGroupName -n $pubsubFxAppName | ConvertFrom-Json
@@ -139,20 +138,28 @@ if ($publishLocalSettings) {
 	
 	$gatewayServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
 	$gatewayServiceConfig.Values | add-member -name "AzureWebJobsStorage" -value $storageConnectionString -MemberType NoteProperty
-	$gatewayServiceConfig.Values | add-member -name "PUBSUB_SERVICE_BASE_URL" -value $pubsubFxUrl -MemberType NoteProperty
-	$gatewayServiceConfig.Values | add-member -name "PUBSUB_SERVICE_KEY" -value $pubsubFxKey -MemberType NoteProperty	
-	$gatewayServiceConfig.Values | add-member -name "RBAC_SERVICE_BASE_URL" -value $rbacFxUrl -MemberType NoteProperty
-	$gatewayServiceConfig.Values | add-member -name "RBAC_SERVICE_KEY" -value $rbacFxKey -MemberType NoteProperty	
-	$gatewayServiceConfig.Values | add-member -name "PUBLISH_SERVICE_BASE_URL" -value $publishFxUrl -MemberType NoteProperty
-	$gatewayServiceConfig.Values | add-member -name "PUBLISH_SERVICE_KEY" -value $publishFxKey -MemberType NoteProperty	
-	$gatewayServiceConfig.Values | add-member -name "PARTNER_SERVICE_BASE_URL" -value $partnerFxUrl -MemberType NoteProperty
-	$gatewayServiceConfig.Values | add-member -name "PARTNER_SERVICE_KEY" -value $partnerFxKey -MemberType NoteProperty	
 	$gatewayServiceConfig.Values | add-member -name "GALLERY_SERVICE_BASE_URL" -value $galleryFxUrl -MemberType NoteProperty
 	$gatewayServiceConfig.Values | add-member -name "GALLERY_SERVICE_KEY" -value $galleryFxKey -MemberType NoteProperty	
 	$gatewayServiceConfig.Values | add-member -name "MARKETPLACE_SERVICE_BASE_URL" -value $marketplaceFxUrl -MemberType NoteProperty
 	$gatewayServiceConfig.Values | add-member -name "MARKETPLACE_SERVICE_KEY" -value $marketplaceFxKey -MemberType NoteProperty	
-	$gatewayServiceConfig.Values | add-member -name "ENCRYPTION_ASYMMETRIC_KEY" -value $encryptionKey -MemberType NoteProperty	
+	$gatewayServiceConfig.Values | add-member -name "RBAC_SERVICE_BASE_URL" -value $rbacFxUrl -MemberType NoteProperty
+	$gatewayServiceConfig.Values | add-member -name "RBAC_SERVICE_KEY" -value $rbacFxKey -MemberType NoteProperty	
 	$gatewayServiceConfig | ConvertTo-Json -depth 3 | Out-File .\gateway\functions\local.settings.json
+	
+	$managegwServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
+	$managegwServiceConfig.Values | add-member -name "AzureWebJobsStorage" -value $storageConnectionString -MemberType NoteProperty
+	$managegwServiceConfig.Values | add-member -name "PUBSUB_SERVICE_BASE_URL" -value $pubsubFxUrl -MemberType NoteProperty
+	$managegwServiceConfig.Values | add-member -name "PUBSUB_SERVICE_KEY" -value $pubsubFxKey -MemberType NoteProperty	
+	$managegwServiceConfig.Values | add-member -name "RBAC_SERVICE_BASE_URL" -value $rbacFxUrl -MemberType NoteProperty
+	$managegwServiceConfig.Values | add-member -name "RBAC_SERVICE_KEY" -value $rbacFxKey -MemberType NoteProperty	
+	$managegwServiceConfig.Values | add-member -name "PUBLISH_SERVICE_BASE_URL" -value $publishFxUrl -MemberType NoteProperty
+	$managegwServiceConfig.Values | add-member -name "PUBLISH_SERVICE_KEY" -value $publishFxKey -MemberType NoteProperty	
+	$managegwServiceConfig.Values | add-member -name "PARTNER_SERVICE_BASE_URL" -value $partnerFxUrl -MemberType NoteProperty
+	$managegwServiceConfig.Values | add-member -name "PARTNER_SERVICE_KEY" -value $partnerFxKey -MemberType NoteProperty	
+	$managegwServiceConfig.Values | add-member -name "MARKETPLACE_SERVICE_BASE_URL" -value $marketplaceFxUrl -MemberType NoteProperty
+	$managegwServiceConfig.Values | add-member -name "MARKETPLACE_SERVICE_KEY" -value $marketplaceFxKey -MemberType NoteProperty	
+	$managegwServiceConfig.Values | add-member -name "ENCRYPTION_ASYMMETRIC_KEY" -value $encryptionKey -MemberType NoteProperty	
+	$managegwServiceConfig | ConvertTo-Json -depth 3 | Out-File .\managegw\functions\local.settings.json
 	
 	$partnerServiceConfig = Get-Content .\localSettingTemplate.json | Out-String | ConvertFrom-Json
 	$partnerServiceConfig.Values | add-member -name "AzureWebJobsStorage" -value $storageConnectionString -MemberType NoteProperty

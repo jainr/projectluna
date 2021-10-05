@@ -144,6 +144,11 @@ namespace Luna.Provision.Clients
                 var param = parameters.SingleOrDefault(x => x.Name.ToLower() == argument.Name.ToLower());
                 if (param != null)
                 {
+                    if (param.Name.Equals("uniquename") && param.Value.Contains("_"))
+                    {
+                        throw new LunaServerException("invalid unique name");
+                    }
+
                     if (param.Type.Equals(MarketplaceParameterValueType.String.ToString()))
                     {
                         result.Append($"-{argument.Option} \"{param.Value}\" ");

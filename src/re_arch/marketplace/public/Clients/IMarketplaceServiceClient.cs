@@ -301,6 +301,13 @@ namespace Luna.Marketplace.Public.Client
         Task<string> ListMarketplaceSubscriptionsAsync(LunaRequestHeaders headers);
 
         /// <summary>
+        /// List marketplace subscription details
+        /// </summary>
+        /// <param name="headers">The Luna request header</param>
+        /// <returns></returns>
+        Task<string> ListMarketplaceSubscriptionDetailsAsync(LunaRequestHeaders headers);
+
+        /// <summary>
         /// Get parameters for the specified offer and plan
         /// </summary>
         /// <param name="offerId">The offer id</param>

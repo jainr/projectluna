@@ -1385,7 +1385,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("GetMarketplaceUserInputParameters")]
         public async Task<IActionResult> GetMarketplaceUserInputParameters(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "public/offers/{offerId}/plans/{planId}/parameters")]
+            [HttpTrigger(AuthorizationLevel.Function, "Get", Route = "subscriptions/offers/{offerId}/plans/{planId}/parameters")]
             HttpRequest req,
             string offerId,
             string planId)
@@ -1439,7 +1439,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ResolveMarketplaceSubscription")]
         public async Task<IActionResult> ResolveMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Post", Route = "public/subscriptions/resolvetoken")]
+            [HttpTrigger(AuthorizationLevel.Function, "Post", Route = "subscriptions/resolvetoken")]
             HttpRequest req)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
@@ -1502,7 +1502,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("CreateMarketplaceSubscription")]
         public async Task<IActionResult> CreateMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Put", Route = "public/subscriptions/{subscriptionId}")]
+            [HttpTrigger(AuthorizationLevel.Function, "Put", Route = "subscriptions/{subscriptionId}")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1585,7 +1585,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("UnsubscribeMarketplaceSubscription")]
         public async Task<IActionResult> UnsubscribeMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Delete", Route = "public/subscriptions/{subscriptionId}")]
+            [HttpTrigger(AuthorizationLevel.Function, "Delete", Route = "subscriptions/{subscriptionId}")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1637,7 +1637,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("GetMarketplaceSubscription")]
         public async Task<IActionResult> GetMarketplaceSubscription(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "public/subscriptions/{subscriptionId}")]
+            [HttpTrigger(AuthorizationLevel.Function, "Get", Route = "subscriptions/{subscriptionId}")]
             HttpRequest req,
             Guid subscriptionId)
         {
@@ -1689,7 +1689,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ListMarketplaceSubscriptions")]
         public async Task<IActionResult> ListMarketplaceSubscriptions(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "public/subscriptions")]
+            [HttpTrigger(AuthorizationLevel.Function, "Get", Route = "subscriptions")]
             HttpRequest req)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
@@ -1740,7 +1740,7 @@ namespace Luna.Marketplace.Functions
         /// <returns></returns>
         [FunctionName("ListMarketplaceSubscriptionDetails")]
         public async Task<IActionResult> ListMarketplaceSubscriptionDetails(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "public/subscriptiondetails")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "Get", Route = "subscriptiondetails")]
             HttpRequest req)
         {
             var lunaHeaders = new LunaRequestHeaders(req);
@@ -1750,11 +1750,6 @@ namespace Luna.Marketplace.Functions
 
                 try
                 {
-                    if (string.IsNullOrEmpty(lunaHeaders.UserId) && req.Query.ContainsKey("ownerId"))
-                    {
-                        lunaHeaders.UserId = req.Query["ownerId"].ToString();
-                    }
-
                     var result = await this._marketplaceFunction.ListMarketplaceSubscriptionDetailsAsync(lunaHeaders);
                     return new OkObjectResult(result);
                 }
@@ -1807,92 +1802,6 @@ namespace Luna.Marketplace.Functions
                 finally
                 {
                     _logger.LogMethodEnd(nameof(this.AzureMarketplaceWebhook));
-                }
-            }
-        }
-        #endregion
-
-        #region signin CLI
-
-        [FunctionName("GetAccessToken")]
-        public async Task<IActionResult> GetAccessToken(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "public/manage/accessToken")] HttpRequest req)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.GetAccessToken));
-
-                try
-                {
-                    HttpClient client = new HttpClient();
-                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://login.microsoftonline.com/common/oauth2/token");
-                    if (!req.Query.ContainsKey("device_code"))
-                    {
-                        throw new LunaBadRequestUserException("device_code is needed", UserErrorCode.MissingQueryParameter);
-                    }
-
-                    var deviceCode = req.Query["device_code"].ToString();
-
-                    request.Content = new StringContent($"grant_type=device_code&client_id=04b07795-8ddb-461a-bbee-02f9e1bf7b46&resource=https%3A%2F%2Fmanagement.core.windows.net%2F&code={deviceCode}");
-                    request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-
-                    var response = await client.SendAsync(request);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        return new OkObjectResult(JObject.Parse(content));
-                    }
-
-                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.GetAccessToken));
-                }
-            }
-        }
-
-
-        [FunctionName("GetDeviceCode")]
-        public async Task<IActionResult> GetDeviceCode(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "public/manage/deviceCode")] HttpRequest req)
-        {
-            var lunaHeaders = new LunaRequestHeaders(req);
-            using (_logger.BeginManagementNamedScope(lunaHeaders))
-            {
-                _logger.LogMethodBegin(nameof(this.GetDeviceCode));
-
-                try
-                {
-                    HttpClient client = new HttpClient();
-                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://login.microsoftonline.com/common/oauth2/devicecode?api-version-1.0");
-
-                    request.Content = new StringContent("client_id=04b07795-8ddb-461a-bbee-02f9e1bf7b46&resource=https%3A%2F%2Fmanagement.core.windows.net%2F");
-                    request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-
-                    var response = await client.SendAsync(request);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        return new OkObjectResult(JObject.Parse(content));
-                    }
-
-                    throw new LunaUnauthorizedUserException(ErrorMessages.CAN_NOT_PERFORM_OPERATION);
-                }
-                catch (Exception ex)
-                {
-                    return ErrorUtils.HandleExceptions(ex, this._logger, lunaHeaders.TraceId);
-                }
-                finally
-                {
-                    _logger.LogMethodEnd(nameof(this.GetDeviceCode));
                 }
             }
         }
