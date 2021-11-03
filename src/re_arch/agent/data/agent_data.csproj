@@ -6,4 +6,8 @@
     <RootNamespace>Luna.Agent.Data</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.17" />
+  </ItemGroup>
+
 </Project>

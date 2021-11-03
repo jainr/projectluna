@@ -28,6 +28,10 @@ namespace Luna.Agent.Data
 
         public string ProvisionStepsSecretName { get; set; }
 
+        public string LogFilePath { get; set; }
+
+        public string StatusFilePath { get; set; }
+
         public bool IsActive { get; set; }
 
         public int RetryCount { get; set; }

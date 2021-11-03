@@ -54,14 +54,17 @@ namespace agent
         {
             var content = await new StreamReader(req.Body).ReadToEndAsync();
             RunScriptConfig config = JsonConvert.DeserializeObject<RunScriptConfig>(content);
-            string scriptFileName = Path.Combine(Path.GetTempPath(), "script.sh");
+            string tmpPath = Path.GetTempPath();
+            string scriptFileName = Path.Combine(tmpPath, "script.sh");
+            string logFileName = Path.Combine(tmpPath, "std.log");
+            string erroLogFileName = Path.Combine(tmpPath, "error.log");
             using (var client = new WebClient())
             {
                 client.DownloadFile(config.ScriptFileUrl, scriptFileName);
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.Append(scriptFileName);
+            sb.Append($"-c {scriptFileName}");
 
             foreach(var arg in config.InputArguments)
             {
@@ -69,19 +72,38 @@ namespace agent
                 sb.Append($" {arg.Value}");
             }
 
+            sb.Append($" 1>{logFileName} 2>{erroLogFileName} &");
+
             Process proc = new Process();
+            proc.StartInfo.FileName = "chmod";
+            proc.StartInfo.Arguments = $" u+r+x {scriptFileName}";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.StartInfo.RedirectStandardError = true;
+            proc.StartInfo.CreateNoWindow = true;
+            proc.Start();
+
+            proc.WaitForExit();
+            log.LogInformation($"Exit code 1: {proc.ExitCode}");
+            proc.Dispose();
+
+            proc = new Process();
             proc.StartInfo.FileName = "bash";
             proc.StartInfo.Arguments = sb.ToString();
             proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
+            //proc.StartInfo.RedirectStandardOutput = true;
+            //proc.StartInfo.RedirectStandardError = true;
+            proc.StartInfo.CreateNoWindow = false;
             proc.Start();
-            string result = "";
-            while (!proc.StandardOutput.EndOfStream)
-            {
-                result = result + proc.StandardOutput.ReadLine();
-            }
+            
 
-            return new NoContentResult();
+            proc.WaitForExit();
+            //log.LogWarning(proc.StandardError.ReadToEnd());
+            //log.LogInformation(proc.StandardOutput.ReadToEnd());
+
+            log.LogInformation($"Exit code 2: {proc.ExitCode}");
+
+            return new OkObjectResult(proc.StartInfo.Arguments);
         }
     }
 }
