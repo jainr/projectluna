@@ -128,6 +128,20 @@ class AzureDatabricksUtils(object):
 
         return operationId
     
+    def getOperationLog(self, operationId, userId, subscriptionId):
+        
+        runInfo, operationName = self.getRunInfoByTags(operationId, userId, subscriptionId)
+        client = MlflowClient()
+
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                path = os.path.join(tmp, 'output/log.txt')
+                files = client.download_artifacts(runInfo['run_id'], 'output/log.txt', tmp)
+                with open(path) as file:
+                    return file.read(file)
+        except Exception as ex:
+            raise LunaUserException(HTTPStatus.NOT_FOUND, "Log of operation {} does not exist or you do not have permission to access it.".format(operationId))
+        
     def getOperationOutput(self, operationId, userId, subscriptionId, outputType = "json"):
         
         runInfo, operationName = self.getRunInfoByTags(operationId, userId, subscriptionId)

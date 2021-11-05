@@ -356,6 +356,45 @@ def listOperations(serviceName, apiName, operationName, subscriptionId=Constants
         return jsonify(result)
     except Exception as e:
         return handleExceptions(e)
+    
+@app.route('/apiv2/<serviceName>/<apiName>/operations/<operationId>/log', methods=['GET'])
+def getOperationLog(serviceName, apiName, operationId, subscriptionId = Constants.DEFAULT_SUBSCRIPTION_ID):
+    try:
+        subscription = validateAPIKeyAndGetSubscription(serviceName, apiName, subscriptionId);
+        apiVersion = getAPIVersion(subscription);
+        outputType = request.args.get(Constants.OUTPUT_TYPE_QUERY_PARAM_NAME)
+        if not outputType:
+            outputType = OutputType.json.name
+            
+        if apiVersion.LinkedServiceType == ComputeType.AML.name:
+            if apiVersion.APIType == APIType.pipeline.name:
+                runType = Constants.AML_PIPELINE_RUN_TYPE
+            elif apiVersion.APIType == APIType.mlproject.name:
+                runType = Constants.AML_SCRIPT_RUN_TYPE
+            else:
+                raise LunaUserException(HTTPStatus.BAD_REQUEST, UserErrorMessage.OPERATION_NOT_SUPPORTED)
+            amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
+            amlUtil = AzureMLUtils(amlWorkspace)
+            operation = amlUtil.getOperationStatus(operationId, subscription.Owner, subscription.SubscriptionId, runType)
+            if operation[Constants.OPERATION_STATUS_PARAMETER_NAME] != AMLOperationStatus.Complete.name:
+                raise LunaUserException(HTTPStatus.BAD_REQUEST, UserErrorMessage.NO_OPERATION_PUBLISHED.format(operationId, AMLOperationStatus.Complete.name))
+
+            result = amlUtil.getOperationLog(operationId, subscription.Owner, subscription.SubscriptionId, runType)
+        elif apiVersion.LinkedServiceType == ComputeType.ADB.name:
+            if apiVersion.APIType == APIType.mlproject.name:
+                adbWorkspace = AzureDatabricksWorkspace.GetByIdWithSecrets(apiVersion.AzureDatabricksWorkspaceId)
+                adbUtil = AzureDatabricksUtils(adbWorkspace)
+                operation = adbUtil.getOperationStatus(operationId, subscription.Owner, subscription.SubscriptionId)
+                if operation[Constants.OPERATION_STATUS_PARAMETER_NAME] != ADBOperationStatus.FINISHED.name:
+                    raise LunaUserException(HTTPStatus.BAD_REQUEST, UserErrorMessage.NO_OPERATION_PUBLISHED.format(operationId, ADBOperationStatus.FINISHED.name))
+                result = adbUtil.getOperationLog(operationId, subscription.Owner, subscription.SubscriptionId)
+            else:
+                raise LunaUserException(HTTPStatus.BAD_REQUEST, UserErrorMessage.OPERATION_NOT_SUPPORTED)
+        else:
+            raise LunaUserException(HTTPStatus.BAD_REQUEST, UserErrorMessage.OPERATION_NOT_SUPPORTED)
+        
+    except Exception as e:
+        return handleExceptions(e)
 
 @app.route('/apiv2/<serviceName>/<apiName>/operations/<operationId>/output', methods=['GET'])
 def getOperationOutput(serviceName, apiName, operationId, subscriptionId = Constants.DEFAULT_SUBSCRIPTION_ID):

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Luna.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "app list"
+    }
+  }
+}

@@ -520,6 +520,63 @@ $appsettings["LunaClient:BaseUri"]="https://" + $apiWebAppName + ".azurewebsites
 
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $apiWebAppName -AppSettings $appsettings
 
+$setting = "SecuredCredentials:VaultName=" +  $keyVaultName;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:StorageAccount:Config:AccountName=" +  $StorageName;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:StorageAccount:Config:VaultName=" +  $keyVaultName;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:Database:DatabaseName=" +  $sqlDatabaseName;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:ResourceManager:AzureActiveDirectory:VaultName=" +  $keyVaultName;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:ResourceManager:AzureActiveDirectory:ClientId=" +  $azureResourceManagerAADApplicationId;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:ResourceManager:AzureActiveDirectory:TenantId=" +  $tenantId;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:Marketplace:AzureActiveDirectory:VaultName=" +  $keyVaultName;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:Marketplace:AzureActiveDirectory:ClientId=" +  $azureMarketplaceAADApplicationId;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:Marketplace:AzureActiveDirectory:TenantId=" +  $tenantId;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "AzureAD:ClientId=" +  $webAppAADApplicationId;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "AzureAD:TenantId=" +  $tenantId;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "ISVPortal:AdminAccounts=" +  $adminAccounts;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "ISVPortal:AdminTenant=" +  $adminTenantId;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:Azure:Config:VaultName=" +  $keyVaultName;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "SecuredCredentials:Azure:Config:ControllerBaseUrl=" +  $controllerBaseUrl;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "ApplicationInsights:InstrumentationKey=" +  $appInsightsApp.InstrumentationKey;
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "WebJob:APIServiceUrl=" +  "https://" + $apiWebAppName + ".azurewebsites.net/api";
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
+$setting = "LunaClient:BaseUri=" +  "https://" + $apiWebAppName + ".azurewebsites.net/api";
+az webapp config appsettings set --resource-group $resourceGroupName --name $apiWebAppName --settings $setting
+
 $config = 'var Configs = {
     API_ENDPOINT: "https://'+ $apiWebAppName +'.azurewebsites.net/api/",
     ISV_NAME: "'+$companyName+'",

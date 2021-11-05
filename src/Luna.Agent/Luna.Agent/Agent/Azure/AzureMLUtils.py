@@ -179,6 +179,27 @@ class AzureMLUtils(object):
             except StopIteration:
                 break
         return resultList
+    
+    def getOperationLog(self, operationName, operationId, userId, subscriptionId, runType="azureml.PipelineRun"):
+        
+        tags = {'userId': userId,
+                'operationId': operationId,
+                'subscriptionId': subscriptionId}
+
+        experimentName = subscriptionId
+        exp = Experiment(self._workspace, experimentName)
+        runs = exp.get_runs(type=runType, tags=tags)
+        try:
+            run = next(runs)
+            child_runs = run.get_children()
+            child_run = next(child_runs)
+            with tempfile.TemporaryDirectory() as tmp:
+                path = os.path.join(tmp, 'log.txt')
+                files = child_run.download_file('/outputs/log.txt', path)
+                with open(path) as file:
+                    return file.read()
+        except StopIteration:
+            return None
 
     def getOperationOutput(self, operationName, operationId, userId, subscriptionId, runType="azureml.PipelineRun", outputType = "json"):
         
