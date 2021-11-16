@@ -2,7 +2,7 @@
   "profiles": {
     "Luna.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "app list"
+      "commandLineArgs": "subscription get --subscriptionId cc715bac-85b4-4fb1-8b6c-2a3a06d619a1"
     }
   }
 }

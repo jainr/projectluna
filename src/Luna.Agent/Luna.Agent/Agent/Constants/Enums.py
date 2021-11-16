@@ -17,7 +17,7 @@ class APIType(Enum):
     dataset = 5
 
 class AMLOperationStatus(Enum):
-    Complete = 1
+    Completed = 1
     
 class ADBOperationStatus(Enum):
     FINISHED = 1

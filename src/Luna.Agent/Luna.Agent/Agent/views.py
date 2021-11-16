@@ -269,7 +269,7 @@ def executeOperation(serviceName, apiName, operationName, predecessorOperationId
             amlUtil = AzureMLUtils(amlWorkspace)
             if predecessorOperationId != Constants.PREDECESSOR_OP_ID_NA:
                 result = amlUtil.getOperationStatus(predecessorOperationId, subscription.Owner, subscription.SubscriptionId)
-                if result[Constants.OPERATION_STATUS_PARAMETER_NAME] != AMLOperationStatus.Complete.name:
+                if result[Constants.OPERATION_STATUS_PARAMETER_NAME] != AMLOperationStatus.Completed.name:
                     raise LunaUserException(HTTPStatus.BAD_REQUEST, UserErrorMessage.OPERATION_NOT_IN_STATUS.format(predecessorOperationId, AMLOperationStatus.Complete.name))
 
             opId = amlUtil.submitPipelineRun(subscription, apiVersion, pipeline, request.json, predecessorOperationId = predecessorOperationId)
@@ -362,9 +362,6 @@ def getOperationLog(serviceName, apiName, operationId, subscriptionId = Constant
     try:
         subscription = validateAPIKeyAndGetSubscription(serviceName, apiName, subscriptionId);
         apiVersion = getAPIVersion(subscription);
-        outputType = request.args.get(Constants.OUTPUT_TYPE_QUERY_PARAM_NAME)
-        if not outputType:
-            outputType = OutputType.json.name
             
         if apiVersion.LinkedServiceType == ComputeType.AML.name:
             if apiVersion.APIType == APIType.pipeline.name:
@@ -376,8 +373,6 @@ def getOperationLog(serviceName, apiName, operationId, subscriptionId = Constant
             amlWorkspace = AMLWorkspace.GetByIdWithSecrets(apiVersion.AMLWorkspaceId);
             amlUtil = AzureMLUtils(amlWorkspace)
             operation = amlUtil.getOperationStatus(operationId, subscription.Owner, subscription.SubscriptionId, runType)
-            if operation[Constants.OPERATION_STATUS_PARAMETER_NAME] != AMLOperationStatus.Complete.name:
-                raise LunaUserException(HTTPStatus.BAD_REQUEST, UserErrorMessage.NO_OPERATION_PUBLISHED.format(operationId, AMLOperationStatus.Complete.name))
 
             result = amlUtil.getOperationLog(operationId, subscription.Owner, subscription.SubscriptionId, runType)
         elif apiVersion.LinkedServiceType == ComputeType.ADB.name:
@@ -385,14 +380,12 @@ def getOperationLog(serviceName, apiName, operationId, subscriptionId = Constant
                 adbWorkspace = AzureDatabricksWorkspace.GetByIdWithSecrets(apiVersion.AzureDatabricksWorkspaceId)
                 adbUtil = AzureDatabricksUtils(adbWorkspace)
                 operation = adbUtil.getOperationStatus(operationId, subscription.Owner, subscription.SubscriptionId)
-                if operation[Constants.OPERATION_STATUS_PARAMETER_NAME] != ADBOperationStatus.FINISHED.name:
-                    raise LunaUserException(HTTPStatus.BAD_REQUEST, UserErrorMessage.NO_OPERATION_PUBLISHED.format(operationId, ADBOperationStatus.FINISHED.name))
                 result = adbUtil.getOperationLog(operationId, subscription.Owner, subscription.SubscriptionId)
             else:
                 raise LunaUserException(HTTPStatus.BAD_REQUEST, UserErrorMessage.OPERATION_NOT_SUPPORTED)
         else:
             raise LunaUserException(HTTPStatus.BAD_REQUEST, UserErrorMessage.OPERATION_NOT_SUPPORTED)
-        
+        return {"log": result};
     except Exception as e:
         return handleExceptions(e)
 

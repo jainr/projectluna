@@ -96,8 +96,19 @@ class AzureMLUtils(object):
               'operationId': operationId,
               'subscriptionId': subscription.SubscriptionId,
               'predecessorOperationId': predecessorOperationId}
+
+        input = {
+            'userId': subscription.Owner,
+            'productName': apiVersion.ApplicationName,
+            'deploymentName': apiVersion.APIName,
+            'apiVersion': apiVersion.VersionName,
+            'operationName': pipelineEndpoint.PipelineEndpointName,
+            'operationId': operationId,
+            'subscriptionId': subscription.SubscriptionId,
+            'predecessorOperationId': predecessorOperationId,
+            'userInput': json.dumps(userInput)}
         pipeline = PublishedPipeline.get(workspace = self._workspace, id = pipelineEndpoint.PipelineEndpointId.lower())
-        exp.submit(pipeline, tags = tags, pipeline_parameters=userInput)
+        exp.submit(pipeline, tags = tags, pipeline_parameters=input)
         return operationId
      
     def runProject(self, subscription, apiVersion, operationName, userInput, predecessorOperationId='na'):
@@ -147,11 +158,19 @@ class AzureMLUtils(object):
             endTime = None
             if "endTimeUtc" in details:
                 endTime = details["endTimeUtc"]
+            progress = None
+            child_runs = run.get_children()
+            child_run = next(child_runs)
+            metrics = child_run.get_metrics()
+            if "operation-progress" in metrics:
+                progress_list = metrics.get('operation-progress')
+                progress = progress_list[-1]
             result = {'operationId': operationId,
                       'operationName': run.tags["operationName"],
                       'startTime': details["startTimeUtc"],
                       'endTime': endTime,
-                      'status': run.status
+                      'status': run.status,
+                      'progress': progress
                 }
             return result
         except StopIteration:
@@ -180,7 +199,7 @@ class AzureMLUtils(object):
                 break
         return resultList
     
-    def getOperationLog(self, operationName, operationId, userId, subscriptionId, runType="azureml.PipelineRun"):
+    def getOperationLog(self, operationId, userId, subscriptionId, runType="azureml.PipelineRun"):
         
         tags = {'userId': userId,
                 'operationId': operationId,
@@ -195,11 +214,11 @@ class AzureMLUtils(object):
             child_run = next(child_runs)
             with tempfile.TemporaryDirectory() as tmp:
                 path = os.path.join(tmp, 'log.txt')
-                files = child_run.download_file('/outputs/log.txt', path)
+                files = child_run.download_file('/logs/log.txt', path)
                 with open(path) as file:
                     return file.read()
-        except StopIteration:
-            return None
+        except Exception:
+            return ""
 
     def getOperationOutput(self, operationName, operationId, userId, subscriptionId, runType="azureml.PipelineRun", outputType = "json"):
         

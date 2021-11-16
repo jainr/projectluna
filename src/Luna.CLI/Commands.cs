@@ -43,7 +43,7 @@ namespace Luna.CLI
         private const string TOKEN_CACHE_FILE = "token.cache";
 
         static private List<string> _validResources = new List<string>(
-            new string[] { "app", "api", "api-version", "config", "login" });
+            new string[] { "aml", "app", "api", "api-version", "config", "login", "subscription"});
 
         static private Dictionary<string, List<string>> _validOperations = new Dictionary<string, List<string>>(); 
 
@@ -62,14 +62,22 @@ namespace Luna.CLI
         static private void LoadConstants()
         {
             _validOperations.Add("config", new List<string>(new string[] { "show", "set" }));
+            _validOperations.Add("aml", new List<string>(new string[] { "create", "update", "get", "list", "delete" }));
             _validOperations.Add("app", new List<string> (new string[] { "create", "update", "get", "list", "delete"}));
             _validOperations.Add("api", new List<string>(new string[] { "create", "update", "get", "list", "delete" }));
             _validOperations.Add("api-version", new List<string>(new string[] { "create", "update", "get", "list", "delete" }));
+            _validOperations.Add("subscription", new List<string>(new string[] { "create", "get", "list", "delete" }));
 
             _requiredArguments.Add("config-show", new List<string>(new string[] { }));
             _requiredArguments.Add("config-set", new List<string>(new string[] { "tenantId", "clientId", "baseUrl" }));
 
-            _requiredArguments.Add("app-create", new List<string>(new string[] { "applicationName", "displayName", "owner", "description" }));
+            _requiredArguments.Add("aml-create", new List<string>(new string[] { "workspaceName", "region", "resourceId", "aadApplicationId", "aadApplicationSecrets", "aadTenantId" }));
+            _requiredArguments.Add("aml-update", new List<string>(new string[] { "workspaceName" }));
+            _requiredArguments.Add("aml-get", new List<string>(new string[] { "workspaceName" }));
+            _requiredArguments.Add("aml-list", new List<string>(new string[] { }));
+            _requiredArguments.Add("aml-delete", new List<string>(new string[] { "workspaceName" }));
+
+            _requiredArguments.Add("app-create", new List<string>(new string[] { "applicationName", "displayName", "owner", "description", "saasOfferName", "saasOfferPlanName" }));
             _requiredArguments.Add("app-update", new List<string>(new string[] { "applicationName" }));
             _requiredArguments.Add("app-get", new List<string>(new string[] { "applicationName" }));
             _requiredArguments.Add("app-list", new List<string>(new string[] { }));
@@ -87,9 +95,16 @@ namespace Luna.CLI
             _requiredArguments.Add("api-version-list", new List<string>(new string[] { "applicationName", "apiName" }));
             _requiredArguments.Add("api-version-delete", new List<string>(new string[] { "applicationName", "apiName", "versionName" }));
 
+            _requiredArguments.Add("subscription-create", new List<string>(new string[] { "subscriptionId", "name", "owner", "offerName", "planName" }));
+            _requiredArguments.Add("subscription-get", new List<string>(new string[] { "subscriptionId" }));
+            _requiredArguments.Add("subscription-list", new List<string>(new string[] { }));
+            _requiredArguments.Add("subscription-delete", new List<string>(new string[] { "subscriptionId" }));
+
+            _requestUrls.Add("aml", "{0}/api/amlworkspaces/{4}");
             _requestUrls.Add("app", "{0}/api/applications/{1}");
-            _requestUrls.Add("api", "{0}/api/applications{1}/apis/{2}");
-            _requestUrls.Add("api-version", "{0}/api/applications/{1}/apis/{2}/versions/{3}");
+            _requestUrls.Add("api", "{0}/api/applications/{1}/apis/{2}");
+            _requestUrls.Add("api-version", "{0}/api/applications/{1}/apis/{2}/apiVersions/{3}");
+            _requestUrls.Add("subscription", "{0}/api/subscriptions/{5}");
 
             _httpMethods.Add("create", HttpMethod.Put);
             _httpMethods.Add("update", HttpMethod.Put);
@@ -98,13 +113,15 @@ namespace Luna.CLI
             _httpMethods.Add("delete", HttpMethod.Delete);
         }
 
-        static private Uri GetUri(string format, Dictionary<string, string> arguments)
+        static private Uri GetUri(string format, Dictionary<string, object> arguments)
         {
             var url = string.Format(format,
                 _config.BaseUrl,
-                arguments.ContainsKey("applicationName") ? arguments["applicationName"] : "",
-                arguments.ContainsKey("apiName") ? arguments["apiName"] : "",
-                arguments.ContainsKey("versionName") ? arguments["versionName"] : ""
+                arguments.ContainsKey("applicationName") ? arguments["applicationName"].ToString() : "",
+                arguments.ContainsKey("apiName") ? arguments["apiName"].ToString() : "",
+                arguments.ContainsKey("versionName") ? arguments["versionName"].ToString() : "",
+                arguments.ContainsKey("workspaceName") ? arguments["workspaceName"].ToString() : "",
+                arguments.ContainsKey("subscriptionId") ? arguments["subscriptionId"].ToString() : ""
                 );
 
             return new Uri(url);
@@ -181,15 +198,15 @@ namespace Luna.CLI
             Console.WriteLine($"Base URL: {_config.BaseUrl}");
         }
 
-        static private bool SetConfig(Dictionary<string, string> args)
+        static private bool SetConfig(Dictionary<string, object> args)
         {
             try
             {
                 var content = JsonConvert.SerializeObject(new CLIConfig
                 {
-                    TenantId = Guid.Parse(args["tenantId"]),
-                    ClientId = Guid.Parse(args["clientId"]),
-                    BaseUrl = args["baseUrl"]
+                    TenantId = Guid.Parse(args["tenantId"].ToString()),
+                    ClientId = Guid.Parse(args["clientId"].ToString()),
+                    BaseUrl = args["baseUrl"].ToString()
                 });
 
                 using (StreamWriter sw = new StreamWriter(CONFIG_FILE))
@@ -264,7 +281,7 @@ namespace Luna.CLI
                 return;
             }
 
-            Dictionary<string, string> arguments = new Dictionary<string, string>();
+            Dictionary<string, object> arguments = new Dictionary<string, object>();
 
             for (int i=2;i<args.Length;i+=2)
             {
@@ -280,7 +297,31 @@ namespace Luna.CLI
                     return;
                 }
 
-                arguments.Add(args[i].Substring(2, args[i].Length - 2), args[i + 1]);
+                if (args[i].Equals("--amlPipelineEndpoints"))
+                {
+                    var endpoints = args[i + 1].Split(";");
+                    var endpointObjs = new List<object>();
+                    foreach(var endpoint in endpoints)
+                    {
+                        var segments = endpoint.Split("=");
+                        
+                        if (segments.Length != 2)
+                        {
+                            PrintError("The --amlPipelineEndpoints argument should be formated as endpointName=endpointId;endpointName=endpointId...");
+                        }
+                        endpointObjs.Add(new
+                        {
+                            PipelineEndpointName = segments[0],
+                            PipelineEndpointId = segments[1]
+                        });
+                    }
+                    arguments.Add("amlPipelineEndpoints", endpointObjs);
+                }
+                else
+                {
+                    arguments.Add(args[i].Substring(2, args[i].Length - 2), args[i + 1]);
+                }
+
             }
 
             foreach(var arg in _requiredArguments[$"{resource}-{operation}"])
@@ -320,13 +361,24 @@ namespace Luna.CLI
             if (method == HttpMethod.Put || method == HttpMethod.Post)
             {
                 request.Content = new StringContent(content);
+                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             }
 
             var response = await _httpClient.SendAsync(request);
 
-            string responseContent = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                var obj = JsonConvert.DeserializeObject(responseContent);
+                var formatted = JsonConvert.SerializeObject(obj, Formatting.Indented);
 
-            Console.WriteLine(responseContent);
+                Console.WriteLine(formatted);
+            }
+            else
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                PrintError($"Request failed with status code {response.StatusCode}, error message {responseContent}.");
+            }
         }
     }
 }

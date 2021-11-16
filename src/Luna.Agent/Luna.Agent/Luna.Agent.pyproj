@@ -20,13 +20,13 @@
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <Environment>AAD_TOKEN_ISSUER=https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0
 AAD_VALID_AUDIENCES=1158aaa3-b79f-42b4-8c07-10b7da5fb0fb
-AGENT_API_ENDPOINT=https://lunaaitest-api.azurewebsites.net
+AGENT_API_ENDPOINT=https://lunatest4-api.azurewebsites.net
 AGENT_ID=64125945-4487-4cc7-84f5-77d242300e60
 AGENT_KEY=f1e434cc3594443eb75ea4ee09a1b7ef
 AGENT_MODE=SAAS
-APPINSIGHTS_INSTRUMENTATIONKEY=ef9411de-d359-4011-a0f2-08f6756a0fb1
-KEY_VAULT_NAME=lunaaitest-keyvault
-ODBC_CONNECTION_STRING=mssql+pyodbc://lunauserlunaaitest:sNpdqgU5%PS94xLy#WYuCw3Fd@lunaaitest-sqlserver.database.windows.net:1433/lunaaitest-sqldb?driver=ODBC+Driver+17+for+SQL+Server
+APPINSIGHTS_INSTRUMENTATIONKEY=346ee16a-8fd5-45d5-bd09-17a0f1c6339a
+KEY_VAULT_NAME=lunatest4-keyvault
+ODBC_CONNECTION_STRING=mssql+pyodbc://lunauserlunatest4:64wc0o3dX#jgHktNRP5%Iv3Fd@lunatest4-sqlserver.database.windows.net:1433/lunatest4-sqldb?driver=ODBC+Driver+17+for+SQL+Server
 API_FRONTEND_CERT_THUMBPRINT=46FE14FDE5F55158FCD472E43A80474802D8A5CB
 API_FRONTEND_CERT_ISSUER="CN=luna.ai"
 API_FRONTEND_CERT_SUBJECT="CN=luna.ai"</Environment>
