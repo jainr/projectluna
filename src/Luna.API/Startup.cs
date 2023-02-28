@@ -70,14 +70,16 @@ namespace Luna.API
             });
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
-            app.UseSwagger();
+            // Temporarily disabling to disable swagger documentation, until we figure out how to move to latest swagger version
+            // app.UseSwagger();
 
             // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
             // specifying the Swagger JSON endpoint.
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/" + apiVersion + "/swagger.json", "Luna Dashboard API");
-            });
+            // Temporarily disabling to disable swagger documentation, until we figure out how to move to latest swagger version
+            // app.UseSwaggerUI(c =>
+            // {
+            //    c.SwaggerEndpoint("/swagger/" + apiVersion + "/swagger.json", "Luna Dashboard API");
+            // });
 
             if (env.IsDevelopment())
             {
